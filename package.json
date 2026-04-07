@@ -1,0 +1,74 @@
+{
+  "name": "ticket-app",
+  "private": true,
+  "workspaces": {
+    "packages": [
+      "apps/*",
+      "packages/*"
+    ],
+    "catalog": {
+      "dotenv": "^17.2.2",
+      "zod": "^4.1.13",
+      "@types/bun": "^1.3.4",
+      "hono": "^4.8.2",
+      "@orpc/server": "^1.12.2",
+      "@orpc/openapi": "^1.12.2",
+      "@orpc/zod": "^1.12.2",
+      "ai": "^6.0.3",
+      "lucide-react": "^0.546.0",
+      "next-themes": "^0.4.6",
+      "sonner": "^2.0.5",
+      "@orpc/tanstack-query": "^1.13.6",
+      "@orpc/client": "^1.12.2",
+      "@tanstack/react-query": "^5.90.12",
+      "@ai-sdk/react": "^3.0.3",
+      "@types/react-dom": "^19.2.3",
+      "alchemy": "^0.90.0",
+      "drizzle-orm": "^0.45.1",
+      "@types/pg": "^8.16.0"
+    }
+  },
+  "type": "module",
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "check-types": "turbo check-types",
+    "dev:native": "turbo -F native dev",
+    "dev:web": "turbo -F web dev",
+    "dev:desktop": "turbo -F desktop dev:hmr",
+    "build:desktop": "turbo -F desktop build:stable",
+    "build:desktop:canary": "turbo -F desktop build:canary",
+    "dev:server": "turbo -F server dev",
+    "db:push": "turbo -F @ticket-app/db db:push",
+    "db:studio": "turbo -F @ticket-app/db db:studio",
+    "db:generate": "turbo -F @ticket-app/db db:generate",
+    "db:migrate": "turbo -F @ticket-app/db db:migrate",
+    "deploy": "turbo -F @ticket-app/infra deploy",
+    "destroy": "turbo -F @ticket-app/infra destroy",
+    "check": "oxlint && oxfmt --write",
+    "prepare": "husky"
+  },
+  "dependencies": {
+    "@ticket-app/env": "workspace:*",
+    "dotenv": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20251213.0",
+    "@ticket-app/config": "workspace:*",
+    "@types/bun": "catalog:",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.2",
+    "oxfmt": "^0.26.0",
+    "oxlint": "^1.41.0",
+    "turbo": "^2.8.12",
+    "typescript": "^5"
+  },
+  "lint-staged": {
+    "*": [
+      "oxlint",
+      "oxfmt --write"
+    ]
+  },
+  "packageManager": "bun@1.3.11"
+}
