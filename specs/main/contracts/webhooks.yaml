@@ -1,0 +1,340 @@
+openapi: 3.1.0
+info:
+  title: Webhook Events API
+  version: 1.0.0
+  description: Outbound webhook events for ticket and billing operations
+
+webhooks:
+  ticket.created:
+    post:
+      operationId: onTicketCreated
+      summary: Ticket created
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ticketEvent'
+      responses:
+        '200':
+          description: Event acknowledged
+
+  ticket.updated:
+    post:
+      operationId: onTicketUpdated
+      summary: Ticket updated
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ticketEvent'
+      responses:
+        '200':
+          description: Event acknowledged
+
+  ticket.status_changed:
+    post:
+      operationId: onTicketStatusChanged
+      summary: Ticket status changed
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ticketStatusEvent'
+      responses:
+        '200':
+          description: Event acknowledged
+
+  ticket.assigned:
+    post:
+      operationId: onTicketAssigned
+      summary: Ticket assigned
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ticketEvent'
+      responses:
+        '200':
+          description: Event acknowledged
+
+  ticket.reply_received:
+    post:
+      operationId: onTicketReplyReceived
+      summary: Reply received on ticket
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ticketReplyEvent'
+      responses:
+        '200':
+          description: Event acknowledged
+
+  sla.breached:
+    post:
+      operationId: onSLABreached
+      summary: SLA breached
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/slaBreachEvent'
+      responses:
+        '200':
+          description: Event acknowledged
+
+  subscription.created:
+    post:
+      operationId: onSubscriptionCreated
+      summary: Subscription created
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/subscriptionEvent'
+      responses:
+        '200':
+          description: Event acknowledged
+
+  subscription.updated:
+    post:
+      operationId: onSubscriptionUpdated
+      summary: Subscription updated
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/subscriptionEvent'
+      responses:
+        '200':
+          description: Event acknowledged
+
+  subscription.canceled:
+    post:
+      operationId: onSubscriptionCanceled
+      summary: Subscription canceled
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/subscriptionEvent'
+      responses:
+        '200':
+          description: Event acknowledged
+
+  invoice.paid:
+    post:
+      operationId: onInvoicePaid
+      summary: Invoice paid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/invoiceEvent'
+      responses:
+        '200':
+          description: Event acknowledged
+
+  invoice.payment_failed:
+    post:
+      operationId: onInvoicePaymentFailed
+      summary: Invoice payment failed
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/invoiceEvent'
+      responses:
+        '200':
+          description: Event acknowledged
+
+components:
+  schemas:
+    ticketEvent:
+      type: object
+      required: [event, timestamp, organizationId, ticket]
+      properties:
+        event:
+          type: string
+          enum: [ticket.created, ticket.updated, ticket.assigned]
+        timestamp:
+          type: string
+          format: date-time
+        organizationId:
+          type: string
+          format: uuid
+        ticket:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            referenceNumber:
+              type: string
+            subject:
+              type: string
+            status:
+              type: string
+            priority:
+              type: string
+            assigneeId:
+              type: string
+              format: uuid
+              nullable: true
+            contactId:
+              type: string
+              format: uuid
+              nullable: true
+
+    ticketStatusEvent:
+      type: object
+      required: [event, timestamp, organizationId, ticket, previousStatus, newStatus]
+      properties:
+        event:
+          type: string
+          const: ticket.status_changed
+        timestamp:
+          type: string
+          format: date-time
+        organizationId:
+          type: string
+          format: uuid
+        ticket:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            referenceNumber:
+              type: string
+        previousStatus:
+          type: string
+        newStatus:
+          type: string
+
+    ticketReplyEvent:
+      type: object
+      required: [event, timestamp, organizationId, ticket, message]
+      properties:
+        event:
+          type: string
+          const: ticket.reply_received
+        timestamp:
+          type: string
+          format: date-time
+        organizationId:
+          type: string
+          format: uuid
+        ticket:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            referenceNumber:
+              type: string
+        message:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            authorType:
+              type: string
+              enum: [agent, contact]
+            bodyText:
+              type: string
+
+    slaBreachEvent:
+      type: object
+      required: [event, timestamp, organizationId, ticket, breachType]
+      properties:
+        event:
+          type: string
+          const: sla.breached
+        timestamp:
+          type: string
+          format: date-time
+        organizationId:
+          type: string
+          format: uuid
+        ticket:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            referenceNumber:
+              type: string
+        breachType:
+          type: string
+          enum: [first_response, resolution]
+
+    subscriptionEvent:
+      type: object
+      required: [event, timestamp, organizationId, subscription]
+      properties:
+        event:
+          type: string
+          enum: [subscription.created, subscription.updated, subscription.canceled]
+        timestamp:
+          type: string
+          format: date-time
+        organizationId:
+          type: string
+          format: uuid
+        subscription:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            planId:
+              type: string
+              format: uuid
+            status:
+              type: string
+            billingCycle:
+              type: string
+            currentPeriodEnd:
+              type: string
+              format: date-time
+
+    invoiceEvent:
+      type: object
+      required: [event, timestamp, organizationId, invoice]
+      properties:
+        event:
+          type: string
+          enum: [invoice.paid, invoice.payment_failed]
+        timestamp:
+          type: string
+          format: date-time
+        organizationId:
+          type: string
+          format: uuid
+        invoice:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+            number:
+              type: string
+            amount:
+              type: number
+            currency:
+              type: string
+            status:
+              type: string
