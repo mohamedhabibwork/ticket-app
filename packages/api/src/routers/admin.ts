@@ -5,25 +5,24 @@ import {
   users,
   twoFactorAuth,
   subscriptions,
-  subscriptionPlans,
 } from "@ticket-app/db/schema";
 import { eq, and, sql } from "drizzle-orm";
 import z from "zod";
 
-import { publicProcedure, protectedProcedure } from "../index";
+import { protectedProcedure } from "../index";
 
 export const adminRouter = {
   getOrganizationSettings: protectedProcedure
     .input(
       z.object({
         organizationId: z.number(),
-      })
+      }),
     )
     .handler(async ({ input, context }) => {
       const user = await db.query.users.findFirst({
         where: and(
           eq(users.id, BigInt(context.auth.userId || 0)),
-          eq(users.organizationId, input.organizationId)
+          eq(users.organizationId, input.organizationId),
         ),
       });
 
@@ -47,14 +46,14 @@ export const adminRouter = {
     .input(
       z.object({
         organizationId: z.number(),
-        settings: z.record(z.string()),
-      })
+        settings: z.record(z.string(), z.unknown()),
+      }),
     )
     .handler(async ({ input, context }) => {
       const user = await db.query.users.findFirst({
         where: and(
           eq(users.id, BigInt(context.auth.userId || 0)),
-          eq(users.organizationId, input.organizationId)
+          eq(users.organizationId, input.organizationId),
         ),
       });
 
@@ -66,7 +65,7 @@ export const adminRouter = {
         const existing = await db.query.organizationSettings.findFirst({
           where: and(
             eq(organizationSettings.organizationId, input.organizationId),
-            eq(organizationSettings.key, key)
+            eq(organizationSettings.key, key),
           ),
         });
 
@@ -94,13 +93,13 @@ export const adminRouter = {
       z.object({
         organizationId: z.number(),
         enabled: z.boolean(),
-      })
+      }),
     )
     .handler(async ({ input, context }) => {
       const user = await db.query.users.findFirst({
         where: and(
           eq(users.id, BigInt(context.auth.userId || 0)),
-          eq(users.organizationId, input.organizationId)
+          eq(users.organizationId, input.organizationId),
         ),
       });
 
@@ -112,7 +111,7 @@ export const adminRouter = {
       const existing = await db.query.organizationSettings.findFirst({
         where: and(
           eq(organizationSettings.organizationId, input.organizationId),
-          eq(organizationSettings.key, settingKey)
+          eq(organizationSettings.key, settingKey),
         ),
       });
 
@@ -138,13 +137,13 @@ export const adminRouter = {
     .input(
       z.object({
         organizationId: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const setting = await db.query.organizationSettings.findFirst({
         where: and(
           eq(organizationSettings.organizationId, input.organizationId),
-          eq(organizationSettings.key, "enforce_2fa")
+          eq(organizationSettings.key, "enforce_2fa"),
         ),
       });
 
@@ -155,7 +154,7 @@ export const adminRouter = {
     .input(
       z.object({
         userId: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const tfa = await db.query.twoFactorAuth.findFirst({
@@ -173,7 +172,7 @@ export const adminRouter = {
     .input(
       z.object({
         organizationId: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const org = await db.query.organizations.findFirst({
@@ -196,15 +195,10 @@ export const adminRouter = {
         .select({ count: sql<number>`count(*)` })
         .from(users)
         .where(
-          and(
-            eq(users.organizationId, input.organizationId),
-            sql`${users.deletedAt} IS NULL`
-          )
+          and(eq(users.organizationId, input.organizationId), sql`${users.deletedAt} IS NULL`),
         );
 
-      const activeSeats = org.subscription?.seats?.filter(
-        (s) => !s.removedAt
-      ) || [];
+      const activeSeats = org.subscription?.seats?.filter((s) => !s.removedAt) || [];
 
       return {
         organization: {
@@ -228,7 +222,7 @@ export const adminRouter = {
         page: z.number().default(1),
         limit: z.number().default(50),
         search: z.string().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const offset = (input.page - 1) * input.limit;
@@ -249,9 +243,7 @@ export const adminRouter = {
         orderBy: (organizations, { desc }) => [desc(organizations.createdAt)],
       });
 
-      const total = await db
-        .select({ count: sql<number>`count(*)` })
-        .from(organizations);
+      const total = await db.select({ count: sql<number>`count(*)` }).from(organizations);
 
       return {
         organizations: orgs.map((org) => ({

@@ -39,7 +39,7 @@ export async function sendEmail(options: SendEmailOptions): Promise<void> {
 
 export async function verifyConnection(): Promise<boolean> {
   try {
-    const transport = getTransport();
+    const transport = getTransporter();
     await transport.verify();
     return true;
   } catch {

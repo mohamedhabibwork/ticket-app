@@ -1,6 +1,8 @@
 import type { RouterClient } from "@orpc/server";
 
 import { publicProcedure } from "../index";
+import { notificationsRouter } from "./notifications";
+import { fileRouter } from "./files";
 import { todoRouter } from "./todo";
 import { slaPoliciesRouter } from "./slaPolicies";
 import { ticketSlaRouter } from "./ticketSla";
@@ -31,12 +33,16 @@ import { ecommerceStoresRouter } from "./ecommerceStores";
 import { ecommerceOrdersRouter } from "./ecommerceOrders";
 import { socialAccountsRouter } from "./socialAccounts";
 import { socialMessagesRouter } from "./socialMessages";
+import { usersRouter } from "./users";
 
 export const appRouter = {
   healthCheck: publicProcedure.handler(() => {
     return { status: "ok", timestamp: new Date().toISOString() };
   }),
+  notifications: notificationsRouter,
+  files: fileRouter,
   todo: todoRouter,
+  users: usersRouter,
   slaPolicies: slaPoliciesRouter,
   ticketSla: ticketSlaRouter,
   csatSurveys: csatSurveysRouter,

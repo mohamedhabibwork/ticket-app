@@ -7,10 +7,8 @@ import {
   ticketMerges,
   ticketFollowers,
   lookups,
-  contacts,
   tags,
   users,
-  teams,
 } from "@ticket-app/db/schema";
 import { eq, and, isNull, desc, sql, inArray } from "drizzle-orm";
 import z from "zod";
@@ -31,7 +29,7 @@ export const ticketsRouter = {
         search: z.string().optional(),
         limit: z.number().min(1).max(100).default(50),
         offset: z.number().min(0).default(0),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const conditions = [
@@ -42,12 +40,11 @@ export const ticketsRouter = {
       if (input.statusId) conditions.push(eq(tickets.statusId, input.statusId));
       if (input.priorityId) conditions.push(eq(tickets.priorityId, input.priorityId));
       if (input.channelId) conditions.push(eq(tickets.channelId, input.channelId));
-      if (input.assignedAgentId) conditions.push(eq(tickets.assignedAgentId, input.assignedAgentId));
+      if (input.assignedAgentId)
+        conditions.push(eq(tickets.assignedAgentId, input.assignedAgentId));
       if (input.contactId) conditions.push(eq(tickets.contactId, input.contactId));
       if (input.search) {
-        conditions.push(
-          sql`${tickets.subject} ILIKE ${`%${input.search}%`}`
-        );
+        conditions.push(sql`${tickets.subject} ILIKE ${`%${input.search}%`}`);
       }
 
       return await db.query.tickets.findMany({
@@ -70,14 +67,14 @@ export const ticketsRouter = {
       z.object({
         organizationId: z.number(),
         id: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const ticket = await db.query.tickets.findFirst({
         where: and(
           eq(tickets.id, input.id),
           eq(tickets.organizationId, input.organizationId),
-          isNull(tickets.deletedAt)
+          isNull(tickets.deletedAt),
         ),
         with: {
           contact: true,
@@ -106,14 +103,14 @@ export const ticketsRouter = {
       z.object({
         organizationId: z.number(),
         referenceNumber: z.string(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       return await db.query.tickets.findFirst({
         where: and(
           eq(tickets.referenceNumber, input.referenceNumber),
           eq(tickets.organizationId, input.organizationId),
-          isNull(tickets.deletedAt)
+          isNull(tickets.deletedAt),
         ),
         with: {
           contact: true,
@@ -143,28 +140,38 @@ export const ticketsRouter = {
         ccEmails: z.array(z.string().email()).optional(),
         bccEmails: z.array(z.string().email()).optional(),
         isSpam: z.boolean().default(false),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const referenceNumber = await generateReferenceNumber(input.organizationId);
 
-      const defaultStatusId = input.statusId ?? (
-        await db.query.lookups.findFirst({
-          where: and(
-            eq(lookups.lookupTypeId, sql`(SELECT id FROM lookup_types WHERE name = 'ticket_status')`),
-            eq(lookups.isDefault, true)
-          ),
-        })
-      )?.id;
+      const defaultStatusId =
+        input.statusId ??
+        (
+          await db.query.lookups.findFirst({
+            where: and(
+              eq(
+                lookups.lookupTypeId,
+                sql`(SELECT id FROM lookup_types WHERE name = 'ticket_status')`,
+              ),
+              eq(lookups.isDefault, true),
+            ),
+          })
+        )?.id;
 
-      const defaultPriorityId = input.priorityId ?? (
-        await db.query.lookups.findFirst({
-          where: and(
-            eq(lookups.lookupTypeId, sql`(SELECT id FROM lookup_types WHERE name = 'ticket_priority')`),
-            eq(lookups.isDefault, true)
-          ),
-        })
-      )?.id;
+      const defaultPriorityId =
+        input.priorityId ??
+        (
+          await db.query.lookups.findFirst({
+            where: and(
+              eq(
+                lookups.lookupTypeId,
+                sql`(SELECT id FROM lookup_types WHERE name = 'ticket_priority')`,
+              ),
+              eq(lookups.isDefault, true),
+            ),
+          })
+        )?.id;
 
       const [ticket] = await db
         .insert(tickets)
@@ -191,7 +198,7 @@ export const ticketsRouter = {
           input.ccEmails.map((email) => ({
             ticketId: ticket.id,
             email: email.toLowerCase(),
-          }))
+          })),
         );
       }
 
@@ -203,7 +210,7 @@ export const ticketsRouter = {
       z.object({
         ticketId: z.number(),
         email: z.string().email(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const [cc] = await db
@@ -222,16 +229,13 @@ export const ticketsRouter = {
       z.object({
         ticketId: z.number(),
         email: z.string().email(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       await db
         .delete(ticketCc)
         .where(
-          and(
-            eq(ticketCc.ticketId, input.ticketId),
-            eq(ticketCc.email, input.email.toLowerCase())
-          )
+          and(eq(ticketCc.ticketId, input.ticketId), eq(ticketCc.email, input.email.toLowerCase())),
         );
       return { success: true };
     }),
@@ -243,7 +247,7 @@ export const ticketsRouter = {
         assignedAgentId: z.number().nullable().optional(),
         assignedTeamId: z.number().nullable().optional(),
         updatedBy: z.number().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const [updated] = await db
@@ -265,7 +269,7 @@ export const ticketsRouter = {
         id: z.number(),
         statusId: z.number(),
         updatedBy: z.number().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const status = await db.query.lookups.findFirst({
@@ -302,7 +306,7 @@ export const ticketsRouter = {
         id: z.number(),
         priorityId: z.number(),
         updatedBy: z.number().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const [updated] = await db
@@ -322,7 +326,7 @@ export const ticketsRouter = {
       z.object({
         id: z.number(),
         lockedBy: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const [updated] = await db
@@ -341,7 +345,7 @@ export const ticketsRouter = {
     .input(
       z.object({
         id: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const [updated] = await db
@@ -362,7 +366,7 @@ export const ticketsRouter = {
         masterTicketId: z.number(),
         mergedTicketId: z.number(),
         mergedBy: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const [mergeRecord] = await db
@@ -392,7 +396,7 @@ export const ticketsRouter = {
       z.object({
         id: z.number(),
         includePrivate: z.boolean().default(false),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const ticket = await db.query.tickets.findFirst({
@@ -409,9 +413,7 @@ export const ticketsRouter = {
 
       if (!ticket) return null;
 
-      const messageConditions = [
-        eq(ticketMessages.ticketId, input.id),
-      ];
+      const messageConditions = [eq(ticketMessages.ticketId, input.id)];
 
       if (!input.includePrivate) {
         messageConditions.push(eq(ticketMessages.isPrivate, false));
@@ -478,7 +480,7 @@ export const ticketsRouter = {
         assignedAgentId: z.number().nullable().optional(),
         assignedTeamId: z.number().nullable().optional(),
         updatedBy: z.number().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       await db
@@ -500,7 +502,7 @@ export const ticketsRouter = {
         ticketIds: z.array(z.number()),
         statusId: z.number(),
         updatedBy: z.number().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       await db
@@ -521,7 +523,7 @@ export const ticketsRouter = {
         ticketIds: z.array(z.number()),
         tagIds: z.array(z.number()),
         createdBy: z.number().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const values = input.ticketIds.flatMap((ticketId) =>
@@ -529,7 +531,7 @@ export const ticketsRouter = {
           ticketId,
           tagId,
           createdBy: input.createdBy,
-        }))
+        })),
       );
 
       await db.insert(ticketTags).values(values).onConflictDoNothing();
@@ -542,7 +544,7 @@ export const ticketsRouter = {
       z.object({
         ticketIds: z.array(z.number()),
         tagIds: z.array(z.number()),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       await db
@@ -550,8 +552,8 @@ export const ticketsRouter = {
         .where(
           and(
             inArray(ticketTags.ticketId, input.ticketIds),
-            inArray(ticketTags.tagId, input.tagIds)
-          )
+            inArray(ticketTags.tagId, input.tagIds),
+          ),
         );
 
       return { success: true };
@@ -562,7 +564,7 @@ export const ticketsRouter = {
       z.object({
         ticketIds: z.array(z.number()),
         deletedBy: z.number().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       await db
@@ -581,7 +583,7 @@ export const ticketsRouter = {
       z.object({
         ticketId: z.number(),
         userId: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const [follower] = await db
@@ -600,7 +602,7 @@ export const ticketsRouter = {
       z.object({
         ticketId: z.number(),
         userId: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       await db
@@ -608,9 +610,106 @@ export const ticketsRouter = {
         .where(
           and(
             eq(ticketFollowers.ticketId, input.ticketId),
-            eq(ticketFollowers.userId, input.userId)
-          )
+            eq(ticketFollowers.userId, input.userId),
+          ),
         );
       return { success: true };
+    }),
+
+  listSpam: publicProcedure
+    .input(
+      z.object({
+        organizationId: z.number(),
+        limit: z.number().min(1).max(100).default(50),
+        offset: z.number().min(0).default(0),
+      }),
+    )
+    .handler(async ({ input }) => {
+      return await db.query.tickets.findMany({
+        where: and(
+          eq(tickets.organizationId, input.organizationId),
+          eq(tickets.isSpam, true),
+          isNull(tickets.deletedAt),
+        ),
+        orderBy: [desc(tickets.createdAt)],
+        limit: input.limit,
+        offset: input.offset,
+        with: {
+          contact: true,
+          status: true,
+          priority: true,
+          channel: true,
+          assignedAgent: true,
+        },
+      });
+    }),
+
+  markAsSpam: publicProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        organizationId: z.number(),
+      }),
+    )
+    .handler(async ({ input }) => {
+      const [updated] = await db
+        .update(tickets)
+        .set({
+          isSpam: true,
+          updatedAt: new Date(),
+        })
+        .where(and(eq(tickets.id, input.id), eq(tickets.organizationId, input.organizationId)))
+        .returning();
+      return updated;
+    }),
+
+  markAsNotSpam: publicProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        organizationId: z.number(),
+      }),
+    )
+    .handler(async ({ input }) => {
+      const [updated] = await db
+        .update(tickets)
+        .set({
+          isSpam: false,
+          updatedAt: new Date(),
+        })
+        .where(and(eq(tickets.id, input.id), eq(tickets.organizationId, input.organizationId)))
+        .returning();
+      return updated;
+    }),
+
+  deletePermanent: publicProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        organizationId: z.number(),
+      }),
+    )
+    .handler(async ({ input }) => {
+      await db
+        .delete(tickets)
+        .where(
+          and(
+            eq(tickets.id, input.id),
+            eq(tickets.organizationId, input.organizationId),
+            eq(tickets.isSpam, true),
+          ),
+        );
+      return { success: true };
+    }),
+
+  checkSpam: publicProcedure
+    .input(
+      z.object({
+        id: z.number(),
+      }),
+    )
+    .handler(async ({ input }) => {
+      const { detectSpam } = await import("../services/spamDetection");
+      return await detectSpam(input.id);
     }),
 };
