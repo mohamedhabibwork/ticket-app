@@ -1,0 +1,136 @@
+import { db } from "@ticket-app/db";
+import { ticketMessages, ticketAttachments, tickets, lookups, users } from "@ticket-app/db/schema";
+import { eq, and, desc } from "drizzle-orm";
+import z from "zod";
+
+import { publicProcedure } from "../index";
+
+const messageTypeEnum = z.enum(["reply", "note", "activity"]);
+const authorTypeEnum = z.enum(["agent", "contact", "system", "bot"]);
+
+export const ticketMessagesRouter = {
+  listByTicket: publicProcedure
+    .input(z.object({ ticketId: z.number() }))
+    .handler(async ({ input }) => {
+      return await db
+        .select({
+          id: ticketMessages.id,
+          uuid: ticketMessages.uuid,
+          ticketId: ticketMessages.ticketId,
+          authorType: ticketMessages.authorType,
+          authorUserId: ticketMessages.authorUserId,
+          authorContactId: ticketMessages.authorContactId,
+          messageType: ticketMessages.messageType,
+          bodyHtml: ticketMessages.bodyHtml,
+          bodyText: ticketMessages.bodyText,
+          isPrivate: ticketMessages.isPrivate,
+          createdAt: ticketMessages.createdAt,
+          createdBy: ticketMessages.createdBy,
+        })
+        .from(ticketMessages)
+        .where(eq(ticketMessages.ticketId, input.ticketId))
+        .orderBy(desc(ticketMessages.createdAt));
+    }),
+
+  get: publicProcedure
+    .input(z.object({ id: z.number() }))
+    .handler(async ({ input }) => {
+      const [message] = await db
+        .select()
+        .from(ticketMessages)
+        .where(eq(ticketMessages.id, input.id));
+      return message ?? null;
+    }),
+
+  create: publicProcedure
+    .input(
+      z.object({
+        ticketId: z.number(),
+        authorType: authorTypeEnum,
+        authorUserId: z.number().optional(),
+        authorContactId: z.number().optional(),
+        messageType: messageTypeEnum,
+        bodyHtml: z.string().optional(),
+        bodyText: z.string().optional(),
+        isPrivate: z.boolean().default(false),
+        attachments: z.array(z.object({
+          filename: z.string(),
+          mimeType: z.string(),
+          sizeBytes: z.number(),
+          storageKey: z.string(),
+        })).optional(),
+      })
+    )
+    .handler(async ({ input }) => {
+      const [message] = await db
+        .insert(ticketMessages)
+        .values({
+          ticketId: input.ticketId,
+          authorType: input.authorType,
+          authorUserId: input.authorUserId,
+          authorContactId: input.authorContactId,
+          messageType: input.messageType,
+          bodyHtml: input.bodyHtml,
+          bodyText: input.bodyText,
+          isPrivate: input.isPrivate,
+          createdBy: input.authorUserId,
+        })
+        .returning();
+
+      if (input.attachments && input.attachments.length > 0 && message) {
+        await db.insert(ticketAttachments).values(
+          input.attachments.map((att) => ({
+            ticketId: input.ticketId,
+            ticketMessageId: message.id,
+            filename: att.filename,
+            mimeType: att.mimeType,
+            sizeBytes: att.sizeBytes,
+            storageKey: att.storageKey,
+            createdBy: input.authorUserId,
+          }))
+        );
+      }
+
+      if (!input.isPrivate && input.messageType === "reply") {
+        await db
+          .update(tickets)
+          .set({ firstResponseAt: new Date(), updatedAt: new Date() })
+          .where(eq(tickets.id, input.ticketId));
+      }
+
+      return message;
+    }),
+
+  update: publicProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        bodyHtml: z.string().optional(),
+        bodyText: z.string().optional(),
+      })
+    )
+    .handler(async ({ input }) => {
+      const [updated] = await db
+        .update(ticketMessages)
+        .set({
+          bodyHtml: input.bodyHtml,
+          bodyText: input.bodyText,
+          updatedAt: new Date(),
+        })
+        .where(eq(ticketMessages.id, input.id))
+        .returning();
+      return updated;
+    }),
+
+  delete: publicProcedure
+    .input(z.object({ id: z.number() }))
+    .handler(async ({ input }) => {
+      await db
+        .delete(ticketAttachments)
+        .where(eq(ticketAttachments.ticketMessageId, input.id));
+      await db
+        .delete(ticketMessages)
+        .where(eq(ticketMessages.id, input.id));
+      return { success: true };
+    }),
+};

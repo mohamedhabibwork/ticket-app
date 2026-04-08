@@ -1,0 +1,340 @@
+openapi: 3.1.0
+info:
+  title: User & Authentication API
+  version: 1.0.0
+  description: User management, authentication, and authorization
+
+paths:
+  /auth/login:
+    post:
+      operationId: login
+      summary: Login with email/password
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                organizationId:
+                  type: string
+                  format: uuid
+      responses:
+        '200':
+          description: Login successful
+          headers:
+            Set-Cookie:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/userSession'
+        '401':
+          description: Invalid credentials
+
+  /auth/logout:
+    post:
+      operationId: logout
+      summary: Logout
+      tags: [Auth]
+      security: [cookieAuth: []]
+      responses:
+        '204':
+          description: Logged out
+
+  /auth/2fa/setup:
+    post:
+      operationId: setup2FA
+      summary: Setup two-factor authentication
+      tags: [Auth]
+      security: [cookieAuth: []]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [method]
+              properties:
+                method:
+                  type: string
+                  enum: [totp, email_otp]
+      responses:
+        '200':
+          description: 2FA setup initiated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totpSecret:
+                    type: string
+                  totpUri:
+                    type: string
+                  backupCodes:
+                    type: array
+                    items:
+                      type: string
+
+  /auth/2fa/verify:
+    post:
+      operationId: verify2FA
+      summary: Verify 2FA code
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [code]
+              properties:
+                code:
+                  type: string
+      responses:
+        '200':
+          description: 2FA verified
+
+  /users:
+    get:
+      operationId: listUsers
+      summary: List organization users
+      tags: [Users]
+      security: [cookieAuth: [], bearerAuth: []]
+      parameters:
+        - $ref: '#/components/parameters/organizationId'
+        - name: roleId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: isActive
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: User list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/user'
+
+    post:
+      operationId: createUser
+      summary: Create user
+      tags: [Users]
+      security: [cookieAuth: [], bearerAuth: []]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/userCreate'
+      responses:
+        '201':
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user'
+
+  /users/{userId}:
+    get:
+      operationId: getUser
+      summary: Get user
+      tags: [Users]
+      security: [cookieAuth: [], bearerAuth: []]
+      parameters:
+        - $ref: '#/components/parameters/organizationId'
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: User details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/userDetail'
+
+    patch:
+      operationId: updateUser
+      summary: Update user
+      tags: [Users]
+      security: [cookieAuth: [], bearerAuth: []]
+      parameters:
+        - $ref: '#/components/parameters/organizationId'
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/userUpdate'
+      responses:
+        '200':
+          description: User updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user'
+
+    delete:
+      operationId: deleteUser
+      summary: Soft delete user
+      tags: [Users]
+      security: [cookieAuth: [], bearerAuth: []]
+      parameters:
+        - $ref: '#/components/parameters/organizationId'
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: User deleted
+
+  /roles:
+    get:
+      operationId: listRoles
+      summary: List roles
+      tags: [Roles]
+      security: [cookieAuth: [], bearerAuth: []]
+      parameters:
+        - $ref: '#/components/parameters/organizationId'
+      responses:
+        '200':
+          description: Role list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/role'
+
+  /teams:
+    get:
+      operationId: listTeams
+      summary: List teams
+      tags: [Teams]
+      security: [cookieAuth: [], bearerAuth: []]
+      parameters:
+        - $ref: '#/components/parameters/organizationId'
+      responses:
+        '200':
+          description: Team list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/team'
+
+    post:
+      operationId: createTeam
+      summary: Create team
+      tags: [Teams]
+      security: [cookieAuth: [], bearerAuth: []]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/teamCreate'
+      responses:
+        '201':
+          description: Team created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/team'
+
+  /teams/{teamId}/members:
+    post:
+      operationId: addTeamMember
+      summary: Add member to team
+      tags: [Teams]
+      security: [cookieAuth: [], bearerAuth: []]
+      parameters:
+        - $ref: '#/components/parameters/organizationId'
+        - name: teamId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userId]
+              properties:
+                userId:
+                  type: string
+                  format: uuid
+                isLead:
+                  type: boolean
+                  default: false
+      responses:
+        '201':
+          description: Member added
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: session_token
+    bearerAuth:
+      type: http
+      scheme: bearer
+
+  parameters:
+    organizationId:
+      in: header
+      name: X-Organization-ID
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    user:
+      $ref: './schemas/user.yaml'
+    userDetail:
+      $ref: './schemas/userDetail.yaml'
+    userCreate:
+      $ref: './schemas/userCreate.yaml'
+    userUpdate:
+      $ref: './schemas/userUpdate.yaml'
+    userSession:
+      $ref: './schemas/userSession.yaml'
+    role:
+      $ref: './schemas/role.yaml'
+    team:
+      $ref: './schemas/team.yaml'
+    teamCreate:
+      $ref: './schemas/teamCreate.yaml'

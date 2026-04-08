@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { devToolsMiddleware } from "@ai-sdk/devtools";
 import { google } from "@ai-sdk/google";
 import { OpenAPIHandler } from "@orpc/openapi/fetch";

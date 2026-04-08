@@ -1,0 +1,281 @@
+openapi: 3.1.0
+info:
+  title: Ticket Management API
+  version: 1.0.0
+  description: Core ticket operations for the support platform
+
+paths:
+  /tickets:
+    get:
+      operationId: listTickets
+      summary: List tickets
+      tags: [Tickets]
+      security: [cookieAuth: [], bearerAuth: []]
+      parameters:
+        - $ref: '#/components/parameters/organizationId'
+        - name: status
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: priority
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: assigneeId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: teamId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: contactId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: channel
+          in: query
+          schema:
+            type: string
+            enum: [email, chat, form, social, api]
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+            maximum: 100
+      responses:
+        '200':
+          description: Paginated ticket list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ticketList'
+
+    post:
+      operationId: createTicket
+      summary: Create ticket
+      tags: [Tickets]
+      security: [cookieAuth: [], bearerAuth: []]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ticketCreate'
+      responses:
+        '201':
+          description: Ticket created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ticket'
+
+  /tickets/{ticketId}:
+    get:
+      operationId: getTicket
+      summary: Get ticket
+      tags: [Tickets]
+      security: [cookieAuth: [], bearerAuth: []]
+      parameters:
+        - $ref: '#/components/parameters/organizationId'
+        - name: ticketId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Ticket details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ticketDetail'
+
+    patch:
+      operationId: updateTicket
+      summary: Update ticket
+      tags: [Tickets]
+      security: [cookieAuth: [], bearerAuth: []]
+      parameters:
+        - $ref: '#/components/parameters/organizationId'
+        - name: ticketId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ticketUpdate'
+      responses:
+        '200':
+          description: Ticket updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ticket'
+
+  /tickets/{ticketId}/messages:
+    get:
+      operationId: listTicketMessages
+      summary: List ticket messages
+      tags: [Tickets]
+      security: [cookieAuth: [], bearerAuth: []]
+      parameters:
+        - $ref: '#/components/parameters/organizationId'
+        - name: ticketId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Message list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ticketMessage'
+
+    post:
+      operationId: createTicketMessage
+      summary: Add message to ticket
+      tags: [Tickets]
+      security: [cookieAuth: [], bearerAuth: []]
+      parameters:
+        - $ref: '#/components/parameters/organizationId'
+        - name: ticketId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ticketMessageCreate'
+      responses:
+        '201':
+          description: Message created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ticketMessage'
+
+  /tickets/{ticketId}/merge:
+    post:
+      operationId: mergeTicket
+      summary: Merge ticket into another
+      tags: [Tickets]
+      security: [cookieAuth: [], bearerAuth: []]
+      parameters:
+        - $ref: '#/components/parameters/organizationId'
+        - name: ticketId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [targetTicketId]
+              properties:
+                targetTicketId:
+                  type: string
+                  format: uuid
+      responses:
+        '200':
+          description: Tickets merged
+
+  /tickets/{ticketId}/lock:
+    post:
+      operationId: lockTicket
+      summary: Lock ticket for editing
+      tags: [Tickets]
+      security: [cookieAuth: [], bearerAuth: []]
+      parameters:
+        - $ref: '#/components/parameters/organizationId'
+        - name: ticketId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Ticket locked
+
+    delete:
+      operationId: unlockTicket
+      summary: Unlock ticket
+      tags: [Tickets]
+      security: [cookieAuth: [], bearerAuth: []]
+      parameters:
+        - $ref: '#/components/parameters/organizationId'
+        - name: ticketId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Ticket unlocked
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: session_token
+    bearerAuth:
+      type: http
+      scheme: bearer
+
+  parameters:
+    organizationId:
+      in: header
+      name: X-Organization-ID
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    ticket:
+      $ref: './schemas/ticket.yaml'
+    ticketDetail:
+      $ref: './schemas/ticketDetail.yaml'
+    ticketCreate:
+      $ref: './schemas/ticketCreate.yaml'
+    ticketUpdate:
+      $ref: './schemas/ticketUpdate.yaml'
+    ticketMessage:
+      $ref: './schemas/ticketMessage.yaml'
+    ticketMessageCreate:
+      $ref: './schemas/ticketMessageCreate.yaml'
+    ticketList:
+      $ref: './schemas/ticketList.yaml'
