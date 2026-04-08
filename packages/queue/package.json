@@ -1,33 +1,26 @@
 {
-  "name": "@ticket-app/api",
+  "name": "@ticket-app/queue",
   "type": "module",
   "exports": {
     ".": {
       "default": "./src/index.ts"
     },
-    "./*": {
-      "default": "./src/*.ts"
-    }
+    "./redis": "./src/redis.ts",
+    "./queue": "./src/queue.ts",
+    "./email": "./src/email.ts"
   },
   "scripts": {},
   "dependencies": {
-    "@orpc/client": "catalog:",
-    "@orpc/openapi": "catalog:",
-    "@orpc/server": "catalog:",
-    "@orpc/zod": "catalog:",
-    "@ticket-app/db": "workspace:*",
     "@ticket-app/env": "workspace:*",
-    "@types/pg": "catalog:",
-    "dotenv": "catalog:",
-    "drizzle-orm": "catalog:",
-    "ioredis": "catalog:",
     "bullmq": "catalog:",
+    "dotenv": "catalog:",
+    "ioredis": "catalog:",
     "nodemailer": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
     "@ticket-app/config": "workspace:*",
-    "hono": "catalog:",
+    "@types/nodemailer": "catalog:",
     "typescript": "^5"
   }
 }
