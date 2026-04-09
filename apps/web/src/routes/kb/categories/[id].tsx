@@ -16,7 +16,7 @@ import { Loader2, ArrowLeft, Edit, Trash2, Plus, FileText, GripVertical, FolderO
 
 import { orpc } from "@/utils/orpc";
 
-export const Route = createFileRoute("/kb/categories/$id")({
+export const Route = createFileRoute("/kb/categories/id")({
   component: KbCategoryDetailRoute,
 });
 

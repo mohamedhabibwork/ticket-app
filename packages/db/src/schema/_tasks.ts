@@ -11,6 +11,10 @@ import {
   unique,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
+import { organizations } from "./_organizations";
+import { lookups } from "./_lookups";
+import { tickets } from "./_tickets";
+import { users } from "./_users";
 
 export const tasks = pgTable(
   "tasks",

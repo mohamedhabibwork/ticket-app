@@ -8,6 +8,8 @@ import {
   index,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
+import { subscriptions, subscriptionPlans } from "./_billing";
+import { organizations } from "./_organizations";
 
 export const revenueSnapshots = pgTable(
   "revenue_snapshots",

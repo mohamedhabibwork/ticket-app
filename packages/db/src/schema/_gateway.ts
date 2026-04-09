@@ -1,6 +1,7 @@
 import {
   pgTable,
   bigint,
+  boolean,
   jsonb,
   text,
   timestamp,
@@ -9,6 +10,10 @@ import {
   index,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
+import { organizations } from "./_organizations";
+import { subscriptions } from "./_billing";
+import { paymentMethods } from "./_paymentMethods";
+import { invoices } from "./_invoices";
 
 export const stripeCustomers = pgTable(
   "stripe_customers",

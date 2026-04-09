@@ -10,6 +10,8 @@ import {
   unique,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
+import { users } from "./_users";
+import { subscriptionPlans } from "./_billing";
 
 export const organizations = pgTable("organizations", {
   id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),

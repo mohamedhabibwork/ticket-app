@@ -11,6 +11,9 @@ import {
   index,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
+import { organizations } from "./_organizations";
+import { tickets } from "./_tickets";
+import { users } from "./_users";
 
 export const workflows = pgTable(
   "workflows",

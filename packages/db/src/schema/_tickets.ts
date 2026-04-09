@@ -12,6 +12,15 @@ import {
   unique,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
+import { lookups } from "./_lookups";
+import { organizations } from "./_organizations";
+import { contacts } from "./_contacts";
+import { teams, users } from "./_users";
+import { emailMessages, mailboxes } from "./_mailboxes";
+import { formSubmissions } from "./_forms";
+import { socialMessages } from "./_social";
+import { chatSessions } from "./_chat";
+import { ticketCustomFields, ticketSla } from "./_sla";
 
 export const tickets = pgTable(
   "tickets",

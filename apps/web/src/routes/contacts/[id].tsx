@@ -23,7 +23,7 @@ import { Loader2, Edit, Trash2, Merge, ArrowLeft, Mail, Phone, Building, Ticket,
 
 import { orpc } from "@/utils/orpc";
 
-export const Route = createFileRoute("/contacts/$id")({
+export const Route = createFileRoute("/contacts/id")({
   component: ContactDetailRoute,
 });
 

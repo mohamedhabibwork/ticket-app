@@ -22,7 +22,7 @@ import { Loader2, ArrowLeft, Edit, Users, UserPlus, User, Ticket, Crown } from "
 
 import { orpc } from "@/utils/orpc";
 
-export const Route = createFileRoute("/teams/$id")({
+export const Route = createFileRoute("/teams/id")({
   component: TeamDetailRoute,
 });
 

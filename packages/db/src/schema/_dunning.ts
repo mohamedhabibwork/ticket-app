@@ -1,5 +1,7 @@
 import { pgTable, bigint, integer, jsonb, timestamp, varchar, index } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
+import { subscriptions } from "./_billing";
+import { invoices } from "./_invoices";
 
 export const dunningSchedules = pgTable(
   "dunning_schedules",

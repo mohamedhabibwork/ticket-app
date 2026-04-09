@@ -29,7 +29,7 @@ function formatRelativeTime(date: Date | string): string {
   return new Date(date).toLocaleString();
 }
 
-export const Route = createFileRoute("/chat/$id")({
+export const Route = createFileRoute("/chat/id")({
   component: ChatConversationRoute,
 });
 

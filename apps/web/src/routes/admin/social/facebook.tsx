@@ -29,7 +29,7 @@ function formatRelativeTime(date: Date | string): string {
   return then.toLocaleDateString();
 }
 
-export const Route = createFileRoute("/admin/social/facebook/")({
+export const Route = createFileRoute("/admin/social/facebook")({
   component: FacebookConnectionRoute,
 });
 

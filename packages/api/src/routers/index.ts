@@ -39,6 +39,19 @@ import { reportsRouter } from "./reports";
 import { aiRouter } from "./ai";
 import { sessionsRouter } from "./sessions";
 import { tasksRouter } from "./tasks";
+import { gdprRouter } from "./gdpr";
+import { presenceRouter } from "./presence";
+import { ticketForwardsRouter } from "./ticketForwards";
+import { groupsRouter } from "./groups";
+import { ticketCategoriesRouter } from "./ticketCategories";
+import { disqusRouter } from "./disqus";
+import { marketplaceRouter } from "./marketplace";
+import { calendarRouter } from "./calendar";
+import { customerAuthRouter } from "./customerAuth";
+import { translationRouter } from "./translation";
+import { mobileSdkRouter } from "./mobileSdk";
+import { chatbotRouter } from "./chatbot";
+import { onPremiseRouter } from "./onPremise";
 
 export const appRouter = {
   healthCheck: publicProcedure.handler(() => {
@@ -82,6 +95,19 @@ export const appRouter = {
   ai: aiRouter,
   sessions: sessionsRouter,
   tasks: tasksRouter,
+  gdpr: gdprRouter,
+  presence: presenceRouter,
+  ticketForwards: ticketForwardsRouter,
+  groups: groupsRouter,
+  ticketCategories: ticketCategoriesRouter,
+  disqus: disqusRouter,
+  marketplace: marketplaceRouter,
+  calendar: calendarRouter,
+  customerAuth: customerAuthRouter,
+  translation: translationRouter,
+  mobileSdk: mobileSdkRouter,
+  chatbot: chatbotRouter,
+  onPremise: onPremiseRouter,
 };
 
 export type AppRouter = typeof appRouter;

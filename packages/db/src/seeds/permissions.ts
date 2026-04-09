@@ -97,6 +97,34 @@ export const SYSTEM_PERMISSIONS = [
 
   // Platform admin permissions
   { key: "platform.admin", label: "Platform Administration", group: "Platform" },
+
+  // Ticket view scope permissions
+  { key: "tickets.view_scope.all", label: "View All Tickets", group: "Tickets" },
+  { key: "tickets.view_scope.group", label: "View Group Tickets", group: "Tickets" },
+  { key: "tickets.view_scope.self", label: "View Own Tickets", group: "Tickets" },
+
+  // Thread permissions
+  { key: "threads.lock", label: "Lock Threads", group: "Threads" },
+  { key: "threads.unlock", label: "Unlock Threads", group: "Threads" },
+  { key: "threads.view_locked", label: "View Locked Threads", group: "Threads" },
+  { key: "threads.delete", label: "Delete Threads", group: "Threads" },
+  { key: "threads.view_deleted", label: "View Deleted Threads", group: "Threads" },
+
+  // GDPR permissions
+  { key: "gdpr.requests.manage", label: "Manage GDPR Requests", group: "GDPR" },
+
+  // Marketplace permissions
+  { key: "marketplace.view", label: "View Marketplace", group: "Marketplace" },
+  { key: "marketplace.reply", label: "Reply via Marketplace", group: "Marketplace" },
+
+  // Chatbot permissions
+  { key: "chatbot.configure", label: "Configure Chatbot", group: "Chatbot" },
+
+  // Translation permissions
+  { key: "translation.use", label: "Use Translation", group: "Translation" },
+
+  // Calendar permissions
+  { key: "calendar.connect", label: "Connect Calendar", group: "Calendar" },
 ] as const;
 
 export async function seedPermissions() {

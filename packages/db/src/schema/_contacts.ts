@@ -11,6 +11,9 @@ import {
   unique,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
+import { users } from "./_users";
+import { organizations } from "./_organizations";
+import { lookups } from "./_lookups";
 
 export const contacts = pgTable(
   "contacts",

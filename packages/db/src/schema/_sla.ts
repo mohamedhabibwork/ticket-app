@@ -12,6 +12,10 @@ import {
   unique,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
+import { organizations } from "./_organizations";
+import { teams, users } from "./_users";
+import { lookups } from "./_lookups";
+import { ticketCustomFieldValues, tickets } from "./_tickets";
 
 export const slaPolicies = pgTable(
   "sla_policies",

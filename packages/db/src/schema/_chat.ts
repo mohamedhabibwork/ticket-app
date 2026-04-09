@@ -11,6 +11,10 @@ import {
   index,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
+import { contacts } from "./_contacts";
+import { organizations } from "./_organizations";
+import { tickets } from "./_tickets";
+import { users } from "./_users";
 
 export const chatWidgets = pgTable(
   "chat_widgets",

@@ -8,6 +8,9 @@ import { publicProcedure } from "../index";
 import { generateUploadUrl, generateDownloadUrl, getPublicUrl, deleteFile } from "../lib/storage";
 import { env } from "@ticket-app/env/server";
 
+const IMAGE_MIME_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp", "image/svg+xml"];
+const THUMBNAIL_SIZE = 200;
+
 export const fileRouter = {
   generateUploadUrl: publicProcedure
     .input(
@@ -42,6 +45,8 @@ export const fileRouter = {
         ticketId: z.number().optional(),
         ticketMessageId: z.number().optional(),
         createdBy: z.number().optional(),
+        isInlineImage: z.boolean().default(false),
+        galleryOrder: z.number().optional(),
       }),
     )
     .output(
@@ -51,11 +56,19 @@ export const fileRouter = {
         mimeType: z.string(),
         sizeBytes: z.number(),
         storageKey: z.string(),
+        thumbnailKey: z.string().optional(),
+        imageWidth: z.number().optional(),
+        imageHeight: z.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
       const provider = env.STORAGE_PROVIDER || "local";
       const fileBuffer = Buffer.from(await input.file.arrayBuffer());
+      const isImage = IMAGE_MIME_TYPES.includes(input.contentType);
+
+      let thumbnailKey: string | undefined;
+      let imageWidth: number | undefined;
+      let imageHeight: number | undefined;
 
       if (provider === "local") {
         const basePath = env.STORAGE_LOCAL_PATH || "./uploads";
@@ -67,6 +80,23 @@ export const fileRouter = {
         }
 
         await writeFile(filePath, fileBuffer);
+
+        if (isImage) {
+          try {
+            const sharp = (await import("sharp")).default;
+            const image = sharp(fileBuffer);
+            const metadata = await image.metadata();
+            imageWidth = metadata.width;
+            imageHeight = metadata.height;
+
+            const thumbnailFileName = `thumb_${input.fileKey}`;
+            const thumbnailPath = join(basePath, thumbnailFileName);
+            await image.resize(THUMBNAIL_SIZE, THUMBNAIL_SIZE, { fit: "cover" }).toFile(thumbnailPath);
+            thumbnailKey = thumbnailFileName;
+          } catch (e) {
+            console.error("Failed to generate thumbnail:", e);
+          }
+        }
       } else {
         const url = await generateUploadUrl({
           filename: input.filename,
@@ -79,6 +109,37 @@ export const fileRouter = {
           body: fileBuffer,
           headers: { "Content-Type": input.contentType },
         });
+
+        if (isImage) {
+          try {
+            const sharp = (await import("sharp")).default;
+            const image = sharp(fileBuffer);
+            const metadata = await image.metadata();
+            imageWidth = metadata.width;
+            imageHeight = metadata.height;
+
+            const thumbnailBuffer = await image.resize(THUMBNAIL_SIZE, THUMBNAIL_SIZE, { fit: "cover" }).toBuffer();
+            const thumbnailKeyParts = input.fileKey.split("/");
+            thumbnailKeyParts[thumbnailKeyParts.length - 1] = `thumb_${thumbnailKeyParts[thumbnailKeyParts.length - 1]}`;
+            const thumbnailFileKey = thumbnailKeyParts.join("/");
+
+            const thumbnailUrl = await generateUploadUrl({
+              filename: `thumb_${input.filename}`,
+              contentType: input.contentType,
+              folder: input.folder,
+            });
+
+            await fetch(thumbnailUrl.uploadUrl, {
+              method: "PUT",
+              body: thumbnailBuffer,
+              headers: { "Content-Type": input.contentType },
+            });
+
+            thumbnailKey = thumbnailFileKey;
+          } catch (e) {
+            console.error("Failed to generate thumbnail:", e);
+          }
+        }
       }
 
       const [attachment] = await db
@@ -90,6 +151,11 @@ export const fileRouter = {
           mimeType: input.contentType,
           sizeBytes: fileBuffer.length,
           storageKey: input.fileKey,
+          thumbnailKey,
+          imageWidth,
+          imageHeight,
+          isInlineImage: input.isInlineImage,
+          galleryOrder: input.galleryOrder,
           createdBy: input.createdBy,
         })
         .returning();
@@ -100,6 +166,9 @@ export const fileRouter = {
         mimeType: attachment.mimeType,
         sizeBytes: Number(attachment.sizeBytes),
         storageKey: attachment.storageKey,
+        thumbnailKey: attachment.thumbnailKey || undefined,
+        imageWidth: attachment.imageWidth || undefined,
+        imageHeight: attachment.imageHeight || undefined,
       };
     }),
 
@@ -215,4 +284,35 @@ export const fileRouter = {
       .where(eq(ticketAttachments.id, input.id));
     return attachment ?? null;
   }),
+
+  getGallery: publicProcedure
+    .input(
+      z.object({
+        ticketId: z.number(),
+      }),
+    )
+    .handler(async ({ input }) => {
+      return db
+        .select()
+        .from(ticketAttachments)
+        .where(eq(ticketAttachments.ticketId, input.ticketId))
+        .orderBy(ticketAttachments.galleryOrder);
+    }),
+
+  updateGalleryOrder: publicProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        galleryOrder: z.number(),
+      }),
+    )
+    .handler(async ({ input }) => {
+      const [updated] = await db
+        .update(ticketAttachments)
+        .set({ galleryOrder: input.galleryOrder })
+        .where(eq(ticketAttachments.id, input.id))
+        .returning();
+
+      return updated;
+    }),
 };

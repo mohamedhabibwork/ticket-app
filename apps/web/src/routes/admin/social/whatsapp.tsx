@@ -30,7 +30,7 @@ function formatRelativeTime(date: Date | string): string {
   return then.toLocaleDateString();
 }
 
-export const Route = createFileRoute("/admin/social/whatsapp/")({
+export const Route = createFileRoute("/admin/social/whatsapp")({
   component: WhatsAppConnectionRoute,
 });
 

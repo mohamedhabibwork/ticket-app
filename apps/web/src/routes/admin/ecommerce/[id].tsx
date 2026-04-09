@@ -38,7 +38,7 @@ const platformNames: Record<string, string> = {
   zid: "Zid",
 };
 
-export const Route = createFileRoute("/admin/ecommerce/id/")({
+export const Route = createFileRoute("/admin/ecommerce/id")({
   component: StoreDetailRoute,
 });
 

@@ -13,8 +13,18 @@ import { streamText, convertToModelMessages, wrapLanguageModel } from "ai";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
+import { websocket } from "@hono/node-ws";
+import { joinTicket, leaveTicket, heartbeat, getTicketViewers } from "@ticket-app/api/lib/presence";
 
 const app = new Hono();
+const { upgradeWebSocket, websocket } = websocket({
+  open(ws) {
+    console.log("WebSocket opened");
+  },
+  close(ws) {
+    console.log("WebSocket closed");
+  },
+});
 
 app.use(logger());
 app.use(
@@ -89,4 +99,36 @@ app.get("/", (c) => {
   return c.text("OK");
 });
 
+app.get(
+  "/ws/presence/:ticketId/:userId/:userName",
+  upgradeWebSocket((c) => {
+    const ticketId = parseInt(c.req.param("ticketId"));
+    const userId = parseInt(c.req.param("userId"));
+    const userName = c.req.param("userName");
+
+    return {
+      onOpen(ws) {
+        joinTicket(ticketId, userId, userName).then(() => {
+          ws.send(JSON.stringify({ type: "viewer_joined", ticketId, userId, userName }));
+        });
+      },
+      onMessage(event, ws) {
+        const data = JSON.parse(event.data);
+        if (data.type === "heartbeat") {
+          heartbeat(ticketId, userId);
+          ws.send(JSON.stringify({ type: "heartbeat_ack" }));
+        } else if (data.type === "get_viewers") {
+          getTicketViewers(ticketId).then((viewers) => {
+            ws.send(JSON.stringify({ type: "viewers_list", viewers }));
+          });
+        }
+      },
+      onClose(ws) {
+        leaveTicket(ticketId, userId);
+      },
+    };
+  })
+);
+
+export { websocket };
 export default app;

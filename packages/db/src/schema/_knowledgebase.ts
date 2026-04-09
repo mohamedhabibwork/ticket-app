@@ -11,6 +11,8 @@ import {
   unique,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
+import { organizations } from "./_organizations";
+import { users } from "./_users";
 
 export const kbCategories = pgTable(
   "kb_categories",

@@ -29,7 +29,7 @@ function formatRelativeTime(date: Date | string): string {
   return then.toLocaleDateString();
 }
 
-export const Route = createFileRoute("/admin/social/twitter/")({
+export const Route = createFileRoute("/admin/social/twitter")({
   component: TwitterConnectionRoute,
 });
 

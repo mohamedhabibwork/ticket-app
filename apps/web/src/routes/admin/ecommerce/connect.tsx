@@ -24,7 +24,7 @@ const platforms: { id: Platform; name: string; icon: string; color: string }[] =
   { id: "zid", name: "Zid", icon: "🟠", color: "border-orange-500" },
 ];
 
-export const Route = createFileRoute("/admin/ecommerce/connect/")({
+export const Route = createFileRoute("/admin/ecommerce/connect")({
   component: ConnectStoreRoute,
 });
 
