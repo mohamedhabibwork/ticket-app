@@ -118,6 +118,88 @@ export const contactsRouter = {
       return { duplicate: false, contact };
     }),
 
+  updatePushPreferences: publicProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        organizationId: z.number(),
+        pushEnabled: z.boolean(),
+        pushOptIn: z.boolean().optional(),
+        emailNotifications: z.boolean().optional(),
+        ticketUpdates: z.boolean().optional(),
+        promotionalMessages: z.boolean().optional(),
+      })
+    )
+    .handler(async ({ input }) => {
+      const contact = await db.query.contacts.findFirst({
+        where: and(
+          eq(contacts.id, input.id),
+          eq(contacts.organizationId, input.organizationId),
+          isNull(contacts.deletedAt)
+        ),
+      });
+
+      if (!contact) {
+        throw new Error("Contact not found");
+      }
+
+      const currentMetadata = (contact.metadata || {}) as Record<string, unknown>;
+      const updatedMetadata = {
+        ...currentMetadata,
+        pushPreferences: {
+          pushEnabled: input.pushEnabled,
+          pushOptIn: input.pushOptIn ?? true,
+          emailNotifications: input.emailNotifications ?? true,
+          ticketUpdates: input.ticketUpdates ?? true,
+          promotionalMessages: input.promotionalMessages ?? false,
+          updatedAt: new Date().toISOString(),
+        },
+      };
+
+      const [updated] = await db
+        .update(contacts)
+        .set({
+          metadata: updatedMetadata,
+          updatedAt: new Date(),
+        })
+        .where(eq(contacts.id, input.id))
+        .returning();
+
+      return updated;
+    }),
+
+  getPushPreferences: publicProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        organizationId: z.number(),
+      })
+    )
+    .handler(async ({ input }) => {
+      const contact = await db.query.contacts.findFirst({
+        where: and(
+          eq(contacts.id, input.id),
+          eq(contacts.organizationId, input.organizationId),
+          isNull(contacts.deletedAt)
+        ),
+      });
+
+      if (!contact) {
+        throw new Error("Contact not found");
+      }
+
+      const metadata = (contact.metadata || {}) as Record<string, unknown>;
+      const pushPreferences = (metadata.pushPreferences || {
+        pushEnabled: false,
+        pushOptIn: true,
+        emailNotifications: true,
+        ticketUpdates: true,
+        promotionalMessages: false,
+      }) as Record<string, unknown>;
+
+      return pushPreferences;
+    }),
+
   findDuplicates: publicProcedure
     .input(
       z.object({

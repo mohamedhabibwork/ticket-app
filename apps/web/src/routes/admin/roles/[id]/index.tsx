@@ -5,6 +5,13 @@ import { Button } from "@ticket-app/ui/components/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
 import { Input } from "@ticket-app/ui/components/input";
 import { Label } from "@ticket-app/ui/components/label";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@ticket-app/ui/components/dropdown-menu";
+import { ChevronDown } from "lucide-react";
 import { orpc } from "@/utils/orpc";
 import { ArrowLeft, Shield, Save, AlertTriangle } from "lucide-react";
 
@@ -21,8 +28,10 @@ function EditRoleRoute() {
   const [formData, setFormData] = useState({
     name: "",
     description: "",
+    ticketViewScope: "all" as "all" | "group" | "self",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showScopeDropdown, setShowScopeDropdown] = useState(false);
 
   const { data: role, isLoading, refetch } = useQuery({
     queryKey: ["role", roleId],
@@ -31,7 +40,7 @@ function EditRoleRoute() {
   });
 
   const updateMutation = useMutation(
-    orpc.roles.update.mutationOptions({
+    orpc.users.updateRole.mutationOptions({
       onSuccess: () => {
         refetch();
         queryClient.invalidateQueries({ queryKey: ["roles"] });
@@ -54,6 +63,7 @@ function EditRoleRoute() {
       id: roleId,
       name: formData.name,
       description: formData.description,
+      ticketViewScope: formData.ticketViewScope,
     });
   };
 
@@ -111,7 +121,7 @@ function EditRoleRoute() {
     );
   }
 
-  const handleChange = (field: string, value: string) => {
+  const handleChange = (field: string, value: string | "all" | "group" | "self") => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors((prev) => {
@@ -121,6 +131,14 @@ function EditRoleRoute() {
       });
     }
   };
+
+  const scopeOptions = [
+    { value: "all", label: "All Tickets", description: "Can view all tickets in the organization" },
+    { value: "group", label: "Group Tickets", description: "Can view tickets assigned to teams in their group" },
+    { value: "self", label: "Self Tickets", description: "Can only view tickets assigned to themselves" },
+  ];
+
+  const selectedScope = scopeOptions.find((s) => s.value === (formData.ticketViewScope || role.ticketViewScope)) || scopeOptions[0];
 
   return (
     <div className="container mx-auto py-8 max-w-2xl">
@@ -172,6 +190,37 @@ function EditRoleRoute() {
                 placeholder="Describe what this role is for..."
                 className="h-24 w-full rounded-none border border-input bg-transparent px-2.5 py-1 text-xs transition-colors outline-none focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50"
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Ticket View Scope</Label>
+              <p className="text-xs text-muted-foreground mb-2">
+                Controls which tickets this role can view
+              </p>
+              <DropdownMenu open={showScopeDropdown} onOpenChange={setShowScopeDropdown}>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" className="w-full justify-between">
+                    {selectedScope.label}
+                    <ChevronDown className="h-4 w-4 ml-2" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-full">
+                  {scopeOptions.map((scope) => (
+                    <DropdownMenuItem
+                      key={scope.value}
+                      onClick={() => {
+                        handleChange("ticketViewScope", scope.value as "all" | "group" | "self");
+                        setShowScopeDropdown(false);
+                      }}
+                    >
+                      <div>
+                        <div className="font-medium">{scope.label}</div>
+                        <div className="text-xs text-muted-foreground">{scope.description}</div>
+                      </div>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
 
             {errors.submit && (

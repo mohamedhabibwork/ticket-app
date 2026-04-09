@@ -24,6 +24,7 @@ const workflowActionSchema = z.object({
     "create_task",
     "add_note",
     "apply_saved_reply",
+    "create_calendar_event",
   ]),
   params: z.record(z.unknown()),
 });

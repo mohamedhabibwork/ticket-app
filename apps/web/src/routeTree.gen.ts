@@ -31,6 +31,7 @@ import { Route as SettingsProfileRouteImport } from './routes/settings/profile'
 import { Route as SettingsPasswordRouteImport } from './routes/settings/password'
 import { Route as SettingsNotificationsRouteImport } from './routes/settings/notifications'
 import { Route as SettingsAppearanceRouteImport } from './routes/settings/appearance'
+import { Route as PortalLoginRouteImport } from './routes/portal/login'
 import { Route as KbNewRouteImport } from './routes/kb/new'
 import { Route as KbSlugRouteImport } from './routes/kb/$slug'
 import { Route as FormsChar91idChar93RouteImport } from './routes/forms/[id]'
@@ -64,7 +65,12 @@ import { Route as AdminSocialWhatsappRouteImport } from './routes/admin/social/w
 import { Route as AdminSocialTwitterRouteImport } from './routes/admin/social/twitter'
 import { Route as AdminSocialInstagramRouteImport } from './routes/admin/social/instagram'
 import { Route as AdminSocialFacebookRouteImport } from './routes/admin/social/facebook'
+import { Route as AdminSocialDisqusRouteImport } from './routes/admin/social/disqus'
 import { Route as AdminSlaNewRouteImport } from './routes/admin/sla/new'
+import { Route as AdminSettingsTranslationRouteImport } from './routes/admin/settings/translation'
+import { Route as AdminSettingsMobileSdkRouteImport } from './routes/admin/settings/mobile-sdk'
+import { Route as AdminSettingsLicenseRouteImport } from './routes/admin/settings/license'
+import { Route as AdminSettingsChatbotRouteImport } from './routes/admin/settings/chatbot'
 import { Route as AdminSecuritySsoRouteImport } from './routes/admin/security/sso'
 import { Route as AdminSecurityIpWhitelistRouteImport } from './routes/admin/security/ip-whitelist'
 import { Route as AdminSavedRepliesFoldersRouteImport } from './routes/admin/saved-replies/folders'
@@ -79,6 +85,7 @@ import { Route as AdminFormsNewRouteImport } from './routes/admin/forms/new'
 import { Route as AdminFormsBuilderRouteImport } from './routes/admin/forms/builder'
 import { Route as AdminEcommerceChar91idChar93RouteImport } from './routes/admin/ecommerce/[id]'
 import { Route as AdminEcommerceConnectRouteImport } from './routes/admin/ecommerce/connect'
+import { Route as AdminEcommerceAmazonRouteImport } from './routes/admin/ecommerce/amazon'
 import { Route as AdminBrandingThemeRouteImport } from './routes/admin/branding/theme'
 import { Route as AdminBrandingPortalRouteImport } from './routes/admin/branding/portal'
 import { Route as AdminBrandingEmailRouteImport } from './routes/admin/branding/email'
@@ -200,6 +207,11 @@ const SettingsNotificationsRoute = SettingsNotificationsRouteImport.update({
 const SettingsAppearanceRoute = SettingsAppearanceRouteImport.update({
   id: '/settings/appearance',
   path: '/settings/appearance',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PortalLoginRoute = PortalLoginRouteImport.update({
+  id: '/portal/login',
+  path: '/portal/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const KbNewRoute = KbNewRouteImport.update({
@@ -370,9 +382,35 @@ const AdminSocialFacebookRoute = AdminSocialFacebookRouteImport.update({
   path: '/admin/social/facebook',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminSocialDisqusRoute = AdminSocialDisqusRouteImport.update({
+  id: '/admin/social/disqus',
+  path: '/admin/social/disqus',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminSlaNewRoute = AdminSlaNewRouteImport.update({
   id: '/admin/sla/new',
   path: '/admin/sla/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminSettingsTranslationRoute =
+  AdminSettingsTranslationRouteImport.update({
+    id: '/admin/settings/translation',
+    path: '/admin/settings/translation',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AdminSettingsMobileSdkRoute = AdminSettingsMobileSdkRouteImport.update({
+  id: '/admin/settings/mobile-sdk',
+  path: '/admin/settings/mobile-sdk',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminSettingsLicenseRoute = AdminSettingsLicenseRouteImport.update({
+  id: '/admin/settings/license',
+  path: '/admin/settings/license',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminSettingsChatbotRoute = AdminSettingsChatbotRouteImport.update({
+  id: '/admin/settings/chatbot',
+  path: '/admin/settings/chatbot',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminSecuritySsoRoute = AdminSecuritySsoRouteImport.update({
@@ -446,6 +484,11 @@ const AdminEcommerceChar91idChar93Route =
 const AdminEcommerceConnectRoute = AdminEcommerceConnectRouteImport.update({
   id: '/admin/ecommerce/connect',
   path: '/admin/ecommerce/connect',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminEcommerceAmazonRoute = AdminEcommerceAmazonRouteImport.update({
+  id: '/admin/ecommerce/amazon',
+  path: '/admin/ecommerce/amazon',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminBrandingThemeRoute = AdminBrandingThemeRouteImport.update({
@@ -532,6 +575,7 @@ export interface FileRoutesByFullPath {
   '/forms/id': typeof FormsChar91idChar93Route
   '/kb/$slug': typeof KbSlugRoute
   '/kb/new': typeof KbNewRoute
+  '/portal/login': typeof PortalLoginRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/notifications': typeof SettingsNotificationsRoute
   '/settings/password': typeof SettingsPasswordRoute
@@ -554,6 +598,7 @@ export interface FileRoutesByFullPath {
   '/admin/branding/email': typeof AdminBrandingEmailRoute
   '/admin/branding/portal': typeof AdminBrandingPortalRoute
   '/admin/branding/theme': typeof AdminBrandingThemeRoute
+  '/admin/ecommerce/amazon': typeof AdminEcommerceAmazonRoute
   '/admin/ecommerce/connect': typeof AdminEcommerceConnectRoute
   '/admin/ecommerce/id': typeof AdminEcommerceChar91idChar93Route
   '/admin/forms/builder': typeof AdminFormsBuilderRoute
@@ -568,7 +613,12 @@ export interface FileRoutesByFullPath {
   '/admin/saved-replies/folders': typeof AdminSavedRepliesFoldersRoute
   '/admin/security/ip-whitelist': typeof AdminSecurityIpWhitelistRoute
   '/admin/security/sso': typeof AdminSecuritySsoRoute
+  '/admin/settings/chatbot': typeof AdminSettingsChatbotRoute
+  '/admin/settings/license': typeof AdminSettingsLicenseRoute
+  '/admin/settings/mobile-sdk': typeof AdminSettingsMobileSdkRoute
+  '/admin/settings/translation': typeof AdminSettingsTranslationRoute
   '/admin/sla/new': typeof AdminSlaNewRoute
+  '/admin/social/disqus': typeof AdminSocialDisqusRoute
   '/admin/social/facebook': typeof AdminSocialFacebookRoute
   '/admin/social/instagram': typeof AdminSocialInstagramRoute
   '/admin/social/twitter': typeof AdminSocialTwitterRoute
@@ -616,6 +666,7 @@ export interface FileRoutesByTo {
   '/forms/id': typeof FormsChar91idChar93Route
   '/kb/$slug': typeof KbSlugRoute
   '/kb/new': typeof KbNewRoute
+  '/portal/login': typeof PortalLoginRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/notifications': typeof SettingsNotificationsRoute
   '/settings/password': typeof SettingsPasswordRoute
@@ -638,6 +689,7 @@ export interface FileRoutesByTo {
   '/admin/branding/email': typeof AdminBrandingEmailRoute
   '/admin/branding/portal': typeof AdminBrandingPortalRoute
   '/admin/branding/theme': typeof AdminBrandingThemeRoute
+  '/admin/ecommerce/amazon': typeof AdminEcommerceAmazonRoute
   '/admin/ecommerce/connect': typeof AdminEcommerceConnectRoute
   '/admin/ecommerce/id': typeof AdminEcommerceChar91idChar93Route
   '/admin/forms/builder': typeof AdminFormsBuilderRoute
@@ -652,7 +704,12 @@ export interface FileRoutesByTo {
   '/admin/saved-replies/folders': typeof AdminSavedRepliesFoldersRoute
   '/admin/security/ip-whitelist': typeof AdminSecurityIpWhitelistRoute
   '/admin/security/sso': typeof AdminSecuritySsoRoute
+  '/admin/settings/chatbot': typeof AdminSettingsChatbotRoute
+  '/admin/settings/license': typeof AdminSettingsLicenseRoute
+  '/admin/settings/mobile-sdk': typeof AdminSettingsMobileSdkRoute
+  '/admin/settings/translation': typeof AdminSettingsTranslationRoute
   '/admin/sla/new': typeof AdminSlaNewRoute
+  '/admin/social/disqus': typeof AdminSocialDisqusRoute
   '/admin/social/facebook': typeof AdminSocialFacebookRoute
   '/admin/social/instagram': typeof AdminSocialInstagramRoute
   '/admin/social/twitter': typeof AdminSocialTwitterRoute
@@ -701,6 +758,7 @@ export interface FileRoutesById {
   '/forms/id': typeof FormsChar91idChar93Route
   '/kb/$slug': typeof KbSlugRoute
   '/kb/new': typeof KbNewRoute
+  '/portal/login': typeof PortalLoginRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/notifications': typeof SettingsNotificationsRoute
   '/settings/password': typeof SettingsPasswordRoute
@@ -723,6 +781,7 @@ export interface FileRoutesById {
   '/admin/branding/email': typeof AdminBrandingEmailRoute
   '/admin/branding/portal': typeof AdminBrandingPortalRoute
   '/admin/branding/theme': typeof AdminBrandingThemeRoute
+  '/admin/ecommerce/amazon': typeof AdminEcommerceAmazonRoute
   '/admin/ecommerce/connect': typeof AdminEcommerceConnectRoute
   '/admin/ecommerce/id': typeof AdminEcommerceChar91idChar93Route
   '/admin/forms/builder': typeof AdminFormsBuilderRoute
@@ -737,7 +796,12 @@ export interface FileRoutesById {
   '/admin/saved-replies/folders': typeof AdminSavedRepliesFoldersRoute
   '/admin/security/ip-whitelist': typeof AdminSecurityIpWhitelistRoute
   '/admin/security/sso': typeof AdminSecuritySsoRoute
+  '/admin/settings/chatbot': typeof AdminSettingsChatbotRoute
+  '/admin/settings/license': typeof AdminSettingsLicenseRoute
+  '/admin/settings/mobile-sdk': typeof AdminSettingsMobileSdkRoute
+  '/admin/settings/translation': typeof AdminSettingsTranslationRoute
   '/admin/sla/new': typeof AdminSlaNewRoute
+  '/admin/social/disqus': typeof AdminSocialDisqusRoute
   '/admin/social/facebook': typeof AdminSocialFacebookRoute
   '/admin/social/instagram': typeof AdminSocialInstagramRoute
   '/admin/social/twitter': typeof AdminSocialTwitterRoute
@@ -787,6 +851,7 @@ export interface FileRouteTypes {
     | '/forms/id'
     | '/kb/$slug'
     | '/kb/new'
+    | '/portal/login'
     | '/settings/appearance'
     | '/settings/notifications'
     | '/settings/password'
@@ -809,6 +874,7 @@ export interface FileRouteTypes {
     | '/admin/branding/email'
     | '/admin/branding/portal'
     | '/admin/branding/theme'
+    | '/admin/ecommerce/amazon'
     | '/admin/ecommerce/connect'
     | '/admin/ecommerce/id'
     | '/admin/forms/builder'
@@ -823,7 +889,12 @@ export interface FileRouteTypes {
     | '/admin/saved-replies/folders'
     | '/admin/security/ip-whitelist'
     | '/admin/security/sso'
+    | '/admin/settings/chatbot'
+    | '/admin/settings/license'
+    | '/admin/settings/mobile-sdk'
+    | '/admin/settings/translation'
     | '/admin/sla/new'
+    | '/admin/social/disqus'
     | '/admin/social/facebook'
     | '/admin/social/instagram'
     | '/admin/social/twitter'
@@ -871,6 +942,7 @@ export interface FileRouteTypes {
     | '/forms/id'
     | '/kb/$slug'
     | '/kb/new'
+    | '/portal/login'
     | '/settings/appearance'
     | '/settings/notifications'
     | '/settings/password'
@@ -893,6 +965,7 @@ export interface FileRouteTypes {
     | '/admin/branding/email'
     | '/admin/branding/portal'
     | '/admin/branding/theme'
+    | '/admin/ecommerce/amazon'
     | '/admin/ecommerce/connect'
     | '/admin/ecommerce/id'
     | '/admin/forms/builder'
@@ -907,7 +980,12 @@ export interface FileRouteTypes {
     | '/admin/saved-replies/folders'
     | '/admin/security/ip-whitelist'
     | '/admin/security/sso'
+    | '/admin/settings/chatbot'
+    | '/admin/settings/license'
+    | '/admin/settings/mobile-sdk'
+    | '/admin/settings/translation'
     | '/admin/sla/new'
+    | '/admin/social/disqus'
     | '/admin/social/facebook'
     | '/admin/social/instagram'
     | '/admin/social/twitter'
@@ -955,6 +1033,7 @@ export interface FileRouteTypes {
     | '/forms/id'
     | '/kb/$slug'
     | '/kb/new'
+    | '/portal/login'
     | '/settings/appearance'
     | '/settings/notifications'
     | '/settings/password'
@@ -977,6 +1056,7 @@ export interface FileRouteTypes {
     | '/admin/branding/email'
     | '/admin/branding/portal'
     | '/admin/branding/theme'
+    | '/admin/ecommerce/amazon'
     | '/admin/ecommerce/connect'
     | '/admin/ecommerce/id'
     | '/admin/forms/builder'
@@ -991,7 +1071,12 @@ export interface FileRouteTypes {
     | '/admin/saved-replies/folders'
     | '/admin/security/ip-whitelist'
     | '/admin/security/sso'
+    | '/admin/settings/chatbot'
+    | '/admin/settings/license'
+    | '/admin/settings/mobile-sdk'
+    | '/admin/settings/translation'
     | '/admin/sla/new'
+    | '/admin/social/disqus'
     | '/admin/social/facebook'
     | '/admin/social/instagram'
     | '/admin/social/twitter'
@@ -1040,6 +1125,7 @@ export interface RootRouteChildren {
   FormsChar91idChar93Route: typeof FormsChar91idChar93Route
   KbSlugRoute: typeof KbSlugRoute
   KbNewRoute: typeof KbNewRoute
+  PortalLoginRoute: typeof PortalLoginRoute
   SettingsAppearanceRoute: typeof SettingsAppearanceRoute
   SettingsNotificationsRoute: typeof SettingsNotificationsRoute
   SettingsPasswordRoute: typeof SettingsPasswordRoute
@@ -1062,6 +1148,7 @@ export interface RootRouteChildren {
   AdminBrandingEmailRoute: typeof AdminBrandingEmailRoute
   AdminBrandingPortalRoute: typeof AdminBrandingPortalRoute
   AdminBrandingThemeRoute: typeof AdminBrandingThemeRoute
+  AdminEcommerceAmazonRoute: typeof AdminEcommerceAmazonRoute
   AdminEcommerceConnectRoute: typeof AdminEcommerceConnectRoute
   AdminEcommerceChar91idChar93Route: typeof AdminEcommerceChar91idChar93Route
   AdminFormsBuilderRoute: typeof AdminFormsBuilderRoute
@@ -1076,7 +1163,12 @@ export interface RootRouteChildren {
   AdminSavedRepliesFoldersRoute: typeof AdminSavedRepliesFoldersRoute
   AdminSecurityIpWhitelistRoute: typeof AdminSecurityIpWhitelistRoute
   AdminSecuritySsoRoute: typeof AdminSecuritySsoRoute
+  AdminSettingsChatbotRoute: typeof AdminSettingsChatbotRoute
+  AdminSettingsLicenseRoute: typeof AdminSettingsLicenseRoute
+  AdminSettingsMobileSdkRoute: typeof AdminSettingsMobileSdkRoute
+  AdminSettingsTranslationRoute: typeof AdminSettingsTranslationRoute
   AdminSlaNewRoute: typeof AdminSlaNewRoute
+  AdminSocialDisqusRoute: typeof AdminSocialDisqusRoute
   AdminSocialFacebookRoute: typeof AdminSocialFacebookRoute
   AdminSocialInstagramRoute: typeof AdminSocialInstagramRoute
   AdminSocialTwitterRoute: typeof AdminSocialTwitterRoute
@@ -1265,6 +1357,13 @@ declare module '@tanstack/react-router' {
       path: '/settings/appearance'
       fullPath: '/settings/appearance'
       preLoaderRoute: typeof SettingsAppearanceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/portal/login': {
+      id: '/portal/login'
+      path: '/portal/login'
+      fullPath: '/portal/login'
+      preLoaderRoute: typeof PortalLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/kb/new': {
@@ -1498,11 +1597,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSocialFacebookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/social/disqus': {
+      id: '/admin/social/disqus'
+      path: '/admin/social/disqus'
+      fullPath: '/admin/social/disqus'
+      preLoaderRoute: typeof AdminSocialDisqusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/sla/new': {
       id: '/admin/sla/new'
       path: '/admin/sla/new'
       fullPath: '/admin/sla/new'
       preLoaderRoute: typeof AdminSlaNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/settings/translation': {
+      id: '/admin/settings/translation'
+      path: '/admin/settings/translation'
+      fullPath: '/admin/settings/translation'
+      preLoaderRoute: typeof AdminSettingsTranslationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/settings/mobile-sdk': {
+      id: '/admin/settings/mobile-sdk'
+      path: '/admin/settings/mobile-sdk'
+      fullPath: '/admin/settings/mobile-sdk'
+      preLoaderRoute: typeof AdminSettingsMobileSdkRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/settings/license': {
+      id: '/admin/settings/license'
+      path: '/admin/settings/license'
+      fullPath: '/admin/settings/license'
+      preLoaderRoute: typeof AdminSettingsLicenseRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/settings/chatbot': {
+      id: '/admin/settings/chatbot'
+      path: '/admin/settings/chatbot'
+      fullPath: '/admin/settings/chatbot'
+      preLoaderRoute: typeof AdminSettingsChatbotRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/security/sso': {
@@ -1601,6 +1735,13 @@ declare module '@tanstack/react-router' {
       path: '/admin/ecommerce/connect'
       fullPath: '/admin/ecommerce/connect'
       preLoaderRoute: typeof AdminEcommerceConnectRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/ecommerce/amazon': {
+      id: '/admin/ecommerce/amazon'
+      path: '/admin/ecommerce/amazon'
+      fullPath: '/admin/ecommerce/amazon'
+      preLoaderRoute: typeof AdminEcommerceAmazonRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/branding/theme': {
@@ -1704,6 +1845,7 @@ const rootRouteChildren: RootRouteChildren = {
   FormsChar91idChar93Route: FormsChar91idChar93Route,
   KbSlugRoute: KbSlugRoute,
   KbNewRoute: KbNewRoute,
+  PortalLoginRoute: PortalLoginRoute,
   SettingsAppearanceRoute: SettingsAppearanceRoute,
   SettingsNotificationsRoute: SettingsNotificationsRoute,
   SettingsPasswordRoute: SettingsPasswordRoute,
@@ -1726,6 +1868,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminBrandingEmailRoute: AdminBrandingEmailRoute,
   AdminBrandingPortalRoute: AdminBrandingPortalRoute,
   AdminBrandingThemeRoute: AdminBrandingThemeRoute,
+  AdminEcommerceAmazonRoute: AdminEcommerceAmazonRoute,
   AdminEcommerceConnectRoute: AdminEcommerceConnectRoute,
   AdminEcommerceChar91idChar93Route: AdminEcommerceChar91idChar93Route,
   AdminFormsBuilderRoute: AdminFormsBuilderRoute,
@@ -1740,7 +1883,12 @@ const rootRouteChildren: RootRouteChildren = {
   AdminSavedRepliesFoldersRoute: AdminSavedRepliesFoldersRoute,
   AdminSecurityIpWhitelistRoute: AdminSecurityIpWhitelistRoute,
   AdminSecuritySsoRoute: AdminSecuritySsoRoute,
+  AdminSettingsChatbotRoute: AdminSettingsChatbotRoute,
+  AdminSettingsLicenseRoute: AdminSettingsLicenseRoute,
+  AdminSettingsMobileSdkRoute: AdminSettingsMobileSdkRoute,
+  AdminSettingsTranslationRoute: AdminSettingsTranslationRoute,
   AdminSlaNewRoute: AdminSlaNewRoute,
+  AdminSocialDisqusRoute: AdminSocialDisqusRoute,
   AdminSocialFacebookRoute: AdminSocialFacebookRoute,
   AdminSocialInstagramRoute: AdminSocialInstagramRoute,
   AdminSocialTwitterRoute: AdminSocialTwitterRoute,

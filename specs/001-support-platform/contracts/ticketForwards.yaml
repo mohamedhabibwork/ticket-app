@@ -1,0 +1,103 @@
+openapi: 3.1.0
+info:
+  title: Ticket Forwards API
+  version: 1.0.0
+  description: Ticket forwarding to external email addresses
+
+paths:
+  /ticket-forwards:
+    get:
+      operationId: listTicketForwards
+      summary: List forwards for a ticket
+      tags: [Ticket Forwards]
+      security: [cookieAuth: [], bearerAuth: []]
+      parameters:
+        - name: ticketId
+          in: query
+          schema:
+            type: number
+      responses:
+        '200':
+          description: Forward list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ticketForward'
+
+    post:
+      operationId: createTicketForward
+      summary: Forward ticket to recipient
+      tags: [Ticket Forwards]
+      security: [cookieAuth: [], bearerAuth: []]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ticketForwardCreate'
+      responses:
+        '201':
+          description: Forward created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ticketForward'
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: session_token
+    bearerAuth:
+      type: http
+      scheme: bearer
+
+  schemas:
+    ticketForward:
+      type: object
+      properties:
+        id:
+          type: number
+        ticketId:
+          type: number
+        toEmail:
+          type: string
+        ccEmails:
+          type: array
+          items:
+            type: string
+        bccEmails:
+          type: array
+          items:
+            type: string
+        subject:
+          type: string
+        message:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+    ticketForwardCreate:
+      type: object
+      required: [ticketId, toEmail]
+      properties:
+        ticketId:
+          type: number
+        toEmail:
+          type: string
+          format: email
+        ccEmails:
+          type: array
+          items:
+            type: string
+        bccEmails:
+          type: array
+          items:
+            type: string
+        subject:
+          type: string
+        message:
+          type: string

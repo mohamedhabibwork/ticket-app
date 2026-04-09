@@ -5,6 +5,7 @@ import z from "zod";
 
 import { publicProcedure } from "../index";
 import { encryptToken, decryptToken } from "../lib/crypto";
+import { translateText } from "../lib/translation";
 
 export const translationRouter = {
   listConfigs: publicProcedure
@@ -207,5 +208,25 @@ export const translationRouter = {
         .where(eq(translationCache.sourceHash, input.sourceHash));
 
       return { success: true };
+    }),
+
+  translateText: publicProcedure
+    .input(
+      z.object({
+        organizationId: z.number(),
+        text: z.string(),
+        sourceLang: z.string().default("auto"),
+        targetLang: z.string(),
+      })
+    )
+    .handler(async ({ input }) => {
+      const result = await translateText({
+        text: input.text,
+        sourceLang: input.sourceLang,
+        targetLang: input.targetLang,
+        organizationId: input.organizationId,
+      });
+
+      return result;
     }),
 };

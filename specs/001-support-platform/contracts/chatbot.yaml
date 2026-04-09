@@ -1,0 +1,260 @@
+openapi: 3.1.0
+info:
+  title: Chatbot API
+  version: 1.0.0
+  description: AI chatbot configuration and session management
+
+paths:
+  /chatbot/config:
+    get:
+      operationId: getChatbotConfig
+      summary: Get chatbot configuration
+      tags: [Chatbot]
+      security: [cookieAuth: [], bearerAuth: []]
+      parameters:
+        - $ref: '#/components/parameters/organizationId'
+      responses:
+        '200':
+          description: Config details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/chatbotConfig'
+
+    patch:
+      operationId: updateChatbotConfig
+      summary: Update chatbot configuration
+      tags: [Chatbot]
+      security: [cookieAuth: [], bearerAuth: []]
+      parameters:
+        - $ref: '#/components/parameters/organizationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/chatbotConfigUpdate'
+      responses:
+        '200':
+          description: Config updated
+
+  /chatbot/sessions:
+    get:
+      operationId: listChatbotSessions
+      summary: List chatbot sessions
+      tags: [Chatbot]
+      security: [cookieAuth: [], bearerAuth: []]
+      parameters:
+        - name: contactId
+          in: query
+          schema:
+            type: number
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [active, escalated, completed]
+      responses:
+        '200':
+          description: Session list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/chatbotSession'
+
+  /chatbot/sessions/{sessionId}/messages:
+    get:
+      operationId: listChatbotMessages
+      summary: List messages in a chatbot session
+      tags: [Chatbot]
+      security: [cookieAuth: [], bearerAuth: []]
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        '200':
+          description: Message list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/chatbotMessage'
+
+    post:
+      operationId: createChatbotMessage
+      summary: Send message to chatbot
+      tags: [Chatbot]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/chatbotMessageCreate'
+      responses:
+        '200':
+          description: Bot response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/chatbotMessage'
+
+  /chatbot/sessions/{sessionId}/escalate:
+    post:
+      operationId: escalateChatbotSession
+      summary: Escalate chatbot session to human agent
+      tags: [Chatbot]
+      security: [cookieAuth: [], bearerAuth: []]
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+                assignedAgentId:
+                  type: number
+      responses:
+        '200':
+          description: Session escalated
+
+  /chatbot/sessions/{sessionId}/rate:
+    post:
+      operationId: rateChatbotSession
+      summary: Rate bot response
+      tags: [Chatbot]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [rating]
+              properties:
+                rating:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+                feedback:
+                  type: string
+      responses:
+        '200':
+          description: Rating recorded
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: session_token
+    bearerAuth:
+      type: http
+      scheme: bearer
+
+  parameters:
+    organizationId:
+      in: header
+      name: X-Organization-ID
+      required: true
+      schema:
+        type: number
+
+  schemas:
+    chatbotConfig:
+      type: object
+      properties:
+        id:
+          type: number
+        organizationId:
+          type: number
+        isEnabled:
+          type: boolean
+        greetingMessage:
+          type: string
+        escalationMessage:
+          type: string
+        confidenceThreshold:
+          type: number
+        maxRetries:
+          type: number
+        kbArticleIds:
+          type: array
+          items:
+            type: number
+    chatbotConfigUpdate:
+      type: object
+      properties:
+        isEnabled:
+          type: boolean
+        greetingMessage:
+          type: string
+        escalationMessage:
+          type: string
+        confidenceThreshold:
+          type: number
+        maxRetries:
+          type: number
+        kbArticleIds:
+          type: array
+          items:
+            type: number
+    chatbotSession:
+      type: object
+      properties:
+        id:
+          type: number
+        contactId:
+          type: number
+        status:
+          type: string
+          enum: [active, escalated, completed]
+        messageCount:
+          type: number
+        escalationReason:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+    chatbotMessage:
+      type: object
+      properties:
+        id:
+          type: number
+        sessionId:
+          type: number
+        role:
+          type: string
+          enum: [user, bot, agent]
+        content:
+          type: string
+        confidence:
+          type: number
+        kbArticleId:
+          type: number
+        createdAt:
+          type: string
+          format: date-time
+    chatbotMessageCreate:
+      type: object
+      required: [sessionId, content]
+      properties:
+        sessionId:
+          type: number
+        content:
+          type: string

@@ -17,6 +17,7 @@ export const onPremiseLicenses = pgTable(
       .references(() => organizations.id)
       .notNull(),
     licenseKey: varchar("license_key", { length: 500 }).notNull().unique(),
+    domain: varchar("domain", { length: 255 }),
     productEdition: varchar("product_edition", { length: 100 }).notNull(),
     seatLimit: bigint("seat_limit", { mode: "number" }).notNull(),
     validUntil: timestamp("valid_until", { withTimezone: true }).notNull(),

@@ -54,10 +54,12 @@ function NewTicketRoute() {
   const [selectedChannelId, setSelectedChannelId] = useState<number | null>(null);
   const [selectedAgentId, setSelectedAgentId] = useState<number | null>(null);
   const [selectedTeamId, setSelectedTeamId] = useState<number | null>(null);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
   const [selectedTags, setSelectedTags] = useState<number[]>([]);
   const [attachmentFiles, setAttachmentFiles] = useState<File[]>([]);
   const [showAgentDropdown, setShowAgentDropdown] = useState(false);
   const [showTeamDropdown, setShowTeamDropdown] = useState(false);
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
 
   const { data: channelsData } = useQuery(
     orpc.channels.list.queryOptions({
@@ -76,6 +78,12 @@ function NewTicketRoute() {
 
   const { data: teams } = useQuery(
     orpc.teams.list.queryOptions({
+      organizationId,
+    })
+  );
+
+  const { data: categories } = useQuery(
+    orpc.ticketCategories.list.queryOptions({
       organizationId,
     })
   );
@@ -116,6 +124,7 @@ function NewTicketRoute() {
       channelId: selectedChannelId || undefined,
       assignedAgentId: selectedAgentId || undefined,
       assignedTeamId: selectedTeamId || undefined,
+      categoryId: selectedCategoryId || undefined,
     });
   };
 
@@ -274,6 +283,36 @@ function NewTicketRoute() {
                           Low
                         </span>
                       </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Category</Label>
+                  <DropdownMenu open={showCategoryDropdown} onOpenChange={setShowCategoryDropdown}>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" className="w-full justify-between">
+                        {selectedCategoryId && categories?.find((c) => c.id === selectedCategoryId)
+                          ? categories.find((c) => c.id === selectedCategoryId)?.name
+                          : "Select category (optional)"}
+                        <ChevronDown className="h-4 w-4 ml-2" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="w-full max-h-60 overflow-y-auto">
+                      <DropdownMenuItem onClick={() => { setSelectedCategoryId(null); setShowCategoryDropdown(false); }}>
+                        None
+                      </DropdownMenuItem>
+                      {categories?.map((category) => (
+                        <DropdownMenuItem
+                          key={category.id}
+                          onClick={() => {
+                            setSelectedCategoryId(category.id);
+                            setShowCategoryDropdown(false);
+                          }}
+                        >
+                          {category.name}
+                        </DropdownMenuItem>
+                      ))}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>

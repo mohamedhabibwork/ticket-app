@@ -1,6 +1,6 @@
 import { db } from "@ticket-app/db";
-import { tickets, users, ticketMessages, lookups, organizations } from "@ticket-app/db/schema";
-import { eq, and, isNull, desc, sql, gte, lte, count, avg } from "drizzle-orm";
+import { tickets, users, ticketMessages, lookups, organizations, teams } from "@ticket-app/db/schema";
+import { eq, and, isNull, desc, sql, gte, lte, count, avg, inArray } from "drizzle-orm";
 import z from "zod";
 
 import { publicProcedure } from "../index";
@@ -13,6 +13,7 @@ export const reportsRouter = {
         startDate: z.date().optional(),
         endDate: z.date().optional(),
         groupBy: z.enum(["day", "week", "month"]).default("day"),
+        groupId: z.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -23,6 +24,19 @@ export const reportsRouter = {
 
       if (input.startDate) conditions.push(gte(tickets.createdAt, input.startDate));
       if (input.endDate) conditions.push(lte(tickets.createdAt, input.endDate));
+
+      if (input.groupId) {
+        const teamIdsResult = await db
+          .select({ id: teams.id })
+          .from(teams)
+          .where(eq(teams.groupId, input.groupId));
+        const teamIds = teamIdsResult.map((t) => t.id);
+        if (teamIds.length > 0) {
+          conditions.push(inArray(tickets.assignedTeamId, teamIds));
+        } else {
+          conditions.push(eq(tickets.assignedTeamId, -1));
+        }
+      }
 
       const ticketList = await db.query.tickets.findMany({
         where: and(...conditions),
@@ -71,6 +85,7 @@ export const reportsRouter = {
         organizationId: z.number(),
         startDate: z.date().optional(),
         endDate: z.date().optional(),
+        groupId: z.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -82,6 +97,19 @@ export const reportsRouter = {
 
       if (input.startDate) conditions.push(gte(tickets.createdAt, input.startDate));
       if (input.endDate) conditions.push(lte(tickets.createdAt, input.endDate));
+
+      if (input.groupId) {
+        const teamIdsResult = await db
+          .select({ id: teams.id })
+          .from(teams)
+          .where(eq(teams.groupId, input.groupId));
+        const teamIds = teamIdsResult.map((t) => t.id);
+        if (teamIds.length > 0) {
+          conditions.push(inArray(tickets.assignedTeamId, teamIds));
+        } else {
+          conditions.push(eq(tickets.assignedTeamId, -1));
+        }
+      }
 
       const agentStats = await db
         .select({

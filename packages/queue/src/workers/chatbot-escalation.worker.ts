@@ -1,10 +1,11 @@
 import { Worker, Job, Queue } from "bullmq";
-import { eq, and, isNull } from "drizzle-orm";
+import { eq, and, isNull, desc, sql } from "drizzle-orm";
 
 import { db } from "@ticket-app/db";
 import { chatbotConfigs, chatbotSessions, chatbotMessages } from "@ticket-app/db/schema";
 import { getRedis } from "../redis";
 import { env } from "@ticket-app/env/server";
+import { escalateChatbotSession, getChatbotSessionHistory } from "@ticket-app/api/src/lib/chatbot";
 
 const CHATBOT_ESCALATION_QUEUE = `${env.QUEUE_PREFIX}:chatbot-escalation`;
 
@@ -73,13 +74,13 @@ async function checkEscalationNeeded(): Promise<void> {
 
   const activeSessions = await db.query.chatbotSessions.findMany({
     where: and(
-      isNull(chatbotSessions.endedAt),
-      isNull(chatbotSessions.escalatedToAgentId)
+      eq(chatbotSessions.status, "active"),
+      isNull(chatbotSessions.escalatedAt)
     ),
     with: {
       config: true,
       messages: {
-        orderBy: (chatbotMessages, { desc }) => [desc(chatbotMessages.createdAt)],
+        orderBy: [desc(chatbotMessages.createdAt)],
         limit: 1,
       },
     },
@@ -90,10 +91,50 @@ async function checkEscalationNeeded(): Promise<void> {
     if (!lastMessage || lastMessage.authorType !== "user") continue;
 
     const messageAge = Date.now() - lastMessage.createdAt.getTime();
-    const maxDelay = (session.config?.maxEscalationDelay || 300) * 1000;
+    const maxDelay = (session.config?.responseDelaySeconds || 5) * 1000;
 
     if (messageAge > maxDelay) {
       console.log(`[Chatbot-Escalation] Session ${session.id} needs escalation`);
+      await escalateSession(session.id);
+    }
+  }
+
+  await checkConfidenceThresholdEscalation();
+}
+
+async function checkConfidenceThresholdEscalation(): Promise<void> {
+  console.log("[Chatbot-Escalation] Checking confidence threshold escalation");
+
+  const lowConfidenceSessions = await db.query.chatbotSessions.findMany({
+    where: and(
+      eq(chatbotSessions.status, "active"),
+      isNull(chatbotSessions.escalatedAt)
+    ),
+    with: {
+      config: true,
+      messages: {
+        where: eq(chatbotMessages.authorType, "bot"),
+        orderBy: [desc(chatbotMessages.createdAt)],
+        limit: 5,
+      },
+    },
+  });
+
+  for (const session of lowConfidenceSessions) {
+    if (!session.config) continue;
+
+    const threshold = (session.config.escalationThreshold || 3) * 10;
+    let lowConfidenceCount = 0;
+
+    for (const msg of session.messages) {
+      const confidence = msg.confidence || 0;
+      if (confidence < threshold) {
+        lowConfidenceCount++;
+      }
+    }
+
+    if (lowConfidenceCount >= session.config.escalationThreshold) {
+      console.log(`[Chatbot-Escalation] Session ${session.id} triggered threshold escalation`);
       await escalateSession(session.id);
     }
   }
@@ -106,21 +147,34 @@ async function escalateSession(sessionId: number): Promise<void> {
     where: eq(chatbotSessions.id, sessionId),
     with: {
       config: true,
+      messages: {
+        orderBy: [desc(chatbotMessages.createdAt)],
+      },
     },
   });
 
-  if (!session || session.escalatedToAgentId) {
+  if (!session || session.escalatedAt) {
+    console.log(`[Chatbot-Escalation] Session ${sessionId} already escalated or not found`);
     return;
   }
 
   await db
     .update(chatbotSessions)
     .set({
-      escalatedToAgentId: session.config?.agentId || null,
-      endedAt: new Date(),
-      endReason: "escalated",
+      status: "escalated",
+      escalatedAt: new Date(),
     })
     .where(eq(chatbotSessions.id, sessionId));
+
+  const conversationHistory = await getChatbotSessionHistory(sessionId);
+
+  console.log(`[Chatbot-Escalation] Session ${sessionId} escalated. Conversation history:`);
+  for (const turn of conversationHistory) {
+    console.log(`  User: ${turn.user.substring(0, 50)}...`);
+    console.log(`  Bot: ${turn.bot.substring(0, 50)}...`);
+  }
+
+  console.log(`[Chatbot-Escalation] Escalation complete for session ${sessionId}`);
 }
 
 export async function closeChatbotEscalationQueue(): Promise<void> {

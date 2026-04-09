@@ -48,4 +48,5 @@ export const groupsRelations = relations(groups, ({ one, many }) => ({
     fields: [groups.deletedBy],
     references: [users.id],
   }),
+  teams: many(teams),
 }));

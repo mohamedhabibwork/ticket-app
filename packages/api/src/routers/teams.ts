@@ -32,6 +32,7 @@ export const teamsRouter = {
         organizationId: z.number(),
         name: z.string().min(1).max(150),
         description: z.string().optional(),
+        groupId: z.number().optional(),
         autoAssignMethod: z.enum(["round_robin", "load_balanced", "least_assigned"]).default("round_robin"),
         createdBy: z.number().optional(),
       })
@@ -43,6 +44,7 @@ export const teamsRouter = {
           organizationId: input.organizationId,
           name: input.name,
           description: input.description,
+          groupId: input.groupId,
           autoAssignMethod: input.autoAssignMethod,
           createdBy: input.createdBy,
         })
@@ -56,6 +58,7 @@ export const teamsRouter = {
         id: z.number(),
         name: z.string().min(1).max(150).optional(),
         description: z.string().optional(),
+        groupId: z.number().nullable().optional(),
         autoAssignMethod: z.enum(["round_robin", "load_balanced", "least_assigned"]).optional(),
         isActive: z.boolean().optional(),
       })
@@ -66,6 +69,7 @@ export const teamsRouter = {
         .set({
           name: input.name,
           description: input.description,
+          groupId: input.groupId,
           autoAssignMethod: input.autoAssignMethod,
           isActive: input.isActive,
         })

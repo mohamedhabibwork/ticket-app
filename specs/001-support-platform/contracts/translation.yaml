@@ -1,0 +1,160 @@
+openapi: 3.1.0
+info:
+  title: Translation API
+  version: 1.0.0
+  description: Machine translation for ticket messages
+
+paths:
+  /translation/translate:
+    post:
+      operationId: translateText
+      summary: Translate text
+      tags: [Translation]
+      security: [cookieAuth: [], bearerAuth: []]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/translateRequest'
+      responses:
+        '200':
+          description: Translation result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/translateResponse'
+
+  /translation/config:
+    get:
+      operationId: getTranslationConfig
+      summary: Get translation configuration
+      tags: [Translation]
+      security: [cookieAuth: [], bearerAuth: []]
+      parameters:
+        - $ref: '#/components/parameters/organizationId'
+      responses:
+        '200':
+          description: Config details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/translationConfig'
+
+    patch:
+      operationId: updateTranslationConfig
+      summary: Update translation configuration
+      tags: [Translation]
+      security: [cookieAuth: [], bearerAuth: []]
+      parameters:
+        - $ref: '#/components/parameters/organizationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/translationConfigUpdate'
+      responses:
+        '200':
+          description: Config updated
+
+  /translation/usage:
+    get:
+      operationId: getTranslationUsage
+      summary: Get translation usage statistics
+      tags: [Translation]
+      security: [cookieAuth: [], bearerAuth: []]
+      parameters:
+        - $ref: '#/components/parameters/organizationId'
+      responses:
+        '200':
+          description: Usage statistics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalCharacters:
+                    type: number
+                  monthCharacters:
+                    type: number
+                  costEstimate:
+                    type: number
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: session_token
+    bearerAuth:
+      type: http
+      scheme: bearer
+
+  parameters:
+    organizationId:
+      in: header
+      name: X-Organization-ID
+      required: true
+      schema:
+        type: number
+
+  schemas:
+    translateRequest:
+      type: object
+      required: [text, targetLanguage]
+      properties:
+        text:
+          type: string
+        targetLanguage:
+          type: string
+        sourceLanguage:
+          type: string
+        provider:
+          type: string
+          enum: [google, deepl]
+    translateResponse:
+      type: object
+      properties:
+        translatedText:
+          type: string
+        sourceLanguage:
+          type: string
+        targetLanguage:
+          type: string
+        provider:
+          type: string
+        cached:
+          type: boolean
+    translationConfig:
+      type: object
+      properties:
+        id:
+          type: number
+        organizationId:
+          type: number
+        provider:
+          type: string
+          enum: [google, deepl]
+        apiKey:
+          type: string
+        enabledLanguages:
+          type: array
+          items:
+            type: string
+        isEnabled:
+          type: boolean
+    translationConfigUpdate:
+      type: object
+      properties:
+        provider:
+          type: string
+          enum: [google, deepl]
+        apiKey:
+          type: string
+        enabledLanguages:
+          type: array
+          items:
+            type: string
+        isEnabled:
+          type: boolean

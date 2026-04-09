@@ -1,9 +1,10 @@
 import { db } from "@ticket-app/db";
-import { ticketMessages, ticketAttachments, tickets, lookups, users } from "@ticket-app/db/schema";
+import { ticketMessages, ticketAttachments, tickets, lookups, users, auditLogs } from "@ticket-app/db/schema";
 import { eq, and, desc } from "drizzle-orm";
 import z from "zod";
 
 import { publicProcedure } from "../index";
+import { workflowTriggers } from "../services/workflowTriggers";
 
 const messageTypeEnum = z.enum(["reply", "note", "activity"]);
 const authorTypeEnum = z.enum(["agent", "contact", "system", "bot"]);
@@ -132,5 +133,85 @@ export const ticketMessagesRouter = {
         .delete(ticketMessages)
         .where(eq(ticketMessages.id, input.id));
       return { success: true };
+    }),
+
+  lockThread: publicProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        lockedBy: z.number(),
+      })
+    )
+    .handler(async ({ input }) => {
+      const [updated] = await db
+        .update(ticketMessages)
+        .set({
+          isLocked: true,
+          lockedBy: input.lockedBy,
+          lockedAt: new Date(),
+        })
+        .where(eq(ticketMessages.id, input.id))
+        .returning();
+      return updated;
+    }),
+
+  unlockThread: publicProcedure
+    .input(z.object({ id: z.number() }))
+    .handler(async ({ input }) => {
+      const [updated] = await db
+        .update(ticketMessages)
+        .set({
+          isLocked: false,
+          lockedBy: null,
+          lockedAt: null,
+        })
+        .where(eq(ticketMessages.id, input.id))
+        .returning();
+      return updated;
+    }),
+
+  omitThread: publicProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        reason: z.string().min(1),
+        omittedBy: z.number(),
+      })
+    )
+    .handler(async ({ input }) => {
+      const message = await db.query.ticketMessages.findFirst({
+        where: eq(ticketMessages.id, input.id),
+        with: { ticket: true },
+      });
+
+      if (!message) {
+        throw new Error("Message not found");
+      }
+
+      const [updated] = await db
+        .update(ticketMessages)
+        .set({
+          deletedAt: new Date(),
+          deletedBy: input.omittedBy,
+          deletedReason: input.reason,
+        })
+        .where(eq(ticketMessages.id, input.id))
+        .returning();
+
+      await db.insert(auditLogs).values({
+        userId: input.omittedBy,
+        organizationId: message.ticket.organizationId,
+        action: "thread_omitted",
+        resourceType: "ticket_message",
+        resourceId: String(input.id),
+        metadata: { reason: input.reason, ticketId: message.ticketId },
+      });
+
+      await workflowTriggers.triggerWorkflows(
+        "ticket_thread_omitted" as any,
+        { ...message.ticket, id: message.ticketId } as any
+      );
+
+      return updated;
     }),
 };

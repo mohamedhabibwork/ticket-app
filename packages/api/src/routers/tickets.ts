@@ -9,6 +9,9 @@ import {
   lookups,
   tags,
   users,
+  ticketForwards,
+  ticketCategories,
+  teams,
 } from "@ticket-app/db/schema";
 import { eq, and, isNull, desc, sql, inArray } from "drizzle-orm";
 import z from "zod";
@@ -26,6 +29,8 @@ export const ticketsRouter = {
         channelId: z.number().optional(),
         assignedAgentId: z.number().optional(),
         contactId: z.number().optional(),
+        groupId: z.number().optional(),
+        categoryId: z.number().optional(),
         search: z.string().optional(),
         limit: z.number().min(1).max(100).default(50),
         offset: z.number().min(0).default(0),
@@ -47,6 +52,19 @@ export const ticketsRouter = {
         conditions.push(sql`${tickets.subject} ILIKE ${`%${input.search}%`}`);
       }
 
+      if (input.groupId) {
+        const teamIdsResult = await db
+          .select({ id: teams.id })
+          .from(teams)
+          .where(eq(teams.groupId, input.groupId));
+        const teamIds = teamIdsResult.map((t) => t.id);
+        if (teamIds.length > 0) {
+          conditions.push(inArray(tickets.assignedTeamId, teamIds));
+        } else {
+          conditions.push(eq(tickets.assignedTeamId, -1));
+        }
+      }
+
       return await db.query.tickets.findMany({
         where: and(...conditions),
         orderBy: [desc(tickets.createdAt)],
@@ -58,6 +76,7 @@ export const ticketsRouter = {
           priority: true,
           channel: true,
           assignedAgent: true,
+          assignedTeam: true,
         },
       });
     }),
@@ -137,6 +156,7 @@ export const ticketsRouter = {
         mailboxId: z.number().optional(),
         formSubmissionId: z.number().optional(),
         parentTicketId: z.number().optional(),
+        categoryId: z.number().optional(),
         ccEmails: z.array(z.string().email()).optional(),
         bccEmails: z.array(z.string().email()).optional(),
         isSpam: z.boolean().default(false),
@@ -144,6 +164,24 @@ export const ticketsRouter = {
     )
     .handler(async ({ input }) => {
       const referenceNumber = await generateReferenceNumber(input.organizationId);
+
+      let effectivePriorityId = input.priorityId;
+      let effectiveTeamId = input.assignedTeamId;
+
+      if (input.categoryId) {
+        const category = await db.query.ticketCategories.findFirst({
+          where: eq(ticketCategories.id, input.categoryId),
+        });
+
+        if (category) {
+          if (!input.priorityId && category.priorityId) {
+            effectivePriorityId = category.priorityId;
+          }
+          if (!input.assignedTeamId && category.teamId) {
+            effectiveTeamId = category.teamId;
+          }
+        }
+      }
 
       const defaultStatusId =
         input.statusId ??
@@ -160,7 +198,7 @@ export const ticketsRouter = {
         )?.id;
 
       const defaultPriorityId =
-        input.priorityId ??
+        effectivePriorityId ??
         (
           await db.query.lookups.findFirst({
             where: and(
@@ -185,7 +223,7 @@ export const ticketsRouter = {
           channelId: input.channelId,
           contactId: input.contactId,
           assignedAgentId: input.assignedAgentId,
-          assignedTeamId: input.assignedTeamId,
+          assignedTeamId: effectiveTeamId,
           mailboxId: input.mailboxId,
           formSubmissionId: input.formSubmissionId,
           parentTicketId: input.parentTicketId,
@@ -465,11 +503,30 @@ export const ticketsRouter = {
         .innerJoin(users, eq(ticketFollowers.userId, users.id))
         .where(eq(ticketFollowers.ticketId, input.id));
 
+      const forwards = await db
+        .select({
+          id: ticketForwards.id,
+          ticketMessageId: ticketForwards.ticketMessageId,
+          to: ticketForwards.to,
+          cc: ticketForwards.cc,
+          bcc: ticketForwards.bcc,
+          subject: ticketForwards.subject,
+          body: ticketForwards.body,
+          createdAt: ticketForwards.createdAt,
+          creatorFirstName: users.firstName,
+          creatorLastName: users.lastName,
+        })
+        .from(ticketForwards)
+        .leftJoin(users, eq(ticketForwards.createdBy, users.id))
+        .where(eq(ticketForwards.ticketId, input.id))
+        .orderBy(desc(ticketForwards.createdAt));
+
       return {
         ...ticket,
         messages,
         tags: ticketTagsList,
         followers,
+        forwards,
       };
     }),
 

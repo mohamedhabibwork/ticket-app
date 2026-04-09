@@ -271,4 +271,56 @@ export const disqusRouter = {
         };
       }
     }),
+
+  replyToPost: publicProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        organizationId: z.number(),
+        threadId: z.string(),
+        message: z.string(),
+        authorEmail: z.string().optional(),
+      })
+    )
+    .handler(async ({ input }) => {
+      const account = await db.query.disqusAccounts.findFirst({
+        where: and(
+          eq(disqusAccounts.id, input.id),
+          eq(disqusAccounts.organizationId, input.organizationId),
+          eq(disqusAccounts.status, "active"),
+          isNull(disqusAccounts.deletedAt)
+        ),
+      });
+
+      if (!account) {
+        throw new Error("Disqus account not found or inactive");
+      }
+
+      if (!account.accessTokenEnc) {
+        throw new Error("Disqus access token not configured. Please reconnect your Disqus account.");
+      }
+
+      const client = createDisqusClient({
+        apiKey: decryptToken(account.apiKeyEnc),
+        apiSecret: decryptToken(account.apiSecretEnc),
+        accessToken: decryptToken(account.accessTokenEnc),
+      });
+
+      try {
+        const post = await client.createPost(
+          input.threadId,
+          input.message,
+          input.authorEmail
+        );
+
+        return {
+          success: true,
+          postId: post.id,
+          message: "Reply posted to Disqus successfully",
+        };
+      } catch (error) {
+        console.error("Disqus reply error:", error);
+        throw new Error(`Failed to post reply: ${error instanceof Error ? error.message : "Unknown error"}`);
+      }
+    }),
 };

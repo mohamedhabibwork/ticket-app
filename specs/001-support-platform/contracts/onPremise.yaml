@@ -1,0 +1,124 @@
+openapi: 3.1.0
+info:
+  title: On-Premise API
+  version: 1.0.0
+  description: On-premise license management and verification
+
+paths:
+  /on-premise/license:
+    post:
+      operationId: verifyLicense
+      summary: Verify license file
+      tags: [On-Premise]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/licenseVerify'
+      responses:
+        '200':
+          description: License verification result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/licenseStatus'
+
+  /on-premise/license/status:
+    get:
+      operationId: getLicenseStatus
+      summary: Get current license status
+      tags: [On-Premise]
+      security: [cookieAuth: [], bearerAuth: []]
+      responses:
+        '200':
+          description: License status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/licenseStatus'
+
+  /on-premise/license/seats:
+    get:
+      operationId: getSeatUsage
+      summary: Get current seat usage
+      tags: [On-Premise]
+      security: [cookieAuth: [], bearerAuth: []]
+      responses:
+        '200':
+          description: Seat usage
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  used:
+                    type: number
+                  total:
+                    type: number
+                  available:
+                    type: number
+
+  /on-premise/features:
+    get:
+      operationId: getEnabledFeatures
+      summary: Get enabled features for license
+      tags: [On-Premise]
+      security: [cookieAuth: [], bearerAuth: []]
+      responses:
+        '200':
+          description: Feature list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  features:
+                    type: array
+                    items:
+                      type: string
+                  expiresAt:
+                    type: string
+                    format: date-time
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: session_token
+    bearerAuth:
+      type: http
+      scheme: bearer
+
+  schemas:
+    licenseVerify:
+      type: object
+      required: [licenseKey]
+      properties:
+        licenseKey:
+          type: string
+    licenseStatus:
+      type: object
+      properties:
+        isValid:
+          type: boolean
+        organizationName:
+          type: string
+        maxAgents:
+          type: number
+        features:
+          type: array
+          items:
+            type: string
+        issuedAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+        lastVerifiedAt:
+          type: string
+          format: date-time
+        error:
+          type: string

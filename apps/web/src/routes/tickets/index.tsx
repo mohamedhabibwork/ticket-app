@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
@@ -6,7 +7,14 @@ import {
   CardHeader,
   CardTitle,
 } from "@ticket-app/ui/components/card";
-import { Loader2 } from "lucide-react";
+import { Button } from "@ticket-app/ui/components/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@ticket-app/ui/components/dropdown-menu";
+import { Loader2, ChevronDown, Filter, X } from "lucide-react";
 
 import { orpc } from "@/utils/orpc";
 
@@ -31,12 +39,38 @@ export const Route = createFileRoute("/tickets/")({
 });
 
 function TicketsIndexRoute() {
+  const organizationId = 1;
+  const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
+
+  const queryParams = {
+    organizationId,
+    limit: 50 as const,
+    ...(selectedGroupId && { groupId: selectedGroupId }),
+    ...(selectedCategoryId && { categoryId: selectedCategoryId }),
+  };
+
   const { data: tickets, isLoading } = useQuery(
-    orpc.tickets.list.queryOptions({
-      organizationId: 1,
-      limit: 50,
-    })
+    orpc.tickets.list.queryOptions(queryParams)
   );
+
+  const { data: groups } = useQuery(
+    orpc.groups.list.queryOptions({ organizationId })
+  );
+
+  const { data: categories } = useQuery(
+    orpc.ticketCategories.list.queryOptions({ organizationId })
+  );
+
+  const selectedGroup = groups?.find((g) => g.id === selectedGroupId);
+  const selectedCategory = categories?.find((c) => c.id === selectedCategoryId);
+
+  const clearFilters = () => {
+    setSelectedGroupId(null);
+    setSelectedCategoryId(null);
+  };
+
+  const hasFilters = selectedGroupId || selectedCategoryId;
 
   return (
     <div className="container mx-auto max-w-6xl px-4 py-6">
@@ -44,6 +78,61 @@ function TicketsIndexRoute() {
         <div>
           <h1 className="text-2xl font-bold">Tickets</h1>
           <p className="text-muted-foreground">Manage and respond to customer tickets</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Filter className="h-4 w-4 mr-2" />
+                Group
+                {selectedGroup && `: ${selectedGroup.name}`}
+                <ChevronDown className="h-4 w-4 ml-2" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start">
+              <DropdownMenuItem onClick={() => setSelectedGroupId(null)}>
+                All Groups
+              </DropdownMenuItem>
+              {groups?.map((group) => (
+                <DropdownMenuItem
+                  key={group.id}
+                  onClick={() => setSelectedGroupId(group.id)}
+                >
+                  {group.name}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                Category
+                {selectedCategory && `: ${selectedCategory.name}`}
+                <ChevronDown className="h-4 w-4 ml-2" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start">
+              <DropdownMenuItem onClick={() => setSelectedCategoryId(null)}>
+                All Categories
+              </DropdownMenuItem>
+              {categories?.map((category) => (
+                <DropdownMenuItem
+                  key={category.id}
+                  onClick={() => setSelectedCategoryId(category.id)}
+                >
+                  {category.name}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {hasFilters && (
+            <Button variant="ghost" size="sm" onClick={clearFilters}>
+              <X className="h-4 w-4 mr-2" />
+              Clear
+            </Button>
+          )}
         </div>
       </div>
 
@@ -92,6 +181,9 @@ function TicketsIndexRoute() {
                         </span>
                         {ticket.assignedAgent && (
                           <span>Assigned to {ticket.assignedAgent.firstName}</span>
+                        )}
+                        {ticket.assignedTeam && (
+                          <span>{ticket.assignedTeam.name}</span>
                         )}
                       </div>
                     </div>

@@ -603,6 +603,31 @@ export const usersRouter = {
       });
     }),
 
+  updateRole: publicProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        name: z.string().min(1).max(100).optional(),
+        description: z.string().optional(),
+        ticketViewScope: z.enum(["all", "group", "self"]).optional(),
+        isActive: z.boolean().optional(),
+      }),
+    )
+    .handler(async ({ input }) => {
+      const [updated] = await db
+        .update(roles)
+        .set({
+          name: input.name,
+          description: input.description,
+          ticketViewScope: input.ticketViewScope,
+          isActive: input.isActive,
+          updatedAt: new Date(),
+        })
+        .where(eq(roles.id, input.id))
+        .returning();
+      return updated;
+    }),
+
   invite: publicProcedure
     .input(
       z.object({

@@ -5,6 +5,7 @@ import { db } from "@ticket-app/db";
 import { onPremiseLicenses } from "@ticket-app/db/schema";
 import { getRedis } from "../redis";
 import { env } from "@ticket-app/env/server";
+import { verifyLicenseKey } from "@ticket-app/api/src/lib/license";
 
 const LICENSE_VERIFICATION_QUEUE = `${env.QUEUE_PREFIX}:license-verification`;
 
@@ -80,17 +81,23 @@ async function verifyLicense(licenseId: number): Promise<void> {
     return;
   }
 
-  const isValid = await validateLicenseKey(license.licenseKey, license.domain);
+  const result = await verifyLicenseKey(license.licenseKey, "", license.signature);
+
+  const isExpired = license.validUntil && new Date(license.validUntil) < new Date();
+  const isValid = result.valid && !isExpired && license.isActive;
 
   await db
     .update(onPremiseLicenses)
     .set({
-      isVerified: isValid,
-      lastVerifiedAt: new Date(),
+      isActive: isValid,
+      lastVerificationAt: new Date(),
     })
     .where(eq(onPremiseLicenses.id, licenseId));
 
   console.log(`[License-Verification] License ${licenseId} verified: ${isValid}`);
+  if (result.error) {
+    console.log(`[License-Verification] Error: ${result.error}`);
+  }
 }
 
 async function verifyAllLicenses(): Promise<void> {
@@ -100,16 +107,22 @@ async function verifyAllLicenses(): Promise<void> {
     where: isNull(onPremiseLicenses.deletedAt),
   });
 
+  let verifiedCount = 0;
+  let failedCount = 0;
+
   for (const license of licenses) {
+    const prevActive = license.isActive;
     await verifyLicense(license.id);
+
+    if (license.isActive !== prevActive) {
+      verifiedCount++;
+    }
+    if (!license.isActive) {
+      failedCount++;
+    }
   }
 
-  console.log(`[License-Verification] Verified ${licenses.length} licenses`);
-}
-
-async function validateLicenseKey(licenseKey: string, domain: string): Promise<boolean> {
-  console.log(`[License-Verification] Validating key for domain ${domain}`);
-  return true;
+  console.log(`[License-Verification] Verified ${licenses.length} licenses. Status changed: ${verifiedCount}, Inactive: ${failedCount}`);
 }
 
 export async function closeLicenseVerificationQueue(): Promise<void> {

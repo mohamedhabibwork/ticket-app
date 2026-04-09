@@ -1,9 +1,16 @@
 import { db } from "@ticket-app/db";
-import { onPremiseLicenses } from "@ticket-app/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { onPremiseLicenses, users } from "@ticket-app/db/schema";
+import { eq, desc, sql } from "drizzle-orm";
 import z from "zod";
 
 import { publicProcedure } from "../index";
+import {
+  verifyLicenseKey,
+  validateSeatLimit,
+  isOnPremiseMode,
+  isMultiTenantBillingDisabled,
+} from "../lib/license";
+import { addLicenseVerificationJob } from "@ticket-app/queue";
 
 export const onPremiseRouter = {
   getLicense: publicProcedure
@@ -22,37 +29,148 @@ export const onPremiseRouter = {
         organizationId: z.number(),
         licenseKey: z.string(),
         domain: z.string(),
+        signature: z.string(),
+        productEdition: z.string(),
+        seatLimit: z.number(),
+        validUntil: z.date(),
       })
     )
     .handler(async ({ input }) => {
+      const result = await verifyLicenseKey(input.licenseKey, input.domain, input.signature);
+
+      if (!result.valid) {
+        return {
+          success: false,
+          error: result.error,
+          isVerified: false,
+        };
+      }
+
+      const existing = await db.query.onPremiseLicenses.findFirst({
+        where: eq(onPremiseLicenses.organizationId, input.organizationId),
+      });
+
+      if (existing) {
+        const [updated] = await db
+          .update(onPremiseLicenses)
+          .set({
+            licenseKey: input.licenseKey,
+            productEdition: input.productEdition,
+            seatLimit: input.seatLimit,
+            validUntil: input.validUntil,
+            signature: input.signature,
+            isActive: true,
+            lastVerificationAt: new Date(),
+          })
+          .where(eq(onPremiseLicenses.id, existing.id))
+          .returning();
+        return {
+          success: true,
+          license: updated,
+          isVerified: true,
+          details: result.details,
+        };
+      }
+
       const [license] = await db
         .insert(onPremiseLicenses)
         .values({
           organizationId: input.organizationId,
           licenseKey: input.licenseKey,
-          domain: input.domain,
-          isVerified: false,
+          productEdition: input.productEdition,
+          seatLimit: input.seatLimit,
+          validUntil: input.validUntil,
+          signature: input.signature,
+          isActive: true,
+          lastVerificationAt: new Date(),
         })
         .returning();
-      return license;
+
+      await addLicenseVerificationJob({ type: "verify-license", licenseId: license.id });
+
+      return {
+        success: true,
+        license,
+        isVerified: true,
+        details: result.details,
+      };
+    }),
+
+  checkSeatLimit: publicProcedure
+    .input(z.object({ organizationId: z.number() }))
+    .handler(async ({ input }) => {
+      const license = await db.query.onPremiseLicenses.findFirst({
+        where: eq(onPremiseLicenses.organizationId, input.organizationId),
+      });
+
+      if (!license || !license.isActive) {
+        return { enforced: false, message: "No active license" };
+      }
+
+      const userCount = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(users)
+        .where(eq(users.organizationId, input.organizationId));
+
+      const result = await validateSeatLimit(
+        input.organizationId,
+        userCount[0].count,
+        Number(license.seatLimit)
+      );
+
+      return {
+        enforced: true,
+        allowed: result.allowed,
+        currentCount: userCount[0].count,
+        seatLimit: license.seatLimit,
+        message: result.message,
+      };
+    }),
+
+  getLicenseStatus: publicProcedure
+    .input(z.object({ organizationId: z.number() }))
+    .handler(async ({ input }) => {
+      const license = await db.query.onPremiseLicenses.findFirst({
+        where: eq(onPremiseLicenses.organizationId, input.organizationId),
+      });
+
+      if (!license) {
+        return {
+          isActive: false,
+          mode: "unlicensed",
+          features: { multiTenant: true, billing: true },
+        };
+      }
+
+      const isExpired = license.validUntil && new Date(license.validUntil) < new Date();
+      const isValid = license.isActive && !isExpired;
+
+      return {
+        isActive: isValid,
+        mode: isOnPremiseMode() ? "on_premise" : "cloud",
+        productEdition: license.productEdition,
+        seatLimit: license.seatLimit,
+        validUntil: license.validUntil,
+        lastVerified: license.lastVerificationAt,
+        features: {
+          multiTenant: !isMultiTenantBillingDisabled(),
+          billing: !isMultiTenantBillingDisabled(),
+        },
+      };
     }),
 
   updateLicense: publicProcedure
     .input(
       z.object({
         id: z.number(),
-        isVerified: z.boolean().optional(),
-        seatCount: z.number().optional(),
-        expiresAt: z.date().optional(),
+        isActive: z.boolean().optional(),
       })
     )
     .handler(async ({ input }) => {
       const [updated] = await db
         .update(onPremiseLicenses)
         .set({
-          isVerified: input.isVerified,
-          seatCount: input.seatCount,
-          expiresAt: input.expiresAt,
+          isActive: input.isActive,
         })
         .where(eq(onPremiseLicenses.id, input.id))
         .returning();

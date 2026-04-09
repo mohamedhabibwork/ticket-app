@@ -38,7 +38,7 @@ interface ConditionRule {
 }
 
 interface WorkflowAction {
-  type: "assign_agent" | "assign_team" | "set_priority" | "set_status" | "add_tags" | "remove_tags" | "send_email" | "send_webhook" | "create_task" | "add_note" | "apply_saved_reply";
+  type: "assign_agent" | "assign_team" | "set_priority" | "set_status" | "add_tags" | "remove_tags" | "send_email" | "send_webhook" | "create_task" | "add_note" | "apply_saved_reply" | "create_calendar_event";
   params: Record<string, unknown>;
 }
 
@@ -103,6 +103,7 @@ const ACTION_TYPES = [
   { value: "create_task", label: "Create Task" },
   { value: "add_note", label: "Add Note" },
   { value: "apply_saved_reply", label: "Apply Saved Reply" },
+  { value: "create_calendar_event", label: "Create Calendar Event" },
 ];
 
 const TRIGGER_LABELS: Record<string, string> = {
@@ -935,6 +936,46 @@ function ActionParamsEditor({
             onChange={(e) => onUpdate({ savedReplyId: e.target.value })}
             placeholder="Enter saved reply ID"
           />
+        </div>
+      );
+
+    case "create_calendar_event":
+      return (
+        <div className="space-y-2">
+          <div className="space-y-1">
+            <Label className="text-xs">Event Title</Label>
+            <Input
+              value={(action.params.title as string) || ""}
+              onChange={(e) => onUpdate({ title: e.target.value })}
+              placeholder="Ticket follow-up: #{ticket.id}"
+            />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs">Description</Label>
+            <Textarea
+              value={(action.params.description as string) || ""}
+              onChange={(e) => onUpdate({ description: e.target.value })}
+              placeholder="Ticket subject: {ticket.subject}"
+              rows={2}
+            />
+          </div>
+          <div className="space-y-1">
+            <Label className="text-xs">Duration (minutes)</Label>
+            <Input
+              type="number"
+              value={(action.params.durationMinutes as string) || "30"}
+              onChange={(e) => onUpdate({ durationMinutes: e.target.value })}
+              placeholder="30"
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id="addAttendees"
+              checked={(action.params.addAttendees as boolean) ?? false}
+              onCheckedChange={(checked) => onUpdate({ addAttendees: checked })}
+            />
+            <Label htmlFor="addAttendees" className="text-xs font-normal">Add ticket contact as attendee</Label>
+          </div>
         </div>
       );
 

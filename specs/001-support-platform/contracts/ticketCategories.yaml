@@ -1,0 +1,179 @@
+openapi: 3.1.0
+info:
+  title: Ticket Categories API
+  version: 1.0.0
+  description: Ticket categories with SLA routing configuration
+
+paths:
+  /ticket-categories:
+    get:
+      operationId: listTicketCategories
+      summary: List ticket categories
+      tags: [Ticket Categories]
+      security: [cookieAuth: [], bearerAuth: []]
+      parameters:
+        - $ref: '#/components/parameters/organizationId'
+      responses:
+        '200':
+          description: Category list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ticketCategory'
+
+    post:
+      operationId: createTicketCategory
+      summary: Create ticket category
+      tags: [Ticket Categories]
+      security: [cookieAuth: [], bearerAuth: []]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ticketCategoryCreate'
+      responses:
+        '201':
+          description: Category created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ticketCategory'
+
+  /ticket-categories/{categoryId}:
+    get:
+      operationId: getTicketCategory
+      summary: Get category
+      tags: [Ticket Categories]
+      security: [cookieAuth: [], bearerAuth: []]
+      parameters:
+        - name: categoryId
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        '200':
+          description: Category details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ticketCategory'
+
+    patch:
+      operationId: updateTicketCategory
+      summary: Update category
+      tags: [Ticket Categories]
+      security: [cookieAuth: [], bearerAuth: []]
+      parameters:
+        - name: categoryId
+          in: path
+          required: true
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ticketCategoryUpdate'
+      responses:
+        '200':
+          description: Category updated
+
+    delete:
+      operationId: deleteTicketCategory
+      summary: Delete category
+      tags: [Ticket Categories]
+      security: [cookieAuth: [], bearerAuth: []]
+      parameters:
+        - name: categoryId
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        '200':
+          description: Category deleted
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: session_token
+    bearerAuth:
+      type: http
+      scheme: bearer
+
+  parameters:
+    organizationId:
+      in: header
+      name: X-Organization-ID
+      required: true
+      schema:
+        type: number
+
+  schemas:
+    ticketCategory:
+      type: object
+      properties:
+        id:
+          type: number
+        organizationId:
+          type: number
+        name:
+          type: string
+        description:
+          type: string
+        slaPolicyId:
+          type: number
+        teamId:
+          type: number
+        priorityId:
+          type: number
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+    ticketCategoryCreate:
+      type: object
+      required: [organizationId, name]
+      properties:
+        organizationId:
+          type: number
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        description:
+          type: string
+        slaPolicyId:
+          type: number
+        teamId:
+          type: number
+        priorityId:
+          type: number
+    ticketCategoryUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        description:
+          type: string
+        slaPolicyId:
+          type: number
+          nullable: true
+        teamId:
+          type: number
+          nullable: true
+        priorityId:
+          type: number
+          nullable: true
+        isActive:
+          type: boolean

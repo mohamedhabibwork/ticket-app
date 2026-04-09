@@ -1,0 +1,162 @@
+openapi: 3.1.0
+info:
+  title: Customer Auth API
+  version: 1.0.0
+  description: End-customer portal SSO via social providers
+
+paths:
+  /customer-auth/google:
+    get:
+      operationId: googleOAuth
+      summary: Initiate Google OAuth flow
+      tags: [Customer Auth]
+      parameters:
+        - name: returnUrl
+          in: query
+          schema:
+            type: string
+      responses:
+        '302':
+          description: Redirect to Google
+
+  /customer-auth/google/callback:
+    get:
+      operationId: googleCallback
+      summary: Google OAuth callback
+      tags: [Customer Auth]
+      parameters:
+        - name: code
+          in: query
+          schema:
+            type: string
+        - name: state
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/customerSession'
+
+  /customer-auth/facebook:
+    get:
+      operationId: facebookOAuth
+      summary: Initiate Facebook OAuth flow
+      tags: [Customer Auth]
+      parameters:
+        - name: returnUrl
+          in: query
+          schema:
+            type: string
+      responses:
+        '302':
+          description: Redirect to Facebook
+
+  /customer-auth/facebook/callback:
+    get:
+      operationId: facebookCallback
+      summary: Facebook OAuth callback
+      tags: [Customer Auth]
+      parameters:
+        - name: code
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/customerSession'
+
+  /customer-auth/apple:
+    get:
+      operationId: appleSignIn
+      summary: Initiate Apple Sign-In
+      tags: [Customer Auth]
+      parameters:
+        - name: returnUrl
+          in: query
+          schema:
+            type: string
+      responses:
+        '302':
+          description: Redirect to Apple
+
+  /customer-auth/apple/callback:
+    post:
+      operationId: appleCallback
+      summary: Apple Sign-In callback
+      tags: [Customer Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                idToken:
+                  type: string
+                state:
+                  type: string
+      responses:
+        '200':
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/customerSession'
+
+  /customer-auth/session:
+    get:
+      operationId: getCustomerSession
+      summary: Get current customer session
+      tags: [Customer Auth]
+      security: [cookieAuth: []]
+      responses:
+        '200':
+          description: Session details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/customerSession'
+
+    delete:
+      operationId: logoutCustomer
+      summary: Logout customer
+      tags: [Customer Auth]
+      security: [cookieAuth: []]
+      responses:
+        '200':
+          description: Logged out
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: customer_session
+
+  schemas:
+    customerSession:
+      type: object
+      properties:
+        id:
+          type: number
+        contactId:
+          type: number
+        email:
+          type: string
+        name:
+          type: string
+        avatarUrl:
+          type: string
+        provider:
+          type: string
+        createdAt:
+          type: string
+          format: date-time

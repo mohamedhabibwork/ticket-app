@@ -12,7 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@ticket-app/ui/components/card";
-import { Loader2, ArrowLeft } from "lucide-react";
+import { Loader2, ArrowLeft, Calendar, CheckCircle, RefreshCw } from "lucide-react";
 
 import { orpc } from "@/utils/orpc";
 
@@ -22,6 +22,7 @@ export const Route = createFileRoute("/settings/profile")({
 
 function ProfileSettingsRoute() {
   const organizationId = 1;
+  const currentUserId = 1;
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -37,6 +38,35 @@ function ProfileSettingsRoute() {
     orpc.users.me.queryOptions()
   );
 
+  const { data: calendarConnections, refetch: refetchCalendar } = useQuery(
+    orpc.calendar.listConnections.queryOptions({
+      userId: currentUserId,
+    })
+  );
+
+  const connectCalendarMutation = useMutation(
+    orpc.calendar.getGoogleAuthUrl.mutationOptions({
+      onSuccess: (data) => {
+        window.location.href = data.authUrl;
+      },
+      onError: (error) => {
+        toast.error(`Failed to get calendar auth URL: ${error.message}`);
+      },
+    })
+  );
+
+  const disconnectCalendarMutation = useMutation(
+    orpc.calendar.disconnect.mutationOptions({
+      onSuccess: () => {
+        toast.success("Calendar disconnected");
+        refetchCalendar();
+      },
+      onError: (error) => {
+        toast.error(`Failed to disconnect calendar: ${error.message}`);
+      },
+    })
+  );
+
   const updateMutation = useMutation(
     orpc.users.update.mutationOptions({
       onSuccess: () => {
@@ -47,6 +77,8 @@ function ProfileSettingsRoute() {
       },
     })
   );
+
+  const activeCalendarConnection = calendarConnections?.find(c => c.isActive);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -217,6 +249,66 @@ function ProfileSettingsRoute() {
                     <option value="ar">Arabic</option>
                   </select>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Integrations</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between p-3 rounded border">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-full bg-blue-100 p-2">
+                    <Calendar className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="font-medium">Google Calendar</p>
+                    <p className="text-xs text-muted-foreground">
+                      {activeCalendarConnection
+                        ? `Connected: ${activeCalendarConnection.calendarName}`
+                        : "Create events from tickets and tasks"}
+                    </p>
+                  </div>
+                </div>
+                {activeCalendarConnection ? (
+                  <div className="flex items-center gap-2">
+                    <span className="inline-flex items-center gap-1 rounded bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
+                      <CheckCircle className="h-3 w-3" />
+                      Connected
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        if (confirm("Are you sure you want to disconnect your Google Calendar?")) {
+                          disconnectCalendarMutation.mutate({
+                            userId: currentUserId,
+                            id: activeCalendarConnection.id,
+                          });
+                        }
+                      }}
+                      disabled={disconnectCalendarMutation.isPending}
+                    >
+                      Disconnect
+                    </Button>
+                  </div>
+                ) : (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => connectCalendarMutation.mutate({ userId: currentUserId })}
+                    disabled={connectCalendarMutation.isPending}
+                  >
+                    {connectCalendarMutation.isPending ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Calendar className="h-4 w-4 mr-2" />
+                    )}
+                    Connect Calendar
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>

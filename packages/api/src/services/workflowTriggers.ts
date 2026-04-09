@@ -10,7 +10,8 @@ export type WorkflowTriggerType =
   | "ticket_priority_changed"
   | "ticket_assigned"
   | "sla_breached"
-  | "time_elapsed";
+  | "time_elapsed"
+  | "ticket_thread_omitted";
 
 interface TicketData {
   id: number;

@@ -13,6 +13,7 @@ import {
 import { relations } from "drizzle-orm";
 import { organizations } from "./_organizations";
 import { tickets } from "./_tickets";
+import { groups } from "./_groups";
 
 export const users = pgTable(
   "users",
@@ -62,12 +63,13 @@ export const roles = pgTable(
     slug: varchar("slug", { length: 100 }).notNull(),
     description: text("description"),
     isSystem: boolean("is_system").default(false).notNull(),
+    ticketViewScope: varchar("ticket_view_scope", { length: 20 }).default("all").notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
     deletedAt: timestamp("deleted_at", { withTimezone: true }),
     createdBy: bigint("created_by", { mode: "number" }).references((): any => users.id),
     updatedBy: bigint("updated_by", { mode: "number" }).references((): any => users.id),
-    deletedBy: bigint("deleted_by", { mode: "number" }).references((): any => users.id),
+    deletedBy: bigint("updated_by", { mode: "number" }).references((): any => users.id),
   },
   (table) => ({
     orgSlugUnique: unique().on(table.organizationId, table.slug),
@@ -127,6 +129,7 @@ export const teams = pgTable(
     organizationId: bigint("organization_id", { mode: "number" })
       .references(() => organizations.id)
       .notNull(),
+    groupId: bigint("group_id", { mode: "number" }).references((): any => groups.id),
     name: varchar("name", { length: 150 }).notNull(),
     description: text("description"),
     autoAssignMethod: varchar("auto_assign_method", { length: 30 }).default("round_robin").notNull(),
@@ -293,6 +296,10 @@ export const teamsRelations = relations(teams, ({ one, many }) => ({
   organization: one(organizations, {
     fields: [teams.organizationId],
     references: [organizations.id],
+  }),
+  group: one(groups, {
+    fields: [teams.groupId],
+    references: [groups.id],
   }),
   members: many(teamMembers),
 }));

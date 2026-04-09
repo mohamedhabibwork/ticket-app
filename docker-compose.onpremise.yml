@@ -1,0 +1,79 @@
+version: "3.9"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/ticket_app
+      - REDIS_URL=redis://redis:6379
+      - LICENSE_MODE=on_premise
+      - ON_PREMISE=true
+    depends_on:
+      - db
+      - redis
+    restart: unless-stopped
+    volumes:
+      - ./keys:/app/keys:ro
+      - uploads:/app/uploads
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    command: ["bun", "run", "worker.ts"]
+    environment:
+      - NODE_ENV=production
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/ticket_app
+      - REDIS_URL=redis://redis:6379
+      - LICENSE_MODE=on_premise
+      - ON_PREMISE=true
+    depends_on:
+      - db
+      - redis
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=ticket_app
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - app
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  redisdata:
+  uploads:
+
+networks:
+  default:
+    name: ticket-app-network

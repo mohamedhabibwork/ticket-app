@@ -1,0 +1,166 @@
+openapi: 3.1.0
+info:
+  title: Presence API
+  version: 1.0.0
+  description: Real-time ticket viewer presence tracking
+
+paths:
+  /presence/join:
+    post:
+      operationId: joinTicket
+      summary: Join ticket viewing session
+      tags: [Presence]
+      security: [cookieAuth: [], bearerAuth: []]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/presenceJoin'
+      responses:
+        '200':
+          description: Joined successfully
+
+  /presence/leave:
+    post:
+      operationId: leaveTicket
+      summary: Leave ticket viewing session
+      tags: [Presence]
+      security: [cookieAuth: [], bearerAuth: []]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/presenceLeave'
+      responses:
+        '200':
+          description: Left successfully
+
+  /presence/ping:
+    post:
+      operationId: presenceHeartbeat
+      summary: Send presence heartbeat
+      tags: [Presence]
+      security: [cookieAuth: [], bearerAuth: []]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/presencePing'
+      responses:
+        '200':
+          description: Heartbeat acknowledged
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  alive:
+                    type: boolean
+
+  /presence/ticket/{ticketId}:
+    get:
+      operationId: listTicketViewers
+      summary: List current viewers of a ticket
+      tags: [Presence]
+      security: [cookieAuth: [], bearerAuth: []]
+      parameters:
+        - name: ticketId
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        '200':
+          description: Viewer list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/presenceViewer'
+
+  /presence/check:
+    post:
+      operationId: checkPresence
+      summary: Check if user is viewing ticket
+      tags: [Presence]
+      security: [cookieAuth: [], bearerAuth: []]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/presenceCheck'
+      responses:
+        '200':
+          description: Presence status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  viewing:
+                    type: boolean
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: session_token
+    bearerAuth:
+      type: http
+      scheme: bearer
+
+  schemas:
+    presenceJoin:
+      type: object
+      required: [ticketId, userId, userName]
+      properties:
+        ticketId:
+          type: number
+        userId:
+          type: number
+        userName:
+          type: string
+        avatarUrl:
+          type: string
+    presenceLeave:
+      type: object
+      required: [ticketId, userId]
+      properties:
+        ticketId:
+          type: number
+        userId:
+          type: number
+    presencePing:
+      type: object
+      required: [ticketId, userId]
+      properties:
+        ticketId:
+          type: number
+        userId:
+          type: number
+    presenceCheck:
+      type: object
+      required: [ticketId, userId]
+      properties:
+        ticketId:
+          type: number
+        userId:
+          type: number
+    presenceViewer:
+      type: object
+      properties:
+        userId:
+          type: number
+        userName:
+          type: string
+        avatarUrl:
+          type: string
+        joinedAt:
+          type: string
+          format: date-time

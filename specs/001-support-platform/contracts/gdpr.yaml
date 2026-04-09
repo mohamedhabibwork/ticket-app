@@ -1,0 +1,198 @@
+openapi: 3.1.0
+info:
+  title: GDPR API
+  version: 1.0.0
+  description: GDPR data subject request management
+
+paths:
+  /gdpr/requests:
+    get:
+      operationId: listGdprRequests
+      summary: List GDPR requests
+      tags: [GDPR]
+      security: [cookieAuth: [], bearerAuth: []]
+      parameters:
+        - $ref: '#/components/parameters/organizationId'
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, in_progress, completed, rejected]
+      responses:
+        '200':
+          description: Request list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/gdprRequest'
+
+    post:
+      operationId: createGdprRequest
+      summary: Create GDPR request
+      tags: [GDPR]
+      security: [cookieAuth: [], bearerAuth: []]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/gdprRequestCreate'
+      responses:
+        '201':
+          description: Request created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/gdprRequest'
+
+  /gdpr/requests/{requestId}:
+    get:
+      operationId: getGdprRequest
+      summary: Get GDPR request
+      tags: [GDPR]
+      security: [cookieAuth: [], bearerAuth: []]
+      parameters:
+        - name: requestId
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        '200':
+          description: Request details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/gdprRequest'
+
+    patch:
+      operationId: updateGdprRequest
+      summary: Update GDPR request
+      tags: [GDPR]
+      security: [cookieAuth: [], bearerAuth: []]
+      parameters:
+        - name: requestId
+          in: path
+          required: true
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/gdprRequestUpdate'
+      responses:
+        '200':
+          description: Request updated
+
+  /gdpr/requests/{requestId}/export:
+    post:
+      operationId: exportGdprData
+      summary: Export contact data (Right of Access)
+      tags: [GDPR]
+      security: [cookieAuth: [], bearerAuth: []]
+      parameters:
+        - name: requestId
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        '200':
+          description: Exported data
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /gdpr/requests/{requestId}/erase:
+    post:
+      operationId: eraseGdprData
+      summary: Anonymize contact PII (Right of Erasure)
+      tags: [GDPR]
+      security: [cookieAuth: [], bearerAuth: []]
+      parameters:
+        - name: requestId
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        '200':
+          description: Data erased
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: session_token
+    bearerAuth:
+      type: http
+      scheme: bearer
+
+  parameters:
+    organizationId:
+      in: header
+      name: X-Organization-ID
+      required: true
+      schema:
+        type: number
+
+  schemas:
+    gdprRequest:
+      type: object
+      properties:
+        id:
+          type: number
+        organizationId:
+          type: number
+        contactId:
+          type: number
+        type:
+          type: string
+          enum: [access, erasure, portability, rectification]
+        status:
+          type: string
+          enum: [pending, in_progress, completed, rejected]
+        requesterEmail:
+          type: string
+        requesterName:
+          type: string
+        notes:
+          type: string
+        completedAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+    gdprRequestCreate:
+      type: object
+      required: [organizationId, contactId, type, requesterEmail]
+      properties:
+        organizationId:
+          type: number
+        contactId:
+          type: number
+        type:
+          type: string
+          enum: [access, erasure, portability, rectification]
+        requesterEmail:
+          type: string
+          format: email
+        requesterName:
+          type: string
+        notes:
+          type: string
+    gdprRequestUpdate:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [pending, in_progress, completed, rejected]
+        notes:
+          type: string

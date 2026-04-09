@@ -1,0 +1,231 @@
+openapi: 3.1.0
+info:
+  title: Mobile SDK API
+  version: 1.0.0
+  description: Mobile SDK configuration and push notification management
+
+paths:
+  /mobile-sdk/config:
+    get:
+      operationId: getMobileSdkConfig
+      summary: Get mobile SDK configuration
+      tags: [Mobile SDK]
+      security: [cookieAuth: [], bearerAuth: []]
+      parameters:
+        - $ref: '#/components/parameters/organizationId'
+      responses:
+        '200':
+          description: Config details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/mobileSdkConfig'
+
+    patch:
+      operationId: updateMobileSdkConfig
+      summary: Update mobile SDK configuration
+      tags: [Mobile SDK]
+      security: [cookieAuth: [], bearerAuth: []]
+      parameters:
+        - $ref: '#/components/parameters/organizationId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/mobileSdkConfigUpdate'
+      responses:
+        '200':
+          description: Config updated
+
+  /mobile-sdk/tokens:
+    post:
+      operationId: registerPushToken
+      summary: Register push notification token
+      tags: [Mobile SDK]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/pushTokenRegister'
+      responses:
+        '200':
+          description: Token registered
+
+    delete:
+      operationId: unregisterPushToken
+      summary: Unregister push notification token
+      tags: [Mobile SDK]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token]
+              properties:
+                token:
+                  type: string
+        responses:
+          '200':
+            description: Token unregistered
+
+  /mobile-sdk/send:
+    post:
+      operationId: sendPushNotification
+      summary: Send push notification
+      tags: [Mobile SDK]
+      security: [cookieAuth: [], bearerAuth: []]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/pushNotificationSend'
+      responses:
+        '200':
+          description: Notification sent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  successCount:
+                    type: number
+                  failureCount:
+                    type: number
+
+  /mobile-sdk/logs:
+    get:
+      operationId: listPushNotificationLogs
+      summary: List push notification logs
+      tags: [Mobile SDK]
+      security: [cookieAuth: [], bearerAuth: []]
+      parameters:
+        - $ref: '#/components/parameters/organizationId'
+        - name: contactId
+          in: query
+          schema:
+            type: number
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [sent, delivered, failed]
+      responses:
+        '200':
+          description: Log list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/pushNotificationLog'
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: session_token
+    bearerAuth:
+      type: http
+      scheme: bearer
+
+  parameters:
+    organizationId:
+      in: header
+      name: X-Organization-ID
+      required: true
+      schema:
+        type: number
+
+  schemas:
+    mobileSdkConfig:
+      type: object
+      properties:
+        id:
+          type: number
+        organizationId:
+          type: number
+        fcmProjectId:
+          type: string
+        fcmApiKey:
+          type: string
+        apnsKeyId:
+          type: string
+        apnsTeamId:
+          type: string
+        apnsPrivateKey:
+          type: string
+        apnsBundleId:
+          type: string
+        isEnabled:
+          type: boolean
+    mobileSdkConfigUpdate:
+      type: object
+      properties:
+        fcmProjectId:
+          type: string
+        fcmApiKey:
+          type: string
+        apnsKeyId:
+          type: string
+        apnsTeamId:
+          type: string
+        apnsPrivateKey:
+          type: string
+        apnsBundleId:
+          type: string
+        isEnabled:
+          type: boolean
+    pushTokenRegister:
+      type: object
+      required: [contactId, token, platform]
+      properties:
+        contactId:
+          type: number
+        token:
+          type: string
+        platform:
+          type: string
+          enum: [ios, android]
+        deviceId:
+          type: string
+    pushNotificationSend:
+      type: object
+      required: [contactId, title, body]
+      properties:
+        contactId:
+          type: number
+        title:
+          type: string
+        body:
+          type: string
+        data:
+          type: object
+          additionalProperties:
+            type: string
+    pushNotificationLog:
+      type: object
+      properties:
+        id:
+          type: number
+        contactId:
+          type: number
+        title:
+          type: string
+        body:
+          type: string
+        status:
+          type: string
+          enum: [sent, delivered, failed]
+        errorMessage:
+          type: string
+        sentAt:
+          type: string
+          format: date-time
+        deliveredAt:
+          type: string
+          format: date-time

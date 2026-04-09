@@ -1,0 +1,188 @@
+openapi: 3.1.0
+info:
+  title: Calendar API
+  version: 1.0.0
+  description: Google Calendar integration for agents
+
+paths:
+  /calendar/connect:
+    get:
+      operationId: googleCalendarOAuth
+      summary: Initiate Google Calendar OAuth
+      tags: [Calendar]
+      security: [cookieAuth: [], bearerAuth: []]
+      parameters:
+        - name: returnUrl
+          in: query
+          schema:
+            type: string
+      responses:
+        '302':
+          description: Redirect to Google
+
+  /calendar/connect/callback:
+    get:
+      operationId: googleCalendarCallback
+      summary: Google Calendar OAuth callback
+      tags: [Calendar]
+      security: [cookieAuth: [], bearerAuth: []]
+      parameters:
+        - name: code
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Calendar connected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/calendarConnection'
+
+  /calendar/connections:
+    get:
+      operationId: listCalendarConnections
+      summary: List calendar connections
+      tags: [Calendar]
+      security: [cookieAuth: [], bearerAuth: []]
+      responses:
+        '200':
+          description: Connection list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/calendarConnection'
+
+    delete:
+      operationId: disconnectCalendar
+      summary: Disconnect calendar
+      tags: [Calendar]
+      security: [cookieAuth: [], bearerAuth: []]
+      parameters:
+        - name: connectionId
+          in: query
+          schema:
+            type: number
+      responses:
+        '200':
+          description: Disconnected
+
+  /calendar/events:
+    get:
+      operationId: listCalendarEvents
+      summary: List calendar events
+      tags: [Calendar]
+      security: [cookieAuth: [], bearerAuth: []]
+      parameters:
+        - name: startDate
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: endDate
+          in: query
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Event list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/calendarEvent'
+
+    post:
+      operationId: createCalendarEvent
+      summary: Create calendar event
+      tags: [Calendar]
+      security: [cookieAuth: [], bearerAuth: []]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/calendarEventCreate'
+      responses:
+        '201':
+          description: Event created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/calendarEvent'
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: session_token
+    bearerAuth:
+      type: http
+      scheme: bearer
+
+  schemas:
+    calendarConnection:
+      type: object
+      properties:
+        id:
+          type: number
+        userId:
+          type: number
+        email:
+          type: string
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        expiresAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+    calendarEvent:
+      type: object
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+        location:
+          type: string
+        attendees:
+          type: array
+          items:
+            type: string
+    calendarEventCreate:
+      type: object
+      required: [title, startTime, endTime]
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        startTime:
+          type: string
+          format: date-time
+        endTime:
+          type: string
+          format: date-time
+        location:
+          type: string
+        attendees:
+          type: array
+          items:
+            type: string

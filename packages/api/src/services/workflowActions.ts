@@ -3,6 +3,7 @@ import { tickets, ticketTags, tags, ticketMessages } from "@ticket-app/db/schema
 import { tasks, taskAssignees } from "@ticket-app/db/schema/_tasks";
 import { lookups } from "@ticket-app/db/schema/_lookups";
 import { mailboxes, emailMessages } from "@ticket-app/db/schema/_mailboxes";
+import { agentCalendarConnections, ticketCalendarEvents } from "@ticket-app/db/schema";
 import { eq, and } from "drizzle-orm";
 import { addEmailSendJob } from "../jobs/emailSend";
 
@@ -18,7 +19,8 @@ export interface WorkflowAction {
     | "send_webhook"
     | "create_task"
     | "add_note"
-    | "apply_saved_reply";
+    | "apply_saved_reply"
+    | "create_calendar_event";
   params: Record<string, unknown>;
 }
 
@@ -96,6 +98,9 @@ export const workflowActions = {
 
       case "apply_saved_reply":
         return await this.applySavedReply(action.params, ticket, context);
+
+      case "create_calendar_event":
+        return await this.createCalendarEvent(action.params, ticket, context);
 
       default:
         return {
@@ -508,6 +513,96 @@ export const workflowActions = {
       result: {
         savedReplyId,
         message: "Saved reply applied - action would create a ticket message",
+      },
+    };
+  },
+
+  async createCalendarEvent(
+    params: Record<string, unknown>,
+    ticket: Record<string, unknown>,
+    context: ActionContext,
+  ): Promise<ActionResult> {
+    const title = params.title as string;
+    const description = params.description as string;
+    const durationMinutes = (params.durationMinutes as number) || 30;
+    const addAttendees = params.addAttendees as boolean;
+    const agentCalendarConnectionId = params.agentCalendarConnectionId as number;
+    const organizationId = ticket.organizationId as number;
+
+    if (!title) {
+      return {
+        success: false,
+        actionType: "create_calendar_event",
+        error: "Missing event title",
+      };
+    }
+
+    const startAt = new Date();
+    const endAt = new Date(startAt.getTime() + durationMinutes * 60 * 1000);
+
+    const titleInterpolated = title.replace(/#\{ticket\.id\}/g, String(context.ticketId))
+      .replace(/#\{ticket\.subject\}/g, String(ticket.subject || ""));
+    const descriptionInterpolated = description
+      ? description.replace(/#\{ticket\.id\}/g, String(context.ticketId))
+          .replace(/#\{ticket\.subject\}/g, String(ticket.subject || ""))
+      : "";
+
+    const attendees: string[] = [];
+    if (addAttendees && ticket.contactEmail) {
+      attendees.push(ticket.contactEmail as string);
+    }
+
+    let calendarEvent;
+    try {
+      const { calendarRouter } = await import("../routers/calendar");
+      
+      const connection = await db.query.agentCalendarConnections.findFirst({
+        where: and(
+          eq(agentCalendarConnections.userId, ticket.assignedAgentId as number),
+          eq(agentCalendarConnections.isActive, true),
+        ),
+      });
+
+      if (!connection) {
+        return {
+          success: false,
+          actionType: "create_calendar_event",
+          error: "No active calendar connection found for assigned agent",
+        };
+      }
+
+      const [event] = await db
+        .insert(ticketCalendarEvents)
+        .values({
+          ticketId: context.ticketId,
+          agentCalendarConnectionId: connection.id,
+          provider: connection.provider,
+          providerEventId: "pending",
+          title: titleInterpolated,
+          description: descriptionInterpolated,
+          startAt,
+          endAt,
+          attendees: attendees.join(","),
+        })
+        .returning();
+
+      calendarEvent = event;
+    } catch (error) {
+      return {
+        success: false,
+        actionType: "create_calendar_event",
+        error: error instanceof Error ? error.message : "Failed to create calendar event",
+      };
+    }
+
+    return {
+      success: true,
+      actionType: "create_calendar_event",
+      result: {
+        calendarEventId: calendarEvent?.id,
+        title: titleInterpolated,
+        startAt: startAt.toISOString(),
+        endAt: endAt.toISOString(),
       },
     };
   },

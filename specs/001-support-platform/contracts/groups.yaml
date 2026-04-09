@@ -1,0 +1,165 @@
+openapi: 3.1.0
+info:
+  title: Groups API
+  version: 1.0.0
+  description: Department-level group management for organizing teams
+
+paths:
+  /groups:
+    get:
+      operationId: listGroups
+      summary: List groups
+      tags: [Groups]
+      security: [cookieAuth: [], bearerAuth: []]
+      parameters:
+        - $ref: '#/components/parameters/organizationId'
+      responses:
+        '200':
+          description: Group list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/group'
+
+    post:
+      operationId: createGroup
+      summary: Create group
+      tags: [Groups]
+      security: [cookieAuth: [], bearerAuth: []]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/groupCreate'
+      responses:
+        '201':
+          description: Group created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/group'
+
+  /groups/{groupId}:
+    get:
+      operationId: getGroup
+      summary: Get group
+      tags: [Groups]
+      security: [cookieAuth: [], bearerAuth: []]
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        '200':
+          description: Group details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/group'
+
+    patch:
+      operationId: updateGroup
+      summary: Update group
+      tags: [Groups]
+      security: [cookieAuth: [], bearerAuth: []]
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: number
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/groupUpdate'
+      responses:
+        '200':
+          description: Group updated
+
+    delete:
+      operationId: deleteGroup
+      summary: Delete group
+      tags: [Groups]
+      security: [cookieAuth: [], bearerAuth: []]
+      parameters:
+        - name: groupId
+          in: path
+          required: true
+          schema:
+            type: number
+      responses:
+        '200':
+          description: Group deleted
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: session_token
+    bearerAuth:
+      type: http
+      scheme: bearer
+
+  parameters:
+    organizationId:
+      in: header
+      name: X-Organization-ID
+      required: true
+      schema:
+        type: number
+
+  schemas:
+    group:
+      type: object
+      properties:
+        id:
+          type: number
+        organizationId:
+          type: number
+        name:
+          type: string
+        description:
+          type: string
+        parentId:
+          type: number
+        isActive:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+    groupCreate:
+      type: object
+      required: [organizationId, name]
+      properties:
+        organizationId:
+          type: number
+        name:
+          type: string
+          minLength: 1
+          maxLength: 150
+        description:
+          type: string
+        parentId:
+          type: number
+    groupUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 150
+        description:
+          type: string
+        parentId:
+          type: number
+          nullable: true
+        isActive:
+          type: boolean

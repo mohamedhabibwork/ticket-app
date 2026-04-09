@@ -7,7 +7,7 @@ import {
   CardTitle,
 } from "@ticket-app/ui/components/card";
 import { Button } from "@ticket-app/ui/components/button";
-import { Loader2, ArrowUpRight, ArrowDownRight, MessageSquare, Clock, CheckCircle, AlertTriangle, Users, Plus, Search, FileText, ChevronDown, ChevronUp } from "lucide-react";
+import { Loader2, ArrowUpRight, ArrowDownRight, MessageSquare, Clock, CheckCircle, AlertTriangle, Users, Plus, Search, FileText, ChevronDown, ChevronUp, Calendar } from "lucide-react";
 import { orpc } from "@/utils/orpc";
 import { useState } from "react";
 
@@ -86,6 +86,14 @@ function DashboardRoute() {
   const { data: breachedSla, isLoading: loadingBreached } = useQuery(
     orpc.ticketSla.listBreached.queryOptions({
       organizationId,
+    })
+  );
+
+  const { data: upcomingEvents, isLoading: loadingEvents } = useQuery(
+    orpc.calendar.listAgentEvents.queryOptions({
+      userId: currentUserId,
+      startDate: new Date().toISOString(),
+      endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
     })
   );
 
@@ -404,6 +412,44 @@ function DashboardRoute() {
             ) : (
               <div className="text-center py-8 text-muted-foreground">
                 No team members found
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <Calendar className="h-4 w-4 text-blue-500" />
+              <CardTitle>Upcoming Calendar Events</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {loadingEvents ? (
+              <div className="flex justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin" />
+              </div>
+            ) : upcomingEvents && upcomingEvents.length > 0 ? (
+              <div className="space-y-3">
+                {upcomingEvents.slice(0, 5).map((event: any, index: number) => (
+                  <div key={index} className="flex items-center justify-between p-3 rounded border">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{event.title}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {event.startAt
+                          ? new Date(event.startAt).toLocaleString()
+                          : "Unknown start time"}
+                        {event.location && ` • ${event.location}`}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <Calendar className="mx-auto h-8 w-8 mb-2 opacity-50" />
+                <p>No upcoming events</p>
+                <p className="text-xs">Connect your calendar in settings to see events</p>
               </div>
             )}
           </CardContent>
