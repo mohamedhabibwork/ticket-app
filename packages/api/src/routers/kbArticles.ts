@@ -1,7 +1,7 @@
 import { db } from "@ticket-app/db";
 import { kbArticles, kbArticleFeedback, kbArticleRelated } from "@ticket-app/db/schema";
 import { eq, and, isNull, desc, sql } from "drizzle-orm";
-import z from "zod";
+import * as z from "zod";
 
 import { publicProcedure } from "../index";
 import { searchKbArticles } from "../services/kbSearch";
@@ -15,7 +15,7 @@ export const kbArticlesRouter = {
         status: z.string().optional(),
         limit: z.number().min(1).max(100).default(50),
         offset: z.number().min(0).default(0),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const conditions = [
@@ -48,14 +48,14 @@ export const kbArticlesRouter = {
       z.object({
         organizationId: z.number(),
         id: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const article = await db.query.kbArticles.findFirst({
         where: and(
           eq(kbArticles.id, input.id),
           eq(kbArticles.organizationId, input.organizationId),
-          isNull(kbArticles.deletedAt)
+          isNull(kbArticles.deletedAt),
         ),
         with: {
           category: true,
@@ -78,7 +78,7 @@ export const kbArticlesRouter = {
       z.object({
         organizationId: z.number(),
         slug: z.string(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const article = await db.query.kbArticles.findFirst({
@@ -86,7 +86,7 @@ export const kbArticlesRouter = {
           eq(kbArticles.slug, input.slug),
           eq(kbArticles.organizationId, input.organizationId),
           eq(kbArticles.status, "published"),
-          isNull(kbArticles.deletedAt)
+          isNull(kbArticles.deletedAt),
         ),
         with: {
           category: true,
@@ -114,7 +114,7 @@ export const kbArticlesRouter = {
       z.object({
         articleId: z.number(),
         limit: z.number().min(1).max(10).default(5),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const related = await db.query.kbArticleRelated.findMany({
@@ -148,7 +148,7 @@ export const kbArticlesRouter = {
         metaKeywords: z.string().max(500).optional(),
         status: z.string().default("draft"),
         createdBy: z.number().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const [article] = await db
@@ -190,7 +190,7 @@ export const kbArticlesRouter = {
         metaKeywords: z.string().max(500).optional(),
         status: z.string().optional(),
         updatedBy: z.number().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const { organizationId, id, ...updates } = input;
@@ -199,7 +199,7 @@ export const kbArticlesRouter = {
         where: and(
           eq(kbArticles.id, id),
           eq(kbArticles.organizationId, organizationId),
-          isNull(kbArticles.deletedAt)
+          isNull(kbArticles.deletedAt),
         ),
       });
 
@@ -218,8 +218,8 @@ export const kbArticlesRouter = {
           and(
             eq(kbArticles.id, id),
             eq(kbArticles.organizationId, organizationId),
-            isNull(kbArticles.deletedAt)
-          )
+            isNull(kbArticles.deletedAt),
+          ),
         )
         .returning();
 
@@ -232,7 +232,7 @@ export const kbArticlesRouter = {
         organizationId: z.number(),
         id: z.number(),
         deletedBy: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       await db
@@ -245,8 +245,8 @@ export const kbArticlesRouter = {
           and(
             eq(kbArticles.id, input.id),
             eq(kbArticles.organizationId, input.organizationId),
-            isNull(kbArticles.deletedAt)
-          )
+            isNull(kbArticles.deletedAt),
+          ),
         );
 
       return { success: true };
@@ -259,7 +259,7 @@ export const kbArticlesRouter = {
         rating: z.enum(["helpful", "not_helpful"]),
         comment: z.string().optional(),
         ipAddress: z.string().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const [feedback] = await db
@@ -294,7 +294,7 @@ export const kbArticlesRouter = {
         query: z.string().min(1),
         locale: z.string().default("en"),
         limit: z.number().min(1).max(50).default(20),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       return await searchKbArticles({

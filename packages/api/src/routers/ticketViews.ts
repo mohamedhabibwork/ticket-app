@@ -1,7 +1,7 @@
 import { db } from "@ticket-app/db";
 import { ticketViews } from "@ticket-app/db/schema";
 import { eq, desc } from "drizzle-orm";
-import z from "zod";
+import * as z from "zod";
 
 import { publicProcedure } from "../index";
 
@@ -30,15 +30,10 @@ export const ticketViewsRouter = {
         .orderBy(desc(ticketViews.createdAt));
     }),
 
-  get: publicProcedure
-    .input(z.object({ id: z.number() }))
-    .handler(async ({ input }) => {
-      const [view] = await db
-        .select()
-        .from(ticketViews)
-        .where(eq(ticketViews.id, input.id));
-      return view ?? null;
-    }),
+  get: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
+    const [view] = await db.select().from(ticketViews).where(eq(ticketViews.id, input.id));
+    return view ?? null;
+  }),
 
   create: publicProcedure
     .input(
@@ -51,7 +46,7 @@ export const ticketViewsRouter = {
         sortDir: z.enum(["asc", "desc"]).default("desc"),
         isDefault: z.boolean().default(false),
         createdBy: z.number().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       if (input.isDefault) {
@@ -86,13 +81,10 @@ export const ticketViewsRouter = {
         sortBy: z.string().max(50).optional(),
         sortDir: z.enum(["asc", "desc"]).optional(),
         isDefault: z.boolean().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
-      const [view] = await db
-        .select()
-        .from(ticketViews)
-        .where(eq(ticketViews.id, input.id));
+      const [view] = await db.select().from(ticketViews).where(eq(ticketViews.id, input.id));
 
       if (input.isDefault && view) {
         await db
@@ -115,33 +107,26 @@ export const ticketViewsRouter = {
       return updated;
     }),
 
-  delete: publicProcedure
-    .input(z.object({ id: z.number() }))
-    .handler(async ({ input }) => {
-      await db.delete(ticketViews).where(eq(ticketViews.id, input.id));
-      return { success: true };
-    }),
+  delete: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
+    await db.delete(ticketViews).where(eq(ticketViews.id, input.id));
+    return { success: true };
+  }),
 
-  setDefault: publicProcedure
-    .input(z.object({ id: z.number() }))
-    .handler(async ({ input }) => {
-      const [view] = await db
-        .select()
-        .from(ticketViews)
-        .where(eq(ticketViews.id, input.id));
+  setDefault: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
+    const [view] = await db.select().from(ticketViews).where(eq(ticketViews.id, input.id));
 
-      if (view) {
-        await db
-          .update(ticketViews)
-          .set({ isDefault: false })
-          .where(eq(ticketViews.organizationId, view.organizationId));
-      }
-
-      const [updated] = await db
+    if (view) {
+      await db
         .update(ticketViews)
-        .set({ isDefault: true })
-        .where(eq(ticketViews.id, input.id))
-        .returning();
-      return updated;
-    }),
+        .set({ isDefault: false })
+        .where(eq(ticketViews.organizationId, view.organizationId));
+    }
+
+    const [updated] = await db
+      .update(ticketViews)
+      .set({ isDefault: true })
+      .where(eq(ticketViews.id, input.id))
+      .returning();
+    return updated;
+  }),
 };

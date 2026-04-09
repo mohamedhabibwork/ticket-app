@@ -11,7 +11,7 @@ import {
   savedReplies,
 } from "@ticket-app/db/schema";
 import { eq, and, isNull, desc, sql, inArray, asc } from "drizzle-orm";
-import z from "zod";
+import * as z from "zod";
 
 import { publicProcedure } from "../index";
 import { generateReferenceNumber } from "../lib/reference";

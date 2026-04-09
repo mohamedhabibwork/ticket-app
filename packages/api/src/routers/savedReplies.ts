@@ -1,7 +1,7 @@
 import { db } from "@ticket-app/db";
 import { savedReplies, savedReplyFolders } from "@ticket-app/db/schema";
 import { eq, desc, or, sql } from "drizzle-orm";
-import z from "zod";
+import * as z from "zod";
 
 import { publicProcedure } from "../index";
 

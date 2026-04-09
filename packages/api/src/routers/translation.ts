@@ -1,7 +1,7 @@
 import { db } from "@ticket-app/db";
 import { translationConfigs, translationCache } from "@ticket-app/db/schema";
 import { eq, and, desc } from "drizzle-orm";
-import z from "zod";
+import * as z from "zod";
 
 import { publicProcedure } from "../index";
 import { encryptToken, decryptToken } from "../lib/crypto";
@@ -12,13 +12,11 @@ export const translationRouter = {
     .input(
       z.object({
         organizationId: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const configs = await db.query.translationConfigs.findMany({
-        where: and(
-          eq(translationConfigs.organizationId, input.organizationId)
-        ),
+        where: and(eq(translationConfigs.organizationId, input.organizationId)),
         orderBy: [desc(translationConfigs.createdAt)],
       });
 
@@ -32,13 +30,11 @@ export const translationRouter = {
     .input(
       z.object({
         organizationId: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const config = await db.query.translationConfigs.findFirst({
-        where: and(
-          eq(translationConfigs.organizationId, input.organizationId)
-        ),
+        where: and(eq(translationConfigs.organizationId, input.organizationId)),
       });
 
       if (!config) return null;
@@ -56,7 +52,7 @@ export const translationRouter = {
         provider: z.enum(["google", "deepl"]).default("google"),
         apiKey: z.string(),
         createdBy: z.number().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const existing = await db.query.translationConfigs.findFirst({
@@ -64,7 +60,9 @@ export const translationRouter = {
       });
 
       if (existing) {
-        throw new Error("Translation config already exists for this organization. Use update instead.");
+        throw new Error(
+          "Translation config already exists for this organization. Use update instead.",
+        );
       }
 
       const apiKeyEnc = encryptToken(input.apiKey);
@@ -95,7 +93,7 @@ export const translationRouter = {
         apiKey: z.string().optional(),
         isEnabled: z.boolean().optional(),
         updatedBy: z.number().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const existing = await db.query.translationConfigs.findFirst({
@@ -133,7 +131,7 @@ export const translationRouter = {
     .input(
       z.object({
         organizationId: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const existing = await db.query.translationConfigs.findFirst({
@@ -144,9 +142,7 @@ export const translationRouter = {
         return { success: true };
       }
 
-      await db
-        .delete(translationConfigs)
-        .where(eq(translationConfigs.id, existing.id));
+      await db.delete(translationConfigs).where(eq(translationConfigs.id, existing.id));
 
       return { success: true };
     }),
@@ -155,13 +151,13 @@ export const translationRouter = {
     .input(
       z.object({
         organizationId: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const config = await db.query.translationConfigs.findFirst({
         where: and(
           eq(translationConfigs.organizationId, input.organizationId),
-          eq(translationConfigs.isEnabled, true)
+          eq(translationConfigs.isEnabled, true),
         ),
       });
 
@@ -179,7 +175,7 @@ export const translationRouter = {
     .input(
       z.object({
         organizationId: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const config = await db.query.translationConfigs.findFirst({
@@ -200,12 +196,10 @@ export const translationRouter = {
     .input(
       z.object({
         sourceHash: z.string(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
-      await db
-        .delete(translationCache)
-        .where(eq(translationCache.sourceHash, input.sourceHash));
+      await db.delete(translationCache).where(eq(translationCache.sourceHash, input.sourceHash));
 
       return { success: true };
     }),
@@ -217,7 +211,7 @@ export const translationRouter = {
         text: z.string(),
         sourceLang: z.string().default("auto"),
         targetLang: z.string(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const result = await translateText({

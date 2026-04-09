@@ -3,7 +3,7 @@ import { randomBytes } from "crypto";
 import { db } from "@ticket-app/db";
 import { ticketForwards, tickets, emailMessages } from "@ticket-app/db/schema";
 import { eq, desc } from "drizzle-orm";
-import z from "zod";
+import * as z from "zod";
 
 import { publicProcedure } from "../index";
 import { addEmailSendJob } from "../jobs/emailSend";
@@ -88,11 +88,9 @@ export const ticketForwardsRouter = {
       });
     }),
 
-  get: publicProcedure
-    .input(z.object({ id: z.number() }))
-    .handler(async ({ input }) => {
-      return await db.query.ticketForwards.findFirst({
-        where: eq(ticketForwards.id, input.id),
-      });
-    }),
+  get: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
+    return await db.query.ticketForwards.findFirst({
+      where: eq(ticketForwards.id, input.id),
+    });
+  }),
 };

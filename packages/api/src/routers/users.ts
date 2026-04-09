@@ -12,7 +12,7 @@ import {
 } from "@ticket-app/db/schema";
 import { hashPassword, verifyPassword } from "../lib/auth";
 import { publicProcedure } from "../index";
-import z from "zod";
+import * as z from "zod";
 import { authenticator } from "otplib";
 import {
   getUserPermissions,

@@ -1,27 +1,28 @@
 import { db } from "@ticket-app/db";
 import { agentCalendarConnections, ticketCalendarEvents } from "@ticket-app/db/schema";
 import { eq, and, desc, isNull } from "drizzle-orm";
-import z from "zod";
+import * as z from "zod";
 
 import { publicProcedure } from "../index";
 import { encryptToken, decryptToken } from "../lib/crypto";
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "";
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || "";
-const GOOGLE_REDIRECT_URI = process.env.GOOGLE_REDIRECT_URI || "http://localhost:3000/oauth/google/callback";
+const GOOGLE_REDIRECT_URI =
+  process.env.GOOGLE_REDIRECT_URI || "http://localhost:3000/oauth/google/callback";
 
 export const calendarRouter = {
   listConnections: publicProcedure
     .input(
       z.object({
         userId: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const connections = await db.query.agentCalendarConnections.findMany({
         where: and(
           eq(agentCalendarConnections.userId, input.userId),
-          isNull(agentCalendarConnections.deletedAt)
+          isNull(agentCalendarConnections.deletedAt),
         ),
         orderBy: [desc(agentCalendarConnections.createdAt)],
       });
@@ -38,14 +39,14 @@ export const calendarRouter = {
       z.object({
         userId: z.number(),
         id: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const connection = await db.query.agentCalendarConnections.findFirst({
         where: and(
           eq(agentCalendarConnections.id, input.id),
           eq(agentCalendarConnections.userId, input.userId),
-          isNull(agentCalendarConnections.deletedAt)
+          isNull(agentCalendarConnections.deletedAt),
         ),
       });
 
@@ -62,7 +63,7 @@ export const calendarRouter = {
     .input(
       z.object({
         userId: z.number(),
-      })
+      }),
     )
     .handler(async () => {
       const scopes = [
@@ -89,7 +90,7 @@ export const calendarRouter = {
       z.object({
         userId: z.number(),
         code: z.string(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
@@ -108,7 +109,7 @@ export const calendarRouter = {
         throw new Error(`Google OAuth error: ${tokenResponse.status}`);
       }
 
-      const tokens = await tokenResponse.json() as {
+      const tokens = (await tokenResponse.json()) as {
         access_token: string;
         refresh_token?: string;
         expires_in: number;
@@ -118,25 +119,28 @@ export const calendarRouter = {
         "https://www.googleapis.com/calendar/v3/users/me/calendarList",
         {
           headers: { Authorization: `Bearer ${tokens.access_token}` },
-        }
+        },
       );
 
       let primaryCalendar = { id: "primary", summary: "Primary Calendar" };
       if (calendarResponse.ok) {
-        const calendarData = await calendarResponse.json() as { items?: Array<{ id: string; summary: string }> };
-        primaryCalendar = calendarData.items?.find((c) => c.id === "primary") || calendarData.items?.[0] || primaryCalendar;
+        const calendarData = (await calendarResponse.json()) as {
+          items?: Array<{ id: string; summary: string }>;
+        };
+        primaryCalendar =
+          calendarData.items?.find((c) => c.id === "primary") ||
+          calendarData.items?.[0] ||
+          primaryCalendar;
       }
 
       const accessTokenEnc = encryptToken(tokens.access_token);
-      const refreshTokenEnc = tokens.refresh_token
-        ? encryptToken(tokens.refresh_token)
-        : null;
+      const refreshTokenEnc = tokens.refresh_token ? encryptToken(tokens.refresh_token) : null;
 
       const existingConnection = await db.query.agentCalendarConnections.findFirst({
         where: and(
           eq(agentCalendarConnections.userId, input.userId),
           eq(agentCalendarConnections.provider, "google"),
-          isNull(agentCalendarConnections.deletedAt)
+          isNull(agentCalendarConnections.deletedAt),
         ),
       });
 
@@ -188,7 +192,7 @@ export const calendarRouter = {
       z.object({
         userId: z.number(),
         id: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       await db
@@ -201,8 +205,8 @@ export const calendarRouter = {
         .where(
           and(
             eq(agentCalendarConnections.id, input.id),
-            eq(agentCalendarConnections.userId, input.userId)
-          )
+            eq(agentCalendarConnections.userId, input.userId),
+          ),
         );
 
       return { success: true };
@@ -220,14 +224,14 @@ export const calendarRouter = {
         location: z.string().optional(),
         attendees: z.array(z.string()).optional(),
         createdBy: z.number().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const connection = await db.query.agentCalendarConnections.findFirst({
         where: and(
           eq(agentCalendarConnections.id, input.agentCalendarConnectionId),
           eq(agentCalendarConnections.isActive, true),
-          isNull(agentCalendarConnections.deletedAt)
+          isNull(agentCalendarConnections.deletedAt),
         ),
       });
 
@@ -260,7 +264,10 @@ export const calendarRouter = {
             throw new Error("Failed to refresh Google token");
           }
 
-          const tokens = await tokenResponse.json() as { access_token: string; expires_in: number };
+          const tokens = (await tokenResponse.json()) as {
+            access_token: string;
+            expires_in: number;
+          };
 
           await db
             .update(agentCalendarConnections)
@@ -290,7 +297,7 @@ export const calendarRouter = {
               "Content-Type": "application/json",
             },
             body: JSON.stringify(eventData),
-          }
+          },
         );
 
         if (!calendarResponse.ok) {
@@ -298,7 +305,7 @@ export const calendarRouter = {
           throw new Error(`Google Calendar API error: ${calendarResponse.status} - ${error}`);
         }
 
-        const event = await calendarResponse.json() as { id: string };
+        const event = (await calendarResponse.json()) as { id: string };
         providerEventId = event.id;
       } else {
         throw new Error(`Unsupported calendar provider: ${connection.provider}`);
@@ -329,7 +336,7 @@ export const calendarRouter = {
     .input(
       z.object({
         ticketId: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const events = await db.query.ticketCalendarEvents.findMany({
@@ -346,14 +353,14 @@ export const calendarRouter = {
         userId: z.number(),
         startDate: z.string().datetime().optional(),
         endDate: z.string().datetime().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const connection = await db.query.agentCalendarConnections.findFirst({
         where: and(
           eq(agentCalendarConnections.userId, input.userId),
           eq(agentCalendarConnections.isActive, true),
-          isNull(agentCalendarConnections.deletedAt)
+          isNull(agentCalendarConnections.deletedAt),
         ),
       });
 
@@ -375,7 +382,7 @@ export const calendarRouter = {
           `https://www.googleapis.com/calendar/v3/calendars/${connection.calendarId}/events?${params}`,
           {
             headers: { Authorization: `Bearer ${accessToken}` },
-          }
+          },
         );
 
         if (!response.ok) {
@@ -383,7 +390,7 @@ export const calendarRouter = {
           return [];
         }
 
-        const data = await response.json() as {
+        const data = (await response.json()) as {
           items: Array<{
             id: string;
             summary: string;
@@ -412,13 +419,13 @@ export const calendarRouter = {
       z.object({
         id: z.number(),
         ticketId: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const event = await db.query.ticketCalendarEvents.findFirst({
         where: and(
           eq(ticketCalendarEvents.id, input.id),
-          eq(ticketCalendarEvents.ticketId, input.ticketId)
+          eq(ticketCalendarEvents.ticketId, input.ticketId),
         ),
       });
 
@@ -437,13 +444,11 @@ export const calendarRouter = {
           {
             method: "DELETE",
             headers: { Authorization: `Bearer ${accessToken}` },
-          }
+          },
         );
       }
 
-      await db
-        .delete(ticketCalendarEvents)
-        .where(eq(ticketCalendarEvents.id, input.id));
+      await db.delete(ticketCalendarEvents).where(eq(ticketCalendarEvents.id, input.id));
 
       return { success: true };
     }),

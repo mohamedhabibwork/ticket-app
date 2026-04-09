@@ -1,7 +1,7 @@
 import { db } from "@ticket-app/db";
 import { chatMessages, chatSessions, chatMessageReactions } from "@ticket-app/db/schema";
 import { eq, and, desc } from "drizzle-orm";
-import z from "zod";
+import * as z from "zod";
 
 import { publicProcedure } from "../index";
 
@@ -12,7 +12,7 @@ export const chatMessagesRouter = {
         sessionId: z.number(),
         limit: z.number().min(1).max(100).default(50),
         offset: z.number().min(0).default(0),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       return await db.query.chatMessages.findMany({
@@ -31,7 +31,7 @@ export const chatMessagesRouter = {
     .input(
       z.object({
         id: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       return await db.query.chatMessages.findFirst({
@@ -52,14 +52,18 @@ export const chatMessagesRouter = {
         authorContactId: z.number().optional(),
         messageType: z.enum(["text", "file", "system"]).default("text"),
         body: z.string(),
-        attachments: z.array(z.object({
-          name: z.string(),
-          url: z.string(),
-          mimeType: z.string(),
-          sizeBytes: z.number(),
-        })).optional(),
+        attachments: z
+          .array(
+            z.object({
+              name: z.string(),
+              url: z.string(),
+              mimeType: z.string(),
+              sizeBytes: z.number(),
+            }),
+          )
+          .optional(),
         isSystem: z.boolean().default(false),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const [message] = await db
@@ -84,13 +88,17 @@ export const chatMessagesRouter = {
       z.object({
         sessionId: z.number(),
         body: z.string(),
-        attachments: z.array(z.object({
-          name: z.string(),
-          url: z.string(),
-          mimeType: z.string(),
-          sizeBytes: z.number(),
-        })).optional(),
-      })
+        attachments: z
+          .array(
+            z.object({
+              name: z.string(),
+              url: z.string(),
+              mimeType: z.string(),
+              sizeBytes: z.number(),
+            }),
+          )
+          .optional(),
+      }),
     )
     .handler(async ({ input }) => {
       const session = await db.query.chatSessions.findFirst({
@@ -122,13 +130,17 @@ export const chatMessagesRouter = {
         sessionId: z.number(),
         agentId: z.number(),
         body: z.string(),
-        attachments: z.array(z.object({
-          name: z.string(),
-          url: z.string(),
-          mimeType: z.string(),
-          sizeBytes: z.number(),
-        })).optional(),
-      })
+        attachments: z
+          .array(
+            z.object({
+              name: z.string(),
+              url: z.string(),
+              mimeType: z.string(),
+              sizeBytes: z.number(),
+            }),
+          )
+          .optional(),
+      }),
     )
     .handler(async ({ input }) => {
       const [message] = await db
@@ -151,7 +163,7 @@ export const chatMessagesRouter = {
       z.object({
         sessionId: z.number(),
         body: z.string(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const [message] = await db
@@ -174,7 +186,7 @@ export const chatMessagesRouter = {
         sessionId: z.number(),
         sinceId: z.number().optional(),
         limit: z.number().min(1).max(100).default(20),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const conditions = [eq(chatMessages.sessionId, input.sessionId)];
@@ -198,13 +210,17 @@ export const chatMessagesRouter = {
         authorUserId: z.number().optional(),
         authorContactId: z.number().optional(),
         body: z.string(),
-        attachments: z.array(z.object({
-          name: z.string(),
-          url: z.string(),
-          mimeType: z.string(),
-          sizeBytes: z.number(),
-        })).optional(),
-      })
+        attachments: z
+          .array(
+            z.object({
+              name: z.string(),
+              url: z.string(),
+              mimeType: z.string(),
+              sizeBytes: z.number(),
+            }),
+          )
+          .optional(),
+      }),
     )
     .handler(async ({ input }) => {
       const session = await db.query.chatSessions.findFirst({
@@ -248,7 +264,7 @@ export const chatMessagesRouter = {
         userId: z.number().optional(),
         contactId: z.number().optional(),
         reaction: z.string().min(1).max(50),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const message = await db.query.chatMessages.findFirst({

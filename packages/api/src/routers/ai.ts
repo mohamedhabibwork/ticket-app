@@ -1,6 +1,6 @@
 import { google } from "@ai-sdk/google";
 import { generateText, wrapLanguageModel } from "ai";
-import z from "zod";
+import * as z from "zod";
 
 import { publicProcedure } from "../index";
 
@@ -107,10 +107,14 @@ Return a JSON object with:
         ticketId: z.number(),
         subject: z.string(),
         description: z.string(),
-        availableTeams: z.array(z.object({
-          id: z.number(),
-          name: z.string(),
-        })).optional(),
+        availableTeams: z
+          .array(
+            z.object({
+              id: z.number(),
+              name: z.string(),
+            }),
+          )
+          .optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -141,7 +145,12 @@ Return a JSON object with:
       try {
         return JSON.parse(text);
       } catch {
-        return { suggestedTeamId: null, suggestedTeamName: "general", reasoning: "Unable to determine routing", estimatedComplexity: "medium" };
+        return {
+          suggestedTeamId: null,
+          suggestedTeamName: "general",
+          reasoning: "Unable to determine routing",
+          estimatedComplexity: "medium",
+        };
       }
     }),
 

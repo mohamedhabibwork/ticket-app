@@ -11,16 +11,20 @@
   },
   "scripts": {},
   "dependencies": {
+    "@aws-sdk/client-s3": "catalog:",
+    "@aws-sdk/s3-request-presigner": "catalog:",
     "@ticket-app/env": "workspace:*",
     "bullmq": "catalog:",
     "dotenv": "catalog:",
     "ioredis": "catalog:",
     "nodemailer": "catalog:",
+    "xlsx": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {
     "@ticket-app/config": "workspace:*",
     "@types/nodemailer": "catalog:",
+    "@types/xlsx": "catalog:",
     "typescript": "^5"
   }
 }

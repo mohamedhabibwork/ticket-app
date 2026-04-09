@@ -1,7 +1,7 @@
 import { db } from "@ticket-app/db";
 import { socialAccounts } from "@ticket-app/db/schema";
 import { eq, and, isNull, desc } from "drizzle-orm";
-import z from "zod";
+import * as z from "zod";
 
 import { publicProcedure } from "../index";
 import { encryptToken, decryptToken } from "../lib/crypto";
@@ -13,7 +13,7 @@ export const socialAccountsRouter = {
         organizationId: z.number(),
         platform: z.string().optional(),
         isActive: z.boolean().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const conditions = [
@@ -45,14 +45,14 @@ export const socialAccountsRouter = {
       z.object({
         organizationId: z.number(),
         id: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const account = await db.query.socialAccounts.findFirst({
         where: and(
           eq(socialAccounts.id, input.id),
           eq(socialAccounts.organizationId, input.organizationId),
-          isNull(socialAccounts.deletedAt)
+          isNull(socialAccounts.deletedAt),
         ),
       });
 
@@ -71,7 +71,7 @@ export const socialAccountsRouter = {
         organizationId: z.number(),
         platform: z.string(),
         platformAccountId: z.string(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const account = await db.query.socialAccounts.findFirst({
@@ -79,7 +79,7 @@ export const socialAccountsRouter = {
           eq(socialAccounts.organizationId, input.organizationId),
           eq(socialAccounts.platform, input.platform),
           eq(socialAccounts.platformAccountId, input.platformAccountId),
-          isNull(socialAccounts.deletedAt)
+          isNull(socialAccounts.deletedAt),
         ),
       });
 
@@ -104,13 +104,11 @@ export const socialAccountsRouter = {
         refreshToken: z.string().optional(),
         tokenExpiresAt: z.string().datetime().optional(),
         createdBy: z.number().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const accessTokenEnc = encryptToken(input.accessToken);
-      const refreshTokenEnc = input.refreshToken
-        ? encryptToken(input.refreshToken)
-        : null;
+      const refreshTokenEnc = input.refreshToken ? encryptToken(input.refreshToken) : null;
 
       const [account] = await db
         .insert(socialAccounts)
@@ -122,9 +120,7 @@ export const socialAccountsRouter = {
           platformUsername: input.platformUsername,
           accessTokenEnc,
           refreshTokenEnc,
-          tokenExpiresAt: input.tokenExpiresAt
-            ? new Date(input.tokenExpiresAt)
-            : null,
+          tokenExpiresAt: input.tokenExpiresAt ? new Date(input.tokenExpiresAt) : null,
           createdBy: input.createdBy,
           updatedBy: input.createdBy,
         })
@@ -144,22 +140,18 @@ export const socialAccountsRouter = {
         accessToken: z.string(),
         refreshToken: z.string().optional(),
         tokenExpiresAt: z.string().datetime().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const accessTokenEnc = encryptToken(input.accessToken);
-      const refreshTokenEnc = input.refreshToken
-        ? encryptToken(input.refreshToken)
-        : undefined;
+      const refreshTokenEnc = input.refreshToken ? encryptToken(input.refreshToken) : undefined;
 
       const [account] = await db
         .update(socialAccounts)
         .set({
           accessTokenEnc,
           refreshTokenEnc,
-          tokenExpiresAt: input.tokenExpiresAt
-            ? new Date(input.tokenExpiresAt)
-            : null,
+          tokenExpiresAt: input.tokenExpiresAt ? new Date(input.tokenExpiresAt) : null,
           updatedAt: new Date(),
         })
         .where(eq(socialAccounts.id, input.id))
@@ -177,7 +169,7 @@ export const socialAccountsRouter = {
       z.object({
         id: z.number(),
         isActive: z.boolean(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const [account] = await db
@@ -197,7 +189,7 @@ export const socialAccountsRouter = {
       z.object({
         id: z.number(),
         deletedBy: z.number().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       await db
@@ -215,7 +207,7 @@ export const socialAccountsRouter = {
     .input(
       z.object({
         id: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const account = await db.query.socialAccounts.findFirst({
@@ -226,9 +218,7 @@ export const socialAccountsRouter = {
 
       return {
         accessToken: decryptToken(account.accessTokenEnc),
-        refreshToken: account.refreshTokenEnc
-          ? decryptToken(account.refreshTokenEnc)
-          : null,
+        refreshToken: account.refreshTokenEnc ? decryptToken(account.refreshTokenEnc) : null,
         tokenExpiresAt: account.tokenExpiresAt,
       };
     }),
@@ -241,7 +231,7 @@ export const socialAccountsRouter = {
         accessToken: z.string(),
         pageName: z.string().optional(),
         userId: z.number().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const existing = await db.query.socialAccounts.findFirst({
@@ -249,7 +239,7 @@ export const socialAccountsRouter = {
           eq(socialAccounts.organizationId, input.organizationId),
           eq(socialAccounts.platform, "facebook"),
           eq(socialAccounts.platformAccountId, input.pageId),
-          isNull(socialAccounts.deletedAt)
+          isNull(socialAccounts.deletedAt),
         ),
       });
 
@@ -292,7 +282,7 @@ export const socialAccountsRouter = {
         accessToken: z.string(),
         username: z.string().optional(),
         userId: z.number().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const existing = await db.query.socialAccounts.findFirst({
@@ -300,7 +290,7 @@ export const socialAccountsRouter = {
           eq(socialAccounts.organizationId, input.organizationId),
           eq(socialAccounts.platform, "instagram"),
           eq(socialAccounts.platformAccountId, input.accountId),
-          isNull(socialAccounts.deletedAt)
+          isNull(socialAccounts.deletedAt),
         ),
       });
 
@@ -343,7 +333,7 @@ export const socialAccountsRouter = {
         accessToken: z.string(),
         username: z.string().optional(),
         userId: z.number().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const existing = await db.query.socialAccounts.findFirst({
@@ -351,7 +341,7 @@ export const socialAccountsRouter = {
           eq(socialAccounts.organizationId, input.organizationId),
           eq(socialAccounts.platform, "twitter"),
           eq(socialAccounts.platformAccountId, input.accountId),
-          isNull(socialAccounts.deletedAt)
+          isNull(socialAccounts.deletedAt),
         ),
       });
 
@@ -394,7 +384,7 @@ export const socialAccountsRouter = {
         accessToken: z.string(),
         businessAccountId: z.string().optional(),
         userId: z.number().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const existing = await db.query.socialAccounts.findFirst({
@@ -402,7 +392,7 @@ export const socialAccountsRouter = {
           eq(socialAccounts.organizationId, input.organizationId),
           eq(socialAccounts.platform, "whatsapp"),
           eq(socialAccounts.platformAccountId, input.phoneNumberId),
-          isNull(socialAccounts.deletedAt)
+          isNull(socialAccounts.deletedAt),
         ),
       });
 
@@ -443,7 +433,7 @@ export const socialAccountsRouter = {
         id: z.number(),
         organizationId: z.number(),
         deletedBy: z.number().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       await db
@@ -457,8 +447,8 @@ export const socialAccountsRouter = {
         .where(
           and(
             eq(socialAccounts.id, input.id),
-            eq(socialAccounts.organizationId, input.organizationId)
-          )
+            eq(socialAccounts.organizationId, input.organizationId),
+          ),
         );
 
       return { success: true };
@@ -469,14 +459,14 @@ export const socialAccountsRouter = {
       z.object({
         id: z.number(),
         organizationId: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const account = await db.query.socialAccounts.findFirst({
         where: and(
           eq(socialAccounts.id, input.id),
           eq(socialAccounts.organizationId, input.organizationId),
-          isNull(socialAccounts.deletedAt)
+          isNull(socialAccounts.deletedAt),
         ),
       });
 
@@ -490,12 +480,12 @@ export const socialAccountsRouter = {
 
       const refreshToken = decryptToken(account.refreshTokenEnc);
       const { refreshSocialToken } = await import("../services/socialTokenRefresh");
-      
+
       const newTokens = await refreshSocialToken(account.platform, refreshToken);
 
       const accessTokenEnc = encryptToken(newTokens.accessToken);
-      const refreshTokenEnc = newTokens.refreshToken 
-        ? encryptToken(newTokens.refreshToken) 
+      const refreshTokenEnc = newTokens.refreshToken
+        ? encryptToken(newTokens.refreshToken)
         : undefined;
 
       const [updated] = await db
@@ -517,14 +507,14 @@ export const socialAccountsRouter = {
       z.object({
         id: z.number(),
         organizationId: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const account = await db.query.socialAccounts.findFirst({
         where: and(
           eq(socialAccounts.id, input.id),
           eq(socialAccounts.organizationId, input.organizationId),
-          isNull(socialAccounts.deletedAt)
+          isNull(socialAccounts.deletedAt),
         ),
       });
 

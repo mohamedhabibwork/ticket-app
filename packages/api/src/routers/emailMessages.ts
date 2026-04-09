@@ -1,7 +1,7 @@
 import { db } from "@ticket-app/db";
-import { emailMessages, emailAttachments, mailboxes, tickets, ticketMessages } from "@ticket-app/db/schema";
-import { eq, and, isNull, desc, sql, or } from "drizzle-orm";
-import z from "zod";
+import { emailMessages, emailAttachments, tickets } from "@ticket-app/db/schema";
+import { eq, and, desc, sql, or } from "drizzle-orm";
+import * as z from "zod";
 
 import { publicProcedure } from "../index";
 
@@ -234,7 +234,12 @@ export const emailMessagesRouter = {
         .set({
           isSpam: true,
         })
-        .where(and(eq(emailMessages.id, input.id), eq(emailMessages.organizationId, input.organizationId)))
+        .where(
+          and(
+            eq(emailMessages.id, input.id),
+            eq(emailMessages.organizationId, input.organizationId),
+          ),
+        )
         .returning();
       return updated;
     }),
@@ -252,7 +257,12 @@ export const emailMessagesRouter = {
         .set({
           isSpam: false,
         })
-        .where(and(eq(emailMessages.id, input.id), eq(emailMessages.organizationId, input.organizationId)))
+        .where(
+          and(
+            eq(emailMessages.id, input.id),
+            eq(emailMessages.organizationId, input.organizationId),
+          ),
+        )
         .returning();
       return updated;
     }),
@@ -266,9 +276,7 @@ export const emailMessagesRouter = {
     )
     .handler(async ({ input }) => {
       const attachment = await db.query.emailAttachments.findFirst({
-        where: and(
-          eq(emailAttachments.id, input.id),
-        ),
+        where: and(eq(emailAttachments.id, input.id)),
         with: {
           emailMessage: {
             with: {

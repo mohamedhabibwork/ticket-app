@@ -1,7 +1,7 @@
 import { db } from "@ticket-app/db";
 import { kbCategories, kbArticles } from "@ticket-app/db/schema";
 import { eq, and, isNull, asc } from "drizzle-orm";
-import z from "zod";
+import * as z from "zod";
 
 import { publicProcedure } from "../index";
 
@@ -12,7 +12,7 @@ export const kbCategoriesRouter = {
         organizationId: z.number(),
         parentId: z.number().optional(),
         isPublished: z.boolean().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const conditions = [
@@ -24,7 +24,7 @@ export const kbCategoriesRouter = {
         conditions.push(
           input.parentId === null
             ? isNull(kbCategories.parentId)
-            : eq(kbCategories.parentId, input.parentId)
+            : eq(kbCategories.parentId, input.parentId),
         );
       }
 
@@ -48,14 +48,14 @@ export const kbCategoriesRouter = {
       z.object({
         organizationId: z.number(),
         id: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       return await db.query.kbCategories.findFirst({
         where: and(
           eq(kbCategories.id, input.id),
           eq(kbCategories.organizationId, input.organizationId),
-          isNull(kbCategories.deletedAt)
+          isNull(kbCategories.deletedAt),
         ),
         with: {
           children: {
@@ -72,7 +72,7 @@ export const kbCategoriesRouter = {
       z.object({
         organizationId: z.number(),
         slug: z.string(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       return await db.query.kbCategories.findFirst({
@@ -80,7 +80,7 @@ export const kbCategoriesRouter = {
           eq(kbCategories.slug, input.slug),
           eq(kbCategories.organizationId, input.organizationId),
           eq(kbCategories.isPublished, true),
-          isNull(kbCategories.deletedAt)
+          isNull(kbCategories.deletedAt),
         ),
         with: {
           children: {
@@ -104,7 +104,7 @@ export const kbCategoriesRouter = {
         orderBy: z.number().default(0),
         isPublished: z.boolean().default(false),
         createdBy: z.number().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const [category] = await db
@@ -140,7 +140,7 @@ export const kbCategoriesRouter = {
         orderBy: z.number().optional(),
         isPublished: z.boolean().optional(),
         updatedBy: z.number().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const { organizationId, id, ...updates } = input;
@@ -156,8 +156,8 @@ export const kbCategoriesRouter = {
           and(
             eq(kbCategories.id, id),
             eq(kbCategories.organizationId, organizationId),
-            isNull(kbCategories.deletedAt)
-          )
+            isNull(kbCategories.deletedAt),
+          ),
         )
         .returning();
 
@@ -170,7 +170,7 @@ export const kbCategoriesRouter = {
         organizationId: z.number(),
         id: z.number(),
         deletedBy: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       await db
@@ -183,8 +183,8 @@ export const kbCategoriesRouter = {
           and(
             eq(kbCategories.id, input.id),
             eq(kbCategories.organizationId, input.organizationId),
-            isNull(kbCategories.deletedAt)
-          )
+            isNull(kbCategories.deletedAt),
+          ),
         );
 
       return { success: true };

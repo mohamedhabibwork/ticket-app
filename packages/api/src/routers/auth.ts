@@ -9,7 +9,7 @@ import {
   revokeAllUserSessions,
 } from "../services/auth";
 import { sessions } from "@ticket-app/db/lib/sessions";
-import z from "zod";
+import * as z from "zod";
 
 export const authRouter = {
   login: publicProcedure

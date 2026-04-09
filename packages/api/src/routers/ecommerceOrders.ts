@@ -1,7 +1,7 @@
 import { db } from "@ticket-app/db";
 import { ecommerceOrders, ecommerceStores } from "@ticket-app/db/schema";
-import { eq, and, isNull, desc, sql, or } from "drizzle-orm";
-import z from "zod";
+import { eq, and, isNull, desc, sql } from "drizzle-orm";
+import * as z from "zod";
 
 import { publicProcedure } from "../index";
 
@@ -17,7 +17,7 @@ export const ecommerceOrdersRouter = {
         contactId: z.number().optional(),
         limit: z.number().min(1).max(100).default(50),
         offset: z.number().min(0).default(0),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const storeIds = input.storeId
@@ -26,14 +26,17 @@ export const ecommerceOrdersRouter = {
             await db.query.ecommerceStores.findMany({
               where: and(
                 eq(ecommerceStores.organizationId, input.organizationId),
-                isNull(ecommerceStores.deletedAt)
+                isNull(ecommerceStores.deletedAt),
               ),
               columns: { id: true },
             })
           ).map((s) => s.id);
 
       const conditions = [
-        sql`${ecommerceOrders.storeId} IN (${sql.join(storeIds.map(id => sql`${id}`), sql`, `)})`,
+        sql`${ecommerceOrders.storeId} IN (${sql.join(
+          storeIds.map((id) => sql`${id}`),
+          sql`, `,
+        )})`,
         isNull(ecommerceOrders.deletedAt),
       ];
 
@@ -66,14 +69,11 @@ export const ecommerceOrdersRouter = {
       z.object({
         organizationId: z.number(),
         id: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       return await db.query.ecommerceOrders.findFirst({
-        where: and(
-          eq(ecommerceOrders.id, input.id),
-          isNull(ecommerceOrders.deletedAt)
-        ),
+        where: and(eq(ecommerceOrders.id, input.id), isNull(ecommerceOrders.deletedAt)),
         with: {
           store: true,
         },
@@ -86,14 +86,14 @@ export const ecommerceOrdersRouter = {
         organizationId: z.number(),
         storeId: z.number(),
         orderNumber: z.string(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       return await db.query.ecommerceOrders.findFirst({
         where: and(
           eq(ecommerceOrders.storeId, input.storeId),
           eq(ecommerceOrders.orderNumber, input.orderNumber),
-          isNull(ecommerceOrders.deletedAt)
+          isNull(ecommerceOrders.deletedAt),
         ),
         with: {
           store: true,
@@ -108,13 +108,13 @@ export const ecommerceOrdersRouter = {
         contactId: z.number(),
         limit: z.number().min(1).max(100).default(20),
         offset: z.number().min(0).default(0),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       return await db.query.ecommerceOrders.findMany({
         where: and(
           eq(ecommerceOrders.contactId, input.contactId),
-          isNull(ecommerceOrders.deletedAt)
+          isNull(ecommerceOrders.deletedAt),
         ),
         orderBy: [desc(ecommerceOrders.createdAt)],
         limit: input.limit,
@@ -131,14 +131,14 @@ export const ecommerceOrdersRouter = {
         organizationId: z.number(),
         email: z.string().email(),
         limit: z.number().min(1).max(100).default(20),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const storeIds = (
         await db.query.ecommerceStores.findMany({
           where: and(
             eq(ecommerceStores.organizationId, input.organizationId),
-            isNull(ecommerceStores.deletedAt)
+            isNull(ecommerceStores.deletedAt),
           ),
           columns: { id: true },
         })
@@ -148,9 +148,12 @@ export const ecommerceOrdersRouter = {
 
       return await db.query.ecommerceOrders.findMany({
         where: and(
-          sql`${ecommerceOrders.storeId} IN (${sql.join(storeIds.map(id => sql`${id}`), sql`, `)})`,
+          sql`${ecommerceOrders.storeId} IN (${sql.join(
+            storeIds.map((id) => sql`${id}`),
+            sql`, `,
+          )})`,
           eq(ecommerceOrders.customerEmail, input.email.toLowerCase()),
-          isNull(ecommerceOrders.deletedAt)
+          isNull(ecommerceOrders.deletedAt),
         ),
         orderBy: [desc(ecommerceOrders.createdAt)],
         limit: input.limit,
@@ -166,14 +169,14 @@ export const ecommerceOrdersRouter = {
         organizationId: z.number(),
         phone: z.string(),
         limit: z.number().min(1).max(100).default(20),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const storeIds = (
         await db.query.ecommerceStores.findMany({
           where: and(
             eq(ecommerceStores.organizationId, input.organizationId),
-            isNull(ecommerceStores.deletedAt)
+            isNull(ecommerceStores.deletedAt),
           ),
           columns: { id: true },
         })
@@ -185,9 +188,12 @@ export const ecommerceOrdersRouter = {
 
       return await db.query.ecommerceOrders.findMany({
         where: and(
-          sql`${ecommerceOrders.storeId} IN (${sql.join(storeIds.map(id => sql`${id}`), sql`, `)})`,
+          sql`${ecommerceOrders.storeId} IN (${sql.join(
+            storeIds.map((id) => sql`${id}`),
+            sql`, `,
+          )})`,
           sql`${ecommerceOrders.customerPhone} REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(${normalizedPhone}, '-', ''), ' ', ''), '(', ''), ')', ''), '+', '')`,
-          isNull(ecommerceOrders.deletedAt)
+          isNull(ecommerceOrders.deletedAt),
         ),
         orderBy: [desc(ecommerceOrders.createdAt)],
         limit: input.limit,
@@ -205,7 +211,7 @@ export const ecommerceOrdersRouter = {
         email: z.string().email().optional(),
         phone: z.string().optional(),
         limit: z.number().min(1).max(50).default(10),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const conditions: any[] = [isNull(ecommerceOrders.deletedAt)];
@@ -217,7 +223,7 @@ export const ecommerceOrdersRouter = {
       } else if (input.phone) {
         const normalizedPhone = input.phone.replace(/\D/g, "");
         conditions.push(
-          sql`${ecommerceOrders.customerPhone} REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(${normalizedPhone}, '-', ''), ' ', ''), '(', ''), ')', ''), '+', '')`
+          sql`${ecommerceOrders.customerPhone} REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(${normalizedPhone}, '-', ''), ' ', ''), '(', ''), ')', ''), '+', '')`,
         );
       } else {
         return [];

@@ -1,7 +1,7 @@
 import { db } from "@ticket-app/db";
 import { chatbotConfigs, chatbotSessions, chatbotMessages } from "@ticket-app/db/schema";
-import { eq, desc, and, gte, sql } from "drizzle-orm";
-import z from "zod";
+import { eq, desc, and } from "drizzle-orm";
+import * as z from "zod";
 
 import { publicProcedure } from "../index";
 import {
@@ -23,15 +23,10 @@ export const chatbotRouter = {
         .orderBy(desc(chatbotConfigs.createdAt));
     }),
 
-  getConfig: publicProcedure
-    .input(z.object({ id: z.number() }))
-    .handler(async ({ input }) => {
-      const [config] = await db
-        .select()
-        .from(chatbotConfigs)
-        .where(eq(chatbotConfigs.id, input.id));
-      return config ?? null;
-    }),
+  getConfig: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
+    const [config] = await db.select().from(chatbotConfigs).where(eq(chatbotConfigs.id, input.id));
+    return config ?? null;
+  }),
 
   createConfig: publicProcedure
     .input(
@@ -41,8 +36,8 @@ export const chatbotRouter = {
         isEnabled: z.boolean().default(false),
         escalationThreshold: z.number().min(1).max(10).default(3),
         responseDelaySeconds: z.number().min(0).max(60).default(5),
-        workingHours: z.record(z.any()).optional(),
-      })
+        workingHours: z.record(z.string(), z.unknown()).optional(),
+      }),
     )
     .handler(async ({ input }) => {
       const [config] = await db
@@ -67,8 +62,8 @@ export const chatbotRouter = {
         isEnabled: z.boolean().optional(),
         escalationThreshold: z.number().min(1).max(10).optional(),
         responseDelaySeconds: z.number().min(0).max(60).optional(),
-        workingHours: z.record(z.any()).optional(),
-      })
+        workingHours: z.record(z.string(), z.unknown()).optional(),
+      }),
     )
     .handler(async ({ input }) => {
       const [updated] = await db
@@ -85,12 +80,10 @@ export const chatbotRouter = {
       return updated;
     }),
 
-  deleteConfig: publicProcedure
-    .input(z.object({ id: z.number() }))
-    .handler(async ({ input }) => {
-      await db.delete(chatbotConfigs).where(eq(chatbotConfigs.id, input.id));
-      return { success: true };
-    }),
+  deleteConfig: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
+    await db.delete(chatbotConfigs).where(eq(chatbotConfigs.id, input.id));
+    return { success: true };
+  }),
 
   configureChatbot: publicProcedure
     .input(
@@ -100,8 +93,8 @@ export const chatbotRouter = {
         isEnabled: z.boolean(),
         escalationThreshold: z.number().min(1).max(10),
         responseDelaySeconds: z.number().min(0).max(60),
-        workingHours: z.record(z.any()).optional(),
-      })
+        workingHours: z.record(z.string(), z.unknown()).optional(),
+      }),
     )
     .handler(async ({ input }) => {
       const existing = await db.query.chatbotConfigs.findFirst({
@@ -144,7 +137,7 @@ export const chatbotRouter = {
         contactId: z.number().optional(),
         status: z.string().optional(),
         limit: z.number().default(50),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const conditions = [];
@@ -160,15 +153,13 @@ export const chatbotRouter = {
         .limit(input.limit);
     }),
 
-  getSession: publicProcedure
-    .input(z.object({ id: z.number() }))
-    .handler(async ({ input }) => {
-      const [session] = await db
-        .select()
-        .from(chatbotSessions)
-        .where(eq(chatbotSessions.id, input.id));
-      return session ?? null;
-    }),
+  getSession: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
+    const [session] = await db
+      .select()
+      .from(chatbotSessions)
+      .where(eq(chatbotSessions.id, input.id));
+    return session ?? null;
+  }),
 
   getSessionWithMessages: publicProcedure
     .input(z.object({ id: z.number() }))
@@ -191,7 +182,7 @@ export const chatbotRouter = {
         contactId: z.number(),
         ticketId: z.number().optional(),
         agentId: z.number().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const config = await db.query.chatbotConfigs.findFirst({
@@ -220,7 +211,7 @@ export const chatbotRouter = {
       z.object({
         sessionId: z.number(),
         message: z.string(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const response = await processChatbotMessage(input.sessionId, input.message);
@@ -247,7 +238,7 @@ export const chatbotRouter = {
       z.object({
         sessionId: z.number(),
         agentId: z.number().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       await escalateChatbotSession(input.sessionId, input.agentId);
@@ -273,7 +264,7 @@ export const chatbotRouter = {
       z.object({
         id: z.number(),
         endReason: z.enum(["resolved", "escalated", "abandoned"]).optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const [updated] = await db
@@ -294,7 +285,7 @@ export const chatbotRouter = {
         id: z.number(),
         rating: z.number().min(1).max(5),
         comment: z.string().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const [updated] = await db
@@ -324,7 +315,7 @@ export const chatbotRouter = {
         organizationId: z.number(),
         query: z.string(),
         limit: z.number().default(5),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       return await semanticSearchKB(input.organizationId, input.query, input.limit);
@@ -335,7 +326,7 @@ export const chatbotRouter = {
       z.object({
         organizationId: z.number(),
         days: z.number().default(30),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       return await getChatbotAnalytics(input.organizationId, input.days);

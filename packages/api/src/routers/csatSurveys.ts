@@ -1,5 +1,5 @@
-import { eq, and, isNull } from "drizzle-orm";
-import z from "zod";
+import { eq } from "drizzle-orm";
+import * as z from "zod";
 
 import { db } from "@ticket-app/db";
 import { csatSurveys } from "@ticket-app/db/schema/_sla";
@@ -22,36 +22,30 @@ export const csatSurveysRouter = {
         },
       });
 
-      return allSurveys.filter(
-        (s) => s.ticket?.organizationId === input.organizationId
-      );
+      return allSurveys.filter((s) => s.ticket?.organizationId === input.organizationId);
     }),
 
-  get: publicProcedure
-    .input(z.object({ id: z.number() }))
-    .handler(async ({ input }) => {
-      return await db.query.csatSurveys.findFirst({
-        where: eq(csatSurveys.id, input.id),
-        with: {
-          ticket: {
-            with: {
-              contact: true,
-            },
+  get: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
+    return await db.query.csatSurveys.findFirst({
+      where: eq(csatSurveys.id, input.id),
+      with: {
+        ticket: {
+          with: {
+            contact: true,
           },
         },
-      });
-    }),
+      },
+    });
+  }),
 
-  getByUuid: publicProcedure
-    .input(z.object({ uuid: z.string() }))
-    .handler(async ({ input }) => {
-      return await db.query.csatSurveys.findFirst({
-        where: eq(csatSurveys.uuid, input.uuid),
-        with: {
-          ticket: true,
-        },
-      });
-    }),
+  getByUuid: publicProcedure.input(z.object({ uuid: z.string() })).handler(async ({ input }) => {
+    return await db.query.csatSurveys.findFirst({
+      where: eq(csatSurveys.uuid, input.uuid),
+      with: {
+        ticket: true,
+      },
+    });
+  }),
 
   create: publicProcedure
     .input(z.object({ ticketId: z.number(), contactEmail: z.string() }))
@@ -79,7 +73,7 @@ export const csatSurveysRouter = {
         uuid: z.string(),
         rating: z.number().min(1).max(5),
         comment: z.string().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       return await submitCsatResponse(input.uuid, input.rating, input.comment);
@@ -91,22 +85,20 @@ export const csatSurveysRouter = {
       return await getCsatStats(input.organizationId);
     }),
 
-  resend: publicProcedure
-    .input(z.object({ id: z.number() }))
-    .handler(async ({ input }) => {
-      const survey = await db.query.csatSurveys.findFirst({
-        where: eq(csatSurveys.id, input.id),
-        with: {
-          ticket: true,
-        },
-      });
+  resend: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
+    const survey = await db.query.csatSurveys.findFirst({
+      where: eq(csatSurveys.id, input.id),
+      with: {
+        ticket: true,
+      },
+    });
 
-      if (!survey || !survey.ticket) {
-        throw new Error("Survey not found");
-      }
+    if (!survey || !survey.ticket) {
+      throw new Error("Survey not found");
+    }
 
-      await sendCsatSurveyEmail(survey, survey.ticket);
+    await sendCsatSurveyEmail(survey, survey.ticket);
 
-      return survey;
-    }),
+    return survey;
+  }),
 };

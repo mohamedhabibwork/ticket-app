@@ -1,7 +1,7 @@
 import { db } from "@ticket-app/db";
 import { gdprRequests } from "@ticket-app/db/schema";
 import { eq, desc, and } from "drizzle-orm";
-import z from "zod";
+import * as z from "zod";
 
 import { publicProcedure } from "../index";
 
@@ -43,7 +43,7 @@ export const gdprRouter = {
     )
     .handler(async ({ input }) => {
       const conditions = [eq(gdprRequests.organizationId, input.organizationId)];
-      
+
       if (input.status) conditions.push(eq(gdprRequests.status, input.status));
       if (input.type) conditions.push(eq(gdprRequests.type, input.type));
 
@@ -55,13 +55,11 @@ export const gdprRouter = {
       });
     }),
 
-  get: publicProcedure
-    .input(z.object({ id: z.number() }))
-    .handler(async ({ input }) => {
-      return await db.query.gdprRequests.findFirst({
-        where: eq(gdprRequests.id, input.id),
-      });
-    }),
+  get: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
+    return await db.query.gdprRequests.findFirst({
+      where: eq(gdprRequests.id, input.id),
+    });
+  }),
 
   update: publicProcedure
     .input(
@@ -74,11 +72,11 @@ export const gdprRouter = {
     )
     .handler(async ({ input }) => {
       const updates: Record<string, unknown> = {};
-      
+
       if (input.status) updates.status = input.status;
       if (input.notes) updates.notes = input.notes;
       if (input.processedBy) updates.processedBy = input.processedBy;
-      
+
       if (input.status === "completed") {
         updates.completedAt = new Date();
       }
@@ -88,7 +86,7 @@ export const gdprRouter = {
         .set(updates)
         .where(eq(gdprRequests.id, input.id))
         .returning();
-      
+
       return updated;
     }),
 

@@ -1,11 +1,16 @@
 import { db } from "@ticket-app/db";
-import { mobileSdkConfigs, contactPushTokens, pushNotificationLogs, contacts } from "@ticket-app/db/schema";
+import {
+  mobileSdkConfigs,
+  contactPushTokens,
+  pushNotificationLogs,
+  contacts,
+} from "@ticket-app/db/schema";
 import { eq, desc } from "drizzle-orm";
-import z from "zod";
+import * as z from "zod";
 
 import { publicProcedure } from "../index";
-import { sendFCMNotification, sendFCMBatch } from "../lib/fcm";
-import { sendAPNsNotification, sendAPNsBatch } from "../lib/apns";
+import { sendFCMNotification } from "../lib/fcm";
+import { sendAPNsNotification } from "../lib/apns";
 
 export const mobileSdkRouter = {
   listConfigs: publicProcedure
@@ -18,15 +23,13 @@ export const mobileSdkRouter = {
         .orderBy(desc(mobileSdkConfigs.createdAt));
     }),
 
-  getConfig: publicProcedure
-    .input(z.object({ id: z.number() }))
-    .handler(async ({ input }) => {
-      const [config] = await db
-        .select()
-        .from(mobileSdkConfigs)
-        .where(eq(mobileSdkConfigs.id, input.id));
-      return config ?? null;
-    }),
+  getConfig: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
+    const [config] = await db
+      .select()
+      .from(mobileSdkConfigs)
+      .where(eq(mobileSdkConfigs.id, input.id));
+    return config ?? null;
+  }),
 
   createConfig: publicProcedure
     .input(
@@ -40,7 +43,7 @@ export const mobileSdkRouter = {
         apnsKey: z.string().optional(),
         apnsBundleId: z.string().optional(),
         isEnabled: z.boolean().default(true),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const [config] = await db
@@ -71,7 +74,7 @@ export const mobileSdkRouter = {
         apnsKey: z.string().optional(),
         apnsBundleId: z.string().optional(),
         isEnabled: z.boolean().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const [updated] = await db
@@ -90,12 +93,10 @@ export const mobileSdkRouter = {
       return updated;
     }),
 
-  deleteConfig: publicProcedure
-    .input(z.object({ id: z.number() }))
-    .handler(async ({ input }) => {
-      await db.delete(mobileSdkConfigs).where(eq(mobileSdkConfigs.id, input.id));
-      return { success: true };
-    }),
+  deleteConfig: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
+    await db.delete(mobileSdkConfigs).where(eq(mobileSdkConfigs.id, input.id));
+    return { success: true };
+  }),
 
   registerToken: publicProcedure
     .input(
@@ -104,7 +105,7 @@ export const mobileSdkRouter = {
         platform: z.enum(["ios", "android"]),
         token: z.string(),
         deviceId: z.string().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const existing = await db.query.contactPushTokens.findFirst({
@@ -145,12 +146,10 @@ export const mobileSdkRouter = {
         .orderBy(desc(contactPushTokens.createdAt));
     }),
 
-  deleteToken: publicProcedure
-    .input(z.object({ id: z.number() }))
-    .handler(async ({ input }) => {
-      await db.delete(contactPushTokens).where(eq(contactPushTokens.id, input.id));
-      return { success: true };
-    }),
+  deleteToken: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
+    await db.delete(contactPushTokens).where(eq(contactPushTokens.id, input.id));
+    return { success: true };
+  }),
 
   sendPushNotification: publicProcedure
     .input(
@@ -158,9 +157,9 @@ export const mobileSdkRouter = {
         contactId: z.number(),
         title: z.string(),
         body: z.string(),
-        data: z.record(z.any()).optional(),
+        data: z.record(z.string(), z.unknown()).optional(),
         ticketId: z.number().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const contact = await db.query.contacts.findFirst({
@@ -191,14 +190,14 @@ export const mobileSdkRouter = {
                 token.token,
                 input.title,
                 input.body,
-                input.data
+                input.data,
               )
             : await sendAPNsNotification(
                 contact.organizationId,
                 token.token,
                 input.title,
                 input.body,
-                input.data
+                input.data,
               );
 
         if (result.success) {
@@ -230,9 +229,9 @@ export const mobileSdkRouter = {
         contactIds: z.array(z.number()),
         title: z.string(),
         body: z.string(),
-        data: z.record(z.any()).optional(),
+        data: z.record(z.string(), z.unknown()).optional(),
         ticketId: z.number().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       let totalSuccess = 0;
@@ -258,14 +257,14 @@ export const mobileSdkRouter = {
                   token.token,
                   input.title,
                   input.body,
-                  input.data
+                  input.data,
                 )
               : await sendAPNsNotification(
                   contact.organizationId,
                   token.token,
                   input.title,
                   input.body,
-                  input.data
+                  input.data,
                 );
 
           if (result.success) {
@@ -295,7 +294,9 @@ export const mobileSdkRouter = {
   listNotificationLogs: publicProcedure
     .input(z.object({ contactId: z.number().optional(), limit: z.number().default(50) }))
     .handler(async ({ input }) => {
-      const conditions = input.contactId ? [eq(pushNotificationLogs.contactId, input.contactId)] : [];
+      const conditions = input.contactId
+        ? [eq(pushNotificationLogs.contactId, input.contactId)]
+        : [];
       return await db
         .select()
         .from(pushNotificationLogs)

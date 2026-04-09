@@ -11,7 +11,7 @@ import {
 } from "@ticket-app/services/notifications";
 import { verifyUnsubscribeToken } from "@ticket-app/services/notificationEmail";
 import { publicProcedure } from "../index";
-import z from "zod";
+import * as z from "zod";
 
 export const notificationsRouter = {
   unsubscribe: publicProcedure

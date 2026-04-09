@@ -7,7 +7,7 @@ import {
   stripeCustomers,
 } from "@ticket-app/db/schema";
 import { eq, and, sql } from "drizzle-orm";
-import z from "zod";
+import * as z from "zod";
 
 import { publicProcedure } from "../index";
 import {

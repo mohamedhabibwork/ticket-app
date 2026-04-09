@@ -1,5 +1,5 @@
 import { eq, and, desc } from "drizzle-orm";
-import z from "zod";
+import * as z from "zod";
 import { db } from "@ticket-app/db";
 import { workflows, workflowExecutionLogs } from "@ticket-app/db/schema/_workflows";
 import { workflowEngine } from "../services/workflowEngine";
@@ -7,7 +7,18 @@ import { workflowActions } from "../services/workflowActions";
 
 const workflowConditionSchema = z.object({
   field: z.string(),
-  operator: z.enum(["equals", "not_equals", "contains", "not_contains", "greater_than", "less_than", "is_empty", "is_not_empty", "in", "not_in"]),
+  operator: z.enum([
+    "equals",
+    "not_equals",
+    "contains",
+    "not_contains",
+    "greater_than",
+    "less_than",
+    "is_empty",
+    "is_not_empty",
+    "in",
+    "not_in",
+  ]),
   value: z.unknown(),
 });
 
@@ -26,7 +37,7 @@ const workflowActionSchema = z.object({
     "apply_saved_reply",
     "create_calendar_event",
   ]),
-  params: z.record(z.unknown()),
+  params: z.record(z.string(), z.unknown()),
 });
 
 const createWorkflowSchema = z.object({
@@ -51,9 +62,12 @@ const createWorkflowSchema = z.object({
 
 const updateWorkflowSchema = createWorkflowSchema.partial();
 
-const conditionEvaluator = (ticket: Record<string, unknown>, condition: z.infer<typeof workflowConditionSchema>): boolean => {
+const _conditionEvaluator = (
+  ticket: Record<string, unknown>,
+  condition: z.infer<typeof workflowConditionSchema>,
+): boolean => {
   const fieldValue = ticket[condition.field];
-  
+
   switch (condition.operator) {
     case "equals":
       return fieldValue === condition.value;
@@ -82,35 +96,38 @@ const conditionEvaluator = (ticket: Record<string, unknown>, condition: z.infer<
 
 export const workflowsRouter = {
   list: publicProcedure
-    .input(z.object({
-      organizationId: z.number(),
-      isActive: z.boolean().optional(),
-    }))
+    .input(
+      z.object({
+        organizationId: z.number(),
+        isActive: z.boolean().optional(),
+      }),
+    )
     .handler(async ({ input }) => {
       const conditions = [eq(workflows.organizationId, input.organizationId)];
-      
+
       if (input.isActive !== undefined) {
         conditions.push(eq(workflows.isActive, input.isActive));
       }
-      
-      return await db.select()
+
+      return await db
+        .select()
         .from(workflows)
         .where(and(...conditions))
         .orderBy(desc(workflows.createdAt));
     }),
 
   get: publicProcedure
-    .input(z.object({
-      id: z.number(),
-      organizationId: z.number(),
-    }))
+    .input(
+      z.object({
+        id: z.number(),
+        organizationId: z.number(),
+      }),
+    )
     .handler(async ({ input }) => {
-      const [workflow] = await db.select()
+      const [workflow] = await db
+        .select()
         .from(workflows)
-        .where(and(
-          eq(workflows.id, input.id),
-          eq(workflows.organizationId, input.organizationId)
-        ));
+        .where(and(eq(workflows.id, input.id), eq(workflows.organizationId, input.organizationId)));
       return workflow || null;
     }),
 
@@ -118,105 +135,112 @@ export const workflowsRouter = {
     .input(createWorkflowSchema.extend({ organizationId: z.number() }))
     .handler(async ({ input }) => {
       const { organizationId, ...rest } = input;
-      
-      const [workflow] = await db.insert(workflows).values({
-        organizationId,
-        name: rest.name,
-        description: rest.description,
-        trigger: rest.trigger,
-        conditions: rest.conditions,
-        actions: rest.actions,
-        isActive: rest.isActive,
-      }).returning();
-      
+
+      const [workflow] = await db
+        .insert(workflows)
+        .values({
+          organizationId,
+          name: rest.name,
+          description: rest.description,
+          trigger: rest.trigger,
+          conditions: rest.conditions,
+          actions: rest.actions,
+          isActive: rest.isActive,
+        })
+        .returning();
+
       return workflow;
     }),
 
   update: publicProcedure
-    .input(z.object({
-      id: z.number(),
-      organizationId: z.number(),
-      data: updateWorkflowSchema,
-    }))
+    .input(
+      z.object({
+        id: z.number(),
+        organizationId: z.number(),
+        data: updateWorkflowSchema,
+      }),
+    )
     .handler(async ({ input }) => {
-      const [workflow] = await db.update(workflows)
+      const [workflow] = await db
+        .update(workflows)
         .set({
           ...input.data,
           updatedAt: new Date(),
         })
-        .where(and(
-          eq(workflows.id, input.id),
-          eq(workflows.organizationId, input.organizationId)
-        ))
+        .where(and(eq(workflows.id, input.id), eq(workflows.organizationId, input.organizationId)))
         .returning();
-      
+
       return workflow;
     }),
 
   delete: publicProcedure
-    .input(z.object({
-      id: z.number(),
-      organizationId: z.number(),
-    }))
+    .input(
+      z.object({
+        id: z.number(),
+        organizationId: z.number(),
+      }),
+    )
     .handler(async ({ input }) => {
-      await db.update(workflows)
+      await db
+        .update(workflows)
         .set({ deletedAt: new Date() })
-        .where(and(
-          eq(workflows.id, input.id),
-          eq(workflows.organizationId, input.organizationId)
-        ));
+        .where(and(eq(workflows.id, input.id), eq(workflows.organizationId, input.organizationId)));
       return { success: true };
     }),
 
   toggleActive: publicProcedure
-    .input(z.object({
-      id: z.number(),
-      organizationId: z.number(),
-      isActive: z.boolean(),
-    }))
+    .input(
+      z.object({
+        id: z.number(),
+        organizationId: z.number(),
+        isActive: z.boolean(),
+      }),
+    )
     .handler(async ({ input }) => {
-      const [workflow] = await db.update(workflows)
+      const [workflow] = await db
+        .update(workflows)
         .set({ isActive: input.isActive, updatedAt: new Date() })
-        .where(and(
-          eq(workflows.id, input.id),
-          eq(workflows.organizationId, input.organizationId)
-        ))
+        .where(and(eq(workflows.id, input.id), eq(workflows.organizationId, input.organizationId)))
         .returning();
-      
+
       return workflow;
     }),
 
   execute: publicProcedure
-    .input(z.object({
-      workflowId: z.number(),
-      ticketId: z.number(),
-      triggerType: z.string(),
-    }))
+    .input(
+      z.object({
+        workflowId: z.number(),
+        ticketId: z.number(),
+        triggerType: z.string(),
+      }),
+    )
     .handler(async ({ input }) => {
       const startTime = Date.now();
-      
+
       try {
-        const [workflow] = await db.select()
+        const [workflow] = await db
+          .select()
           .from(workflows)
           .where(eq(workflows.id, input.workflowId));
-        
+
         if (!workflow || !workflow.isActive) {
           return { success: false, error: "Workflow not found or inactive" };
         }
 
-        const [ticket] = await db.select()
+        const [ticket] = await db
+          .select()
           .from(/* tickets */ {} as any)
           .where(eq(/* tickets.id */ input.ticketId as any, input.ticketId));
-        
+
         if (!ticket) {
           return { success: false, error: "Ticket not found" };
         }
 
         const ticketData = ticket as Record<string, unknown>;
-        
+
         const conditionsResult = workflowEngine.evaluateConditions(
           workflow.conditions as { operator: "and" | "or"; rules: any[] },
-          ticketData
+          ticketData,
         );
 
         if (!conditionsResult.passed) {
@@ -228,14 +252,11 @@ export const workflowsRouter = {
             actionsResult: null,
             durationMs: Date.now() - startTime,
           });
-          
+
           return { success: true, skipped: true, reason: "Conditions not met" };
         }
 
-        const loopDetected = await workflowEngine.detectLoop(
-          workflow.id,
-          input.ticketId
-        );
+        const loopDetected = await workflowEngine.detectLoop(workflow.id, input.ticketId);
 
         if (loopDetected) {
           await db.insert(workflowExecutionLogs).values({
@@ -247,14 +268,14 @@ export const workflowsRouter = {
             error: "Circular workflow loop detected and stopped",
             durationMs: Date.now() - startTime,
           });
-          
+
           return { success: false, error: "Circular loop detected" };
         }
 
         const actionsResult = await workflowActions.executeActions(
           workflow.actions as any[],
           ticketData,
-          { workflowId: workflow.id, ticketId: input.ticketId }
+          { workflowId: workflow.id, ticketId: input.ticketId },
         );
 
         await db.insert(workflowExecutionLogs).values({
@@ -269,7 +290,7 @@ export const workflowsRouter = {
         return { success: true, actionsResult };
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : "Unknown error";
-        
+
         await db.insert(workflowExecutionLogs).values({
           workflowId: input.workflowId,
           ticketId: input.ticketId,
@@ -279,27 +300,32 @@ export const workflowsRouter = {
           error: errorMessage,
           durationMs: Date.now() - startTime,
         });
-        
+
         return { success: false, error: errorMessage };
       }
     }),
 
   simulate: publicProcedure
-    .input(z.object({
-      workflowId: z.number(),
-      organizationId: z.number(),
-      testData: z.object({
-        ticketId: z.number().optional(),
-        ticketData: z.record(z.unknown()).optional(),
+    .input(
+      z.object({
+        workflowId: z.number(),
+        organizationId: z.number(),
+        testData: z.object({
+          ticketId: z.number().optional(),
+          ticketData: z.record(z.string(), z.unknown()).optional(),
+        }),
       }),
-    }))
+    )
     .handler(async ({ input }) => {
-      const [workflow] = await db.select()
+      const [workflow] = await db
+        .select()
         .from(workflows)
-        .where(and(
-          eq(workflows.id, input.workflowId),
-          eq(workflows.organizationId, input.organizationId)
-        ));
+        .where(
+          and(
+            eq(workflows.id, input.workflowId),
+            eq(workflows.organizationId, input.organizationId),
+          ),
+        );
 
       if (!workflow) {
         throw new Error("Workflow not found");
@@ -314,7 +340,7 @@ export const workflowsRouter = {
 
       const conditionsResult = workflowEngine.evaluateConditions(
         workflow.conditions as { operator: "and" | "or"; rules: any[] },
-        testTicketData as Record<string, unknown>
+        testTicketData as Record<string, unknown>,
       );
 
       return {
@@ -327,27 +353,33 @@ export const workflowsRouter = {
     }),
 
   getExecutionLogs: publicProcedure
-    .input(z.object({
-      workflowId: z.number(),
-      organizationId: z.number(),
-      limit: z.number().min(1).max(100).default(50),
-      offset: z.number().min(0).default(0),
-      startDate: z.string().optional(),
-      endDate: z.string().optional(),
-    }))
+    .input(
+      z.object({
+        workflowId: z.number(),
+        organizationId: z.number(),
+        limit: z.number().min(1).max(100).default(50),
+        offset: z.number().min(0).default(0),
+        startDate: z.string().optional(),
+        endDate: z.string().optional(),
+      }),
+    )
     .handler(async ({ input }) => {
-      const [workflow] = await db.select()
+      const [workflow] = await db
+        .select()
         .from(workflows)
-        .where(and(
-          eq(workflows.id, input.workflowId),
-          eq(workflows.organizationId, input.organizationId)
-        ));
+        .where(
+          and(
+            eq(workflows.id, input.workflowId),
+            eq(workflows.organizationId, input.organizationId),
+          ),
+        );
 
       if (!workflow) {
         throw new Error("Workflow not found");
       }
 
-      return await db.select()
+      return await db
+        .select()
         .from(workflowExecutionLogs)
         .where(eq(workflowExecutionLogs.workflowId, input.workflowId))
         .orderBy(desc(workflowExecutionLogs.executedAt))

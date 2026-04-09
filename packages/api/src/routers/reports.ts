@@ -2,7 +2,7 @@ import { db } from "@ticket-app/db";
 import { tickets, users, lookups, teams } from "@ticket-app/db/schema";
 import { csatSurveys } from "@ticket-app/db/schema/_sla";
 import { eq, and, isNull, sql, gte, lte, count, inArray } from "drizzle-orm";
-import z from "zod";
+import * as z from "zod";
 
 import { publicProcedure } from "../index";
 
@@ -399,7 +399,7 @@ export const reportsRouter = {
         config: z.object({
           metrics: z.array(z.string()),
           groupBy: z.string().optional(),
-          filters: z.record(z.any()).optional(),
+          filters: z.record(z.string(), z.unknown()).optional(),
         }),
       }),
     )

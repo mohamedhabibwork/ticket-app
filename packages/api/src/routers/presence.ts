@@ -1,5 +1,11 @@
-import { joinTicket, leaveTicket, heartbeat, getTicketViewers, isViewingTicket } from "../lib/presence";
-import z from "zod";
+import {
+  joinTicket,
+  leaveTicket,
+  heartbeat,
+  getTicketViewers,
+  isViewingTicket,
+} from "../lib/presence";
+import * as z from "zod";
 
 import { publicProcedure } from "../index";
 
@@ -42,11 +48,9 @@ export const presenceRouter = {
       return { alive };
     }),
 
-  list: publicProcedure
-    .input(z.object({ ticketId: z.number() }))
-    .handler(async ({ input }) => {
-      return await getTicketViewers(input.ticketId);
-    }),
+  list: publicProcedure.input(z.object({ ticketId: z.number() })).handler(async ({ input }) => {
+    return await getTicketViewers(input.ticketId);
+  }),
 
   check: publicProcedure
     .input(

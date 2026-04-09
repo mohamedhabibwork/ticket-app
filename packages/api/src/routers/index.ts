@@ -54,6 +54,7 @@ import { chatbotRouter } from "./chatbot";
 import { onPremiseRouter } from "./onPremise";
 import { organizationsRouter } from "./organizations";
 import { authRouter } from "./auth";
+import { excelRouter } from "./excel";
 
 export const appRouter = {
   healthCheck: publicProcedure.handler(() => {
@@ -112,6 +113,7 @@ export const appRouter = {
   onPremise: onPremiseRouter,
   organizations: organizationsRouter,
   auth: authRouter,
+  excel: excelRouter,
 };
 
 export type AppRouter = typeof appRouter;

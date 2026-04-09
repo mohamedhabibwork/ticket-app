@@ -1,7 +1,7 @@
 import { db } from "@ticket-app/db";
 import { forms, formFields } from "@ticket-app/db/schema";
 import { eq, and, isNull, desc } from "drizzle-orm";
-import z from "zod";
+import * as z from "zod";
 
 import { publicProcedure } from "../index";
 import { convertFormToTicket } from "../services/form";

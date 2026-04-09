@@ -31,4 +31,5 @@ export * from "./_translation";
 export * from "./_mobileSdk";
 export * from "./_chatbot";
 export * from "./_onPremise";
+export * from "./_excel-jobs";
 export * from "./todo";

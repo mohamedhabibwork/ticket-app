@@ -1,7 +1,7 @@
 import { db } from "@ticket-app/db";
 import { ticketAttachments } from "@ticket-app/db/schema";
 import { eq, desc } from "drizzle-orm";
-import z from "zod";
+import * as z from "zod";
 
 import { publicProcedure } from "../index";
 
@@ -26,15 +26,13 @@ export const ticketAttachmentsRouter = {
         .orderBy(desc(ticketAttachments.createdAt));
     }),
 
-  get: publicProcedure
-    .input(z.object({ id: z.number() }))
-    .handler(async ({ input }) => {
-      const [attachment] = await db
-        .select()
-        .from(ticketAttachments)
-        .where(eq(ticketAttachments.id, input.id));
-      return attachment ?? null;
-    }),
+  get: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
+    const [attachment] = await db
+      .select()
+      .from(ticketAttachments)
+      .where(eq(ticketAttachments.id, input.id));
+    return attachment ?? null;
+  }),
 
   create: publicProcedure
     .input(
@@ -46,7 +44,7 @@ export const ticketAttachmentsRouter = {
         sizeBytes: z.number(),
         storageKey: z.string(),
         createdBy: z.number().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const [attachment] = await db
@@ -64,12 +62,8 @@ export const ticketAttachmentsRouter = {
       return attachment;
     }),
 
-  delete: publicProcedure
-    .input(z.object({ id: z.number() }))
-    .handler(async ({ input }) => {
-      await db
-        .delete(ticketAttachments)
-        .where(eq(ticketAttachments.id, input.id));
-      return { success: true };
-    }),
+  delete: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
+    await db.delete(ticketAttachments).where(eq(ticketAttachments.id, input.id));
+    return { success: true };
+  }),
 };

@@ -1,7 +1,7 @@
 import { db } from "@ticket-app/db";
 import { marketplaceAccounts, marketplaceMessages } from "@ticket-app/db/schema";
 import { eq, and, desc, isNull } from "drizzle-orm";
-import z from "zod";
+import * as z from "zod";
 
 import { publicProcedure } from "../index";
 import { encryptToken, decryptToken } from "../lib/crypto";
@@ -11,13 +11,13 @@ export const marketplaceRouter = {
     .input(
       z.object({
         organizationId: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const accounts = await db.query.marketplaceAccounts.findMany({
         where: and(
           eq(marketplaceAccounts.organizationId, input.organizationId),
-          isNull(marketplaceAccounts.deletedAt)
+          isNull(marketplaceAccounts.deletedAt),
         ),
         orderBy: [desc(marketplaceAccounts.createdAt)],
       });
@@ -35,14 +35,14 @@ export const marketplaceRouter = {
       z.object({
         organizationId: z.number(),
         id: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const account = await db.query.marketplaceAccounts.findFirst({
         where: and(
           eq(marketplaceAccounts.id, input.id),
           eq(marketplaceAccounts.organizationId, input.organizationId),
-          isNull(marketplaceAccounts.deletedAt)
+          isNull(marketplaceAccounts.deletedAt),
         ),
       });
 
@@ -68,7 +68,7 @@ export const marketplaceRouter = {
         spApiClientSecret: z.string(),
         spApiRefreshToken: z.string(),
         userId: z.number().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const existingAccount = await db.query.marketplaceAccounts.findFirst({
@@ -76,7 +76,7 @@ export const marketplaceRouter = {
           eq(marketplaceAccounts.organizationId, input.organizationId),
           eq(marketplaceAccounts.sellerId, input.sellerId),
           eq(marketplaceAccounts.marketplaceId, input.marketplaceId),
-          isNull(marketplaceAccounts.deletedAt)
+          isNull(marketplaceAccounts.deletedAt),
         ),
       });
 
@@ -144,7 +144,7 @@ export const marketplaceRouter = {
         spApiRefreshToken: z.string().optional(),
         isActive: z.boolean().optional(),
         updatedBy: z.number().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const updateData: Record<string, any> = {
@@ -154,8 +154,10 @@ export const marketplaceRouter = {
 
       if (input.accountName) updateData.accountName = input.accountName;
       if (input.spApiClientId) updateData.spApiClientIdEnc = encryptToken(input.spApiClientId);
-      if (input.spApiClientSecret) updateData.spApiClientSecretEnc = encryptToken(input.spApiClientSecret);
-      if (input.spApiRefreshToken) updateData.spApiRefreshTokenEnc = encryptToken(input.spApiRefreshToken);
+      if (input.spApiClientSecret)
+        updateData.spApiClientSecretEnc = encryptToken(input.spApiClientSecret);
+      if (input.spApiRefreshToken)
+        updateData.spApiRefreshTokenEnc = encryptToken(input.spApiRefreshToken);
       if (input.isActive !== undefined) updateData.status = input.isActive ? "active" : "inactive";
 
       const [account] = await db
@@ -164,8 +166,8 @@ export const marketplaceRouter = {
         .where(
           and(
             eq(marketplaceAccounts.id, input.id),
-            eq(marketplaceAccounts.organizationId, input.organizationId)
-          )
+            eq(marketplaceAccounts.organizationId, input.organizationId),
+          ),
         )
         .returning();
 
@@ -184,7 +186,7 @@ export const marketplaceRouter = {
       z.object({
         id: z.number(),
         organizationId: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       await db
@@ -197,8 +199,8 @@ export const marketplaceRouter = {
         .where(
           and(
             eq(marketplaceAccounts.id, input.id),
-            eq(marketplaceAccounts.organizationId, input.organizationId)
-          )
+            eq(marketplaceAccounts.organizationId, input.organizationId),
+          ),
         );
 
       return { success: true };
@@ -211,12 +213,10 @@ export const marketplaceRouter = {
         ticketId: z.number().optional(),
         limit: z.number().default(50),
         offset: z.number().default(0),
-      })
+      }),
     )
     .handler(async ({ input }) => {
-      const conditions = [
-        eq(marketplaceMessages.marketplaceAccountId, input.accountId),
-      ];
+      const conditions = [eq(marketplaceMessages.marketplaceAccountId, input.accountId)];
 
       if (input.ticketId) {
         conditions.push(eq(marketplaceMessages.ticketId, input.ticketId));
@@ -236,7 +236,7 @@ export const marketplaceRouter = {
     .input(
       z.object({
         id: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       await db
@@ -254,14 +254,14 @@ export const marketplaceRouter = {
       z.object({
         id: z.number(),
         organizationId: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const account = await db.query.marketplaceAccounts.findFirst({
         where: and(
           eq(marketplaceAccounts.id, input.id),
           eq(marketplaceAccounts.organizationId, input.organizationId),
-          isNull(marketplaceAccounts.deletedAt)
+          isNull(marketplaceAccounts.deletedAt),
         ),
       });
 
@@ -270,9 +270,15 @@ export const marketplaceRouter = {
       }
 
       return {
-        spApiClientId: account.spApiClientIdEnc ? decryptToken(account.spApiClientIdEnc) : undefined,
-        spApiClientSecret: account.spApiClientSecretEnc ? decryptToken(account.spApiClientSecretEnc) : undefined,
-        spApiRefreshToken: account.spApiRefreshTokenEnc ? decryptToken(account.spApiRefreshTokenEnc) : undefined,
+        spApiClientId: account.spApiClientIdEnc
+          ? decryptToken(account.spApiClientIdEnc)
+          : undefined,
+        spApiClientSecret: account.spApiClientSecretEnc
+          ? decryptToken(account.spApiClientSecretEnc)
+          : undefined,
+        spApiRefreshToken: account.spApiRefreshTokenEnc
+          ? decryptToken(account.spApiRefreshTokenEnc)
+          : undefined,
         lastSyncedAt: account.lastSyncedAt,
       };
     }),

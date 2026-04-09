@@ -1,7 +1,7 @@
 import { db } from "@ticket-app/db";
-import { invoices, invoiceItems, payments, subscriptions } from "@ticket-app/db/schema";
+import { invoices, invoiceItems } from "@ticket-app/db/schema";
 import { eq, and, desc, sql, isNull } from "drizzle-orm";
-import z from "zod";
+import * as z from "zod";
 
 import { publicProcedure } from "../index";
 
@@ -12,17 +12,14 @@ export const invoicesRouter = {
         organizationId: z.number(),
         page: z.number().min(1).default(1),
         limit: z.number().min(1).max(100).default(20),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const offset = (input.page - 1) * input.limit;
 
       const [invoicesList, totalResult] = await Promise.all([
         db.query.invoices.findMany({
-          where: and(
-            eq(invoices.organizationId, input.organizationId),
-            isNull(invoices.deletedAt)
-          ),
+          where: and(eq(invoices.organizationId, input.organizationId), isNull(invoices.deletedAt)),
           with: {
             items: true,
             subscription: {
@@ -47,9 +44,7 @@ export const invoicesRouter = {
           page: input.page,
           limit: input.limit,
           total: Number(totalResult[0]?.count || 0),
-          totalPages: Math.ceil(
-            Number(totalResult[0]?.count || 0) / input.limit
-          ),
+          totalPages: Math.ceil(Number(totalResult[0]?.count || 0) / input.limit),
         },
       };
     }),
@@ -59,14 +54,11 @@ export const invoicesRouter = {
       z.object({
         organizationId: z.number(),
         id: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       return await db.query.invoices.findFirst({
-        where: and(
-          eq(invoices.id, input.id),
-          eq(invoices.organizationId, input.organizationId)
-        ),
+        where: and(eq(invoices.id, input.id), eq(invoices.organizationId, input.organizationId)),
         with: {
           items: true,
           payments: true,
@@ -84,13 +76,13 @@ export const invoicesRouter = {
       z.object({
         organizationId: z.number(),
         number: z.string(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       return await db.query.invoices.findFirst({
         where: and(
           eq(invoices.number, input.number),
-          eq(invoices.organizationId, input.organizationId)
+          eq(invoices.organizationId, input.organizationId),
         ),
         with: {
           items: true,
@@ -109,14 +101,14 @@ export const invoicesRouter = {
             description: z.string(),
             quantity: z.number().min(1).default(1),
             unitPrice: z.number(),
-          })
+          }),
         ),
         taxRate: z.number().min(0).default(0),
         dueDate: z.string().or(z.date()),
         periodStart: z.string().or(z.date()),
         periodEnd: z.string().or(z.date()),
         currency: z.string().length(3).default("USD"),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const year = new Date().getFullYear();
@@ -139,10 +131,7 @@ export const invoicesRouter = {
       const orgSlug = org?.slug || "org";
       const number = `INV-${orgSlug}-${year}-${sequence.toString().padStart(4, "0")}`;
 
-      const subtotal = input.items.reduce(
-        (sum, item) => sum + item.unitPrice * item.quantity,
-        0
-      );
+      const subtotal = input.items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
       const taxAmount = Math.round((subtotal * input.taxRate) / 100);
       const total = subtotal + taxAmount;
 
@@ -172,7 +161,7 @@ export const invoicesRouter = {
             quantity: item.quantity,
             unitPrice: item.unitPrice,
             total: item.unitPrice * item.quantity,
-          }))
+          })),
         );
       }
 
@@ -195,7 +184,7 @@ export const invoicesRouter = {
         organizationId: z.number(),
         id: z.number(),
         paymentId: z.number().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const [updated] = await db
@@ -205,12 +194,7 @@ export const invoicesRouter = {
           paidAt: new Date(),
           updatedAt: new Date(),
         })
-        .where(
-          and(
-            eq(invoices.id, input.id),
-            eq(invoices.organizationId, input.organizationId)
-          )
-        )
+        .where(and(eq(invoices.id, input.id), eq(invoices.organizationId, input.organizationId)))
         .returning();
 
       return updated;
@@ -221,7 +205,7 @@ export const invoicesRouter = {
       z.object({
         organizationId: z.number(),
         id: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const [updated] = await db
@@ -230,12 +214,7 @@ export const invoicesRouter = {
           status: "void",
           updatedAt: new Date(),
         })
-        .where(
-          and(
-            eq(invoices.id, input.id),
-            eq(invoices.organizationId, input.organizationId)
-          )
-        )
+        .where(and(eq(invoices.id, input.id), eq(invoices.organizationId, input.organizationId)))
         .returning();
 
       return updated;
@@ -245,7 +224,7 @@ export const invoicesRouter = {
     .input(
       z.object({
         organizationId: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const stats = await db
@@ -266,7 +245,7 @@ export const invoicesRouter = {
           };
           return acc;
         },
-        {} as Record<string, { count: number; total: number }>
+        {} as Record<string, { count: number; total: number }>,
       );
 
       return byStatus;

@@ -1,7 +1,7 @@
 import { db } from "@ticket-app/db";
 import { teams, teamMembers, users } from "@ticket-app/db/schema";
 import { eq, and, desc } from "drizzle-orm";
-import z from "zod";
+import * as z from "zod";
 
 import { publicProcedure } from "../index";
 
@@ -16,15 +16,10 @@ export const teamsRouter = {
         .orderBy(desc(teams.createdAt));
     }),
 
-  get: publicProcedure
-    .input(z.object({ id: z.number() }))
-    .handler(async ({ input }) => {
-      const [team] = await db
-        .select()
-        .from(teams)
-        .where(eq(teams.id, input.id));
-      return team ?? null;
-    }),
+  get: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
+    const [team] = await db.select().from(teams).where(eq(teams.id, input.id));
+    return team ?? null;
+  }),
 
   create: publicProcedure
     .input(
@@ -33,9 +28,11 @@ export const teamsRouter = {
         name: z.string().min(1).max(150),
         description: z.string().optional(),
         groupId: z.number().optional(),
-        autoAssignMethod: z.enum(["round_robin", "load_balanced", "least_assigned"]).default("round_robin"),
+        autoAssignMethod: z
+          .enum(["round_robin", "load_balanced", "least_assigned"])
+          .default("round_robin"),
         createdBy: z.number().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const [team] = await db
@@ -61,7 +58,7 @@ export const teamsRouter = {
         groupId: z.number().nullable().optional(),
         autoAssignMethod: z.enum(["round_robin", "load_balanced", "least_assigned"]).optional(),
         isActive: z.boolean().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const [updated] = await db
@@ -78,13 +75,11 @@ export const teamsRouter = {
       return updated;
     }),
 
-  delete: publicProcedure
-    .input(z.object({ id: z.number() }))
-    .handler(async ({ input }) => {
-      await db.delete(teamMembers).where(eq(teamMembers.teamId, input.id));
-      await db.delete(teams).where(eq(teams.id, input.id));
-      return { success: true };
-    }),
+  delete: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
+    await db.delete(teamMembers).where(eq(teamMembers.teamId, input.id));
+    await db.delete(teams).where(eq(teams.id, input.id));
+    return { success: true };
+  }),
 
   listMembers: publicProcedure
     .input(z.object({ teamId: z.number() }))
@@ -113,7 +108,7 @@ export const teamsRouter = {
         userId: z.number(),
         isLead: z.boolean().default(false),
         createdBy: z.number().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const [member] = await db
@@ -134,17 +129,12 @@ export const teamsRouter = {
       z.object({
         teamId: z.number(),
         userId: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       await db
         .delete(teamMembers)
-        .where(
-          and(
-            eq(teamMembers.teamId, input.teamId),
-            eq(teamMembers.userId, input.userId)
-          )
-        );
+        .where(and(eq(teamMembers.teamId, input.teamId), eq(teamMembers.userId, input.userId)));
       return { success: true };
     }),
 };

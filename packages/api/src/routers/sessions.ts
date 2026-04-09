@@ -1,7 +1,7 @@
 import { db } from "@ticket-app/db";
-import { userSessions, users } from "@ticket-app/db/schema";
+import { userSessions } from "@ticket-app/db/schema";
 import { eq, and, isNull, desc, gte, sql } from "drizzle-orm";
-import z from "zod";
+import * as z from "zod";
 
 import { publicProcedure } from "../index";
 

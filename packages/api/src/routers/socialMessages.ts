@@ -1,7 +1,7 @@
 import { db } from "@ticket-app/db";
 import { socialMessages } from "@ticket-app/db/schema";
 import { eq, and, isNull, desc, sql } from "drizzle-orm";
-import z from "zod";
+import * as z from "zod";
 
 import { publicProcedure } from "../index";
 
@@ -18,7 +18,7 @@ export const socialMessagesRouter = {
         search: z.string().optional(),
         limit: z.number().min(1).max(100).default(50),
         offset: z.number().min(0).default(0),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const conditions = [
@@ -44,9 +44,7 @@ export const socialMessagesRouter = {
         conditions.push(eq(socialMessages.isSpam, input.isSpam));
       }
       if (input.search) {
-        conditions.push(
-          sql`${socialMessages.bodyText} ILIKE ${`%${input.search}%`}`
-        );
+        conditions.push(sql`${socialMessages.bodyText} ILIKE ${`%${input.search}%`}`);
       }
 
       return await db.query.socialMessages.findMany({
@@ -71,14 +69,11 @@ export const socialMessagesRouter = {
       z.object({
         organizationId: z.number(),
         id: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const message = await db.query.socialMessages.findFirst({
-        where: and(
-          eq(socialMessages.id, input.id),
-          isNull(socialMessages.deletedAt)
-        ),
+        where: and(eq(socialMessages.id, input.id), isNull(socialMessages.deletedAt)),
         with: {
           socialAccount: {
             columns: {
@@ -109,14 +104,14 @@ export const socialMessagesRouter = {
       z.object({
         socialAccountId: z.number(),
         platformMessageId: z.string(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       return await db.query.socialMessages.findFirst({
         where: and(
           eq(socialMessages.socialAccountId, input.socialAccountId),
           eq(socialMessages.platformMessageId, input.platformMessageId),
-          isNull(socialMessages.deletedAt)
+          isNull(socialMessages.deletedAt),
         ),
       });
     }),
@@ -140,7 +135,7 @@ export const socialMessagesRouter = {
         isIncoming: z.boolean().default(true),
         isSpam: z.boolean().default(false),
         sentAt: z.string().datetime().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const [message] = await db
@@ -173,7 +168,7 @@ export const socialMessagesRouter = {
       z.object({
         id: z.number(),
         ticketId: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const [message] = await db
@@ -193,7 +188,7 @@ export const socialMessagesRouter = {
       z.object({
         id: z.number(),
         isSpam: z.boolean(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const [message] = await db
@@ -212,7 +207,7 @@ export const socialMessagesRouter = {
     .input(
       z.object({
         id: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       await db
@@ -231,14 +226,14 @@ export const socialMessagesRouter = {
         socialAccountId: z.number(),
         authorPlatformUserId: z.string(),
         limit: z.number().min(1).max(100).default(20),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       return await db.query.socialMessages.findMany({
         where: and(
           eq(socialMessages.socialAccountId, input.socialAccountId),
           eq(socialMessages.authorPlatformUserId, input.authorPlatformUserId),
-          isNull(socialMessages.deletedAt)
+          isNull(socialMessages.deletedAt),
         ),
         orderBy: [desc(socialMessages.sentAt)],
         limit: input.limit,

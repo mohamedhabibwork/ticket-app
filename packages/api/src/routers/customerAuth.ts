@@ -1,8 +1,8 @@
 import { db } from "@ticket-app/db";
 import { customerSessions, customerSocialIdentities, contacts } from "@ticket-app/db/schema";
 import { eq, desc } from "drizzle-orm";
-import z from "zod";
-import { randomBytes } from "crypto";
+import * as z from "zod";
+import { _randomBytes } from "crypto";
 
 import { publicProcedure } from "../index";
 
@@ -64,14 +64,14 @@ export const customerAuthRouter = {
     )
     .handler(async ({ input }) => {
       const tokenRes = await fetch(
-        `https://graph.facebook.com/v18.0/oauth/access_token?client_id=${process.env.FACEBOOK_CLIENT_ID}&client_secret=${process.env.FACEBOOK_CLIENT_SECRET}&code=${input.code}&redirect_uri=${input.redirectUri}`
+        `https://graph.facebook.com/v18.0/oauth/access_token?client_id=${process.env.FACEBOOK_CLIENT_ID}&client_secret=${process.env.FACEBOOK_CLIENT_SECRET}&code=${input.code}&redirect_uri=${input.redirectUri}`,
       );
 
       const tokenData = await tokenRes.json();
       const accessToken = tokenData.access_token;
 
       const userRes = await fetch(
-        `https://graph.facebook.com/me?fields=id,email,name&access_token=${accessToken}`
+        `https://graph.facebook.com/me?fields=id,email,name&access_token=${accessToken}`,
       );
 
       const userData = await userRes.json();
@@ -125,15 +125,13 @@ export const customerAuthRouter = {
         .orderBy(desc(customerSocialIdentities.createdAt));
     }),
 
-  getIdentity: publicProcedure
-    .input(z.object({ id: z.number() }))
-    .handler(async ({ input }) => {
-      const [identity] = await db
-        .select()
-        .from(customerSocialIdentities)
-        .where(eq(customerSocialIdentities.id, input.id));
-      return identity ?? null;
-    }),
+  getIdentity: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
+    const [identity] = await db
+      .select()
+      .from(customerSocialIdentities)
+      .where(eq(customerSocialIdentities.id, input.id));
+    return identity ?? null;
+  }),
 
   linkIdentity: publicProcedure
     .input(
@@ -145,22 +143,17 @@ export const customerAuthRouter = {
         refreshToken: z.string().optional(),
         email: z.string().email().optional(),
         displayName: z.string().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
-      const [identity] = await db
-        .insert(customerSocialIdentities)
-        .values(input)
-        .returning();
+      const [identity] = await db.insert(customerSocialIdentities).values(input).returning();
       return identity;
     }),
 
-  unlinkIdentity: publicProcedure
-    .input(z.object({ id: z.number() }))
-    .handler(async ({ input }) => {
-      await db.delete(customerSocialIdentities).where(eq(customerSocialIdentities.id, input.id));
-      return { success: true };
-    }),
+  unlinkIdentity: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
+    await db.delete(customerSocialIdentities).where(eq(customerSocialIdentities.id, input.id));
+    return { success: true };
+  }),
 
   listSessions: publicProcedure
     .input(z.object({ contactId: z.number() }))
@@ -172,15 +165,13 @@ export const customerAuthRouter = {
         .orderBy(desc(customerSessions.createdAt));
     }),
 
-  getSession: publicProcedure
-    .input(z.object({ id: z.number() }))
-    .handler(async ({ input }) => {
-      const [session] = await db
-        .select()
-        .from(customerSessions)
-        .where(eq(customerSessions.id, input.id));
-      return session ?? null;
-    }),
+  getSession: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
+    const [session] = await db
+      .select()
+      .from(customerSessions)
+      .where(eq(customerSessions.id, input.id));
+    return session ?? null;
+  }),
 
   createSession: publicProcedure
     .input(
@@ -189,7 +180,7 @@ export const customerAuthRouter = {
         customerSocialIdentityId: z.number().optional(),
         ipAddress: z.string().optional(),
         userAgent: z.string().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const [session] = await db
@@ -204,12 +195,10 @@ export const customerAuthRouter = {
       return session;
     }),
 
-  deleteSession: publicProcedure
-    .input(z.object({ id: z.number() }))
-    .handler(async ({ input }) => {
-      await db.delete(customerSessions).where(eq(customerSessions.id, input.id));
-      return { success: true };
-    }),
+  deleteSession: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
+    await db.delete(customerSessions).where(eq(customerSessions.id, input.id));
+    return { success: true };
+  }),
 
   deleteAllSessions: publicProcedure
     .input(z.object({ contactId: z.number() }))
@@ -223,7 +212,7 @@ async function linkOrCreateCustomer(
   provider: string,
   providerUserId: string,
   email: string | null,
-  name: string | null
+  name: string | null,
 ) {
   if (!email) {
     throw new Error("Email is required for social login");

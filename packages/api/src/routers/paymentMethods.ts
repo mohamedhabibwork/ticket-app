@@ -1,11 +1,7 @@
 import { db } from "@ticket-app/db";
-import {
-  paymentMethods,
-  stripePaymentMethods,
-  stripeCustomers,
-} from "@ticket-app/db/schema";
+import { paymentMethods, stripeCustomers } from "@ticket-app/db/schema";
 import { eq, and, desc, sql } from "drizzle-orm";
-import z from "zod";
+import * as z from "zod";
 
 import { publicProcedure } from "../index";
 
@@ -14,13 +10,13 @@ export const paymentMethodsRouter = {
     .input(
       z.object({
         organizationId: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       return await db.query.paymentMethods.findMany({
         where: and(
           eq(paymentMethods.organizationId, input.organizationId),
-          eq(paymentMethods.isActive, true)
+          eq(paymentMethods.isActive, true),
         ),
         orderBy: [desc(paymentMethods.isDefault), desc(paymentMethods.createdAt)],
       });
@@ -31,13 +27,13 @@ export const paymentMethodsRouter = {
       z.object({
         organizationId: z.number(),
         id: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       return await db.query.paymentMethods.findFirst({
         where: and(
           eq(paymentMethods.id, input.id),
-          eq(paymentMethods.organizationId, input.organizationId)
+          eq(paymentMethods.organizationId, input.organizationId),
         ),
       });
     }),
@@ -48,7 +44,7 @@ export const paymentMethodsRouter = {
         organizationId: z.number(),
         stripePaymentMethodId: z.string(),
         setAsDefault: z.boolean().default(false),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       let customer = await db.query.stripeCustomers.findFirst({
@@ -56,7 +52,7 @@ export const paymentMethodsRouter = {
       });
 
       if (!customer) {
-        const org = await db.query.organizations.findFirst({
+        await db.query.organizations.findFirst({
           where: eq(sql`id = ${input.organizationId}`),
         });
         throw new Error("Stripe customer not found. Please contact support.");
@@ -80,8 +76,8 @@ export const paymentMethodsRouter = {
           .where(
             and(
               eq(paymentMethods.organizationId, input.organizationId),
-              eq(paymentMethods.id, method.id)
-            )
+              eq(paymentMethods.id, method.id),
+            ),
           );
       }
 
@@ -99,7 +95,7 @@ export const paymentMethodsRouter = {
         last4: z.string().optional(),
         brand: z.string().optional(),
         setAsDefault: z.boolean().default(false),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const [method] = await db
@@ -122,8 +118,8 @@ export const paymentMethodsRouter = {
           .where(
             and(
               eq(paymentMethods.organizationId, input.organizationId),
-              eq(paymentMethods.id, method.id)
-            )
+              eq(paymentMethods.id, method.id),
+            ),
           );
       }
 
@@ -135,7 +131,7 @@ export const paymentMethodsRouter = {
       z.object({
         organizationId: z.number(),
         id: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const [updated] = await db
@@ -148,8 +144,8 @@ export const paymentMethodsRouter = {
         .where(
           and(
             eq(paymentMethods.id, input.id),
-            eq(paymentMethods.organizationId, input.organizationId)
-          )
+            eq(paymentMethods.organizationId, input.organizationId),
+          ),
         )
         .returning();
 
@@ -161,7 +157,7 @@ export const paymentMethodsRouter = {
       z.object({
         organizationId: z.number(),
         id: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       await db
@@ -175,8 +171,8 @@ export const paymentMethodsRouter = {
         .where(
           and(
             eq(paymentMethods.id, input.id),
-            eq(paymentMethods.organizationId, input.organizationId)
-          )
+            eq(paymentMethods.organizationId, input.organizationId),
+          ),
         )
         .returning();
 
@@ -187,14 +183,14 @@ export const paymentMethodsRouter = {
     .input(
       z.object({
         organizationId: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       return await db.query.paymentMethods.findFirst({
         where: and(
           eq(paymentMethods.organizationId, input.organizationId),
           eq(paymentMethods.isDefault, true),
-          eq(paymentMethods.isActive, true)
+          eq(paymentMethods.isActive, true),
         ),
       });
     }),

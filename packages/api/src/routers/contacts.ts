@@ -8,7 +8,7 @@ import {
   tagCategories,
 } from "@ticket-app/db/schema";
 import { eq, and, ilike, isNull, desc, inArray, or } from "drizzle-orm";
-import z from "zod";
+import * as z from "zod";
 
 import { publicProcedure } from "../index";
 import { findFuzzyDuplicates, suggestMergeStrategy } from "../services/contactMatching";
@@ -114,7 +114,7 @@ export const contactsRouter = {
         contactTypeId: z.number().optional(),
         language: z.string().optional(),
         timezone: z.string().optional(),
-        metadata: z.record(z.any()).optional(),
+        metadata: z.record(z.string(), z.unknown()).optional(),
         tagIds: z.array(z.number()).optional(),
       }),
     )
@@ -175,7 +175,7 @@ export const contactsRouter = {
         language: z.string().optional(),
         timezone: z.string().optional(),
         isBlocked: z.boolean().optional(),
-        metadata: z.record(z.any()).optional(),
+        metadata: z.record(z.string(), z.unknown()).optional(),
       }),
     )
     .handler(async ({ input }) => {

@@ -1,7 +1,7 @@
 import { db } from "@ticket-app/db";
-import { ticketMessages, ticketAttachments, tickets, lookups, users, auditLogs } from "@ticket-app/db/schema";
-import { eq, and, desc } from "drizzle-orm";
-import z from "zod";
+import { ticketMessages, ticketAttachments, tickets, auditLogs } from "@ticket-app/db/schema";
+import { eq, desc } from "drizzle-orm";
+import * as z from "zod";
 
 import { publicProcedure } from "../index";
 import { workflowTriggers } from "../services/workflowTriggers";
@@ -33,15 +33,10 @@ export const ticketMessagesRouter = {
         .orderBy(desc(ticketMessages.createdAt));
     }),
 
-  get: publicProcedure
-    .input(z.object({ id: z.number() }))
-    .handler(async ({ input }) => {
-      const [message] = await db
-        .select()
-        .from(ticketMessages)
-        .where(eq(ticketMessages.id, input.id));
-      return message ?? null;
-    }),
+  get: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
+    const [message] = await db.select().from(ticketMessages).where(eq(ticketMessages.id, input.id));
+    return message ?? null;
+  }),
 
   create: publicProcedure
     .input(
@@ -54,13 +49,17 @@ export const ticketMessagesRouter = {
         bodyHtml: z.string().optional(),
         bodyText: z.string().optional(),
         isPrivate: z.boolean().default(false),
-        attachments: z.array(z.object({
-          filename: z.string(),
-          mimeType: z.string(),
-          sizeBytes: z.number(),
-          storageKey: z.string(),
-        })).optional(),
-      })
+        attachments: z
+          .array(
+            z.object({
+              filename: z.string(),
+              mimeType: z.string(),
+              sizeBytes: z.number(),
+              storageKey: z.string(),
+            }),
+          )
+          .optional(),
+      }),
     )
     .handler(async ({ input }) => {
       const [message] = await db
@@ -88,7 +87,7 @@ export const ticketMessagesRouter = {
             sizeBytes: att.sizeBytes,
             storageKey: att.storageKey,
             createdBy: input.authorUserId,
-          }))
+          })),
         );
       }
 
@@ -108,7 +107,7 @@ export const ticketMessagesRouter = {
         id: z.number(),
         bodyHtml: z.string().optional(),
         bodyText: z.string().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const [updated] = await db
@@ -123,24 +122,18 @@ export const ticketMessagesRouter = {
       return updated;
     }),
 
-  delete: publicProcedure
-    .input(z.object({ id: z.number() }))
-    .handler(async ({ input }) => {
-      await db
-        .delete(ticketAttachments)
-        .where(eq(ticketAttachments.ticketMessageId, input.id));
-      await db
-        .delete(ticketMessages)
-        .where(eq(ticketMessages.id, input.id));
-      return { success: true };
-    }),
+  delete: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
+    await db.delete(ticketAttachments).where(eq(ticketAttachments.ticketMessageId, input.id));
+    await db.delete(ticketMessages).where(eq(ticketMessages.id, input.id));
+    return { success: true };
+  }),
 
   lockThread: publicProcedure
     .input(
       z.object({
         id: z.number(),
         lockedBy: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const [updated] = await db
@@ -155,20 +148,18 @@ export const ticketMessagesRouter = {
       return updated;
     }),
 
-  unlockThread: publicProcedure
-    .input(z.object({ id: z.number() }))
-    .handler(async ({ input }) => {
-      const [updated] = await db
-        .update(ticketMessages)
-        .set({
-          isLocked: false,
-          lockedBy: null,
-          lockedAt: null,
-        })
-        .where(eq(ticketMessages.id, input.id))
-        .returning();
-      return updated;
-    }),
+  unlockThread: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
+    const [updated] = await db
+      .update(ticketMessages)
+      .set({
+        isLocked: false,
+        lockedBy: null,
+        lockedAt: null,
+      })
+      .where(eq(ticketMessages.id, input.id))
+      .returning();
+    return updated;
+  }),
 
   omitThread: publicProcedure
     .input(
@@ -176,7 +167,7 @@ export const ticketMessagesRouter = {
         id: z.number(),
         reason: z.string().min(1),
         omittedBy: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const message = await db.query.ticketMessages.findFirst({
@@ -209,7 +200,7 @@ export const ticketMessagesRouter = {
 
       await workflowTriggers.triggerWorkflows(
         "ticket_thread_omitted" as any,
-        { ...message.ticket, id: message.ticketId } as any
+        { ...message.ticket, id: message.ticketId } as any,
       );
 
       return updated;

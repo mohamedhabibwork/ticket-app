@@ -1,7 +1,7 @@
 import { db } from "@ticket-app/db";
 import { ecommerceStores } from "@ticket-app/db/schema";
 import { eq, and, isNull, desc } from "drizzle-orm";
-import z from "zod";
+import * as z from "zod";
 
 import { publicProcedure } from "../index";
 
@@ -14,7 +14,7 @@ export const ecommerceStoresRouter = {
         isActive: z.boolean().optional(),
         limit: z.number().min(1).max(100).default(50),
         offset: z.number().min(0).default(0),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const conditions = [
@@ -42,14 +42,14 @@ export const ecommerceStoresRouter = {
       z.object({
         organizationId: z.number(),
         id: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       return await db.query.ecommerceStores.findFirst({
         where: and(
           eq(ecommerceStores.id, input.id),
           eq(ecommerceStores.organizationId, input.organizationId),
-          isNull(ecommerceStores.deletedAt)
+          isNull(ecommerceStores.deletedAt),
         ),
       });
     }),
@@ -60,7 +60,7 @@ export const ecommerceStoresRouter = {
         organizationId: z.number(),
         platform: z.string(),
         shopDomain: z.string(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       return await db.query.ecommerceStores.findFirst({
@@ -68,7 +68,7 @@ export const ecommerceStoresRouter = {
           eq(ecommerceStores.organizationId, input.organizationId),
           eq(ecommerceStores.platform, input.platform),
           eq(ecommerceStores.shopDomain, input.shopDomain),
-          isNull(ecommerceStores.deletedAt)
+          isNull(ecommerceStores.deletedAt),
         ),
       });
     }),
@@ -89,8 +89,8 @@ export const ecommerceStoresRouter = {
         shopDomain: z.string().optional(),
         region: z.string().optional(),
         webhookSecretEnc: z.string().optional(),
-        settings: z.record(z.any()).optional(),
-      })
+        settings: z.record(z.string(), z.unknown()).optional(),
+      }),
     )
     .handler(async ({ input }) => {
       const [store] = await db
@@ -132,8 +132,8 @@ export const ecommerceStoresRouter = {
         region: z.string().optional(),
         isActive: z.boolean().optional(),
         webhookSecretEnc: z.string().optional(),
-        settings: z.record(z.any()).optional(),
-      })
+        settings: z.record(z.string(), z.unknown()).optional(),
+      }),
     )
     .handler(async ({ input }) => {
       const [updated] = await db
@@ -156,8 +156,8 @@ export const ecommerceStoresRouter = {
         .where(
           and(
             eq(ecommerceStores.id, input.id),
-            eq(ecommerceStores.organizationId, input.organizationId)
-          )
+            eq(ecommerceStores.organizationId, input.organizationId),
+          ),
         )
         .returning();
 
@@ -171,7 +171,7 @@ export const ecommerceStoresRouter = {
         syncStatus: z.string(),
         lastSyncAt: z.date().optional(),
         syncError: z.string().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const [updated] = await db
@@ -194,7 +194,7 @@ export const ecommerceStoresRouter = {
         id: z.number(),
         organizationId: z.number(),
         deletedBy: z.number().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       await db
@@ -207,8 +207,8 @@ export const ecommerceStoresRouter = {
         .where(
           and(
             eq(ecommerceStores.id, input.id),
-            eq(ecommerceStores.organizationId, input.organizationId)
-          )
+            eq(ecommerceStores.organizationId, input.organizationId),
+          ),
         );
 
       return { success: true };
@@ -219,14 +219,14 @@ export const ecommerceStoresRouter = {
       z.object({
         id: z.number(),
         organizationId: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const store = await db.query.ecommerceStores.findFirst({
         where: and(
           eq(ecommerceStores.id, input.id),
           eq(ecommerceStores.organizationId, input.organizationId),
-          isNull(ecommerceStores.deletedAt)
+          isNull(ecommerceStores.deletedAt),
         ),
       });
 
@@ -252,7 +252,7 @@ export const ecommerceStoresRouter = {
         storeUrl: z.string(),
         accessToken: z.string(),
         userId: z.number().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const domain = input.storeUrl.replace(/^https?:\/\//, "").replace(/\/$/, "");
@@ -262,7 +262,7 @@ export const ecommerceStoresRouter = {
           eq(ecommerceStores.organizationId, input.organizationId),
           eq(ecommerceStores.platform, "shopify"),
           eq(ecommerceStores.shopDomain, domain),
-          isNull(ecommerceStores.deletedAt)
+          isNull(ecommerceStores.deletedAt),
         ),
       });
 
@@ -305,7 +305,7 @@ export const ecommerceStoresRouter = {
         consumerKey: z.string(),
         consumerSecret: z.string(),
         userId: z.number().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const domain = input.storeUrl.replace(/^https?:\/\//, "").replace(/\/$/, "");
@@ -315,7 +315,7 @@ export const ecommerceStoresRouter = {
           eq(ecommerceStores.organizationId, input.organizationId),
           eq(ecommerceStores.platform, "woocommerce"),
           eq(ecommerceStores.shopDomain, domain),
-          isNull(ecommerceStores.deletedAt)
+          isNull(ecommerceStores.deletedAt),
         ),
       });
 
@@ -359,7 +359,7 @@ export const ecommerceStoresRouter = {
         storeUrl: z.string(),
         accessToken: z.string(),
         userId: z.number().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const domain = input.storeUrl.replace(/^https?:\/\//, "").replace(/\/$/, "");
@@ -369,7 +369,7 @@ export const ecommerceStoresRouter = {
           eq(ecommerceStores.organizationId, input.organizationId),
           eq(ecommerceStores.platform, "salla"),
           eq(ecommerceStores.shopDomain, domain),
-          isNull(ecommerceStores.deletedAt)
+          isNull(ecommerceStores.deletedAt),
         ),
       });
 
@@ -411,7 +411,7 @@ export const ecommerceStoresRouter = {
         storeUrl: z.string(),
         accessToken: z.string(),
         userId: z.number().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const domain = input.storeUrl.replace(/^https?:\/\//, "").replace(/\/$/, "");
@@ -421,7 +421,7 @@ export const ecommerceStoresRouter = {
           eq(ecommerceStores.organizationId, input.organizationId),
           eq(ecommerceStores.platform, "zid"),
           eq(ecommerceStores.shopDomain, domain),
-          isNull(ecommerceStores.deletedAt)
+          isNull(ecommerceStores.deletedAt),
         ),
       });
 
@@ -462,7 +462,7 @@ export const ecommerceStoresRouter = {
         id: z.number(),
         organizationId: z.number(),
         deletedBy: z.number().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       await db
@@ -476,8 +476,8 @@ export const ecommerceStoresRouter = {
         .where(
           and(
             eq(ecommerceStores.id, input.id),
-            eq(ecommerceStores.organizationId, input.organizationId)
-          )
+            eq(ecommerceStores.organizationId, input.organizationId),
+          ),
         );
 
       return { success: true };
@@ -488,14 +488,14 @@ export const ecommerceStoresRouter = {
       z.object({
         id: z.number(),
         organizationId: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const store = await db.query.ecommerceStores.findFirst({
         where: and(
           eq(ecommerceStores.id, input.id),
           eq(ecommerceStores.organizationId, input.organizationId),
-          isNull(ecommerceStores.deletedAt)
+          isNull(ecommerceStores.deletedAt),
         ),
       });
 
@@ -522,14 +522,14 @@ export const ecommerceStoresRouter = {
       z.object({
         id: z.number(),
         organizationId: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const store = await db.query.ecommerceStores.findFirst({
         where: and(
           eq(ecommerceStores.id, input.id),
           eq(ecommerceStores.organizationId, input.organizationId),
-          isNull(ecommerceStores.deletedAt)
+          isNull(ecommerceStores.deletedAt),
         ),
       });
 
@@ -552,14 +552,14 @@ export const ecommerceStoresRouter = {
         status: z.string().optional(),
         limit: z.number().min(1).max(100).default(50),
         offset: z.number().min(0).default(0),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const store = await db.query.ecommerceStores.findFirst({
         where: and(
           eq(ecommerceStores.id, input.id),
           eq(ecommerceStores.organizationId, input.organizationId),
-          isNull(ecommerceStores.deletedAt)
+          isNull(ecommerceStores.deletedAt),
         ),
       });
 
@@ -582,7 +582,7 @@ export const ecommerceStoresRouter = {
         query: z.string().min(1),
         platform: z.string().optional(),
         limit: z.number().min(1).max(100).default(50),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const { searchOrdersAcrossStores } = await import("../services/ecommerceSync");

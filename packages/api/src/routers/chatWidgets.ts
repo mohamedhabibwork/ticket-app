@@ -1,7 +1,7 @@
 import { db } from "@ticket-app/db";
 import { chatWidgets } from "@ticket-app/db/schema";
 import { eq, and, isNull } from "drizzle-orm";
-import z from "zod";
+import * as z from "zod";
 
 import { publicProcedure } from "../index";
 
@@ -10,13 +10,13 @@ export const chatWidgetsRouter = {
     .input(
       z.object({
         organizationId: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       return await db.query.chatWidgets.findMany({
         where: and(
           eq(chatWidgets.organizationId, input.organizationId),
-          isNull(chatWidgets.deletedAt)
+          isNull(chatWidgets.deletedAt),
         ),
         orderBy: (chatWidgets, { desc }) => [desc(chatWidgets.createdAt)],
       });
@@ -27,14 +27,14 @@ export const chatWidgetsRouter = {
       z.object({
         organizationId: z.number(),
         id: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       return await db.query.chatWidgets.findFirst({
         where: and(
           eq(chatWidgets.id, input.id),
           eq(chatWidgets.organizationId, input.organizationId),
-          isNull(chatWidgets.deletedAt)
+          isNull(chatWidgets.deletedAt),
         ),
       });
     }),
@@ -43,14 +43,14 @@ export const chatWidgetsRouter = {
     .input(
       z.object({
         uuid: z.string(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       return await db.query.chatWidgets.findFirst({
         where: and(
           eq(chatWidgets.uuid, input.uuid),
           eq(chatWidgets.isActive, true),
-          isNull(chatWidgets.deletedAt)
+          isNull(chatWidgets.deletedAt),
         ),
       });
     }),
@@ -61,26 +61,34 @@ export const chatWidgetsRouter = {
         organizationId: z.number(),
         name: z.string().min(1).max(150),
         position: z.string().default("bottom-right"),
-        theme: z.object({
-          primaryColor: z.string().optional(),
-          backgroundColor: z.string().optional(),
-          fontFamily: z.string().optional(),
-        }).optional(),
-        preChatFormFields: z.array(z.object({
-          name: z.string(),
-          label: z.string(),
-          type: z.string(),
-          required: z.boolean().optional(),
-          placeholder: z.string().optional(),
-        })).optional(),
+        theme: z
+          .object({
+            primaryColor: z.string().optional(),
+            backgroundColor: z.string().optional(),
+            fontFamily: z.string().optional(),
+          })
+          .optional(),
+        preChatFormFields: z
+          .array(
+            z.object({
+              name: z.string(),
+              label: z.string(),
+              type: z.string(),
+              required: z.boolean().optional(),
+              placeholder: z.string().optional(),
+            }),
+          )
+          .optional(),
         offlineMessageEnabled: z.boolean().optional(),
         offlineMessageTitle: z.string().optional(),
         offlineMessageBody: z.string().optional(),
-        businessHours: z.object({
-          enabled: z.boolean().optional(),
-          timezone: z.string().optional(),
-          schedule: z.record(z.any()).optional(),
-        }).optional(),
+        businessHours: z
+          .object({
+            enabled: z.boolean().optional(),
+            timezone: z.string().optional(),
+            schedule: z.record(z.string(), z.unknown()).optional(),
+          })
+          .optional(),
         allowFileUpload: z.boolean().optional(),
         maxFileSizeBytes: z.number().optional(),
         allowedFileTypes: z.array(z.string()).optional(),
@@ -88,7 +96,7 @@ export const chatWidgetsRouter = {
         greetingMessage: z.string().optional(),
         agentUnavailableMessage: z.string().optional(),
         createdBy: z.number().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const [widget] = await db
@@ -133,26 +141,34 @@ export const chatWidgetsRouter = {
         name: z.string().min(1).max(150).optional(),
         isActive: z.boolean().optional(),
         position: z.string().optional(),
-        theme: z.object({
-          primaryColor: z.string().optional(),
-          backgroundColor: z.string().optional(),
-          fontFamily: z.string().optional(),
-        }).optional(),
-        preChatFormFields: z.array(z.object({
-          name: z.string(),
-          label: z.string(),
-          type: z.string(),
-          required: z.boolean().optional(),
-          placeholder: z.string().optional(),
-        })).optional(),
+        theme: z
+          .object({
+            primaryColor: z.string().optional(),
+            backgroundColor: z.string().optional(),
+            fontFamily: z.string().optional(),
+          })
+          .optional(),
+        preChatFormFields: z
+          .array(
+            z.object({
+              name: z.string(),
+              label: z.string(),
+              type: z.string(),
+              required: z.boolean().optional(),
+              placeholder: z.string().optional(),
+            }),
+          )
+          .optional(),
         offlineMessageEnabled: z.boolean().optional(),
         offlineMessageTitle: z.string().optional(),
         offlineMessageBody: z.string().optional(),
-        businessHours: z.object({
-          enabled: z.boolean().optional(),
-          timezone: z.string().optional(),
-          schedule: z.record(z.any()).optional(),
-        }).optional(),
+        businessHours: z
+          .object({
+            enabled: z.boolean().optional(),
+            timezone: z.string().optional(),
+            schedule: z.record(z.string(), z.unknown()).optional(),
+          })
+          .optional(),
         allowFileUpload: z.boolean().optional(),
         maxFileSizeBytes: z.number().optional(),
         allowedFileTypes: z.array(z.string()).optional(),
@@ -160,7 +176,7 @@ export const chatWidgetsRouter = {
         greetingMessage: z.string().optional(),
         agentUnavailableMessage: z.string().optional(),
         updatedBy: z.number().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const [updated] = await db
@@ -185,10 +201,7 @@ export const chatWidgetsRouter = {
           updatedBy: input.updatedBy,
         })
         .where(
-          and(
-            eq(chatWidgets.id, input.id),
-            eq(chatWidgets.organizationId, input.organizationId)
-          )
+          and(eq(chatWidgets.id, input.id), eq(chatWidgets.organizationId, input.organizationId)),
         )
         .returning();
 
@@ -201,7 +214,7 @@ export const chatWidgetsRouter = {
         id: z.number(),
         organizationId: z.number(),
         deletedBy: z.number().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       await db
@@ -211,10 +224,7 @@ export const chatWidgetsRouter = {
           deletedBy: input.deletedBy,
         })
         .where(
-          and(
-            eq(chatWidgets.id, input.id),
-            eq(chatWidgets.organizationId, input.organizationId)
-          )
+          and(eq(chatWidgets.id, input.id), eq(chatWidgets.organizationId, input.organizationId)),
         );
 
       return { success: true };

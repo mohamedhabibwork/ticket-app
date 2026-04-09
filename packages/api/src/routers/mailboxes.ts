@@ -7,7 +7,7 @@ import {
   mailboxSmtpConfigs,
 } from "@ticket-app/db/schema";
 import { eq, and, isNull, desc } from "drizzle-orm";
-import z from "zod";
+import * as z from "zod";
 
 import { publicProcedure } from "../index";
 import { env } from "@ticket-app/env/server";
@@ -448,7 +448,7 @@ export const mailboxesRouter = {
         actions: z.array(
           z.object({
             type: z.string(),
-            params: z.record(z.unknown()),
+            params: z.record(z.string(), z.unknown()),
           }),
         ),
         priority: z.number().default(0),
@@ -490,7 +490,7 @@ export const mailboxesRouter = {
           .array(
             z.object({
               type: z.string(),
-              params: z.record(z.unknown()),
+              params: z.record(z.string(), z.unknown()),
             }),
           )
           .optional(),

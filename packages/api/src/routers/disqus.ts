@@ -1,7 +1,7 @@
 import { db } from "@ticket-app/db";
 import { disqusAccounts } from "@ticket-app/db/schema";
 import { eq, and, desc, isNull } from "drizzle-orm";
-import z from "zod";
+import * as z from "zod";
 
 import { publicProcedure } from "../index";
 import { encryptToken, decryptToken } from "../lib/crypto";
@@ -12,13 +12,13 @@ export const disqusRouter = {
     .input(
       z.object({
         organizationId: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const accounts = await db.query.disqusAccounts.findMany({
         where: and(
           eq(disqusAccounts.organizationId, input.organizationId),
-          isNull(disqusAccounts.deletedAt)
+          isNull(disqusAccounts.deletedAt),
         ),
         orderBy: [desc(disqusAccounts.createdAt)],
       });
@@ -36,14 +36,14 @@ export const disqusRouter = {
       z.object({
         organizationId: z.number(),
         id: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const account = await db.query.disqusAccounts.findFirst({
         where: and(
           eq(disqusAccounts.id, input.id),
           eq(disqusAccounts.organizationId, input.organizationId),
-          isNull(disqusAccounts.deletedAt)
+          isNull(disqusAccounts.deletedAt),
         ),
       });
 
@@ -66,7 +66,7 @@ export const disqusRouter = {
         apiSecret: z.string(),
         accessToken: z.string().optional(),
         userId: z.number().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const client = createDisqusClient({
@@ -86,7 +86,7 @@ export const disqusRouter = {
         where: and(
           eq(disqusAccounts.organizationId, input.organizationId),
           eq(disqusAccounts.forumShortname, input.forumShortname),
-          isNull(disqusAccounts.deletedAt)
+          isNull(disqusAccounts.deletedAt),
         ),
       });
 
@@ -147,7 +147,7 @@ export const disqusRouter = {
         accessToken: z.string().optional(),
         isActive: z.boolean().optional(),
         updatedBy: z.number().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const updateData: Record<string, any> = {
@@ -168,8 +168,8 @@ export const disqusRouter = {
         .where(
           and(
             eq(disqusAccounts.id, input.id),
-            eq(disqusAccounts.organizationId, input.organizationId)
-          )
+            eq(disqusAccounts.organizationId, input.organizationId),
+          ),
         )
         .returning();
 
@@ -188,7 +188,7 @@ export const disqusRouter = {
       z.object({
         id: z.number(),
         organizationId: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       await db
@@ -201,8 +201,8 @@ export const disqusRouter = {
         .where(
           and(
             eq(disqusAccounts.id, input.id),
-            eq(disqusAccounts.organizationId, input.organizationId)
-          )
+            eq(disqusAccounts.organizationId, input.organizationId),
+          ),
         );
 
       return { success: true };
@@ -213,14 +213,14 @@ export const disqusRouter = {
       z.object({
         id: z.number(),
         organizationId: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const account = await db.query.disqusAccounts.findFirst({
         where: and(
           eq(disqusAccounts.id, input.id),
           eq(disqusAccounts.organizationId, input.organizationId),
-          isNull(disqusAccounts.deletedAt)
+          isNull(disqusAccounts.deletedAt),
         ),
       });
 
@@ -240,14 +240,14 @@ export const disqusRouter = {
       z.object({
         id: z.number(),
         organizationId: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const account = await db.query.disqusAccounts.findFirst({
         where: and(
           eq(disqusAccounts.id, input.id),
           eq(disqusAccounts.organizationId, input.organizationId),
-          isNull(disqusAccounts.deletedAt)
+          isNull(disqusAccounts.deletedAt),
         ),
       });
 
@@ -280,7 +280,7 @@ export const disqusRouter = {
         threadId: z.string(),
         message: z.string(),
         authorEmail: z.string().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const account = await db.query.disqusAccounts.findFirst({
@@ -288,7 +288,7 @@ export const disqusRouter = {
           eq(disqusAccounts.id, input.id),
           eq(disqusAccounts.organizationId, input.organizationId),
           eq(disqusAccounts.status, "active"),
-          isNull(disqusAccounts.deletedAt)
+          isNull(disqusAccounts.deletedAt),
         ),
       });
 
@@ -297,7 +297,9 @@ export const disqusRouter = {
       }
 
       if (!account.accessTokenEnc) {
-        throw new Error("Disqus access token not configured. Please reconnect your Disqus account.");
+        throw new Error(
+          "Disqus access token not configured. Please reconnect your Disqus account.",
+        );
       }
 
       const client = createDisqusClient({
@@ -307,11 +309,7 @@ export const disqusRouter = {
       });
 
       try {
-        const post = await client.createPost(
-          input.threadId,
-          input.message,
-          input.authorEmail
-        );
+        const post = await client.createPost(input.threadId, input.message, input.authorEmail);
 
         return {
           success: true,
@@ -320,7 +318,9 @@ export const disqusRouter = {
         };
       } catch (error) {
         console.error("Disqus reply error:", error);
-        throw new Error(`Failed to post reply: ${error instanceof Error ? error.message : "Unknown error"}`);
+        throw new Error(
+          `Failed to post reply: ${error instanceof Error ? error.message : "Unknown error"}`,
+        );
       }
     }),
 };

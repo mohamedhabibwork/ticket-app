@@ -4,7 +4,7 @@ import { eq, and } from "drizzle-orm";
 import { writeFile, mkdir, readFile } from "fs/promises";
 import { existsSync } from "fs";
 import { join, dirname } from "path";
-import z from "zod";
+import * as z from "zod";
 import { publicProcedure } from "../index";
 import { generateUploadUrl, getPublicUrl, validateFile, isImageMimeType } from "../lib/storage";
 import { env } from "@ticket-app/env/server";

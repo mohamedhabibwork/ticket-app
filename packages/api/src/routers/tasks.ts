@@ -1,7 +1,7 @@
 import { db } from "@ticket-app/db";
 import { tasks, taskAssignees, taskChecklistItems, lookups } from "@ticket-app/db/schema";
-import { eq, and, isNull, desc, count } from "drizzle-orm";
-import z from "zod";
+import { eq, and, isNull, desc } from "drizzle-orm";
+import * as z from "zod";
 
 import { publicProcedure } from "../index";
 
@@ -21,10 +21,7 @@ export const tasksRouter = {
       }),
     )
     .handler(async ({ input }) => {
-      const conditions = [
-        eq(tasks.organizationId, input.organizationId),
-        isNull(tasks.deletedAt),
-      ];
+      const conditions = [eq(tasks.organizationId, input.organizationId), isNull(tasks.deletedAt)];
 
       if (input.ticketId) conditions.push(eq(tasks.ticketId, input.ticketId));
       if (input.statusId) conditions.push(eq(tasks.statusId, input.statusId));
@@ -119,7 +116,10 @@ export const tasksRouter = {
         (
           await db.query.lookups.findFirst({
             where: and(
-              eq(lookups.lookupTypeId, sql`(SELECT id FROM lookup_types WHERE name = 'task_status')`),
+              eq(
+                lookups.lookupTypeId,
+                sql`(SELECT id FROM lookup_types WHERE name = 'task_status')`,
+              ),
               eq(lookups.isDefault, true),
             ),
           })

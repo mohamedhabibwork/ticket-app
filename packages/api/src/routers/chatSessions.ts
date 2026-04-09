@@ -1,7 +1,7 @@
 import { db } from "@ticket-app/db";
-import { chatSessions, chatWidgets, chatMessages, lookups } from "@ticket-app/db/schema";
-import { eq, and, isNull, desc, sql } from "drizzle-orm";
-import z from "zod";
+import { chatSessions, chatMessages } from "@ticket-app/db/schema";
+import { eq, and, desc, sql } from "drizzle-orm";
+import * as z from "zod";
 
 import { publicProcedure } from "../index";
 
@@ -16,12 +16,10 @@ export const chatSessionsRouter = {
         contactId: z.number().optional(),
         limit: z.number().min(1).max(100).default(50),
         offset: z.number().min(0).default(0),
-      })
+      }),
     )
     .handler(async ({ input }) => {
-      const conditions = [
-        eq(chatSessions.organizationId, input.organizationId),
-      ];
+      const conditions = [eq(chatSessions.organizationId, input.organizationId)];
 
       if (input.widgetId) conditions.push(eq(chatSessions.widgetId, input.widgetId));
       if (input.status) conditions.push(eq(chatSessions.status, input.status));
@@ -46,13 +44,13 @@ export const chatSessionsRouter = {
       z.object({
         organizationId: z.number(),
         id: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       return await db.query.chatSessions.findFirst({
         where: and(
           eq(chatSessions.id, input.id),
-          eq(chatSessions.organizationId, input.organizationId)
+          eq(chatSessions.organizationId, input.organizationId),
         ),
         with: {
           contact: true,
@@ -73,13 +71,11 @@ export const chatSessionsRouter = {
     .input(
       z.object({
         uuid: z.string(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       return await db.query.chatSessions.findFirst({
-        where: and(
-          eq(chatSessions.uuid, input.uuid)
-        ),
+        where: and(eq(chatSessions.uuid, input.uuid)),
         with: {
           contact: true,
           agent: true,
@@ -94,10 +90,10 @@ export const chatSessionsRouter = {
         widgetId: z.number(),
         organizationId: z.number(),
         contactId: z.number().optional(),
-        preChatData: z.record(z.any()).optional(),
+        preChatData: z.record(z.string(), z.unknown()).optional(),
         ipAddress: z.string().optional(),
         userAgent: z.string().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const [session] = await db
@@ -123,7 +119,7 @@ export const chatSessionsRouter = {
         organizationId: z.number(),
         agentId: z.number(),
         updatedBy: z.number().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const [updated] = await db
@@ -135,10 +131,7 @@ export const chatSessionsRouter = {
           updatedBy: input.updatedBy,
         })
         .where(
-          and(
-            eq(chatSessions.id, input.id),
-            eq(chatSessions.organizationId, input.organizationId)
-          )
+          and(eq(chatSessions.id, input.id), eq(chatSessions.organizationId, input.organizationId)),
         )
         .returning();
 
@@ -153,7 +146,7 @@ export const chatSessionsRouter = {
         status: z.enum(["waiting", "active", "ended", "converted"]),
         endedBy: z.enum(["agent", "contact", "system"]).optional(),
         updatedBy: z.number().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const updates: Record<string, unknown> = {
@@ -171,10 +164,7 @@ export const chatSessionsRouter = {
         .update(chatSessions)
         .set(updates)
         .where(
-          and(
-            eq(chatSessions.id, input.id),
-            eq(chatSessions.organizationId, input.organizationId)
-          )
+          and(eq(chatSessions.id, input.id), eq(chatSessions.organizationId, input.organizationId)),
         )
         .returning();
 
@@ -187,7 +177,7 @@ export const chatSessionsRouter = {
         id: z.number(),
         organizationId: z.number(),
         ticketId: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const [updated] = await db
@@ -198,10 +188,7 @@ export const chatSessionsRouter = {
           updatedAt: new Date(),
         })
         .where(
-          and(
-            eq(chatSessions.id, input.id),
-            eq(chatSessions.organizationId, input.organizationId)
-          )
+          and(eq(chatSessions.id, input.id), eq(chatSessions.organizationId, input.organizationId)),
         )
         .returning();
 
@@ -214,7 +201,7 @@ export const chatSessionsRouter = {
         id: z.number(),
         rating: z.number().min(1).max(5),
         comment: z.string().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const [updated] = await db
@@ -235,14 +222,14 @@ export const chatSessionsRouter = {
       z.object({
         organizationId: z.number(),
         contactId: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       return await db.query.chatSessions.findFirst({
         where: and(
           eq(chatSessions.organizationId, input.organizationId),
           eq(chatSessions.contactId, input.contactId),
-          sql`${chatSessions.status} IN ('waiting', 'active')`
+          sql`${chatSessions.status} IN ('waiting', 'active')`,
         ),
         orderBy: [desc(chatSessions.startedAt)],
         with: {
@@ -260,7 +247,7 @@ export const chatSessionsRouter = {
       z.object({
         organizationId: z.number(),
         widgetId: z.number().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const conditions = [
@@ -290,12 +277,10 @@ export const chatSessionsRouter = {
         widgetId: z.number().optional(),
         startDate: z.string().optional(),
         endDate: z.string().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
-      const conditions = [
-        eq(chatSessions.organizationId, input.organizationId),
-      ];
+      const conditions = [eq(chatSessions.organizationId, input.organizationId)];
 
       if (input.widgetId) {
         conditions.push(eq(chatSessions.widgetId, input.widgetId));
@@ -306,11 +291,13 @@ export const chatSessionsRouter = {
       });
 
       const totalSessions = sessions.length;
-      const activeSessions = sessions.filter(s => s.status === "active" || s.status === "waiting").length;
-      const endedSessions = sessions.filter(s => s.status === "ended").length;
-      const convertedSessions = sessions.filter(s => s.status === "converted").length;
+      const activeSessions = sessions.filter(
+        (s) => s.status === "active" || s.status === "waiting",
+      ).length;
+      const endedSessions = sessions.filter((s) => s.status === "ended").length;
+      const convertedSessions = sessions.filter((s) => s.status === "converted").length;
       const avgRating = sessions
-        .filter(s => s.rating != null)
+        .filter((s) => s.rating != null)
         .reduce((acc, s, _, arr) => acc + (s.rating ?? 0) / arr.length, 0);
 
       return {
@@ -330,11 +317,11 @@ export const chatSessionsRouter = {
         userId: z.number().optional(),
         contactId: z.number().optional(),
         isTyping: z.boolean(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const { publishTypingIndicator } = await import("../services/chatPubSub");
-      
+
       await publishTypingIndicator({
         sessionId: input.sessionId,
         userId: input.userId,
@@ -351,7 +338,7 @@ export const chatSessionsRouter = {
         messageId: z.number(),
         userId: z.number().optional(),
         contactId: z.number().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const message = await db.query.chatMessages.findFirst({

@@ -1,7 +1,7 @@
 import { db } from "@ticket-app/db";
 import { todo } from "@ticket-app/db/schema/todo";
 import { eq } from "drizzle-orm";
-import z from "zod";
+import * as z from "zod";
 
 import { publicProcedure } from "../index";
 

@@ -1,7 +1,7 @@
 import { db } from "@ticket-app/db";
 import { channels } from "@ticket-app/db/schema";
 import { eq, and, isNull, desc } from "drizzle-orm";
-import z from "zod";
+import * as z from "zod";
 
 import { publicProcedure } from "../index";
 
@@ -11,7 +11,7 @@ export const channelsRouter = {
       z.object({
         organizationId: z.number(),
         isActive: z.boolean().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const conditions = [
@@ -34,14 +34,14 @@ export const channelsRouter = {
       z.object({
         organizationId: z.number(),
         id: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       return await db.query.channels.findFirst({
         where: and(
           eq(channels.id, input.id),
           eq(channels.organizationId, input.organizationId),
-          isNull(channels.deletedAt)
+          isNull(channels.deletedAt),
         ),
       });
     }),
@@ -51,7 +51,7 @@ export const channelsRouter = {
       z.object({
         organizationId: z.number(),
         type: z.string(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       return await db.query.channels.findFirst({
@@ -59,7 +59,7 @@ export const channelsRouter = {
           eq(channels.type, input.type),
           eq(channels.organizationId, input.organizationId),
           eq(channels.isActive, true),
-          isNull(channels.deletedAt)
+          isNull(channels.deletedAt),
         ),
       });
     }),
@@ -71,7 +71,7 @@ export const channelsRouter = {
         name: z.string().min(1).max(150),
         type: z.string().min(1).max(50),
         isActive: z.boolean().default(true),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const [channel] = await db

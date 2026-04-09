@@ -1,7 +1,7 @@
 import { db } from "@ticket-app/db";
 import { onPremiseLicenses, users } from "@ticket-app/db/schema";
-import { eq, desc, sql } from "drizzle-orm";
-import z from "zod";
+import { eq, sql } from "drizzle-orm";
+import * as z from "zod";
 
 import { publicProcedure } from "../index";
 import {
@@ -33,7 +33,7 @@ export const onPremiseRouter = {
         productEdition: z.string(),
         seatLimit: z.number(),
         validUntil: z.date(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const result = await verifyLicenseKey(input.licenseKey, input.domain, input.signature);
@@ -115,7 +115,7 @@ export const onPremiseRouter = {
       const result = await validateSeatLimit(
         input.organizationId,
         userCount[0].count,
-        Number(license.seatLimit)
+        Number(license.seatLimit),
       );
 
       return {
@@ -164,7 +164,7 @@ export const onPremiseRouter = {
       z.object({
         id: z.number(),
         isActive: z.boolean().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const [updated] = await db
@@ -177,10 +177,8 @@ export const onPremiseRouter = {
       return updated;
     }),
 
-  deleteLicense: publicProcedure
-    .input(z.object({ id: z.number() }))
-    .handler(async ({ input }) => {
-      await db.delete(onPremiseLicenses).where(eq(onPremiseLicenses.id, input.id));
-      return { success: true };
-    }),
+  deleteLicense: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
+    await db.delete(onPremiseLicenses).where(eq(onPremiseLicenses.id, input.id));
+    return { success: true };
+  }),
 };

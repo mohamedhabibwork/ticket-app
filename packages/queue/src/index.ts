@@ -57,5 +57,28 @@ export {
   closeWorkflowExecuteQueue,
   type WorkflowExecuteJobData,
 } from "./workers/workflow-execute.worker";
+export {
+  createExcelExportWorker,
+  addExcelExportJob,
+  closeExcelExportQueue,
+  type ExcelExportJobData,
+} from "./workers/excel-export.worker";
+export {
+  createExcelImportWorker,
+  addExcelImportJob,
+  closeExcelImportQueue,
+  type ExcelImportJobData,
+} from "./workers/excel-import.worker";
+export {
+  excelExportQueue,
+  excelImportQueue,
+  addExcelExportJob as addExcelExportJobToQueue,
+  addExcelImportJob as addExcelImportJobToQueue,
+  createExcelExportWorker as createExcelExportQueueWorker,
+  createExcelImportWorker as createExcelImportQueueWorker,
+  closeQueues as closeAllExcelQueues,
+  type ExcelExportJobData as ExcelExportQueueJobData,
+  type ExcelImportJobData as ExcelImportQueueJobData,
+} from "./queue";
 export type { Job } from "bullmq";
 export type { Transporter } from "nodemailer";
