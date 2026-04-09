@@ -34,6 +34,11 @@ import { ecommerceOrdersRouter } from "./ecommerceOrders";
 import { socialAccountsRouter } from "./socialAccounts";
 import { socialMessagesRouter } from "./socialMessages";
 import { usersRouter } from "./users";
+import { emailMessagesRouter } from "./emailMessages";
+import { reportsRouter } from "./reports";
+import { aiRouter } from "./ai";
+import { sessionsRouter } from "./sessions";
+import { tasksRouter } from "./tasks";
 
 export const appRouter = {
   healthCheck: publicProcedure.handler(() => {
@@ -72,6 +77,11 @@ export const appRouter = {
   ecommerceOrders: ecommerceOrdersRouter,
   socialAccounts: socialAccountsRouter,
   socialMessages: socialMessagesRouter,
+  emailMessages: emailMessagesRouter,
+  reports: reportsRouter,
+  ai: aiRouter,
+  sessions: sessionsRouter,
+  tasks: tasksRouter,
 };
 
 export type AppRouter = typeof appRouter;

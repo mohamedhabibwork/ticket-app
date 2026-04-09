@@ -14,10 +14,48 @@ import { Route as AiRouteImport } from './routes/ai'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as TicketsIndexRouteImport } from './routes/tickets/index'
 import { Route as KbIndexRouteImport } from './routes/kb/index'
+import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
 import { Route as ChatIndexRouteImport } from './routes/chat/index'
+import { Route as TicketsSpamRouteImport } from './routes/tickets/spam'
+import { Route as TicketsNewRouteImport } from './routes/tickets/new'
+import { Route as TicketsMergedRouteImport } from './routes/tickets/merged'
+import { Route as TicketsKanbanRouteImport } from './routes/tickets/kanban'
 import { Route as TicketsChar91idChar93RouteImport } from './routes/tickets/[id]'
 import { Route as KbSlugRouteImport } from './routes/kb/$slug'
+import { Route as FormsChar91idChar93RouteImport } from './routes/forms/[id]'
+import { Route as AdminWorkflowsIndexRouteImport } from './routes/admin/workflows/index'
+import { Route as AdminUsersIndexRouteImport } from './routes/admin/users/index'
+import { Route as AdminSlaIndexRouteImport } from './routes/admin/sla/index'
+import { Route as AdminSavedRepliesIndexRouteImport } from './routes/admin/saved-replies/index'
+import { Route as AdminRolesIndexRouteImport } from './routes/admin/roles/index'
+import { Route as AdminReportsIndexRouteImport } from './routes/admin/reports/index'
+import { Route as AdminMailboxesIndexRouteImport } from './routes/admin/mailboxes/index'
+import { Route as AdminFormsIndexRouteImport } from './routes/admin/forms/index'
+import { Route as AdminEmailTemplatesIndexRouteImport } from './routes/admin/email-templates/index'
+import { Route as AdminWorkflowsNewRouteImport } from './routes/admin/workflows/new'
 import { Route as AdminWorkflowsBuilderRouteImport } from './routes/admin/workflows/builder'
+import { Route as AdminUsersInviteRouteImport } from './routes/admin/users/invite'
+import { Route as AdminUsersChar91idChar93RouteImport } from './routes/admin/users/[id]'
+import { Route as AdminSlaNewRouteImport } from './routes/admin/sla/new'
+import { Route as AdminSavedRepliesFoldersRouteImport } from './routes/admin/saved-replies/folders'
+import { Route as AdminRolesNewRouteImport } from './routes/admin/roles/new'
+import { Route as AdminReportsTicketsRouteImport } from './routes/admin/reports/tickets'
+import { Route as AdminReportsSlaRouteImport } from './routes/admin/reports/sla'
+import { Route as AdminReportsCustomRouteImport } from './routes/admin/reports/custom'
+import { Route as AdminReportsCsatRouteImport } from './routes/admin/reports/csat'
+import { Route as AdminReportsAgentsRouteImport } from './routes/admin/reports/agents'
+import { Route as AdminMailboxesNewRouteImport } from './routes/admin/mailboxes/new'
+import { Route as AdminFormsNewRouteImport } from './routes/admin/forms/new'
+import { Route as AdminFormsBuilderRouteImport } from './routes/admin/forms/builder'
+import { Route as AdminWorkflowsChar91idChar93IndexRouteImport } from './routes/admin/workflows/[id]/index'
+import { Route as AdminRolesChar91idChar93IndexRouteImport } from './routes/admin/roles/[id]/index'
+import { Route as AdminMailboxesChar91idChar93IndexRouteImport } from './routes/admin/mailboxes/[id]/index'
+import { Route as AdminFormsChar91idChar93IndexRouteImport } from './routes/admin/forms/[id]/index'
+import { Route as AdminWorkflowsChar91idChar93LogsRouteImport } from './routes/admin/workflows/[id]/logs'
+import { Route as AdminRolesChar91idChar93PermissionsRouteImport } from './routes/admin/roles/[id]/permissions'
+import { Route as AdminMailboxesChar91idChar93RoutingRouteImport } from './routes/admin/mailboxes/[id]/routing'
+import { Route as AdminMailboxesChar91idChar93ConfigureRouteImport } from './routes/admin/mailboxes/[id]/configure'
+import { Route as AdminFormsChar91idChar93SubmissionsRouteImport } from './routes/admin/forms/[id]/submissions'
 
 const TodosRoute = TodosRouteImport.update({
   id: '/todos',
@@ -44,9 +82,34 @@ const KbIndexRoute = KbIndexRouteImport.update({
   path: '/kb/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardIndexRoute = DashboardIndexRouteImport.update({
+  id: '/dashboard/',
+  path: '/dashboard/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ChatIndexRoute = ChatIndexRouteImport.update({
   id: '/chat/',
   path: '/chat/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TicketsSpamRoute = TicketsSpamRouteImport.update({
+  id: '/tickets/spam',
+  path: '/tickets/spam',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TicketsNewRoute = TicketsNewRouteImport.update({
+  id: '/tickets/new',
+  path: '/tickets/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TicketsMergedRoute = TicketsMergedRouteImport.update({
+  id: '/tickets/merged',
+  path: '/tickets/merged',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TicketsKanbanRoute = TicketsKanbanRouteImport.update({
+  id: '/tickets/kanban',
+  path: '/tickets/kanban',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TicketsChar91idChar93Route = TicketsChar91idChar93RouteImport.update({
@@ -59,45 +122,336 @@ const KbSlugRoute = KbSlugRouteImport.update({
   path: '/kb/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FormsChar91idChar93Route = FormsChar91idChar93RouteImport.update({
+  id: '/forms/id',
+  path: '/forms/id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminWorkflowsIndexRoute = AdminWorkflowsIndexRouteImport.update({
+  id: '/admin/workflows/',
+  path: '/admin/workflows/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminUsersIndexRoute = AdminUsersIndexRouteImport.update({
+  id: '/admin/users/',
+  path: '/admin/users/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminSlaIndexRoute = AdminSlaIndexRouteImport.update({
+  id: '/admin/sla/',
+  path: '/admin/sla/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminSavedRepliesIndexRoute = AdminSavedRepliesIndexRouteImport.update({
+  id: '/admin/saved-replies/',
+  path: '/admin/saved-replies/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRolesIndexRoute = AdminRolesIndexRouteImport.update({
+  id: '/admin/roles/',
+  path: '/admin/roles/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminReportsIndexRoute = AdminReportsIndexRouteImport.update({
+  id: '/admin/reports/',
+  path: '/admin/reports/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminMailboxesIndexRoute = AdminMailboxesIndexRouteImport.update({
+  id: '/admin/mailboxes/',
+  path: '/admin/mailboxes/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminFormsIndexRoute = AdminFormsIndexRouteImport.update({
+  id: '/admin/forms/',
+  path: '/admin/forms/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminEmailTemplatesIndexRoute =
+  AdminEmailTemplatesIndexRouteImport.update({
+    id: '/admin/email-templates/',
+    path: '/admin/email-templates/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AdminWorkflowsNewRoute = AdminWorkflowsNewRouteImport.update({
+  id: '/admin/workflows/new',
+  path: '/admin/workflows/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminWorkflowsBuilderRoute = AdminWorkflowsBuilderRouteImport.update({
   id: '/admin/workflows/builder',
   path: '/admin/workflows/builder',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminUsersInviteRoute = AdminUsersInviteRouteImport.update({
+  id: '/admin/users/invite',
+  path: '/admin/users/invite',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminUsersChar91idChar93Route =
+  AdminUsersChar91idChar93RouteImport.update({
+    id: '/admin/users/id',
+    path: '/admin/users/id',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AdminSlaNewRoute = AdminSlaNewRouteImport.update({
+  id: '/admin/sla/new',
+  path: '/admin/sla/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminSavedRepliesFoldersRoute =
+  AdminSavedRepliesFoldersRouteImport.update({
+    id: '/admin/saved-replies/folders',
+    path: '/admin/saved-replies/folders',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AdminRolesNewRoute = AdminRolesNewRouteImport.update({
+  id: '/admin/roles/new',
+  path: '/admin/roles/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminReportsTicketsRoute = AdminReportsTicketsRouteImport.update({
+  id: '/admin/reports/tickets',
+  path: '/admin/reports/tickets',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminReportsSlaRoute = AdminReportsSlaRouteImport.update({
+  id: '/admin/reports/sla',
+  path: '/admin/reports/sla',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminReportsCustomRoute = AdminReportsCustomRouteImport.update({
+  id: '/admin/reports/custom',
+  path: '/admin/reports/custom',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminReportsCsatRoute = AdminReportsCsatRouteImport.update({
+  id: '/admin/reports/csat',
+  path: '/admin/reports/csat',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminReportsAgentsRoute = AdminReportsAgentsRouteImport.update({
+  id: '/admin/reports/agents',
+  path: '/admin/reports/agents',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminMailboxesNewRoute = AdminMailboxesNewRouteImport.update({
+  id: '/admin/mailboxes/new',
+  path: '/admin/mailboxes/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminFormsNewRoute = AdminFormsNewRouteImport.update({
+  id: '/admin/forms/new',
+  path: '/admin/forms/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminFormsBuilderRoute = AdminFormsBuilderRouteImport.update({
+  id: '/admin/forms/builder',
+  path: '/admin/forms/builder',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminWorkflowsChar91idChar93IndexRoute =
+  AdminWorkflowsChar91idChar93IndexRouteImport.update({
+    id: '/admin/workflows/id/',
+    path: '/admin/workflows/id/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AdminRolesChar91idChar93IndexRoute =
+  AdminRolesChar91idChar93IndexRouteImport.update({
+    id: '/admin/roles/id/',
+    path: '/admin/roles/id/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AdminMailboxesChar91idChar93IndexRoute =
+  AdminMailboxesChar91idChar93IndexRouteImport.update({
+    id: '/admin/mailboxes/id/',
+    path: '/admin/mailboxes/id/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AdminFormsChar91idChar93IndexRoute =
+  AdminFormsChar91idChar93IndexRouteImport.update({
+    id: '/admin/forms/id/',
+    path: '/admin/forms/id/',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AdminWorkflowsChar91idChar93LogsRoute =
+  AdminWorkflowsChar91idChar93LogsRouteImport.update({
+    id: '/admin/workflows/id/logs',
+    path: '/admin/workflows/id/logs',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AdminRolesChar91idChar93PermissionsRoute =
+  AdminRolesChar91idChar93PermissionsRouteImport.update({
+    id: '/admin/roles/id/permissions',
+    path: '/admin/roles/id/permissions',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AdminMailboxesChar91idChar93RoutingRoute =
+  AdminMailboxesChar91idChar93RoutingRouteImport.update({
+    id: '/admin/mailboxes/id/routing',
+    path: '/admin/mailboxes/id/routing',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AdminMailboxesChar91idChar93ConfigureRoute =
+  AdminMailboxesChar91idChar93ConfigureRouteImport.update({
+    id: '/admin/mailboxes/id/configure',
+    path: '/admin/mailboxes/id/configure',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AdminFormsChar91idChar93SubmissionsRoute =
+  AdminFormsChar91idChar93SubmissionsRouteImport.update({
+    id: '/admin/forms/id/submissions',
+    path: '/admin/forms/id/submissions',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/ai': typeof AiRoute
   '/todos': typeof TodosRoute
+  '/forms/id': typeof FormsChar91idChar93Route
   '/kb/$slug': typeof KbSlugRoute
   '/tickets/id': typeof TicketsChar91idChar93Route
+  '/tickets/kanban': typeof TicketsKanbanRoute
+  '/tickets/merged': typeof TicketsMergedRoute
+  '/tickets/new': typeof TicketsNewRoute
+  '/tickets/spam': typeof TicketsSpamRoute
   '/chat/': typeof ChatIndexRoute
+  '/dashboard/': typeof DashboardIndexRoute
   '/kb/': typeof KbIndexRoute
   '/tickets/': typeof TicketsIndexRoute
+  '/admin/forms/builder': typeof AdminFormsBuilderRoute
+  '/admin/forms/new': typeof AdminFormsNewRoute
+  '/admin/mailboxes/new': typeof AdminMailboxesNewRoute
+  '/admin/reports/agents': typeof AdminReportsAgentsRoute
+  '/admin/reports/csat': typeof AdminReportsCsatRoute
+  '/admin/reports/custom': typeof AdminReportsCustomRoute
+  '/admin/reports/sla': typeof AdminReportsSlaRoute
+  '/admin/reports/tickets': typeof AdminReportsTicketsRoute
+  '/admin/roles/new': typeof AdminRolesNewRoute
+  '/admin/saved-replies/folders': typeof AdminSavedRepliesFoldersRoute
+  '/admin/sla/new': typeof AdminSlaNewRoute
+  '/admin/users/id': typeof AdminUsersChar91idChar93Route
+  '/admin/users/invite': typeof AdminUsersInviteRoute
   '/admin/workflows/builder': typeof AdminWorkflowsBuilderRoute
+  '/admin/workflows/new': typeof AdminWorkflowsNewRoute
+  '/admin/email-templates/': typeof AdminEmailTemplatesIndexRoute
+  '/admin/forms/': typeof AdminFormsIndexRoute
+  '/admin/mailboxes/': typeof AdminMailboxesIndexRoute
+  '/admin/reports/': typeof AdminReportsIndexRoute
+  '/admin/roles/': typeof AdminRolesIndexRoute
+  '/admin/saved-replies/': typeof AdminSavedRepliesIndexRoute
+  '/admin/sla/': typeof AdminSlaIndexRoute
+  '/admin/users/': typeof AdminUsersIndexRoute
+  '/admin/workflows/': typeof AdminWorkflowsIndexRoute
+  '/admin/forms/id/submissions': typeof AdminFormsChar91idChar93SubmissionsRoute
+  '/admin/mailboxes/id/configure': typeof AdminMailboxesChar91idChar93ConfigureRoute
+  '/admin/mailboxes/id/routing': typeof AdminMailboxesChar91idChar93RoutingRoute
+  '/admin/roles/id/permissions': typeof AdminRolesChar91idChar93PermissionsRoute
+  '/admin/workflows/id/logs': typeof AdminWorkflowsChar91idChar93LogsRoute
+  '/admin/forms/id/': typeof AdminFormsChar91idChar93IndexRoute
+  '/admin/mailboxes/id/': typeof AdminMailboxesChar91idChar93IndexRoute
+  '/admin/roles/id/': typeof AdminRolesChar91idChar93IndexRoute
+  '/admin/workflows/id/': typeof AdminWorkflowsChar91idChar93IndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/ai': typeof AiRoute
   '/todos': typeof TodosRoute
+  '/forms/id': typeof FormsChar91idChar93Route
   '/kb/$slug': typeof KbSlugRoute
   '/tickets/id': typeof TicketsChar91idChar93Route
+  '/tickets/kanban': typeof TicketsKanbanRoute
+  '/tickets/merged': typeof TicketsMergedRoute
+  '/tickets/new': typeof TicketsNewRoute
+  '/tickets/spam': typeof TicketsSpamRoute
   '/chat': typeof ChatIndexRoute
+  '/dashboard': typeof DashboardIndexRoute
   '/kb': typeof KbIndexRoute
   '/tickets': typeof TicketsIndexRoute
+  '/admin/forms/builder': typeof AdminFormsBuilderRoute
+  '/admin/forms/new': typeof AdminFormsNewRoute
+  '/admin/mailboxes/new': typeof AdminMailboxesNewRoute
+  '/admin/reports/agents': typeof AdminReportsAgentsRoute
+  '/admin/reports/csat': typeof AdminReportsCsatRoute
+  '/admin/reports/custom': typeof AdminReportsCustomRoute
+  '/admin/reports/sla': typeof AdminReportsSlaRoute
+  '/admin/reports/tickets': typeof AdminReportsTicketsRoute
+  '/admin/roles/new': typeof AdminRolesNewRoute
+  '/admin/saved-replies/folders': typeof AdminSavedRepliesFoldersRoute
+  '/admin/sla/new': typeof AdminSlaNewRoute
+  '/admin/users/id': typeof AdminUsersChar91idChar93Route
+  '/admin/users/invite': typeof AdminUsersInviteRoute
   '/admin/workflows/builder': typeof AdminWorkflowsBuilderRoute
+  '/admin/workflows/new': typeof AdminWorkflowsNewRoute
+  '/admin/email-templates': typeof AdminEmailTemplatesIndexRoute
+  '/admin/forms': typeof AdminFormsIndexRoute
+  '/admin/mailboxes': typeof AdminMailboxesIndexRoute
+  '/admin/reports': typeof AdminReportsIndexRoute
+  '/admin/roles': typeof AdminRolesIndexRoute
+  '/admin/saved-replies': typeof AdminSavedRepliesIndexRoute
+  '/admin/sla': typeof AdminSlaIndexRoute
+  '/admin/users': typeof AdminUsersIndexRoute
+  '/admin/workflows': typeof AdminWorkflowsIndexRoute
+  '/admin/forms/id/submissions': typeof AdminFormsChar91idChar93SubmissionsRoute
+  '/admin/mailboxes/id/configure': typeof AdminMailboxesChar91idChar93ConfigureRoute
+  '/admin/mailboxes/id/routing': typeof AdminMailboxesChar91idChar93RoutingRoute
+  '/admin/roles/id/permissions': typeof AdminRolesChar91idChar93PermissionsRoute
+  '/admin/workflows/id/logs': typeof AdminWorkflowsChar91idChar93LogsRoute
+  '/admin/forms/id': typeof AdminFormsChar91idChar93IndexRoute
+  '/admin/mailboxes/id': typeof AdminMailboxesChar91idChar93IndexRoute
+  '/admin/roles/id': typeof AdminRolesChar91idChar93IndexRoute
+  '/admin/workflows/id': typeof AdminWorkflowsChar91idChar93IndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/ai': typeof AiRoute
   '/todos': typeof TodosRoute
+  '/forms/id': typeof FormsChar91idChar93Route
   '/kb/$slug': typeof KbSlugRoute
   '/tickets/id': typeof TicketsChar91idChar93Route
+  '/tickets/kanban': typeof TicketsKanbanRoute
+  '/tickets/merged': typeof TicketsMergedRoute
+  '/tickets/new': typeof TicketsNewRoute
+  '/tickets/spam': typeof TicketsSpamRoute
   '/chat/': typeof ChatIndexRoute
+  '/dashboard/': typeof DashboardIndexRoute
   '/kb/': typeof KbIndexRoute
   '/tickets/': typeof TicketsIndexRoute
+  '/admin/forms/builder': typeof AdminFormsBuilderRoute
+  '/admin/forms/new': typeof AdminFormsNewRoute
+  '/admin/mailboxes/new': typeof AdminMailboxesNewRoute
+  '/admin/reports/agents': typeof AdminReportsAgentsRoute
+  '/admin/reports/csat': typeof AdminReportsCsatRoute
+  '/admin/reports/custom': typeof AdminReportsCustomRoute
+  '/admin/reports/sla': typeof AdminReportsSlaRoute
+  '/admin/reports/tickets': typeof AdminReportsTicketsRoute
+  '/admin/roles/new': typeof AdminRolesNewRoute
+  '/admin/saved-replies/folders': typeof AdminSavedRepliesFoldersRoute
+  '/admin/sla/new': typeof AdminSlaNewRoute
+  '/admin/users/id': typeof AdminUsersChar91idChar93Route
+  '/admin/users/invite': typeof AdminUsersInviteRoute
   '/admin/workflows/builder': typeof AdminWorkflowsBuilderRoute
+  '/admin/workflows/new': typeof AdminWorkflowsNewRoute
+  '/admin/email-templates/': typeof AdminEmailTemplatesIndexRoute
+  '/admin/forms/': typeof AdminFormsIndexRoute
+  '/admin/mailboxes/': typeof AdminMailboxesIndexRoute
+  '/admin/reports/': typeof AdminReportsIndexRoute
+  '/admin/roles/': typeof AdminRolesIndexRoute
+  '/admin/saved-replies/': typeof AdminSavedRepliesIndexRoute
+  '/admin/sla/': typeof AdminSlaIndexRoute
+  '/admin/users/': typeof AdminUsersIndexRoute
+  '/admin/workflows/': typeof AdminWorkflowsIndexRoute
+  '/admin/forms/id/submissions': typeof AdminFormsChar91idChar93SubmissionsRoute
+  '/admin/mailboxes/id/configure': typeof AdminMailboxesChar91idChar93ConfigureRoute
+  '/admin/mailboxes/id/routing': typeof AdminMailboxesChar91idChar93RoutingRoute
+  '/admin/roles/id/permissions': typeof AdminRolesChar91idChar93PermissionsRoute
+  '/admin/workflows/id/logs': typeof AdminWorkflowsChar91idChar93LogsRoute
+  '/admin/forms/id/': typeof AdminFormsChar91idChar93IndexRoute
+  '/admin/mailboxes/id/': typeof AdminMailboxesChar91idChar93IndexRoute
+  '/admin/roles/id/': typeof AdminRolesChar91idChar93IndexRoute
+  '/admin/workflows/id/': typeof AdminWorkflowsChar91idChar93IndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -105,46 +459,198 @@ export interface FileRouteTypes {
     | '/'
     | '/ai'
     | '/todos'
+    | '/forms/id'
     | '/kb/$slug'
     | '/tickets/id'
+    | '/tickets/kanban'
+    | '/tickets/merged'
+    | '/tickets/new'
+    | '/tickets/spam'
     | '/chat/'
+    | '/dashboard/'
     | '/kb/'
     | '/tickets/'
+    | '/admin/forms/builder'
+    | '/admin/forms/new'
+    | '/admin/mailboxes/new'
+    | '/admin/reports/agents'
+    | '/admin/reports/csat'
+    | '/admin/reports/custom'
+    | '/admin/reports/sla'
+    | '/admin/reports/tickets'
+    | '/admin/roles/new'
+    | '/admin/saved-replies/folders'
+    | '/admin/sla/new'
+    | '/admin/users/id'
+    | '/admin/users/invite'
     | '/admin/workflows/builder'
+    | '/admin/workflows/new'
+    | '/admin/email-templates/'
+    | '/admin/forms/'
+    | '/admin/mailboxes/'
+    | '/admin/reports/'
+    | '/admin/roles/'
+    | '/admin/saved-replies/'
+    | '/admin/sla/'
+    | '/admin/users/'
+    | '/admin/workflows/'
+    | '/admin/forms/id/submissions'
+    | '/admin/mailboxes/id/configure'
+    | '/admin/mailboxes/id/routing'
+    | '/admin/roles/id/permissions'
+    | '/admin/workflows/id/logs'
+    | '/admin/forms/id/'
+    | '/admin/mailboxes/id/'
+    | '/admin/roles/id/'
+    | '/admin/workflows/id/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/ai'
     | '/todos'
+    | '/forms/id'
     | '/kb/$slug'
     | '/tickets/id'
+    | '/tickets/kanban'
+    | '/tickets/merged'
+    | '/tickets/new'
+    | '/tickets/spam'
     | '/chat'
+    | '/dashboard'
     | '/kb'
     | '/tickets'
+    | '/admin/forms/builder'
+    | '/admin/forms/new'
+    | '/admin/mailboxes/new'
+    | '/admin/reports/agents'
+    | '/admin/reports/csat'
+    | '/admin/reports/custom'
+    | '/admin/reports/sla'
+    | '/admin/reports/tickets'
+    | '/admin/roles/new'
+    | '/admin/saved-replies/folders'
+    | '/admin/sla/new'
+    | '/admin/users/id'
+    | '/admin/users/invite'
     | '/admin/workflows/builder'
+    | '/admin/workflows/new'
+    | '/admin/email-templates'
+    | '/admin/forms'
+    | '/admin/mailboxes'
+    | '/admin/reports'
+    | '/admin/roles'
+    | '/admin/saved-replies'
+    | '/admin/sla'
+    | '/admin/users'
+    | '/admin/workflows'
+    | '/admin/forms/id/submissions'
+    | '/admin/mailboxes/id/configure'
+    | '/admin/mailboxes/id/routing'
+    | '/admin/roles/id/permissions'
+    | '/admin/workflows/id/logs'
+    | '/admin/forms/id'
+    | '/admin/mailboxes/id'
+    | '/admin/roles/id'
+    | '/admin/workflows/id'
   id:
     | '__root__'
     | '/'
     | '/ai'
     | '/todos'
+    | '/forms/id'
     | '/kb/$slug'
     | '/tickets/id'
+    | '/tickets/kanban'
+    | '/tickets/merged'
+    | '/tickets/new'
+    | '/tickets/spam'
     | '/chat/'
+    | '/dashboard/'
     | '/kb/'
     | '/tickets/'
+    | '/admin/forms/builder'
+    | '/admin/forms/new'
+    | '/admin/mailboxes/new'
+    | '/admin/reports/agents'
+    | '/admin/reports/csat'
+    | '/admin/reports/custom'
+    | '/admin/reports/sla'
+    | '/admin/reports/tickets'
+    | '/admin/roles/new'
+    | '/admin/saved-replies/folders'
+    | '/admin/sla/new'
+    | '/admin/users/id'
+    | '/admin/users/invite'
     | '/admin/workflows/builder'
+    | '/admin/workflows/new'
+    | '/admin/email-templates/'
+    | '/admin/forms/'
+    | '/admin/mailboxes/'
+    | '/admin/reports/'
+    | '/admin/roles/'
+    | '/admin/saved-replies/'
+    | '/admin/sla/'
+    | '/admin/users/'
+    | '/admin/workflows/'
+    | '/admin/forms/id/submissions'
+    | '/admin/mailboxes/id/configure'
+    | '/admin/mailboxes/id/routing'
+    | '/admin/roles/id/permissions'
+    | '/admin/workflows/id/logs'
+    | '/admin/forms/id/'
+    | '/admin/mailboxes/id/'
+    | '/admin/roles/id/'
+    | '/admin/workflows/id/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AiRoute: typeof AiRoute
   TodosRoute: typeof TodosRoute
+  FormsChar91idChar93Route: typeof FormsChar91idChar93Route
   KbSlugRoute: typeof KbSlugRoute
   TicketsChar91idChar93Route: typeof TicketsChar91idChar93Route
+  TicketsKanbanRoute: typeof TicketsKanbanRoute
+  TicketsMergedRoute: typeof TicketsMergedRoute
+  TicketsNewRoute: typeof TicketsNewRoute
+  TicketsSpamRoute: typeof TicketsSpamRoute
   ChatIndexRoute: typeof ChatIndexRoute
+  DashboardIndexRoute: typeof DashboardIndexRoute
   KbIndexRoute: typeof KbIndexRoute
   TicketsIndexRoute: typeof TicketsIndexRoute
+  AdminFormsBuilderRoute: typeof AdminFormsBuilderRoute
+  AdminFormsNewRoute: typeof AdminFormsNewRoute
+  AdminMailboxesNewRoute: typeof AdminMailboxesNewRoute
+  AdminReportsAgentsRoute: typeof AdminReportsAgentsRoute
+  AdminReportsCsatRoute: typeof AdminReportsCsatRoute
+  AdminReportsCustomRoute: typeof AdminReportsCustomRoute
+  AdminReportsSlaRoute: typeof AdminReportsSlaRoute
+  AdminReportsTicketsRoute: typeof AdminReportsTicketsRoute
+  AdminRolesNewRoute: typeof AdminRolesNewRoute
+  AdminSavedRepliesFoldersRoute: typeof AdminSavedRepliesFoldersRoute
+  AdminSlaNewRoute: typeof AdminSlaNewRoute
+  AdminUsersChar91idChar93Route: typeof AdminUsersChar91idChar93Route
+  AdminUsersInviteRoute: typeof AdminUsersInviteRoute
   AdminWorkflowsBuilderRoute: typeof AdminWorkflowsBuilderRoute
+  AdminWorkflowsNewRoute: typeof AdminWorkflowsNewRoute
+  AdminEmailTemplatesIndexRoute: typeof AdminEmailTemplatesIndexRoute
+  AdminFormsIndexRoute: typeof AdminFormsIndexRoute
+  AdminMailboxesIndexRoute: typeof AdminMailboxesIndexRoute
+  AdminReportsIndexRoute: typeof AdminReportsIndexRoute
+  AdminRolesIndexRoute: typeof AdminRolesIndexRoute
+  AdminSavedRepliesIndexRoute: typeof AdminSavedRepliesIndexRoute
+  AdminSlaIndexRoute: typeof AdminSlaIndexRoute
+  AdminUsersIndexRoute: typeof AdminUsersIndexRoute
+  AdminWorkflowsIndexRoute: typeof AdminWorkflowsIndexRoute
+  AdminFormsChar91idChar93SubmissionsRoute: typeof AdminFormsChar91idChar93SubmissionsRoute
+  AdminMailboxesChar91idChar93ConfigureRoute: typeof AdminMailboxesChar91idChar93ConfigureRoute
+  AdminMailboxesChar91idChar93RoutingRoute: typeof AdminMailboxesChar91idChar93RoutingRoute
+  AdminRolesChar91idChar93PermissionsRoute: typeof AdminRolesChar91idChar93PermissionsRoute
+  AdminWorkflowsChar91idChar93LogsRoute: typeof AdminWorkflowsChar91idChar93LogsRoute
+  AdminFormsChar91idChar93IndexRoute: typeof AdminFormsChar91idChar93IndexRoute
+  AdminMailboxesChar91idChar93IndexRoute: typeof AdminMailboxesChar91idChar93IndexRoute
+  AdminRolesChar91idChar93IndexRoute: typeof AdminRolesChar91idChar93IndexRoute
+  AdminWorkflowsChar91idChar93IndexRoute: typeof AdminWorkflowsChar91idChar93IndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -184,11 +690,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof KbIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard/': {
+      id: '/dashboard/'
+      path: '/dashboard'
+      fullPath: '/dashboard/'
+      preLoaderRoute: typeof DashboardIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/chat/': {
       id: '/chat/'
       path: '/chat'
       fullPath: '/chat/'
       preLoaderRoute: typeof ChatIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tickets/spam': {
+      id: '/tickets/spam'
+      path: '/tickets/spam'
+      fullPath: '/tickets/spam'
+      preLoaderRoute: typeof TicketsSpamRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tickets/new': {
+      id: '/tickets/new'
+      path: '/tickets/new'
+      fullPath: '/tickets/new'
+      preLoaderRoute: typeof TicketsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tickets/merged': {
+      id: '/tickets/merged'
+      path: '/tickets/merged'
+      fullPath: '/tickets/merged'
+      preLoaderRoute: typeof TicketsMergedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/tickets/kanban': {
+      id: '/tickets/kanban'
+      path: '/tickets/kanban'
+      fullPath: '/tickets/kanban'
+      preLoaderRoute: typeof TicketsKanbanRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/tickets/id': {
@@ -205,11 +746,242 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof KbSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/forms/id': {
+      id: '/forms/id'
+      path: '/forms/id'
+      fullPath: '/forms/id'
+      preLoaderRoute: typeof FormsChar91idChar93RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/workflows/': {
+      id: '/admin/workflows/'
+      path: '/admin/workflows'
+      fullPath: '/admin/workflows/'
+      preLoaderRoute: typeof AdminWorkflowsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/users/': {
+      id: '/admin/users/'
+      path: '/admin/users'
+      fullPath: '/admin/users/'
+      preLoaderRoute: typeof AdminUsersIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/sla/': {
+      id: '/admin/sla/'
+      path: '/admin/sla'
+      fullPath: '/admin/sla/'
+      preLoaderRoute: typeof AdminSlaIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/saved-replies/': {
+      id: '/admin/saved-replies/'
+      path: '/admin/saved-replies'
+      fullPath: '/admin/saved-replies/'
+      preLoaderRoute: typeof AdminSavedRepliesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/roles/': {
+      id: '/admin/roles/'
+      path: '/admin/roles'
+      fullPath: '/admin/roles/'
+      preLoaderRoute: typeof AdminRolesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/reports/': {
+      id: '/admin/reports/'
+      path: '/admin/reports'
+      fullPath: '/admin/reports/'
+      preLoaderRoute: typeof AdminReportsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/mailboxes/': {
+      id: '/admin/mailboxes/'
+      path: '/admin/mailboxes'
+      fullPath: '/admin/mailboxes/'
+      preLoaderRoute: typeof AdminMailboxesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/forms/': {
+      id: '/admin/forms/'
+      path: '/admin/forms'
+      fullPath: '/admin/forms/'
+      preLoaderRoute: typeof AdminFormsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/email-templates/': {
+      id: '/admin/email-templates/'
+      path: '/admin/email-templates'
+      fullPath: '/admin/email-templates/'
+      preLoaderRoute: typeof AdminEmailTemplatesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/workflows/new': {
+      id: '/admin/workflows/new'
+      path: '/admin/workflows/new'
+      fullPath: '/admin/workflows/new'
+      preLoaderRoute: typeof AdminWorkflowsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin/workflows/builder': {
       id: '/admin/workflows/builder'
       path: '/admin/workflows/builder'
       fullPath: '/admin/workflows/builder'
       preLoaderRoute: typeof AdminWorkflowsBuilderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/users/invite': {
+      id: '/admin/users/invite'
+      path: '/admin/users/invite'
+      fullPath: '/admin/users/invite'
+      preLoaderRoute: typeof AdminUsersInviteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/users/id': {
+      id: '/admin/users/id'
+      path: '/admin/users/id'
+      fullPath: '/admin/users/id'
+      preLoaderRoute: typeof AdminUsersChar91idChar93RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/sla/new': {
+      id: '/admin/sla/new'
+      path: '/admin/sla/new'
+      fullPath: '/admin/sla/new'
+      preLoaderRoute: typeof AdminSlaNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/saved-replies/folders': {
+      id: '/admin/saved-replies/folders'
+      path: '/admin/saved-replies/folders'
+      fullPath: '/admin/saved-replies/folders'
+      preLoaderRoute: typeof AdminSavedRepliesFoldersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/roles/new': {
+      id: '/admin/roles/new'
+      path: '/admin/roles/new'
+      fullPath: '/admin/roles/new'
+      preLoaderRoute: typeof AdminRolesNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/reports/tickets': {
+      id: '/admin/reports/tickets'
+      path: '/admin/reports/tickets'
+      fullPath: '/admin/reports/tickets'
+      preLoaderRoute: typeof AdminReportsTicketsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/reports/sla': {
+      id: '/admin/reports/sla'
+      path: '/admin/reports/sla'
+      fullPath: '/admin/reports/sla'
+      preLoaderRoute: typeof AdminReportsSlaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/reports/custom': {
+      id: '/admin/reports/custom'
+      path: '/admin/reports/custom'
+      fullPath: '/admin/reports/custom'
+      preLoaderRoute: typeof AdminReportsCustomRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/reports/csat': {
+      id: '/admin/reports/csat'
+      path: '/admin/reports/csat'
+      fullPath: '/admin/reports/csat'
+      preLoaderRoute: typeof AdminReportsCsatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/reports/agents': {
+      id: '/admin/reports/agents'
+      path: '/admin/reports/agents'
+      fullPath: '/admin/reports/agents'
+      preLoaderRoute: typeof AdminReportsAgentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/mailboxes/new': {
+      id: '/admin/mailboxes/new'
+      path: '/admin/mailboxes/new'
+      fullPath: '/admin/mailboxes/new'
+      preLoaderRoute: typeof AdminMailboxesNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/forms/new': {
+      id: '/admin/forms/new'
+      path: '/admin/forms/new'
+      fullPath: '/admin/forms/new'
+      preLoaderRoute: typeof AdminFormsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/forms/builder': {
+      id: '/admin/forms/builder'
+      path: '/admin/forms/builder'
+      fullPath: '/admin/forms/builder'
+      preLoaderRoute: typeof AdminFormsBuilderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/workflows/id/': {
+      id: '/admin/workflows/id/'
+      path: '/admin/workflows/id'
+      fullPath: '/admin/workflows/id/'
+      preLoaderRoute: typeof AdminWorkflowsChar91idChar93IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/roles/id/': {
+      id: '/admin/roles/id/'
+      path: '/admin/roles/id'
+      fullPath: '/admin/roles/id/'
+      preLoaderRoute: typeof AdminRolesChar91idChar93IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/mailboxes/id/': {
+      id: '/admin/mailboxes/id/'
+      path: '/admin/mailboxes/id'
+      fullPath: '/admin/mailboxes/id/'
+      preLoaderRoute: typeof AdminMailboxesChar91idChar93IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/forms/id/': {
+      id: '/admin/forms/id/'
+      path: '/admin/forms/id'
+      fullPath: '/admin/forms/id/'
+      preLoaderRoute: typeof AdminFormsChar91idChar93IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/workflows/id/logs': {
+      id: '/admin/workflows/id/logs'
+      path: '/admin/workflows/id/logs'
+      fullPath: '/admin/workflows/id/logs'
+      preLoaderRoute: typeof AdminWorkflowsChar91idChar93LogsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/roles/id/permissions': {
+      id: '/admin/roles/id/permissions'
+      path: '/admin/roles/id/permissions'
+      fullPath: '/admin/roles/id/permissions'
+      preLoaderRoute: typeof AdminRolesChar91idChar93PermissionsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/mailboxes/id/routing': {
+      id: '/admin/mailboxes/id/routing'
+      path: '/admin/mailboxes/id/routing'
+      fullPath: '/admin/mailboxes/id/routing'
+      preLoaderRoute: typeof AdminMailboxesChar91idChar93RoutingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/mailboxes/id/configure': {
+      id: '/admin/mailboxes/id/configure'
+      path: '/admin/mailboxes/id/configure'
+      fullPath: '/admin/mailboxes/id/configure'
+      preLoaderRoute: typeof AdminMailboxesChar91idChar93ConfigureRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/forms/id/submissions': {
+      id: '/admin/forms/id/submissions'
+      path: '/admin/forms/id/submissions'
+      fullPath: '/admin/forms/id/submissions'
+      preLoaderRoute: typeof AdminFormsChar91idChar93SubmissionsRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -219,12 +991,56 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AiRoute: AiRoute,
   TodosRoute: TodosRoute,
+  FormsChar91idChar93Route: FormsChar91idChar93Route,
   KbSlugRoute: KbSlugRoute,
   TicketsChar91idChar93Route: TicketsChar91idChar93Route,
+  TicketsKanbanRoute: TicketsKanbanRoute,
+  TicketsMergedRoute: TicketsMergedRoute,
+  TicketsNewRoute: TicketsNewRoute,
+  TicketsSpamRoute: TicketsSpamRoute,
   ChatIndexRoute: ChatIndexRoute,
+  DashboardIndexRoute: DashboardIndexRoute,
   KbIndexRoute: KbIndexRoute,
   TicketsIndexRoute: TicketsIndexRoute,
+  AdminFormsBuilderRoute: AdminFormsBuilderRoute,
+  AdminFormsNewRoute: AdminFormsNewRoute,
+  AdminMailboxesNewRoute: AdminMailboxesNewRoute,
+  AdminReportsAgentsRoute: AdminReportsAgentsRoute,
+  AdminReportsCsatRoute: AdminReportsCsatRoute,
+  AdminReportsCustomRoute: AdminReportsCustomRoute,
+  AdminReportsSlaRoute: AdminReportsSlaRoute,
+  AdminReportsTicketsRoute: AdminReportsTicketsRoute,
+  AdminRolesNewRoute: AdminRolesNewRoute,
+  AdminSavedRepliesFoldersRoute: AdminSavedRepliesFoldersRoute,
+  AdminSlaNewRoute: AdminSlaNewRoute,
+  AdminUsersChar91idChar93Route: AdminUsersChar91idChar93Route,
+  AdminUsersInviteRoute: AdminUsersInviteRoute,
   AdminWorkflowsBuilderRoute: AdminWorkflowsBuilderRoute,
+  AdminWorkflowsNewRoute: AdminWorkflowsNewRoute,
+  AdminEmailTemplatesIndexRoute: AdminEmailTemplatesIndexRoute,
+  AdminFormsIndexRoute: AdminFormsIndexRoute,
+  AdminMailboxesIndexRoute: AdminMailboxesIndexRoute,
+  AdminReportsIndexRoute: AdminReportsIndexRoute,
+  AdminRolesIndexRoute: AdminRolesIndexRoute,
+  AdminSavedRepliesIndexRoute: AdminSavedRepliesIndexRoute,
+  AdminSlaIndexRoute: AdminSlaIndexRoute,
+  AdminUsersIndexRoute: AdminUsersIndexRoute,
+  AdminWorkflowsIndexRoute: AdminWorkflowsIndexRoute,
+  AdminFormsChar91idChar93SubmissionsRoute:
+    AdminFormsChar91idChar93SubmissionsRoute,
+  AdminMailboxesChar91idChar93ConfigureRoute:
+    AdminMailboxesChar91idChar93ConfigureRoute,
+  AdminMailboxesChar91idChar93RoutingRoute:
+    AdminMailboxesChar91idChar93RoutingRoute,
+  AdminRolesChar91idChar93PermissionsRoute:
+    AdminRolesChar91idChar93PermissionsRoute,
+  AdminWorkflowsChar91idChar93LogsRoute: AdminWorkflowsChar91idChar93LogsRoute,
+  AdminFormsChar91idChar93IndexRoute: AdminFormsChar91idChar93IndexRoute,
+  AdminMailboxesChar91idChar93IndexRoute:
+    AdminMailboxesChar91idChar93IndexRoute,
+  AdminRolesChar91idChar93IndexRoute: AdminRolesChar91idChar93IndexRoute,
+  AdminWorkflowsChar91idChar93IndexRoute:
+    AdminWorkflowsChar91idChar93IndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

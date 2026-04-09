@@ -144,4 +144,23 @@ export const savedRepliesRouter = {
         .where(eq(savedReplyFolders.id, input.id));
       return { success: true };
     }),
+
+  updateFolder: publicProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        name: z.string().min(1).max(150).optional(),
+      })
+    )
+    .handler(async ({ input }) => {
+      const [updated] = await db
+        .update(savedReplyFolders)
+        .set({
+          name: input.name,
+          updatedAt: new Date(),
+        })
+        .where(eq(savedReplyFolders.id, input.id))
+        .returning();
+      return updated;
+    }),
 };

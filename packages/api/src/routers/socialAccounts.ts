@@ -232,4 +232,323 @@ export const socialAccountsRouter = {
         tokenExpiresAt: account.tokenExpiresAt,
       };
     }),
+
+  connectFacebook: publicProcedure
+    .input(
+      z.object({
+        organizationId: z.number(),
+        pageId: z.string(),
+        accessToken: z.string(),
+        pageName: z.string().optional(),
+        userId: z.number().optional(),
+      })
+    )
+    .handler(async ({ input }) => {
+      const existing = await db.query.socialAccounts.findFirst({
+        where: and(
+          eq(socialAccounts.organizationId, input.organizationId),
+          eq(socialAccounts.platform, "facebook"),
+          eq(socialAccounts.platformAccountId, input.pageId),
+          isNull(socialAccounts.deletedAt)
+        ),
+      });
+
+      if (existing) {
+        const accessTokenEnc = encryptToken(input.accessToken);
+        const [updated] = await db
+          .update(socialAccounts)
+          .set({
+            accessTokenEnc,
+            isActive: true,
+            updatedAt: new Date(),
+          })
+          .where(eq(socialAccounts.id, existing.id))
+          .returning();
+        return { ...updated, accessTokenEnc: undefined, refreshTokenEnc: undefined };
+      }
+
+      const accessTokenEnc = encryptToken(input.accessToken);
+      const [account] = await db
+        .insert(socialAccounts)
+        .values({
+          organizationId: input.organizationId,
+          userId: input.userId,
+          platform: "facebook",
+          platformAccountId: input.pageId,
+          platformUsername: input.pageName,
+          accessTokenEnc,
+          isActive: true,
+        })
+        .returning();
+
+      return { ...account, accessTokenEnc: undefined, refreshTokenEnc: undefined };
+    }),
+
+  connectInstagram: publicProcedure
+    .input(
+      z.object({
+        organizationId: z.number(),
+        accountId: z.string(),
+        accessToken: z.string(),
+        username: z.string().optional(),
+        userId: z.number().optional(),
+      })
+    )
+    .handler(async ({ input }) => {
+      const existing = await db.query.socialAccounts.findFirst({
+        where: and(
+          eq(socialAccounts.organizationId, input.organizationId),
+          eq(socialAccounts.platform, "instagram"),
+          eq(socialAccounts.platformAccountId, input.accountId),
+          isNull(socialAccounts.deletedAt)
+        ),
+      });
+
+      if (existing) {
+        const accessTokenEnc = encryptToken(input.accessToken);
+        const [updated] = await db
+          .update(socialAccounts)
+          .set({
+            accessTokenEnc,
+            isActive: true,
+            updatedAt: new Date(),
+          })
+          .where(eq(socialAccounts.id, existing.id))
+          .returning();
+        return { ...updated, accessTokenEnc: undefined, refreshTokenEnc: undefined };
+      }
+
+      const accessTokenEnc = encryptToken(input.accessToken);
+      const [account] = await db
+        .insert(socialAccounts)
+        .values({
+          organizationId: input.organizationId,
+          userId: input.userId,
+          platform: "instagram",
+          platformAccountId: input.accountId,
+          platformUsername: input.username,
+          accessTokenEnc,
+          isActive: true,
+        })
+        .returning();
+
+      return { ...account, accessTokenEnc: undefined, refreshTokenEnc: undefined };
+    }),
+
+  connectTwitter: publicProcedure
+    .input(
+      z.object({
+        organizationId: z.number(),
+        accountId: z.string(),
+        accessToken: z.string(),
+        username: z.string().optional(),
+        userId: z.number().optional(),
+      })
+    )
+    .handler(async ({ input }) => {
+      const existing = await db.query.socialAccounts.findFirst({
+        where: and(
+          eq(socialAccounts.organizationId, input.organizationId),
+          eq(socialAccounts.platform, "twitter"),
+          eq(socialAccounts.platformAccountId, input.accountId),
+          isNull(socialAccounts.deletedAt)
+        ),
+      });
+
+      if (existing) {
+        const accessTokenEnc = encryptToken(input.accessToken);
+        const [updated] = await db
+          .update(socialAccounts)
+          .set({
+            accessTokenEnc,
+            isActive: true,
+            updatedAt: new Date(),
+          })
+          .where(eq(socialAccounts.id, existing.id))
+          .returning();
+        return { ...updated, accessTokenEnc: undefined, refreshTokenEnc: undefined };
+      }
+
+      const accessTokenEnc = encryptToken(input.accessToken);
+      const [account] = await db
+        .insert(socialAccounts)
+        .values({
+          organizationId: input.organizationId,
+          userId: input.userId,
+          platform: "twitter",
+          platformAccountId: input.accountId,
+          platformUsername: input.username,
+          accessTokenEnc,
+          isActive: true,
+        })
+        .returning();
+
+      return { ...account, accessTokenEnc: undefined, refreshTokenEnc: undefined };
+    }),
+
+  connectWhatsApp: publicProcedure
+    .input(
+      z.object({
+        organizationId: z.number(),
+        phoneNumberId: z.string(),
+        accessToken: z.string(),
+        businessAccountId: z.string().optional(),
+        userId: z.number().optional(),
+      })
+    )
+    .handler(async ({ input }) => {
+      const existing = await db.query.socialAccounts.findFirst({
+        where: and(
+          eq(socialAccounts.organizationId, input.organizationId),
+          eq(socialAccounts.platform, "whatsapp"),
+          eq(socialAccounts.platformAccountId, input.phoneNumberId),
+          isNull(socialAccounts.deletedAt)
+        ),
+      });
+
+      if (existing) {
+        const accessTokenEnc = encryptToken(input.accessToken);
+        const [updated] = await db
+          .update(socialAccounts)
+          .set({
+            accessTokenEnc,
+            isActive: true,
+            updatedAt: new Date(),
+          })
+          .where(eq(socialAccounts.id, existing.id))
+          .returning();
+        return { ...updated, accessTokenEnc: undefined, refreshTokenEnc: undefined };
+      }
+
+      const accessTokenEnc = encryptToken(input.accessToken);
+      const [account] = await db
+        .insert(socialAccounts)
+        .values({
+          organizationId: input.organizationId,
+          userId: input.userId,
+          platform: "whatsapp",
+          platformAccountId: input.phoneNumberId,
+          platformUsername: input.businessAccountId,
+          accessTokenEnc,
+          isActive: true,
+        })
+        .returning();
+
+      return { ...account, accessTokenEnc: undefined, refreshTokenEnc: undefined };
+    }),
+
+  disconnect: publicProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        organizationId: z.number(),
+        deletedBy: z.number().optional(),
+      })
+    )
+    .handler(async ({ input }) => {
+      await db
+        .update(socialAccounts)
+        .set({
+          deletedAt: new Date(),
+          deletedBy: input.deletedBy,
+          isActive: false,
+          updatedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(socialAccounts.id, input.id),
+            eq(socialAccounts.organizationId, input.organizationId)
+          )
+        );
+
+      return { success: true };
+    }),
+
+  refreshToken: publicProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        organizationId: z.number(),
+      })
+    )
+    .handler(async ({ input }) => {
+      const account = await db.query.socialAccounts.findFirst({
+        where: and(
+          eq(socialAccounts.id, input.id),
+          eq(socialAccounts.organizationId, input.organizationId),
+          isNull(socialAccounts.deletedAt)
+        ),
+      });
+
+      if (!account) {
+        throw new Error("Account not found");
+      }
+
+      if (!account.refreshTokenEnc) {
+        throw new Error("No refresh token available");
+      }
+
+      const refreshToken = decryptToken(account.refreshTokenEnc);
+      const { refreshSocialToken } = await import("../services/socialTokenRefresh");
+      
+      const newTokens = await refreshSocialToken(account.platform, refreshToken);
+
+      const accessTokenEnc = encryptToken(newTokens.accessToken);
+      const refreshTokenEnc = newTokens.refreshToken 
+        ? encryptToken(newTokens.refreshToken) 
+        : undefined;
+
+      const [updated] = await db
+        .update(socialAccounts)
+        .set({
+          accessTokenEnc,
+          refreshTokenEnc,
+          tokenExpiresAt: newTokens.expiresAt ? new Date(newTokens.expiresAt) : null,
+          updatedAt: new Date(),
+        })
+        .where(eq(socialAccounts.id, input.id))
+        .returning();
+
+      return { ...updated, accessTokenEnc: undefined, refreshTokenEnc: undefined };
+    }),
+
+  getStatus: publicProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        organizationId: z.number(),
+      })
+    )
+    .handler(async ({ input }) => {
+      const account = await db.query.socialAccounts.findFirst({
+        where: and(
+          eq(socialAccounts.id, input.id),
+          eq(socialAccounts.organizationId, input.organizationId),
+          isNull(socialAccounts.deletedAt)
+        ),
+      });
+
+      if (!account) {
+        throw new Error("Account not found");
+      }
+
+      let isValid = false;
+      let error: string | null = null;
+
+      try {
+        const { validateSocialToken } = await import("../services/socialTokenRefresh");
+        const token = decryptToken(account.accessTokenEnc);
+        isValid = await validateSocialToken(account.platform, token);
+      } catch (e) {
+        error = e instanceof Error ? e.message : "Token validation failed";
+      }
+
+      return {
+        isActive: account.isActive,
+        isValid,
+        error,
+        tokenExpiresAt: account.tokenExpiresAt,
+        updatedAt: account.updatedAt,
+      };
+    }),
 };

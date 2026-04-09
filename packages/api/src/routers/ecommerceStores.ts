@@ -244,4 +244,351 @@ export const ecommerceStoresRouter = {
 
       return { success: true, message: "Sync job queued" };
     }),
+
+  connectShopify: publicProcedure
+    .input(
+      z.object({
+        organizationId: z.number(),
+        storeUrl: z.string(),
+        accessToken: z.string(),
+        userId: z.number().optional(),
+      })
+    )
+    .handler(async ({ input }) => {
+      const domain = input.storeUrl.replace(/^https?:\/\//, "").replace(/\/$/, "");
+
+      const existing = await db.query.ecommerceStores.findFirst({
+        where: and(
+          eq(ecommerceStores.organizationId, input.organizationId),
+          eq(ecommerceStores.platform, "shopify"),
+          eq(ecommerceStores.shopDomain, domain),
+          isNull(ecommerceStores.deletedAt)
+        ),
+      });
+
+      if (existing) {
+        const [updated] = await db
+          .update(ecommerceStores)
+          .set({
+            accessTokenEnc: input.accessToken,
+            isActive: true,
+            syncStatus: "pending",
+            updatedAt: new Date(),
+          })
+          .where(eq(ecommerceStores.id, existing.id))
+          .returning();
+        return updated;
+      }
+
+      const [store] = await db
+        .insert(ecommerceStores)
+        .values({
+          organizationId: input.organizationId,
+          userId: input.userId,
+          platform: "shopify",
+          name: domain,
+          shopDomain: domain,
+          accessTokenEnc: input.accessToken,
+          syncStatus: "pending",
+          settings: {},
+        })
+        .returning();
+
+      return store;
+    }),
+
+  connectWooCommerce: publicProcedure
+    .input(
+      z.object({
+        organizationId: z.number(),
+        storeUrl: z.string(),
+        consumerKey: z.string(),
+        consumerSecret: z.string(),
+        userId: z.number().optional(),
+      })
+    )
+    .handler(async ({ input }) => {
+      const domain = input.storeUrl.replace(/^https?:\/\//, "").replace(/\/$/, "");
+
+      const existing = await db.query.ecommerceStores.findFirst({
+        where: and(
+          eq(ecommerceStores.organizationId, input.organizationId),
+          eq(ecommerceStores.platform, "woocommerce"),
+          eq(ecommerceStores.shopDomain, domain),
+          isNull(ecommerceStores.deletedAt)
+        ),
+      });
+
+      if (existing) {
+        const [updated] = await db
+          .update(ecommerceStores)
+          .set({
+            apiKeyEnc: input.consumerKey,
+            apiSecretEnc: input.consumerSecret,
+            isActive: true,
+            syncStatus: "pending",
+            updatedAt: new Date(),
+          })
+          .where(eq(ecommerceStores.id, existing.id))
+          .returning();
+        return updated;
+      }
+
+      const [store] = await db
+        .insert(ecommerceStores)
+        .values({
+          organizationId: input.organizationId,
+          userId: input.userId,
+          platform: "woocommerce",
+          name: domain,
+          shopDomain: domain,
+          apiKeyEnc: input.consumerKey,
+          apiSecretEnc: input.consumerSecret,
+          syncStatus: "pending",
+          settings: {},
+        })
+        .returning();
+
+      return store;
+    }),
+
+  connectSalla: publicProcedure
+    .input(
+      z.object({
+        organizationId: z.number(),
+        storeUrl: z.string(),
+        accessToken: z.string(),
+        userId: z.number().optional(),
+      })
+    )
+    .handler(async ({ input }) => {
+      const domain = input.storeUrl.replace(/^https?:\/\//, "").replace(/\/$/, "");
+
+      const existing = await db.query.ecommerceStores.findFirst({
+        where: and(
+          eq(ecommerceStores.organizationId, input.organizationId),
+          eq(ecommerceStores.platform, "salla"),
+          eq(ecommerceStores.shopDomain, domain),
+          isNull(ecommerceStores.deletedAt)
+        ),
+      });
+
+      if (existing) {
+        const [updated] = await db
+          .update(ecommerceStores)
+          .set({
+            accessTokenEnc: input.accessToken,
+            isActive: true,
+            syncStatus: "pending",
+            updatedAt: new Date(),
+          })
+          .where(eq(ecommerceStores.id, existing.id))
+          .returning();
+        return updated;
+      }
+
+      const [store] = await db
+        .insert(ecommerceStores)
+        .values({
+          organizationId: input.organizationId,
+          userId: input.userId,
+          platform: "salla",
+          name: domain,
+          shopDomain: domain,
+          accessTokenEnc: input.accessToken,
+          syncStatus: "pending",
+          settings: {},
+        })
+        .returning();
+
+      return store;
+    }),
+
+  connectZid: publicProcedure
+    .input(
+      z.object({
+        organizationId: z.number(),
+        storeUrl: z.string(),
+        accessToken: z.string(),
+        userId: z.number().optional(),
+      })
+    )
+    .handler(async ({ input }) => {
+      const domain = input.storeUrl.replace(/^https?:\/\//, "").replace(/\/$/, "");
+
+      const existing = await db.query.ecommerceStores.findFirst({
+        where: and(
+          eq(ecommerceStores.organizationId, input.organizationId),
+          eq(ecommerceStores.platform, "zid"),
+          eq(ecommerceStores.shopDomain, domain),
+          isNull(ecommerceStores.deletedAt)
+        ),
+      });
+
+      if (existing) {
+        const [updated] = await db
+          .update(ecommerceStores)
+          .set({
+            accessTokenEnc: input.accessToken,
+            isActive: true,
+            syncStatus: "pending",
+            updatedAt: new Date(),
+          })
+          .where(eq(ecommerceStores.id, existing.id))
+          .returning();
+        return updated;
+      }
+
+      const [store] = await db
+        .insert(ecommerceStores)
+        .values({
+          organizationId: input.organizationId,
+          userId: input.userId,
+          platform: "zid",
+          name: domain,
+          shopDomain: domain,
+          accessTokenEnc: input.accessToken,
+          syncStatus: "pending",
+          settings: {},
+        })
+        .returning();
+
+      return store;
+    }),
+
+  disconnect: publicProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        organizationId: z.number(),
+        deletedBy: z.number().optional(),
+      })
+    )
+    .handler(async ({ input }) => {
+      await db
+        .update(ecommerceStores)
+        .set({
+          deletedAt: new Date(),
+          deletedBy: input.deletedBy,
+          isActive: false,
+          updatedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(ecommerceStores.id, input.id),
+            eq(ecommerceStores.organizationId, input.organizationId)
+          )
+        );
+
+      return { success: true };
+    }),
+
+  syncNow: publicProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        organizationId: z.number(),
+      })
+    )
+    .handler(async ({ input }) => {
+      const store = await db.query.ecommerceStores.findFirst({
+        where: and(
+          eq(ecommerceStores.id, input.id),
+          eq(ecommerceStores.organizationId, input.organizationId),
+          isNull(ecommerceStores.deletedAt)
+        ),
+      });
+
+      if (!store) {
+        throw new Error("Store not found");
+      }
+
+      await db
+        .update(ecommerceStores)
+        .set({
+          syncStatus: "pending",
+          updatedAt: new Date(),
+        })
+        .where(eq(ecommerceStores.id, input.id));
+
+      const { queueStoreSync } = await import("../services/storeSyncQueue");
+      await queueStoreSync(input.id);
+
+      return { success: true, message: "Sync queued" };
+    }),
+
+  getSyncStatus: publicProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        organizationId: z.number(),
+      })
+    )
+    .handler(async ({ input }) => {
+      const store = await db.query.ecommerceStores.findFirst({
+        where: and(
+          eq(ecommerceStores.id, input.id),
+          eq(ecommerceStores.organizationId, input.organizationId),
+          isNull(ecommerceStores.deletedAt)
+        ),
+      });
+
+      if (!store) {
+        throw new Error("Store not found");
+      }
+
+      return {
+        syncStatus: store.syncStatus,
+        lastSyncAt: store.lastSyncAt,
+        syncError: store.syncError,
+      };
+    }),
+
+  getOrders: publicProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        organizationId: z.number(),
+        status: z.string().optional(),
+        limit: z.number().min(1).max(100).default(50),
+        offset: z.number().min(0).default(0),
+      })
+    )
+    .handler(async ({ input }) => {
+      const store = await db.query.ecommerceStores.findFirst({
+        where: and(
+          eq(ecommerceStores.id, input.id),
+          eq(ecommerceStores.organizationId, input.organizationId),
+          isNull(ecommerceStores.deletedAt)
+        ),
+      });
+
+      if (!store) {
+        throw new Error("Store not found");
+      }
+
+      const { fetchStoreOrders } = await import("../services/ecommerceSync");
+      return await fetchStoreOrders(input.id, {
+        status: input.status,
+        limit: input.limit,
+        offset: input.offset,
+      });
+    }),
+
+  searchOrders: publicProcedure
+    .input(
+      z.object({
+        organizationId: z.number(),
+        query: z.string().min(1),
+        platform: z.string().optional(),
+        limit: z.number().min(1).max(100).default(50),
+      })
+    )
+    .handler(async ({ input }) => {
+      const { searchOrdersAcrossStores } = await import("../services/ecommerceSync");
+      return await searchOrdersAcrossStores(input.organizationId, input.query, {
+        platform: input.platform,
+        limit: input.limit,
+      });
+    }),
 };

@@ -14,6 +14,7 @@ import { useState } from "react";
 import { View, Text, ScrollView, Alert } from "react-native";
 
 import { Container } from "@/components/container";
+import { hapticImpact, hapticNotification } from "@/utils/haptics";
 import { orpc } from "@/utils/orpc";
 
 export default function TodosScreen() {
@@ -24,6 +25,7 @@ export default function TodosScreen() {
       onSuccess: () => {
         todos.refetch();
         setNewTodoText("");
+        hapticNotification("success");
       },
     }),
   );
@@ -31,6 +33,7 @@ export default function TodosScreen() {
     orpc.todo.toggle.mutationOptions({
       onSuccess: () => {
         todos.refetch();
+        hapticImpact("light");
       },
     }),
   );
@@ -38,6 +41,10 @@ export default function TodosScreen() {
     orpc.todo.delete.mutationOptions({
       onSuccess: () => {
         todos.refetch();
+        hapticNotification("success");
+      },
+      onError: () => {
+        hapticNotification("error");
       },
     }),
   );
@@ -48,15 +55,18 @@ export default function TodosScreen() {
 
   const handleAddTodo = () => {
     if (newTodoText.trim()) {
+      hapticImpact("medium");
       createMutation.mutate({ text: newTodoText });
     }
   };
 
   const handleToggleTodo = (id: number, completed: boolean) => {
+    hapticImpact("light");
     toggleMutation.mutate({ id, completed: !completed });
   };
 
   const handleDeleteTodo = (id: number) => {
+    hapticImpact("medium");
     Alert.alert("Delete Todo", "Are you sure you want to delete this todo?", [
       { text: "Cancel", style: "cancel" },
       {

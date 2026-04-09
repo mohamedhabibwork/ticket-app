@@ -1,8 +1,8 @@
-import { useState } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { useState, useCallback, useRef, useEffect } from "react";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Button } from "@ticket-app/ui/components/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@ticket-app/ui/components/card";
 import { Input } from "@ticket-app/ui/components/input";
 import { Label } from "@ticket-app/ui/components/label";
 import { Textarea } from "@ticket-app/ui/components/textarea";
@@ -10,9 +10,26 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@ticket-app/ui/components/badge";
 import { Checkbox } from "@ticket-app/ui/components/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@ticket-app/ui/components/tabs";
-import { Plus, Trash2, GripVertical, Play, Save, X, AlertCircle } from "lucide-react";
-
 import { orpc } from "@/utils/orpc";
+import {
+  Plus,
+  Trash2,
+  GripVertical,
+  Play,
+  Save,
+  X,
+  AlertCircle,
+  Zap,
+  GitBranch,
+  Hammer,
+  Clock,
+  ChevronRight,
+  CheckCircle,
+  XCircle,
+  Grip,
+  PanelRightClose,
+  PanelRight,
+} from "lucide-react";
 
 interface ConditionRule {
   field: string;
@@ -25,17 +42,18 @@ interface WorkflowAction {
   params: Record<string, unknown>;
 }
 
-interface Workflow {
-  id?: number;
-  name: string;
-  description: string;
-  trigger: string;
-  conditions: {
-    operator: "and" | "or";
-    rules: ConditionRule[];
-  };
-  actions: WorkflowAction[];
-  isActive: boolean;
+interface WorkflowNode {
+  id: string;
+  type: "trigger" | "condition" | "action";
+  label: string;
+  data: any;
+  position: { x: number; y: number };
+}
+
+interface WorkflowEdge {
+  id: string;
+  source: string;
+  target: string;
 }
 
 const TRIGGERS = [
@@ -87,37 +105,68 @@ const ACTION_TYPES = [
   { value: "apply_saved_reply", label: "Apply Saved Reply" },
 ];
 
+const TRIGGER_LABELS: Record<string, string> = {
+  ticket_created: "Ticket Created",
+  ticket_updated: "Ticket Updated",
+  ticket_status_changed: "Status Changed",
+  ticket_priority_changed: "Priority Changed",
+  ticket_assigned: "Ticket Assigned",
+  sla_breached: "SLA Breached",
+  time_elapsed: "Time Elapsed",
+};
+
 export const Route = createFileRoute("/admin/workflows/builder")({
   component: WorkflowBuilderRoute,
 });
 
 function WorkflowBuilderRoute() {
-  const [workflow, setWorkflow] = useState<Workflow>({
+  const navigate = useNavigate();
+  const search = Route.useSearch();
+  const initialWorkflowId = search.workflowId;
+
+  const [workflow, setWorkflow] = useState({
     name: "",
     description: "",
     trigger: "ticket_created",
-    conditions: {
-      operator: "and",
-      rules: [],
-    },
-    actions: [],
+    conditions: { operator: "and" as "and" | "or", rules: [] as ConditionRule[] },
+    actions: [] as WorkflowAction[],
     isActive: true,
   });
 
-  const [selectedWorkflowId, setSelectedWorkflowId] = useState<number | null>(null);
+  const [selectedWorkflowId, setSelectedWorkflowId] = useState<number | null>(initialWorkflowId || null);
   const [isTesting, setIsTesting] = useState(false);
+  const [showHistory, setShowHistory] = useState(true);
+  const [draggedNode, setDraggedNode] = useState<string | null>(null);
+  const [nodePositions, setNodePositions] = useState<Record<string, { x: number; y: number }>>({});
+  const canvasRef = useRef<HTMLDivElement>(null);
 
-  const { data: workflowsList } = useQuery(
-    orpc.workflows.list.queryOptions({
-      organizationId: 1,
-      isActive: undefined,
-    })
-  );
+  const { data: workflowsList } = useQuery({
+    queryKey: ["workflows", "all"],
+    queryFn: () =>
+      orpc.workflows.list.queryOptions({
+        organizationId: 1,
+        isActive: undefined,
+      }),
+  });
+
+  const { data: executionLogs } = useQuery({
+    queryKey: ["workflow-logs-sidebar", selectedWorkflowId],
+    queryFn: () =>
+      selectedWorkflowId
+        ? orpc.workflows.getExecutionLogs.queryOptions({
+            workflowId: selectedWorkflowId,
+            organizationId: 1,
+            limit: 10,
+          })
+        : null,
+    enabled: !!selectedWorkflowId,
+  });
 
   const createMutation = useMutation(
     orpc.workflows.create.mutationOptions({
       onSuccess: (data) => {
-        console.log("Workflow created:", data);
+        setSelectedWorkflowId(data.id);
+        navigate({ to: "/admin/workflows/builder", search: { workflowId: data.id } });
       },
     })
   );
@@ -130,15 +179,44 @@ function WorkflowBuilderRoute() {
     })
   );
 
+  useEffect(() => {
+    if (initialWorkflowId && workflowsList) {
+      const workflowToLoad = workflowsList.find((w) => w.id === initialWorkflowId);
+      if (workflowToLoad) {
+        loadWorkflow(workflowToLoad);
+      }
+    }
+  }, [initialWorkflowId, workflowsList]);
+
+  const loadWorkflow = (workflowToLoad: any) => {
+    setSelectedWorkflowId(workflowToLoad.id);
+    setWorkflow({
+      name: workflowToLoad.name,
+      description: workflowToLoad.description || "",
+      trigger: workflowToLoad.trigger,
+      conditions: workflowToLoad.conditions as typeof workflow.conditions,
+      actions: workflowToLoad.actions as WorkflowAction[],
+      isActive: workflowToLoad.isActive,
+    });
+
+    if (!nodePositions["trigger"]) {
+      setNodePositions({
+        trigger: { x: 50, y: 100 },
+        conditions: { x: 50, y: 200 },
+        ...workflowToLoad.actions.reduce((acc: any, _: any, i: number) => {
+          acc[`action-${i}`] = { x: 50, y: 300 + i * 100 };
+          return acc;
+        }, {}),
+      });
+    }
+  };
+
   const addCondition = () => {
     setWorkflow({
       ...workflow,
       conditions: {
         ...workflow.conditions,
-        rules: [
-          ...workflow.conditions.rules,
-          { field: "status_id", operator: "equals", value: "" },
-        ],
+        rules: [...workflow.conditions.rules, { field: "status_id", operator: "equals", value: "" }],
       },
     });
   };
@@ -158,9 +236,7 @@ function WorkflowBuilderRoute() {
       ...workflow,
       conditions: {
         ...workflow.conditions,
-        rules: workflow.conditions.rules.map((rule, i) =>
-          i === index ? { ...rule, ...updates } : rule
-        ),
+        rules: workflow.conditions.rules.map((rule, i) => (i === index ? { ...rule, ...updates } : rule)),
       },
     });
   };
@@ -168,11 +244,12 @@ function WorkflowBuilderRoute() {
   const addAction = () => {
     setWorkflow({
       ...workflow,
-      actions: [
-        ...workflow.actions,
-        { type: "set_priority", params: {} },
-      ],
+      actions: [...workflow.actions, { type: "set_priority", params: {} }],
     });
+    setNodePositions((prev) => ({
+      ...prev,
+      [`action-${workflow.actions.length}`]: { x: 50, y: 300 + workflow.actions.length * 100 },
+    }));
   };
 
   const removeAction = (index: number) => {
@@ -185,13 +262,13 @@ function WorkflowBuilderRoute() {
   const updateAction = (index: number, updates: Partial<WorkflowAction>) => {
     setWorkflow({
       ...workflow,
-      actions: workflow.actions.map((action, i) =>
-        i === index ? { ...action, ...updates } : action
-      ),
+      actions: workflow.actions.map((action, i) => (i === index ? { ...action, ...updates } : action)),
     });
   };
 
   const handleSave = () => {
+    if (!workflow.name.trim()) return;
+
     if (selectedWorkflowId) {
       updateMutation.mutate({
         id: selectedWorkflowId,
@@ -204,18 +281,6 @@ function WorkflowBuilderRoute() {
         organizationId: 1,
       });
     }
-  };
-
-  const loadWorkflow = (workflowToLoad: (typeof workflowsList)[0]) => {
-    setSelectedWorkflowId(workflowToLoad.id);
-    setWorkflow({
-      name: workflowToLoad.name,
-      description: workflowToLoad.description || "",
-      trigger: workflowToLoad.trigger,
-      conditions: workflowToLoad.conditions as Workflow["conditions"],
-      actions: workflowToLoad.actions as WorkflowAction[],
-      isActive: workflowToLoad.isActive,
-    });
   };
 
   const handleTest = async () => {
@@ -231,184 +296,330 @@ function WorkflowBuilderRoute() {
         triggerType: workflow.trigger,
       });
       console.log("Test result:", result);
+      alert(result.success ? "Test executed successfully!" : `Test failed: ${result.error}`);
     } catch (error) {
       console.error("Test failed:", error);
+      alert("Test failed. Check console for details.");
     }
     setIsTesting(false);
   };
 
-  return (
-    <div className="container mx-auto max-w-6xl py-8">
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Workflow Builder</h1>
-          <p className="text-muted-foreground mt-1">
-            Create automation rules to streamline your support workflow
-          </p>
+  const handleNodeDrag = (nodeId: string, deltaX: number, deltaY: number) => {
+    setNodePositions((prev) => ({
+      ...prev,
+      [nodeId]: {
+        x: Math.max(0, (prev[nodeId]?.x || 0) + deltaX),
+        y: Math.max(0, (prev[nodeId]?.y || 0) + deltaY),
+      },
+    }));
+  };
+
+  const getNodeColor = (type: string) => {
+    switch (type) {
+      case "trigger":
+        return "bg-purple-100 border-purple-300 text-purple-800";
+      case "condition":
+        return "bg-blue-100 border-blue-300 text-blue-800";
+      case "action":
+        return "bg-green-100 border-green-300 text-green-800";
+      default:
+        return "bg-gray-100 border-gray-300 text-gray-800";
+    }
+  };
+
+  const renderCanvasNode = (nodeId: string, label: string, type: string, icon: React.ReactNode) => {
+    const position = nodePositions[nodeId] || { x: 50, y: 100 };
+
+    return (
+      <div
+        className={`absolute w-48 rounded-lg border-2 ${getNodeColor(type)} p-3 cursor-move select-none`}
+        style={{ left: position.x, top: position.y }}
+        onMouseDown={(e) => {
+          e.preventDefault();
+          setDraggedNode(nodeId);
+        }}
+      >
+        <div className="flex items-center gap-2 mb-1">
+          {icon}
+          <span className="text-xs font-medium uppercase">{type}</span>
         </div>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            onClick={handleTest}
-            disabled={!selectedWorkflowId || isTesting}
-          >
-            <Play className="mr-2 h-4 w-4" />
-            {isTesting ? "Testing..." : "Test"}
-          </Button>
-          <Button onClick={handleSave} disabled={!workflow.name}>
-            <Save className="mr-2 h-4 w-4" />
-            Save Workflow
-          </Button>
+        <div className="text-sm font-semibold">{label}</div>
+        <div className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-white border-2 border-gray-300 flex items-center justify-center">
+          <ChevronRight className="h-3 w-3" />
         </div>
       </div>
+    );
+  };
 
-      <div className="grid grid-cols-12 gap-6">
-        <div className="col-span-3 space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Workflows</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (draggedNode && canvasRef.current) {
+        const rect = canvasRef.current.getBoundingClientRect();
+        const deltaX = e.movementX;
+        const deltaY = e.movementY;
+        handleNodeDrag(draggedNode, deltaX, deltaY);
+      }
+    };
+
+    const handleMouseUp = () => {
+      setDraggedNode(null);
+    };
+
+    if (draggedNode) {
+      window.addEventListener("mousemove", handleMouseMove);
+      window.addEventListener("mouseup", handleMouseUp);
+    }
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [draggedNode]);
+
+  return (
+    <div className="flex h-[calc(100vh-64px)]">
+      <div className="flex-1 flex flex-col">
+        <div className="border-b bg-background p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold">Workflow Builder</h1>
+              <p className="text-muted-foreground text-sm">
+                Create automation rules to streamline your support workflow
+              </p>
+            </div>
+            <div className="flex gap-2">
               <Button
                 variant="outline"
-                className="w-full justify-start"
-                onClick={() => {
-                  setSelectedWorkflowId(null);
-                  setWorkflow({
-                    name: "",
-                    description: "",
-                    trigger: "ticket_created",
-                    conditions: { operator: "and", rules: [] },
-                    actions: [],
-                    isActive: true,
-                  });
-                }}
+                onClick={() => setShowHistory(!showHistory)}
               >
-                <Plus className="mr-2 h-4 w-4" />
-                New Workflow
+                {showHistory ? <PanelRightClose className="mr-2 h-4 w-4" /> : <PanelRight className="mr-2 h-4 w-4" />}
+                {showHistory ? "Hide" : "Show"} History
               </Button>
-              {workflowsList?.map((w) => (
-                <Button
-                  key={w.id}
-                  variant={selectedWorkflowId === w.id ? "secondary" : "ghost"}
-                  className="w-full justify-start text-left"
-                  onClick={() => loadWorkflow(w)}
-                >
-                  <div className="flex flex-col items-start">
-                    <span className="font-medium">{w.name}</span>
-                    <span className="text-xs text-muted-foreground">
-                      {TRIGGERS.find((t) => t.value === w.trigger)?.label}
-                    </span>
-                  </div>
-                  {!w.isActive && (
-                    <Badge variant="secondary" className="ml-auto">
-                      Inactive
-                    </Badge>
-                  )}
-                </Button>
-              ))}
-            </CardContent>
-          </Card>
+              <Button
+                variant="outline"
+                onClick={handleTest}
+                disabled={!selectedWorkflowId || isTesting}
+              >
+                <Play className="mr-2 h-4 w-4" />
+                {isTesting ? "Testing..." : "Test"}
+              </Button>
+              <Button onClick={handleSave} disabled={!workflow.name.trim()}>
+                <Save className="mr-2 h-4 w-4" />
+                Save Workflow
+              </Button>
+            </div>
+          </div>
         </div>
 
-        <div className="col-span-9 space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Basic Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Workflow Name *</Label>
-                  <Input
-                    id="name"
-                    value={workflow.name}
-                    onChange={(e) => setWorkflow({ ...workflow, name: e.target.value })}
-                    placeholder="e.g., Urgent Ticket Assignment"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="trigger">Trigger Event *</Label>
-                  <Select
-                    value={workflow.trigger}
-                    onValueChange={(value) =>
-                      setWorkflow({ ...workflow, trigger: value })
-                    }
+        <div className="flex-1 flex overflow-hidden">
+          <div className="flex-1 flex">
+            <div className="w-72 border-r bg-background overflow-y-auto p-4">
+              <Card className="mb-4">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base">Workflows</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start"
+                    onClick={() => {
+                      setSelectedWorkflowId(null);
+                      setWorkflow({
+                        name: "",
+                        description: "",
+                        trigger: "ticket_created",
+                        conditions: { operator: "and", rules: [] },
+                        actions: [],
+                        isActive: true,
+                      });
+                      setNodePositions({});
+                    }}
                   >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select trigger" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {TRIGGERS.map((trigger) => (
-                        <SelectItem key={trigger.value} value={trigger.value}>
-                          {trigger.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    <Plus className="mr-2 h-4 w-4" />
+                    New Workflow
+                  </Button>
+                  {workflowsList?.map((w) => (
+                    <Button
+                      key={w.id}
+                      variant={selectedWorkflowId === w.id ? "secondary" : "ghost"}
+                      className="w-full justify-start text-left"
+                      onClick={() => loadWorkflow(w)}
+                    >
+                      <div className="flex flex-col items-start">
+                        <span className="font-medium">{w.name}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {TRIGGER_LABELS[w.trigger] || w.trigger}
+                        </span>
+                      </div>
+                      {!w.isActive && (
+                        <Badge variant="secondary" className="ml-auto">
+                          Inactive
+                        </Badge>
+                      )}
+                    </Button>
+                  ))}
+                </CardContent>
+              </Card>
+
+              <Card className="mb-4">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base">Basic Info</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="space-y-1">
+                    <Label htmlFor="name" className="text-xs">Name</Label>
+                    <Input
+                      id="name"
+                      value={workflow.name}
+                      onChange={(e) => setWorkflow({ ...workflow, name: e.target.value })}
+                      placeholder="Workflow name"
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="trigger" className="text-xs">Trigger</Label>
+                    <Select value={workflow.trigger} onValueChange={(value) => setWorkflow({ ...workflow, trigger: value })}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {TRIGGERS.map((t) => (
+                          <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1">
+                    <Label htmlFor="description" className="text-xs">Description</Label>
+                    <Textarea
+                      id="description"
+                      value={workflow.description}
+                      onChange={(e) => setWorkflow({ ...workflow, description: e.target.value })}
+                      placeholder="Description..."
+                      rows={2}
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="isActive"
+                      checked={workflow.isActive}
+                      onCheckedChange={(checked) => setWorkflow({ ...workflow, isActive: checked as boolean })}
+                    />
+                    <Label htmlFor="isActive" className="text-xs font-normal">Active</Label>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="flex-1 flex flex-col overflow-hidden">
+              <div className="flex-1 bg-grid p-4 overflow-auto">
+                <div
+                  ref={canvasRef}
+                  className="relative w-full h-full min-h-[500px] bg-muted/30 rounded-lg border-2 border-dashed border-muted-foreground/20"
+                >
+                  <div className="absolute top-4 left-4 text-xs text-muted-foreground">
+                    <Zap className="h-4 w-4 inline mr-1" />
+                    Drag nodes to position them
+                  </div>
+
+                  {renderCanvasNode(
+                    "trigger",
+                    TRIGGER_LABELS[workflow.trigger] || workflow.trigger,
+                    "trigger",
+                    <Zap className="h-4 w-4" />
+                  )}
+
+                  {workflow.conditions.rules.length > 0 && renderCanvasNode(
+                    "conditions",
+                    `${workflow.conditions.rules.length} Conditions (${workflow.conditions.operator.toUpperCase()})`,
+                    "condition",
+                    <GitBranch className="h-4 w-4" />
+                  )}
+
+                  {workflow.actions.map((action, index) =>
+                    renderCanvasNode(
+                      `action-${index}`,
+                      ACTION_TYPES.find((a) => a.value === action.type)?.label || action.type,
+                      "action",
+                      <Hammer className="h-4 w-4" />
+                    )
+                  )}
+
+                  {workflow.conditions.rules.length === 0 && workflow.actions.length === 0 && (
+                    <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
+                      <div className="text-center">
+                        <AlertCircle className="h-8 w-8 mx-auto mb-2" />
+                        <p className="text-sm">Add conditions and actions to build your workflow</p>
+                      </div>
+                    </div>
+                  )}
+
+                  <svg className="absolute inset-0 pointer-events-none overflow-visible">
+                    {draggedNode === null && (
+                      <>
+                        <path
+                          d={`M ${(nodePositions["trigger"]?.x || 50) + 192} ${(nodePositions["trigger"]?.y || 100) + 20} L ${(nodePositions["trigger"]?.x || 50) + 192} ${(nodePositions["trigger"]?.y || 100) + 60}`}
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          fill="none"
+                          className="text-muted-foreground"
+                        />
+                        {workflow.conditions.rules.length > 0 && (
+                          <path
+                            d={`M ${(nodePositions["trigger"]?.x || 50) + 192} ${(nodePositions["trigger"]?.y || 100) + 60} L ${(nodePositions["conditions"]?.x || 50) + 192} ${(nodePositions["conditions"]?.y || 200)}`}
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            fill="none"
+                            className="text-muted-foreground"
+                          />
+                        )}
+                        {workflow.actions.map((_, index) => {
+                          const sourceY = workflow.conditions.rules.length > 0
+                            ? (nodePositions["conditions"]?.y || 200) + 40
+                            : (nodePositions["trigger"]?.y || 100) + 60;
+                          const targetY = (nodePositions[`action-${index}`]?.y || 300 + index * 100);
+                          return (
+                            <path
+                              key={`edge-${index}`}
+                              d={`M ${(workflow.conditions.rules.length > 0 ? nodePositions["conditions"]?.x : nodePositions["trigger"]?.x) || 50} ${sourceY} L ${(nodePositions[`action-${index}`]?.x || 50) + 96} ${targetY + 20}`}
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              fill="none"
+                              className="text-muted-foreground"
+                            />
+                          );
+                        })}
+                      </>
+                    )}
+                  </svg>
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  value={workflow.description}
-                  onChange={(e) =>
-                    setWorkflow({ ...workflow, description: e.target.value })
-                  }
-                  placeholder="Describe what this workflow does..."
-                  rows={2}
-                />
-              </div>
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="isActive"
-                  checked={workflow.isActive}
-                  onCheckedChange={(checked) =>
-                    setWorkflow({ ...workflow, isActive: checked as boolean })
-                  }
-                />
-                <Label htmlFor="isActive" className="font-normal">
-                  Active (workflow will run when triggered)
-                </Label>
-              </div>
-            </CardContent>
-          </Card>
 
-          <Tabs defaultValue="conditions" className="w-full">
-            <TabsList>
-              <TabsTrigger value="conditions">
-                Conditions ({workflow.conditions.rules.length})
-              </TabsTrigger>
-              <TabsTrigger value="actions">
-                Actions ({workflow.actions.length})
-              </TabsTrigger>
-            </TabsList>
+              <Tabs defaultValue="conditions" className="border-t bg-background">
+                <div className="px-4 pt-2">
+                  <TabsList>
+                    <TabsTrigger value="conditions">
+                      Conditions ({workflow.conditions.rules.length})
+                    </TabsTrigger>
+                    <TabsTrigger value="actions">
+                      Actions ({workflow.actions.length})
+                    </TabsTrigger>
+                  </TabsList>
+                </div>
 
-            <TabsContent value="conditions">
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle>Conditions</CardTitle>
-                      <CardDescription>
-                        Define when this workflow should run
-                      </CardDescription>
-                    </div>
+                <TabsContent value="conditions" className="p-4 max-h-64 overflow-y-auto">
+                  <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
+                      <Label className="text-xs">Match</Label>
                       <Select
                         value={workflow.conditions.operator}
                         onValueChange={(value: "and" | "or") =>
                           setWorkflow({
                             ...workflow,
-                            conditions: {
-                              ...workflow.conditions,
-                              operator: value,
-                            },
+                            conditions: { ...workflow.conditions, operator: value },
                           })
                         }
                       >
-                        <SelectTrigger className="w-[120px]">
+                        <SelectTrigger className="w-[80px]">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -416,155 +627,134 @@ function WorkflowBuilderRoute() {
                           <SelectItem value="or">OR</SelectItem>
                         </SelectContent>
                       </Select>
-                      <Button variant="outline" size="sm" onClick={addCondition}>
-                        <Plus className="mr-2 h-4 w-4" />
-                        Add Rule
-                      </Button>
                     </div>
+                    <Button variant="outline" size="sm" onClick={addCondition}>
+                      <Plus className="mr-1 h-3 w-3" />
+                      Add
+                    </Button>
                   </div>
-                </CardHeader>
-                <CardContent>
+
                   {workflow.conditions.rules.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
-                      <AlertCircle className="mb-2 h-8 w-8" />
-                      <p>No conditions defined. Add a rule to control when this workflow runs.</p>
-                    </div>
+                    <p className="text-xs text-muted-foreground text-center py-4">
+                      No conditions. Add rules to control when this workflow runs.
+                    </p>
                   ) : (
-                    <div className="space-y-3">
+                    <div className="space-y-2">
                       {workflow.conditions.rules.map((rule, index) => (
-                        <div
-                          key={index}
-                          className="flex items-center gap-2 rounded-lg border p-3"
-                        >
-                          <GripVertical className="h-4 w-4 cursor-grab text-muted-foreground" />
-                          <Select
-                            value={rule.field}
-                            onValueChange={(value) =>
-                              updateCondition(index, { field: value })
-                            }
-                          >
-                            <SelectTrigger className="w-[180px]">
+                        <div key={index} className="flex items-center gap-2 rounded border p-2">
+                          <GripVertical className="h-3 w-3 cursor-grab text-muted-foreground" />
+                          <Select value={rule.field} onValueChange={(value) => updateCondition(index, { field: value })}>
+                            <SelectTrigger className="w-[140px]">
                               <SelectValue placeholder="Field" />
                             </SelectTrigger>
                             <SelectContent>
-                              {CONDITION_FIELDS.map((field) => (
-                                <SelectItem key={field.value} value={field.value}>
-                                  {field.label}
-                                </SelectItem>
+                              {CONDITION_FIELDS.map((f) => (
+                                <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
-                          <Select
-                            value={rule.operator}
-                            onValueChange={(value: ConditionRule["operator"]) =>
-                              updateCondition(index, { operator: value })
-                            }
-                          >
-                            <SelectTrigger className="w-[150px]">
-                              <SelectValue placeholder="Operator" />
+                          <Select value={rule.operator} onValueChange={(value) => updateCondition(index, { operator: value })}>
+                            <SelectTrigger className="w-[120px]">
+                              <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
                               {OPERATORS.map((op) => (
-                                <SelectItem key={op.value} value={op.value}>
-                                  {op.label}
-                                </SelectItem>
+                                <SelectItem key={op.value} value={op.value}>{op.label}</SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
                           {!["is_empty", "is_not_empty"].includes(rule.operator) && (
                             <Input
                               value={rule.value}
-                              onChange={(e) =>
-                                updateCondition(index, { value: e.target.value })
-                              }
+                              onChange={(e) => updateCondition(index, { value: e.target.value })}
                               placeholder="Value"
                               className="flex-1"
                             />
                           )}
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => removeCondition(index)}
-                          >
-                            <Trash2 className="h-4 w-4 text-destructive" />
+                          <Button variant="ghost" size="icon" onClick={() => removeCondition(index)} className="h-7 w-7">
+                            <Trash2 className="h-3 w-3 text-destructive" />
                           </Button>
                         </div>
                       ))}
                     </div>
                   )}
-                </CardContent>
-              </Card>
-            </TabsContent>
+                </TabsContent>
 
-            <TabsContent value="actions">
-              <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <CardTitle>Actions</CardTitle>
-                      <CardDescription>
-                        Define what happens when conditions are met
-                      </CardDescription>
-                    </div>
+                <TabsContent value="actions" className="p-4 max-h-64 overflow-y-auto">
+                  <div className="flex items-center justify-end mb-3">
                     <Button variant="outline" size="sm" onClick={addAction}>
-                      <Plus className="mr-2 h-4 w-4" />
+                      <Plus className="mr-1 h-3 w-3" />
                       Add Action
                     </Button>
                   </div>
-                </CardHeader>
-                <CardContent>
+
                   {workflow.actions.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
-                      <AlertCircle className="mb-2 h-8 w-8" />
-                      <p>No actions defined. Add an action to automate your workflow.</p>
-                    </div>
+                    <p className="text-xs text-muted-foreground text-center py-4">
+                      No actions. Add actions to automate your workflow.
+                    </p>
                   ) : (
-                    <div className="space-y-3">
+                    <div className="space-y-2">
                       {workflow.actions.map((action, index) => (
-                        <div
-                          key={index}
-                          className="rounded-lg border p-4"
-                        >
-                          <div className="flex items-center justify-between mb-3">
-                            <Select
-                              value={action.type}
-                              onValueChange={(value: WorkflowAction["type"]) =>
-                                updateAction(index, { type: value, params: {} })
-                              }
-                            >
-                              <SelectTrigger className="w-[200px]">
-                                <SelectValue placeholder="Action Type" />
+                        <div key={index} className="rounded border p-2">
+                          <div className="flex items-center justify-between mb-2">
+                            <Select value={action.type} onValueChange={(value) => updateAction(index, { type: value, params: {} })}>
+                              <SelectTrigger className="w-[160px]">
+                                <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
-                                {ACTION_TYPES.map((type) => (
-                                  <SelectItem key={type.value} value={type.value}>
-                                    {type.label}
-                                  </SelectItem>
+                                {ACTION_TYPES.map((at) => (
+                                  <SelectItem key={at.value} value={at.value}>{at.label}</SelectItem>
                                 ))}
                               </SelectContent>
                             </Select>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => removeAction(index)}
-                            >
-                              <Trash2 className="h-4 w-4 text-destructive" />
+                            <Button variant="ghost" size="icon" onClick={() => removeAction(index)} className="h-7 w-7">
+                              <Trash2 className="h-3 w-3 text-destructive" />
                             </Button>
                           </div>
-                          <ActionParamsEditor
-                            action={action}
-                            onUpdate={(params) =>
-                              updateAction(index, { params })
-                            }
-                          />
+                          <ActionParamsEditor action={action} onUpdate={(params) => updateAction(index, { params })} />
                         </div>
                       ))}
                     </div>
                   )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+                </TabsContent>
+              </Tabs>
+            </div>
+          </div>
+
+          {showHistory && (
+            <div className="w-80 border-l bg-background overflow-y-auto p-4">
+              <h3 className="font-semibold mb-3 flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                Recent Executions
+              </h3>
+              {!executionLogs || executionLogs.length === 0 ? (
+                <p className="text-xs text-muted-foreground text-center py-4">
+                  No executions yet
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {executionLogs.map((log: any) => (
+                    <div key={log.id} className="rounded border p-2 text-xs">
+                      <div className="flex items-center gap-2 mb-1">
+                        {log.error ? (
+                          <XCircle className="h-3 w-3 text-red-600" />
+                        ) : (
+                          <CheckCircle className="h-3 w-3 text-green-600" />
+                        )}
+                        <span className="font-medium">Ticket #{log.ticketId}</span>
+                      </div>
+                      <div className="text-muted-foreground">
+                        {new Date(log.executedAt).toLocaleTimeString()} · {log.durationMs}ms
+                      </div>
+                      {log.error && (
+                        <p className="text-red-600 mt-1 truncate">{log.error}</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -581,14 +771,12 @@ function ActionParamsEditor({
   switch (action.type) {
     case "assign_agent":
       return (
-        <div className="space-y-2">
-          <Label>Agent ID</Label>
+        <div className="space-y-1">
+          <Label className="text-xs">Agent ID</Label>
           <Input
             type="number"
             value={(action.params.agentId as string) || ""}
-            onChange={(e) =>
-              onUpdate({ agentId: e.target.value })
-            }
+            onChange={(e) => onUpdate({ agentId: e.target.value })}
             placeholder="Enter agent ID"
           />
         </div>
@@ -596,14 +784,12 @@ function ActionParamsEditor({
 
     case "assign_team":
       return (
-        <div className="space-y-2">
-          <Label>Team ID</Label>
+        <div className="space-y-1">
+          <Label className="text-xs">Team ID</Label>
           <Input
             type="number"
             value={(action.params.teamId as string) || ""}
-            onChange={(e) =>
-              onUpdate({ teamId: e.target.value })
-            }
+            onChange={(e) => onUpdate({ teamId: e.target.value })}
             placeholder="Enter team ID"
           />
         </div>
@@ -611,14 +797,12 @@ function ActionParamsEditor({
 
     case "set_priority":
       return (
-        <div className="space-y-2">
-          <Label>Priority ID</Label>
+        <div className="space-y-1">
+          <Label className="text-xs">Priority ID</Label>
           <Input
             type="number"
             value={(action.params.priorityId as string) || ""}
-            onChange={(e) =>
-              onUpdate({ priorityId: e.target.value })
-            }
+            onChange={(e) => onUpdate({ priorityId: e.target.value })}
             placeholder="Enter priority ID"
           />
         </div>
@@ -626,14 +810,12 @@ function ActionParamsEditor({
 
     case "set_status":
       return (
-        <div className="space-y-2">
-          <Label>Status ID</Label>
+        <div className="space-y-1">
+          <Label className="text-xs">Status ID</Label>
           <Input
             type="number"
             value={(action.params.statusId as string) || ""}
-            onChange={(e) =>
-              onUpdate({ statusId: e.target.value })
-            }
+            onChange={(e) => onUpdate({ statusId: e.target.value })}
             placeholder="Enter status ID"
           />
         </div>
@@ -642,15 +824,11 @@ function ActionParamsEditor({
     case "add_tags":
     case "remove_tags":
       return (
-        <div className="space-y-2">
-          <Label>Tag IDs (comma-separated)</Label>
+        <div className="space-y-1">
+          <Label className="text-xs">Tag IDs (comma-separated)</Label>
           <Input
             value={(action.params.tagIds as string) || ""}
-            onChange={(e) =>
-              onUpdate({
-                tagIds: e.target.value.split(",").map((s) => s.trim()),
-              })
-            }
+            onChange={(e) => onUpdate({ tagIds: e.target.value.split(",").map((s) => s.trim()) })}
             placeholder="1, 2, 3"
           />
         </div>
@@ -658,30 +836,30 @@ function ActionParamsEditor({
 
     case "send_email":
       return (
-        <div className="space-y-3">
-          <div className="space-y-2">
-            <Label>To (email)</Label>
+        <div className="space-y-2">
+          <div className="space-y-1">
+            <Label className="text-xs">To (email)</Label>
             <Input
               value={(action.params.to as string) || ""}
               onChange={(e) => onUpdate({ to: e.target.value })}
-              placeholder="customer@example.com or {{contact.email}}"
+              placeholder="customer@example.com"
             />
           </div>
-          <div className="space-y-2">
-            <Label>Subject</Label>
+          <div className="space-y-1">
+            <Label className="text-xs">Subject</Label>
             <Input
               value={(action.params.subject as string) || ""}
               onChange={(e) => onUpdate({ subject: e.target.value })}
-              placeholder="Re: {{ticket.subject}}"
+              placeholder="Subject"
             />
           </div>
-          <div className="space-y-2">
-            <Label>Body</Label>
+          <div className="space-y-1">
+            <Label className="text-xs">Body</Label>
             <Textarea
               value={(action.params.body as string) || ""}
               onChange={(e) => onUpdate({ body: e.target.value })}
-              placeholder="Email body with merge tags..."
-              rows={4}
+              placeholder="Email body..."
+              rows={2}
             />
           </div>
         </div>
@@ -689,64 +867,36 @@ function ActionParamsEditor({
 
     case "send_webhook":
       return (
-        <div className="space-y-3">
-          <div className="space-y-2">
-            <Label>Webhook URL</Label>
+        <div className="space-y-2">
+          <div className="space-y-1">
+            <Label className="text-xs">Webhook URL</Label>
             <Input
               value={(action.params.url as string) || ""}
               onChange={(e) => onUpdate({ url: e.target.value })}
               placeholder="https://api.example.com/webhook"
             />
           </div>
-          <div className="space-y-2">
-            <Label>Method</Label>
-            <Select
-              value={(action.params.method as string) || "POST"}
-              onValueChange={(value) => onUpdate({ method: value })}
-            >
-              <SelectTrigger className="w-[120px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="POST">POST</SelectItem>
-                <SelectItem value="GET">GET</SelectItem>
-                <SelectItem value="PUT">PUT</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
         </div>
       );
 
     case "create_task":
       return (
-        <div className="space-y-3">
-          <div className="space-y-2">
-            <Label>Title</Label>
+        <div className="space-y-2">
+          <div className="space-y-1">
+            <Label className="text-xs">Title</Label>
             <Input
               value={(action.params.title as string) || ""}
               onChange={(e) => onUpdate({ title: e.target.value })}
               placeholder="Task title"
             />
           </div>
-          <div className="space-y-2">
-            <Label>Description</Label>
+          <div className="space-y-1">
+            <Label className="text-xs">Description</Label>
             <Textarea
               value={(action.params.description as string) || ""}
               onChange={(e) => onUpdate({ description: e.target.value })}
-              placeholder="Task description..."
+              placeholder="Description..."
               rows={2}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Assignee User IDs (comma-separated)</Label>
-            <Input
-              value={(action.params.assigneeUserIds as string) || ""}
-              onChange={(e) =>
-                onUpdate({
-                  assigneeUserIds: e.target.value.split(",").map((s) => s.trim()),
-                })
-              }
-              placeholder="1, 2, 3"
             />
           </div>
         </div>
@@ -754,41 +904,35 @@ function ActionParamsEditor({
 
     case "add_note":
       return (
-        <div className="space-y-3">
-          <div className="space-y-2">
-            <Label>Note Body</Label>
+        <div className="space-y-2">
+          <div className="space-y-1">
+            <Label className="text-xs">Note Body</Label>
             <Textarea
               value={(action.params.body as string) || ""}
               onChange={(e) => onUpdate({ body: e.target.value })}
               placeholder="Note content..."
-              rows={3}
+              rows={2}
             />
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center gap-2">
             <Checkbox
               id="isPrivate"
               checked={(action.params.isPrivate as boolean) ?? true}
-              onCheckedChange={(checked) =>
-                onUpdate({ isPrivate: checked })
-              }
+              onCheckedChange={(checked) => onUpdate({ isPrivate: checked })}
             />
-            <Label htmlFor="isPrivate" className="font-normal">
-              Internal note (private)
-            </Label>
+            <Label htmlFor="isPrivate" className="text-xs font-normal">Internal note</Label>
           </div>
         </div>
       );
 
     case "apply_saved_reply":
       return (
-        <div className="space-y-2">
-          <Label>Saved Reply ID</Label>
+        <div className="space-y-1">
+          <Label className="text-xs">Saved Reply ID</Label>
           <Input
             type="number"
             value={(action.params.savedReplyId as string) || ""}
-            onChange={(e) =>
-              onUpdate({ savedReplyId: e.target.value })
-            }
+            onChange={(e) => onUpdate({ savedReplyId: e.target.value })}
             placeholder="Enter saved reply ID"
           />
         </div>
@@ -796,9 +940,7 @@ function ActionParamsEditor({
 
     default:
       return (
-        <div className="text-muted-foreground text-sm">
-          No parameters needed for this action type.
-        </div>
+        <div className="text-xs text-muted-foreground">No parameters needed.</div>
       );
   }
 }

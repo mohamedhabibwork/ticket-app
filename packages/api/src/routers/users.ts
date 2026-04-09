@@ -602,4 +602,84 @@ export const usersRouter = {
         },
       });
     }),
+
+  invite: publicProcedure
+    .input(
+      z.object({
+        organizationId: z.number(),
+        email: z.string().email(),
+        roleIds: z.array(z.number()),
+        invitedBy: z.number(),
+        firstName: z.string().optional(),
+        lastName: z.string().optional(),
+      }),
+    )
+    .handler(async ({ input }) => {
+      const existingUser = await db.query.users.findFirst({
+        where: and(
+          eq(users.email, input.email.toLowerCase()),
+          eq(users.organizationId, input.organizationId),
+          isNull(users.deletedAt)
+        ),
+      });
+
+      if (existingUser) {
+        throw new Error("User with this email already exists");
+      }
+
+      const inviteToken = crypto.randomUUID();
+      const inviteExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+      const { createInvite } = await import("../services/inviteService");
+      const invite = await createInvite({
+        organizationId: input.organizationId,
+        email: input.email.toLowerCase(),
+        roleIds: input.roleIds,
+        invitedBy: input.invitedBy,
+        token: inviteToken,
+        expiresAt: inviteExpiresAt,
+        firstName: input.firstName,
+        lastName: input.lastName,
+      });
+
+      return invite;
+    }),
+
+  passwordReset: publicProcedure
+    .input(
+      z.object({
+        userId: z.number(),
+        organizationId: z.number(),
+        resetBy: z.number().optional(),
+      }),
+    )
+    .handler(async ({ input }) => {
+      const user = await db.query.users.findFirst({
+        where: and(
+          eq(users.id, input.userId),
+          eq(users.organizationId, input.organizationId),
+          isNull(users.deletedAt)
+        ),
+      });
+
+      if (!user) {
+        throw new Error("User not found");
+      }
+
+      const resetToken = crypto.randomUUID();
+      const resetExpiresAt = new Date(Date.now() + 60 * 60 * 1000);
+
+      const { createPasswordReset } = await import("../services/passwordResetService");
+      const reset = await createPasswordReset({
+        userId: input.userId,
+        token: resetToken,
+        expiresAt: resetExpiresAt,
+        requestedBy: input.resetBy,
+      });
+
+      const { sendPasswordResetEmail } = await import("../services/emailService");
+      await sendPasswordResetEmail(user.email, resetToken);
+
+      return { success: true, message: "Password reset email sent" };
+    }),
 };

@@ -4,7 +4,85 @@
 @source "../../../apps/**/*.{ts,tsx}";
 @source "../**/*.{ts,tsx}";
 
+@custom-variant rtl (&:dir(rtl));
 @custom-variant dark (&:is(.dark *));
+
+@layer utilities {
+  .text-start {
+    text-align: start;
+  }
+  
+  .text-end {
+    text-align: end;
+  }
+  
+  .ms-auto {
+    margin-inline-start: auto;
+  }
+  
+  .me-auto {
+    margin-inline-end: auto;
+  }
+  
+  .ps-4 {
+    padding-inline-start: 1rem;
+  }
+  
+  .pe-4 {
+    padding-inline-end: 1rem;
+  }
+  
+  .ms-4 {
+    margin-inline-start: 1rem;
+  }
+  
+  .me-4 {
+    margin-inline-end: 1rem;
+  }
+  
+  .start-0 {
+    inset-inline-start: 0;
+  }
+  
+  .end-0 {
+    inset-inline-end: 0;
+  }
+  
+  .start-auto {
+    inset-inline-start: auto;
+  }
+  
+  .end-auto {
+    inset-inline-end: auto;
+  }
+  
+  .rtl-flip {
+    transform: scaleX(-1);
+  }
+  
+  .rtl-flip-45 {
+    transform: scaleX(-1) rotate(45deg);
+  }
+  
+  .rtl-flip-90 {
+    transform: scaleX(-1) rotate(90deg);
+  }
+  
+  .rtl-flip-180 {
+    transform: scaleX(-1) rotate(180deg);
+  }
+  
+  .rtl-flip-270 {
+    transform: scaleX(-1) rotate(270deg);
+  }
+  
+  .rtl-flip-315 {
+    transform: scaleX(-1) rotate(315deg);
+  }
+
+  @variant rtl (&:dir(rtl));
+  @variant ltr (&:dir(ltr));
+}
 
 :root {
   --background: oklch(1 0 0);

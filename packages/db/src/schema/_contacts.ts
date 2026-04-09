@@ -41,6 +41,7 @@ export const contacts = pgTable(
   },
   (table) => ({
     orgEmailUnique: unique().on(table.organizationId, table.email),
+    orgEmailIdx: index("contacts_org_email_idx").on(table.organizationId, table.email),
     orgIdx: index("contacts_org_idx").on(table.organizationId),
     emailIdx: index("contacts_email_idx").on(table.email),
     phoneIdx: index("contacts_phone_idx").on(table.phone),

@@ -282,4 +282,75 @@ export const workflowsRouter = {
         return { success: false, error: errorMessage };
       }
     }),
+
+  simulate: publicProcedure
+    .input(z.object({
+      workflowId: z.number(),
+      organizationId: z.number(),
+      testData: z.object({
+        ticketId: z.number().optional(),
+        ticketData: z.record(z.unknown()).optional(),
+      }),
+    }))
+    .handler(async ({ input }) => {
+      const [workflow] = await db.select()
+        .from(workflows)
+        .where(and(
+          eq(workflows.id, input.workflowId),
+          eq(workflows.organizationId, input.organizationId)
+        ));
+
+      if (!workflow) {
+        throw new Error("Workflow not found");
+      }
+
+      const testTicketData = input.testData.ticketData ?? {
+        id: input.testData.ticketId ?? 0,
+        subject: "Test Ticket",
+        status: "open",
+        priority: "medium",
+      };
+
+      const conditionsResult = workflowEngine.evaluateConditions(
+        workflow.conditions as { operator: "and" | "or"; rules: any[] },
+        testTicketData as Record<string, unknown>
+      );
+
+      return {
+        workflowId: workflow.id,
+        workflowName: workflow.name,
+        conditionsResult,
+        wouldExecute: conditionsResult.passed,
+        testData: testTicketData,
+      };
+    }),
+
+  getExecutionLogs: publicProcedure
+    .input(z.object({
+      workflowId: z.number(),
+      organizationId: z.number(),
+      limit: z.number().min(1).max(100).default(50),
+      offset: z.number().min(0).default(0),
+      startDate: z.string().optional(),
+      endDate: z.string().optional(),
+    }))
+    .handler(async ({ input }) => {
+      const [workflow] = await db.select()
+        .from(workflows)
+        .where(and(
+          eq(workflows.id, input.workflowId),
+          eq(workflows.organizationId, input.organizationId)
+        ));
+
+      if (!workflow) {
+        throw new Error("Workflow not found");
+      }
+
+      return await db.select()
+        .from(workflowExecutionLogs)
+        .where(eq(workflowExecutionLogs.workflowId, input.workflowId))
+        .orderBy(desc(workflowExecutionLogs.executedAt))
+        .limit(input.limit)
+        .offset(input.offset);
+    }),
 };

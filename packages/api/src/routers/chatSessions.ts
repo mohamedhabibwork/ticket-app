@@ -322,4 +322,62 @@ export const chatSessionsRouter = {
         averageRating: avgRating || null,
       };
     }),
+
+  sendTypingIndicator: publicProcedure
+    .input(
+      z.object({
+        sessionId: z.number(),
+        userId: z.number().optional(),
+        contactId: z.number().optional(),
+        isTyping: z.boolean(),
+      })
+    )
+    .handler(async ({ input }) => {
+      const { publishTypingIndicator } = await import("../services/chatPubSub");
+      
+      await publishTypingIndicator({
+        sessionId: input.sessionId,
+        userId: input.userId,
+        contactId: input.contactId,
+        isTyping: input.isTyping,
+      });
+
+      return { success: true };
+    }),
+
+  sendReadReceipt: publicProcedure
+    .input(
+      z.object({
+        messageId: z.number(),
+        userId: z.number().optional(),
+        contactId: z.number().optional(),
+      })
+    )
+    .handler(async ({ input }) => {
+      const message = await db.query.chatMessages.findFirst({
+        where: eq(chatMessages.id, input.messageId),
+      });
+
+      if (!message) {
+        throw new Error("Message not found");
+      }
+
+      await db
+        .update(chatMessages)
+        .set({
+          readAt: new Date(),
+          readBy: input.userId ?? input.contactId,
+        })
+        .where(eq(chatMessages.id, input.messageId));
+
+      const { publishReadReceipt } = await import("../services/chatPubSub");
+      await publishReadReceipt({
+        sessionId: message.sessionId,
+        messageId: input.messageId,
+        userId: input.userId,
+        contactId: input.contactId,
+      });
+
+      return { success: true };
+    }),
 };
