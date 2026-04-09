@@ -5,7 +5,7 @@ import { db } from "@ticket-app/db";
 import { ticketEscalations, ticketSla } from "@ticket-app/db/schema/_sla";
 import { tickets, ticketMessages } from "@ticket-app/db/schema/_tickets";
 import { users, teamMembers } from "@ticket-app/db/schema/_users";
-import { createNotification, NOTIFICATION_TYPES } from "@ticket-app/services/notifications";
+import { createNotification, NOTIFICATION_TYPES } from "../services/notifications";
 
 export const SLA_ESCALATION_QUEUE = "sla-escalation";
 

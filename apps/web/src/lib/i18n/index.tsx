@@ -46,7 +46,13 @@ function getDirection(locale: string): Direction {
 }
 
 type NestedKeyOf<T> = T extends object
-  ? { [K in keyof T]: K extends string ? (T[K] extends object ? `${K}.${NestedKeyOf<T[K]>}` : K) : never }[keyof T]
+  ? {
+      [K in keyof T]: K extends string
+        ? T[K] extends object
+          ? `${K}.${NestedKeyOf<T[K]>}`
+          : K
+        : never;
+    }[keyof T]
   : never;
 
 type TranslationKey = NestedKeyOf<typeof en>;
@@ -102,12 +108,12 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
       if (params) {
         return Object.entries(params).reduce(
           (str, [k, v]) => str.replace(new RegExp(`{{${k}}}`, "g"), String(v)),
-          translation
+          translation,
         );
       }
       return translation;
     },
-    [locale]
+    [locale],
   );
 
   const formatDate = useCallback(
@@ -127,7 +133,7 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
         .replace("MM", formatMap.month || "")
         .replace("dd", formatMap.day || "");
     },
-    [locale]
+    [locale],
   );
 
   const formatNumber = useCallback(
@@ -138,7 +144,7 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
         ...options,
       }).format(value);
     },
-    [locale]
+    [locale],
   );
 
   return (
@@ -171,5 +177,5 @@ export function useDirection() {
   return { direction, isRTL, locale };
 }
 
-export { getDirection, isRTL, LOCALE_CONFIGS };
+export { getDirection, isRTL };
 export type { TranslationKey };

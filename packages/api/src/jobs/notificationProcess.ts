@@ -8,14 +8,14 @@ import {
   getUserNotificationPreferences,
   markNotificationAsRead,
   NOTIFICATION_TYPES,
-} from "@ticket-app/services/notifications";
-import { TemplateData } from "@ticket-app/services/notificationTemplates";
-import { sendSlackNotification } from "@ticket-app/services/slack";
+} from "../services/notifications";
+import { TemplateData } from "../services/notificationTemplates";
+import { sendSlackNotification } from "../services/slack";
 import {
   sendNotificationEmailIfImportant,
   queueEmailDigest,
   NotificationEmailData,
-} from "@ticket-app/services/notificationEmail";
+} from "../services/notificationEmail";
 
 export const NOTIFICATION_PROCESS_QUEUE = "notification-process";
 

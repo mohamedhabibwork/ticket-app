@@ -26,7 +26,7 @@ function ModalOverlay({ className, ...props }: DialogPrimitive.Backdrop.Props) {
       data-slot="modal-overlay"
       className={cn(
         "fixed inset-0 z-50 bg-black/50 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
-        className
+        className,
       )}
       {...props}
     />
@@ -68,7 +68,7 @@ function ModalContent({
               xl: "max-w-4xl",
               full: "max-w-[calc(100vw-2rem)] max-h-[calc(100vh-2rem)]",
             }[size],
-            className
+            className,
           )}
           {...props}
         >
@@ -81,11 +81,7 @@ function ModalContent({
 
 function ModalHeader({ className, ...props }: React.ComponentProps<"div">) {
   return (
-    <div
-      data-slot="modal-header"
-      className={cn("flex flex-col gap-1.5", className)}
-      {...props}
-    />
+    <div data-slot="modal-header" className={cn("flex flex-col gap-1.5", className)} {...props} />
   );
 }
 
@@ -110,13 +106,7 @@ function ModalDescription({ className, ...props }: DialogPrimitive.Description.P
 }
 
 function ModalBody({ className, ...props }: React.ComponentProps<"div">) {
-  return (
-    <div
-      data-slot="modal-body"
-      className={cn("text-xs", className)}
-      {...props}
-    />
-  );
+  return <div data-slot="modal-body" className={cn("text-xs", className)} {...props} />;
 }
 
 function ModalFooter({ className, ...props }: React.ComponentProps<"div">) {
@@ -135,7 +125,7 @@ function ModalClose({ className, ...props }: DialogPrimitive.Close.Props) {
       data-slot="modal-close"
       className={cn(
         "absolute right-4 top-4 rounded-sm opacity-70 hover:opacity-100 focus:outline-none focus:ring-1 focus:ring-ring/50 disabled:pointer-events-none",
-        className
+        className,
       )}
       {...props}
     >
@@ -145,4 +135,14 @@ function ModalClose({ className, ...props }: DialogPrimitive.Close.Props) {
   );
 }
 
-export { Modal, ModalContent, ModalHeader, ModalTitle, ModalDescription, ModalBody, ModalFooter, ModalClose };
+export {
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalTitle,
+  ModalDescription,
+  ModalBody,
+  ModalFooter,
+  ModalClose,
+};

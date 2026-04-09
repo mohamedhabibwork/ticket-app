@@ -17,8 +17,10 @@
   },
   "dependencies": {
     "@ticket-app/env": "workspace:*",
+    "bullmq": "^5.73.2",
     "dotenv": "catalog:",
     "drizzle-orm": "catalog:",
+    "ioredis": "^5.10.1",
     "pg": "^8.17.1",
     "zod": "catalog:"
   },

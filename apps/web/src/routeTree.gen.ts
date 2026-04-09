@@ -8,1826 +8,1834 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { Route as rootRouteImport } from './routes/__root'
-import { Route as TodosRouteImport } from './routes/todos'
-import { Route as AiRouteImport } from './routes/ai'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as TicketsIndexRouteImport } from './routes/tickets/index'
-import { Route as TeamsIndexRouteImport } from './routes/teams/index'
-import { Route as SettingsIndexRouteImport } from './routes/settings/index'
-import { Route as KbIndexRouteImport } from './routes/kb/index'
-import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
-import { Route as ContactsIndexRouteImport } from './routes/contacts/index'
-import { Route as ChatIndexRouteImport } from './routes/chat/index'
-import { Route as TicketsSpamRouteImport } from './routes/tickets/spam'
-import { Route as TicketsNewRouteImport } from './routes/tickets/new'
-import { Route as TicketsMergedRouteImport } from './routes/tickets/merged'
-import { Route as TicketsKanbanRouteImport } from './routes/tickets/kanban'
-import { Route as TicketsChar91idChar93RouteImport } from './routes/tickets/[id]'
-import { Route as TeamsNewRouteImport } from './routes/teams/new'
-import { Route as TeamsChar91idChar93RouteImport } from './routes/teams/[id]'
-import { Route as SettingsSecurityRouteImport } from './routes/settings/security'
-import { Route as SettingsProfileRouteImport } from './routes/settings/profile'
-import { Route as SettingsPasswordRouteImport } from './routes/settings/password'
-import { Route as SettingsNotificationsRouteImport } from './routes/settings/notifications'
-import { Route as SettingsAppearanceRouteImport } from './routes/settings/appearance'
-import { Route as PortalLoginRouteImport } from './routes/portal/login'
-import { Route as KbNewRouteImport } from './routes/kb/new'
-import { Route as KbSlugRouteImport } from './routes/kb/$slug'
-import { Route as FormsChar91idChar93RouteImport } from './routes/forms/[id]'
-import { Route as ContactsNewRouteImport } from './routes/contacts/new'
-import { Route as ContactsChar91idChar93RouteImport } from './routes/contacts/[id]'
-import { Route as ChatChar91idChar93RouteImport } from './routes/chat/[id]'
-import { Route as ChatEndedRouteImport } from './routes/chat/ended'
-import { Route as ChatActiveRouteImport } from './routes/chat/active'
-import { Route as AdminCustomDomainRouteImport } from './routes/admin/custom-domain'
-import { Route as AdminAuditLogRouteImport } from './routes/admin/audit-log'
-import { Route as KbCategoriesIndexRouteImport } from './routes/kb/categories/index'
-import { Route as AdminWorkflowsIndexRouteImport } from './routes/admin/workflows/index'
-import { Route as AdminUsersIndexRouteImport } from './routes/admin/users/index'
-import { Route as AdminSocialIndexRouteImport } from './routes/admin/social/index'
-import { Route as AdminSlaIndexRouteImport } from './routes/admin/sla/index'
-import { Route as AdminSecurityIndexRouteImport } from './routes/admin/security/index'
-import { Route as AdminSavedRepliesIndexRouteImport } from './routes/admin/saved-replies/index'
-import { Route as AdminRolesIndexRouteImport } from './routes/admin/roles/index'
-import { Route as AdminReportsIndexRouteImport } from './routes/admin/reports/index'
-import { Route as AdminMailboxesIndexRouteImport } from './routes/admin/mailboxes/index'
-import { Route as AdminFormsIndexRouteImport } from './routes/admin/forms/index'
-import { Route as AdminEmailTemplatesIndexRouteImport } from './routes/admin/email-templates/index'
-import { Route as AdminEcommerceIndexRouteImport } from './routes/admin/ecommerce/index'
-import { Route as AdminBrandingIndexRouteImport } from './routes/admin/branding/index'
-import { Route as KbCategoriesChar91idChar93RouteImport } from './routes/kb/categories/[id]'
-import { Route as AdminWorkflowsNewRouteImport } from './routes/admin/workflows/new'
-import { Route as AdminWorkflowsBuilderRouteImport } from './routes/admin/workflows/builder'
-import { Route as AdminUsersInviteRouteImport } from './routes/admin/users/invite'
-import { Route as AdminUsersChar91idChar93RouteImport } from './routes/admin/users/[id]'
-import { Route as AdminSocialWhatsappRouteImport } from './routes/admin/social/whatsapp'
-import { Route as AdminSocialTwitterRouteImport } from './routes/admin/social/twitter'
-import { Route as AdminSocialInstagramRouteImport } from './routes/admin/social/instagram'
-import { Route as AdminSocialFacebookRouteImport } from './routes/admin/social/facebook'
-import { Route as AdminSocialDisqusRouteImport } from './routes/admin/social/disqus'
-import { Route as AdminSlaNewRouteImport } from './routes/admin/sla/new'
-import { Route as AdminSettingsTranslationRouteImport } from './routes/admin/settings/translation'
-import { Route as AdminSettingsMobileSdkRouteImport } from './routes/admin/settings/mobile-sdk'
-import { Route as AdminSettingsLicenseRouteImport } from './routes/admin/settings/license'
-import { Route as AdminSettingsChatbotRouteImport } from './routes/admin/settings/chatbot'
-import { Route as AdminSecuritySsoRouteImport } from './routes/admin/security/sso'
-import { Route as AdminSecurityIpWhitelistRouteImport } from './routes/admin/security/ip-whitelist'
-import { Route as AdminSavedRepliesFoldersRouteImport } from './routes/admin/saved-replies/folders'
-import { Route as AdminRolesNewRouteImport } from './routes/admin/roles/new'
-import { Route as AdminReportsTicketsRouteImport } from './routes/admin/reports/tickets'
-import { Route as AdminReportsSlaRouteImport } from './routes/admin/reports/sla'
-import { Route as AdminReportsCustomRouteImport } from './routes/admin/reports/custom'
-import { Route as AdminReportsCsatRouteImport } from './routes/admin/reports/csat'
-import { Route as AdminReportsAgentsRouteImport } from './routes/admin/reports/agents'
-import { Route as AdminMailboxesNewRouteImport } from './routes/admin/mailboxes/new'
-import { Route as AdminFormsNewRouteImport } from './routes/admin/forms/new'
-import { Route as AdminFormsBuilderRouteImport } from './routes/admin/forms/builder'
-import { Route as AdminEcommerceChar91idChar93RouteImport } from './routes/admin/ecommerce/[id]'
-import { Route as AdminEcommerceConnectRouteImport } from './routes/admin/ecommerce/connect'
-import { Route as AdminEcommerceAmazonRouteImport } from './routes/admin/ecommerce/amazon'
-import { Route as AdminBrandingThemeRouteImport } from './routes/admin/branding/theme'
-import { Route as AdminBrandingPortalRouteImport } from './routes/admin/branding/portal'
-import { Route as AdminBrandingEmailRouteImport } from './routes/admin/branding/email'
-import { Route as AdminWorkflowsChar91idChar93IndexRouteImport } from './routes/admin/workflows/[id]/index'
-import { Route as AdminRolesChar91idChar93IndexRouteImport } from './routes/admin/roles/[id]/index'
-import { Route as AdminMailboxesChar91idChar93IndexRouteImport } from './routes/admin/mailboxes/[id]/index'
-import { Route as AdminFormsChar91idChar93IndexRouteImport } from './routes/admin/forms/[id]/index'
-import { Route as AdminWorkflowsChar91idChar93LogsRouteImport } from './routes/admin/workflows/[id]/logs'
-import { Route as AdminRolesChar91idChar93PermissionsRouteImport } from './routes/admin/roles/[id]/permissions'
-import { Route as AdminMailboxesChar91idChar93RoutingRouteImport } from './routes/admin/mailboxes/[id]/routing'
-import { Route as AdminMailboxesChar91idChar93ConfigureRouteImport } from './routes/admin/mailboxes/[id]/configure'
-import { Route as AdminFormsChar91idChar93SubmissionsRouteImport } from './routes/admin/forms/[id]/submissions'
+import { Route as rootRouteImport } from "./routes/__root";
+import { Route as TodosRouteImport } from "./routes/todos";
+import { Route as AiRouteImport } from "./routes/ai";
+import { Route as IndexRouteImport } from "./routes/index";
+import { Route as TicketsIndexRouteImport } from "./routes/tickets/index";
+import { Route as TeamsIndexRouteImport } from "./routes/teams/index";
+import { Route as SettingsIndexRouteImport } from "./routes/settings/index";
+import { Route as KbIndexRouteImport } from "./routes/kb/index";
+import { Route as DashboardIndexRouteImport } from "./routes/dashboard/index";
+import { Route as ContactsIndexRouteImport } from "./routes/contacts/index";
+import { Route as ChatIndexRouteImport } from "./routes/chat/index";
+import { Route as TicketsSpamRouteImport } from "./routes/tickets/spam";
+import { Route as TicketsNewRouteImport } from "./routes/tickets/new";
+import { Route as TicketsMergedRouteImport } from "./routes/tickets/merged";
+import { Route as TicketsKanbanRouteImport } from "./routes/tickets/kanban";
+import { Route as TicketsChar91idChar93RouteImport } from "./routes/tickets/[id]";
+import { Route as TeamsNewRouteImport } from "./routes/teams/new";
+import { Route as TeamsChar91idChar93RouteImport } from "./routes/teams/[id]";
+import { Route as SettingsSecurityRouteImport } from "./routes/settings/security";
+import { Route as SettingsProfileRouteImport } from "./routes/settings/profile";
+import { Route as SettingsPasswordRouteImport } from "./routes/settings/password";
+import { Route as SettingsNotificationsRouteImport } from "./routes/settings/notifications";
+import { Route as SettingsAppearanceRouteImport } from "./routes/settings/appearance";
+import { Route as PortalLoginRouteImport } from "./routes/portal/login";
+import { Route as KbNewRouteImport } from "./routes/kb/new";
+import { Route as KbSlugRouteImport } from "./routes/kb/$slug";
+import { Route as FormsChar91idChar93RouteImport } from "./routes/forms/[id]";
+import { Route as ContactsNewRouteImport } from "./routes/contacts/new";
+import { Route as ContactsChar91idChar93RouteImport } from "./routes/contacts/[id]";
+import { Route as ChatChar91idChar93RouteImport } from "./routes/chat/[id]";
+import { Route as ChatEndedRouteImport } from "./routes/chat/ended";
+import { Route as ChatActiveRouteImport } from "./routes/chat/active";
+import { Route as AdminCustomDomainRouteImport } from "./routes/admin/custom-domain";
+import { Route as AdminAuditLogRouteImport } from "./routes/admin/audit-log";
+import { Route as KbCategoriesIndexRouteImport } from "./routes/kb/categories/index";
+import { Route as AdminWorkflowsIndexRouteImport } from "./routes/admin/workflows/index";
+import { Route as AdminUsersIndexRouteImport } from "./routes/admin/users/index";
+import { Route as AdminSocialIndexRouteImport } from "./routes/admin/social/index";
+import { Route as AdminSlaIndexRouteImport } from "./routes/admin/sla/index";
+import { Route as AdminSecurityIndexRouteImport } from "./routes/admin/security/index";
+import { Route as AdminSavedRepliesIndexRouteImport } from "./routes/admin/saved-replies/index";
+import { Route as AdminRolesIndexRouteImport } from "./routes/admin/roles/index";
+import { Route as AdminReportsIndexRouteImport } from "./routes/admin/reports/index";
+import { Route as AdminMailboxesIndexRouteImport } from "./routes/admin/mailboxes/index";
+import { Route as AdminFormsIndexRouteImport } from "./routes/admin/forms/index";
+import { Route as AdminExcelIndexRouteImport } from "./routes/admin/excel/index";
+import { Route as AdminEmailTemplatesIndexRouteImport } from "./routes/admin/email-templates/index";
+import { Route as AdminEcommerceIndexRouteImport } from "./routes/admin/ecommerce/index";
+import { Route as AdminBrandingIndexRouteImport } from "./routes/admin/branding/index";
+import { Route as KbCategoriesChar91idChar93RouteImport } from "./routes/kb/categories/[id]";
+import { Route as AdminWorkflowsNewRouteImport } from "./routes/admin/workflows/new";
+import { Route as AdminWorkflowsBuilderRouteImport } from "./routes/admin/workflows/builder";
+import { Route as AdminUsersInviteRouteImport } from "./routes/admin/users/invite";
+import { Route as AdminUsersChar91idChar93RouteImport } from "./routes/admin/users/[id]";
+import { Route as AdminSocialWhatsappRouteImport } from "./routes/admin/social/whatsapp";
+import { Route as AdminSocialTwitterRouteImport } from "./routes/admin/social/twitter";
+import { Route as AdminSocialInstagramRouteImport } from "./routes/admin/social/instagram";
+import { Route as AdminSocialFacebookRouteImport } from "./routes/admin/social/facebook";
+import { Route as AdminSocialDisqusRouteImport } from "./routes/admin/social/disqus";
+import { Route as AdminSlaNewRouteImport } from "./routes/admin/sla/new";
+import { Route as AdminSettingsTranslationRouteImport } from "./routes/admin/settings/translation";
+import { Route as AdminSettingsMobileSdkRouteImport } from "./routes/admin/settings/mobile-sdk";
+import { Route as AdminSettingsLicenseRouteImport } from "./routes/admin/settings/license";
+import { Route as AdminSettingsChatbotRouteImport } from "./routes/admin/settings/chatbot";
+import { Route as AdminSecuritySsoRouteImport } from "./routes/admin/security/sso";
+import { Route as AdminSecurityIpWhitelistRouteImport } from "./routes/admin/security/ip-whitelist";
+import { Route as AdminSavedRepliesFoldersRouteImport } from "./routes/admin/saved-replies/folders";
+import { Route as AdminRolesNewRouteImport } from "./routes/admin/roles/new";
+import { Route as AdminReportsTicketsRouteImport } from "./routes/admin/reports/tickets";
+import { Route as AdminReportsSlaRouteImport } from "./routes/admin/reports/sla";
+import { Route as AdminReportsCustomRouteImport } from "./routes/admin/reports/custom";
+import { Route as AdminReportsCsatRouteImport } from "./routes/admin/reports/csat";
+import { Route as AdminReportsAgentsRouteImport } from "./routes/admin/reports/agents";
+import { Route as AdminMailboxesNewRouteImport } from "./routes/admin/mailboxes/new";
+import { Route as AdminFormsNewRouteImport } from "./routes/admin/forms/new";
+import { Route as AdminFormsBuilderRouteImport } from "./routes/admin/forms/builder";
+import { Route as AdminEcommerceChar91idChar93RouteImport } from "./routes/admin/ecommerce/[id]";
+import { Route as AdminEcommerceConnectRouteImport } from "./routes/admin/ecommerce/connect";
+import { Route as AdminEcommerceAmazonRouteImport } from "./routes/admin/ecommerce/amazon";
+import { Route as AdminBrandingThemeRouteImport } from "./routes/admin/branding/theme";
+import { Route as AdminBrandingPortalRouteImport } from "./routes/admin/branding/portal";
+import { Route as AdminBrandingEmailRouteImport } from "./routes/admin/branding/email";
+import { Route as AdminWorkflowsChar91idChar93IndexRouteImport } from "./routes/admin/workflows/[id]/index";
+import { Route as AdminRolesChar91idChar93IndexRouteImport } from "./routes/admin/roles/[id]/index";
+import { Route as AdminMailboxesChar91idChar93IndexRouteImport } from "./routes/admin/mailboxes/[id]/index";
+import { Route as AdminFormsChar91idChar93IndexRouteImport } from "./routes/admin/forms/[id]/index";
+import { Route as AdminWorkflowsChar91idChar93LogsRouteImport } from "./routes/admin/workflows/[id]/logs";
+import { Route as AdminRolesChar91idChar93PermissionsRouteImport } from "./routes/admin/roles/[id]/permissions";
+import { Route as AdminMailboxesChar91idChar93RoutingRouteImport } from "./routes/admin/mailboxes/[id]/routing";
+import { Route as AdminMailboxesChar91idChar93ConfigureRouteImport } from "./routes/admin/mailboxes/[id]/configure";
+import { Route as AdminFormsChar91idChar93SubmissionsRouteImport } from "./routes/admin/forms/[id]/submissions";
 
 const TodosRoute = TodosRouteImport.update({
-  id: '/todos',
-  path: '/todos',
+  id: "/todos",
+  path: "/todos",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const AiRoute = AiRouteImport.update({
-  id: '/ai',
-  path: '/ai',
+  id: "/ai",
+  path: "/ai",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+  id: "/",
+  path: "/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const TicketsIndexRoute = TicketsIndexRouteImport.update({
-  id: '/tickets/',
-  path: '/tickets/',
+  id: "/tickets/",
+  path: "/tickets/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const TeamsIndexRoute = TeamsIndexRouteImport.update({
-  id: '/teams/',
-  path: '/teams/',
+  id: "/teams/",
+  path: "/teams/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const SettingsIndexRoute = SettingsIndexRouteImport.update({
-  id: '/settings/',
-  path: '/settings/',
+  id: "/settings/",
+  path: "/settings/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const KbIndexRoute = KbIndexRouteImport.update({
-  id: '/kb/',
-  path: '/kb/',
+  id: "/kb/",
+  path: "/kb/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const DashboardIndexRoute = DashboardIndexRouteImport.update({
-  id: '/dashboard/',
-  path: '/dashboard/',
+  id: "/dashboard/",
+  path: "/dashboard/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const ContactsIndexRoute = ContactsIndexRouteImport.update({
-  id: '/contacts/',
-  path: '/contacts/',
+  id: "/contacts/",
+  path: "/contacts/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const ChatIndexRoute = ChatIndexRouteImport.update({
-  id: '/chat/',
-  path: '/chat/',
+  id: "/chat/",
+  path: "/chat/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const TicketsSpamRoute = TicketsSpamRouteImport.update({
-  id: '/tickets/spam',
-  path: '/tickets/spam',
+  id: "/tickets/spam",
+  path: "/tickets/spam",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const TicketsNewRoute = TicketsNewRouteImport.update({
-  id: '/tickets/new',
-  path: '/tickets/new',
+  id: "/tickets/new",
+  path: "/tickets/new",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const TicketsMergedRoute = TicketsMergedRouteImport.update({
-  id: '/tickets/merged',
-  path: '/tickets/merged',
+  id: "/tickets/merged",
+  path: "/tickets/merged",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const TicketsKanbanRoute = TicketsKanbanRouteImport.update({
-  id: '/tickets/kanban',
-  path: '/tickets/kanban',
+  id: "/tickets/kanban",
+  path: "/tickets/kanban",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const TicketsChar91idChar93Route = TicketsChar91idChar93RouteImport.update({
-  id: '/tickets/id',
-  path: '/tickets/id',
+  id: "/tickets/id",
+  path: "/tickets/id",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const TeamsNewRoute = TeamsNewRouteImport.update({
-  id: '/teams/new',
-  path: '/teams/new',
+  id: "/teams/new",
+  path: "/teams/new",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const TeamsChar91idChar93Route = TeamsChar91idChar93RouteImport.update({
-  id: '/teams/id',
-  path: '/teams/id',
+  id: "/teams/id",
+  path: "/teams/id",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const SettingsSecurityRoute = SettingsSecurityRouteImport.update({
-  id: '/settings/security',
-  path: '/settings/security',
+  id: "/settings/security",
+  path: "/settings/security",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const SettingsProfileRoute = SettingsProfileRouteImport.update({
-  id: '/settings/profile',
-  path: '/settings/profile',
+  id: "/settings/profile",
+  path: "/settings/profile",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const SettingsPasswordRoute = SettingsPasswordRouteImport.update({
-  id: '/settings/password',
-  path: '/settings/password',
+  id: "/settings/password",
+  path: "/settings/password",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const SettingsNotificationsRoute = SettingsNotificationsRouteImport.update({
-  id: '/settings/notifications',
-  path: '/settings/notifications',
+  id: "/settings/notifications",
+  path: "/settings/notifications",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const SettingsAppearanceRoute = SettingsAppearanceRouteImport.update({
-  id: '/settings/appearance',
-  path: '/settings/appearance',
+  id: "/settings/appearance",
+  path: "/settings/appearance",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const PortalLoginRoute = PortalLoginRouteImport.update({
-  id: '/portal/login',
-  path: '/portal/login',
+  id: "/portal/login",
+  path: "/portal/login",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const KbNewRoute = KbNewRouteImport.update({
-  id: '/kb/new',
-  path: '/kb/new',
+  id: "/kb/new",
+  path: "/kb/new",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const KbSlugRoute = KbSlugRouteImport.update({
-  id: '/kb/$slug',
-  path: '/kb/$slug',
+  id: "/kb/$slug",
+  path: "/kb/$slug",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const FormsChar91idChar93Route = FormsChar91idChar93RouteImport.update({
-  id: '/forms/id',
-  path: '/forms/id',
+  id: "/forms/id",
+  path: "/forms/id",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const ContactsNewRoute = ContactsNewRouteImport.update({
-  id: '/contacts/new',
-  path: '/contacts/new',
+  id: "/contacts/new",
+  path: "/contacts/new",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const ContactsChar91idChar93Route = ContactsChar91idChar93RouteImport.update({
-  id: '/contacts/id',
-  path: '/contacts/id',
+  id: "/contacts/id",
+  path: "/contacts/id",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const ChatChar91idChar93Route = ChatChar91idChar93RouteImport.update({
-  id: '/chat/id',
-  path: '/chat/id',
+  id: "/chat/id",
+  path: "/chat/id",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const ChatEndedRoute = ChatEndedRouteImport.update({
-  id: '/chat/ended',
-  path: '/chat/ended',
+  id: "/chat/ended",
+  path: "/chat/ended",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const ChatActiveRoute = ChatActiveRouteImport.update({
-  id: '/chat/active',
-  path: '/chat/active',
+  id: "/chat/active",
+  path: "/chat/active",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const AdminCustomDomainRoute = AdminCustomDomainRouteImport.update({
-  id: '/admin/custom-domain',
-  path: '/admin/custom-domain',
+  id: "/admin/custom-domain",
+  path: "/admin/custom-domain",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const AdminAuditLogRoute = AdminAuditLogRouteImport.update({
-  id: '/admin/audit-log',
-  path: '/admin/audit-log',
+  id: "/admin/audit-log",
+  path: "/admin/audit-log",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const KbCategoriesIndexRoute = KbCategoriesIndexRouteImport.update({
-  id: '/kb/categories/',
-  path: '/kb/categories/',
+  id: "/kb/categories/",
+  path: "/kb/categories/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const AdminWorkflowsIndexRoute = AdminWorkflowsIndexRouteImport.update({
-  id: '/admin/workflows/',
-  path: '/admin/workflows/',
+  id: "/admin/workflows/",
+  path: "/admin/workflows/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const AdminUsersIndexRoute = AdminUsersIndexRouteImport.update({
-  id: '/admin/users/',
-  path: '/admin/users/',
+  id: "/admin/users/",
+  path: "/admin/users/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const AdminSocialIndexRoute = AdminSocialIndexRouteImport.update({
-  id: '/admin/social/',
-  path: '/admin/social/',
+  id: "/admin/social/",
+  path: "/admin/social/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const AdminSlaIndexRoute = AdminSlaIndexRouteImport.update({
-  id: '/admin/sla/',
-  path: '/admin/sla/',
+  id: "/admin/sla/",
+  path: "/admin/sla/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const AdminSecurityIndexRoute = AdminSecurityIndexRouteImport.update({
-  id: '/admin/security/',
-  path: '/admin/security/',
+  id: "/admin/security/",
+  path: "/admin/security/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const AdminSavedRepliesIndexRoute = AdminSavedRepliesIndexRouteImport.update({
-  id: '/admin/saved-replies/',
-  path: '/admin/saved-replies/',
+  id: "/admin/saved-replies/",
+  path: "/admin/saved-replies/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const AdminRolesIndexRoute = AdminRolesIndexRouteImport.update({
-  id: '/admin/roles/',
-  path: '/admin/roles/',
+  id: "/admin/roles/",
+  path: "/admin/roles/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const AdminReportsIndexRoute = AdminReportsIndexRouteImport.update({
-  id: '/admin/reports/',
-  path: '/admin/reports/',
+  id: "/admin/reports/",
+  path: "/admin/reports/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const AdminMailboxesIndexRoute = AdminMailboxesIndexRouteImport.update({
-  id: '/admin/mailboxes/',
-  path: '/admin/mailboxes/',
+  id: "/admin/mailboxes/",
+  path: "/admin/mailboxes/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const AdminFormsIndexRoute = AdminFormsIndexRouteImport.update({
-  id: '/admin/forms/',
-  path: '/admin/forms/',
+  id: "/admin/forms/",
+  path: "/admin/forms/",
   getParentRoute: () => rootRouteImport,
-} as any)
-const AdminEmailTemplatesIndexRoute =
-  AdminEmailTemplatesIndexRouteImport.update({
-    id: '/admin/email-templates/',
-    path: '/admin/email-templates/',
-    getParentRoute: () => rootRouteImport,
-  } as any)
+} as any);
+const AdminExcelIndexRoute = AdminExcelIndexRouteImport.update({
+  id: "/admin/excel/",
+  path: "/admin/excel/",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const AdminEmailTemplatesIndexRoute = AdminEmailTemplatesIndexRouteImport.update({
+  id: "/admin/email-templates/",
+  path: "/admin/email-templates/",
+  getParentRoute: () => rootRouteImport,
+} as any);
 const AdminEcommerceIndexRoute = AdminEcommerceIndexRouteImport.update({
-  id: '/admin/ecommerce/',
-  path: '/admin/ecommerce/',
+  id: "/admin/ecommerce/",
+  path: "/admin/ecommerce/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const AdminBrandingIndexRoute = AdminBrandingIndexRouteImport.update({
-  id: '/admin/branding/',
-  path: '/admin/branding/',
+  id: "/admin/branding/",
+  path: "/admin/branding/",
   getParentRoute: () => rootRouteImport,
-} as any)
-const KbCategoriesChar91idChar93Route =
-  KbCategoriesChar91idChar93RouteImport.update({
-    id: '/kb/categories/id',
-    path: '/kb/categories/id',
-    getParentRoute: () => rootRouteImport,
-  } as any)
+} as any);
+const KbCategoriesChar91idChar93Route = KbCategoriesChar91idChar93RouteImport.update({
+  id: "/kb/categories/id",
+  path: "/kb/categories/id",
+  getParentRoute: () => rootRouteImport,
+} as any);
 const AdminWorkflowsNewRoute = AdminWorkflowsNewRouteImport.update({
-  id: '/admin/workflows/new',
-  path: '/admin/workflows/new',
+  id: "/admin/workflows/new",
+  path: "/admin/workflows/new",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const AdminWorkflowsBuilderRoute = AdminWorkflowsBuilderRouteImport.update({
-  id: '/admin/workflows/builder',
-  path: '/admin/workflows/builder',
+  id: "/admin/workflows/builder",
+  path: "/admin/workflows/builder",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const AdminUsersInviteRoute = AdminUsersInviteRouteImport.update({
-  id: '/admin/users/invite',
-  path: '/admin/users/invite',
+  id: "/admin/users/invite",
+  path: "/admin/users/invite",
   getParentRoute: () => rootRouteImport,
-} as any)
-const AdminUsersChar91idChar93Route =
-  AdminUsersChar91idChar93RouteImport.update({
-    id: '/admin/users/id',
-    path: '/admin/users/id',
-    getParentRoute: () => rootRouteImport,
-  } as any)
+} as any);
+const AdminUsersChar91idChar93Route = AdminUsersChar91idChar93RouteImport.update({
+  id: "/admin/users/id",
+  path: "/admin/users/id",
+  getParentRoute: () => rootRouteImport,
+} as any);
 const AdminSocialWhatsappRoute = AdminSocialWhatsappRouteImport.update({
-  id: '/admin/social/whatsapp',
-  path: '/admin/social/whatsapp',
+  id: "/admin/social/whatsapp",
+  path: "/admin/social/whatsapp",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const AdminSocialTwitterRoute = AdminSocialTwitterRouteImport.update({
-  id: '/admin/social/twitter',
-  path: '/admin/social/twitter',
+  id: "/admin/social/twitter",
+  path: "/admin/social/twitter",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const AdminSocialInstagramRoute = AdminSocialInstagramRouteImport.update({
-  id: '/admin/social/instagram',
-  path: '/admin/social/instagram',
+  id: "/admin/social/instagram",
+  path: "/admin/social/instagram",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const AdminSocialFacebookRoute = AdminSocialFacebookRouteImport.update({
-  id: '/admin/social/facebook',
-  path: '/admin/social/facebook',
+  id: "/admin/social/facebook",
+  path: "/admin/social/facebook",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const AdminSocialDisqusRoute = AdminSocialDisqusRouteImport.update({
-  id: '/admin/social/disqus',
-  path: '/admin/social/disqus',
+  id: "/admin/social/disqus",
+  path: "/admin/social/disqus",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const AdminSlaNewRoute = AdminSlaNewRouteImport.update({
-  id: '/admin/sla/new',
-  path: '/admin/sla/new',
+  id: "/admin/sla/new",
+  path: "/admin/sla/new",
   getParentRoute: () => rootRouteImport,
-} as any)
-const AdminSettingsTranslationRoute =
-  AdminSettingsTranslationRouteImport.update({
-    id: '/admin/settings/translation',
-    path: '/admin/settings/translation',
-    getParentRoute: () => rootRouteImport,
-  } as any)
+} as any);
+const AdminSettingsTranslationRoute = AdminSettingsTranslationRouteImport.update({
+  id: "/admin/settings/translation",
+  path: "/admin/settings/translation",
+  getParentRoute: () => rootRouteImport,
+} as any);
 const AdminSettingsMobileSdkRoute = AdminSettingsMobileSdkRouteImport.update({
-  id: '/admin/settings/mobile-sdk',
-  path: '/admin/settings/mobile-sdk',
+  id: "/admin/settings/mobile-sdk",
+  path: "/admin/settings/mobile-sdk",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const AdminSettingsLicenseRoute = AdminSettingsLicenseRouteImport.update({
-  id: '/admin/settings/license',
-  path: '/admin/settings/license',
+  id: "/admin/settings/license",
+  path: "/admin/settings/license",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const AdminSettingsChatbotRoute = AdminSettingsChatbotRouteImport.update({
-  id: '/admin/settings/chatbot',
-  path: '/admin/settings/chatbot',
+  id: "/admin/settings/chatbot",
+  path: "/admin/settings/chatbot",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const AdminSecuritySsoRoute = AdminSecuritySsoRouteImport.update({
-  id: '/admin/security/sso',
-  path: '/admin/security/sso',
+  id: "/admin/security/sso",
+  path: "/admin/security/sso",
   getParentRoute: () => rootRouteImport,
-} as any)
-const AdminSecurityIpWhitelistRoute =
-  AdminSecurityIpWhitelistRouteImport.update({
-    id: '/admin/security/ip-whitelist',
-    path: '/admin/security/ip-whitelist',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const AdminSavedRepliesFoldersRoute =
-  AdminSavedRepliesFoldersRouteImport.update({
-    id: '/admin/saved-replies/folders',
-    path: '/admin/saved-replies/folders',
-    getParentRoute: () => rootRouteImport,
-  } as any)
+} as any);
+const AdminSecurityIpWhitelistRoute = AdminSecurityIpWhitelistRouteImport.update({
+  id: "/admin/security/ip-whitelist",
+  path: "/admin/security/ip-whitelist",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const AdminSavedRepliesFoldersRoute = AdminSavedRepliesFoldersRouteImport.update({
+  id: "/admin/saved-replies/folders",
+  path: "/admin/saved-replies/folders",
+  getParentRoute: () => rootRouteImport,
+} as any);
 const AdminRolesNewRoute = AdminRolesNewRouteImport.update({
-  id: '/admin/roles/new',
-  path: '/admin/roles/new',
+  id: "/admin/roles/new",
+  path: "/admin/roles/new",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const AdminReportsTicketsRoute = AdminReportsTicketsRouteImport.update({
-  id: '/admin/reports/tickets',
-  path: '/admin/reports/tickets',
+  id: "/admin/reports/tickets",
+  path: "/admin/reports/tickets",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const AdminReportsSlaRoute = AdminReportsSlaRouteImport.update({
-  id: '/admin/reports/sla',
-  path: '/admin/reports/sla',
+  id: "/admin/reports/sla",
+  path: "/admin/reports/sla",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const AdminReportsCustomRoute = AdminReportsCustomRouteImport.update({
-  id: '/admin/reports/custom',
-  path: '/admin/reports/custom',
+  id: "/admin/reports/custom",
+  path: "/admin/reports/custom",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const AdminReportsCsatRoute = AdminReportsCsatRouteImport.update({
-  id: '/admin/reports/csat',
-  path: '/admin/reports/csat',
+  id: "/admin/reports/csat",
+  path: "/admin/reports/csat",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const AdminReportsAgentsRoute = AdminReportsAgentsRouteImport.update({
-  id: '/admin/reports/agents',
-  path: '/admin/reports/agents',
+  id: "/admin/reports/agents",
+  path: "/admin/reports/agents",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const AdminMailboxesNewRoute = AdminMailboxesNewRouteImport.update({
-  id: '/admin/mailboxes/new',
-  path: '/admin/mailboxes/new',
+  id: "/admin/mailboxes/new",
+  path: "/admin/mailboxes/new",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const AdminFormsNewRoute = AdminFormsNewRouteImport.update({
-  id: '/admin/forms/new',
-  path: '/admin/forms/new',
+  id: "/admin/forms/new",
+  path: "/admin/forms/new",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const AdminFormsBuilderRoute = AdminFormsBuilderRouteImport.update({
-  id: '/admin/forms/builder',
-  path: '/admin/forms/builder',
+  id: "/admin/forms/builder",
+  path: "/admin/forms/builder",
   getParentRoute: () => rootRouteImport,
-} as any)
-const AdminEcommerceChar91idChar93Route =
-  AdminEcommerceChar91idChar93RouteImport.update({
-    id: '/admin/ecommerce/id',
-    path: '/admin/ecommerce/id',
-    getParentRoute: () => rootRouteImport,
-  } as any)
+} as any);
+const AdminEcommerceChar91idChar93Route = AdminEcommerceChar91idChar93RouteImport.update({
+  id: "/admin/ecommerce/id",
+  path: "/admin/ecommerce/id",
+  getParentRoute: () => rootRouteImport,
+} as any);
 const AdminEcommerceConnectRoute = AdminEcommerceConnectRouteImport.update({
-  id: '/admin/ecommerce/connect',
-  path: '/admin/ecommerce/connect',
+  id: "/admin/ecommerce/connect",
+  path: "/admin/ecommerce/connect",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const AdminEcommerceAmazonRoute = AdminEcommerceAmazonRouteImport.update({
-  id: '/admin/ecommerce/amazon',
-  path: '/admin/ecommerce/amazon',
+  id: "/admin/ecommerce/amazon",
+  path: "/admin/ecommerce/amazon",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const AdminBrandingThemeRoute = AdminBrandingThemeRouteImport.update({
-  id: '/admin/branding/theme',
-  path: '/admin/branding/theme',
+  id: "/admin/branding/theme",
+  path: "/admin/branding/theme",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const AdminBrandingPortalRoute = AdminBrandingPortalRouteImport.update({
-  id: '/admin/branding/portal',
-  path: '/admin/branding/portal',
+  id: "/admin/branding/portal",
+  path: "/admin/branding/portal",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
 const AdminBrandingEmailRoute = AdminBrandingEmailRouteImport.update({
-  id: '/admin/branding/email',
-  path: '/admin/branding/email',
+  id: "/admin/branding/email",
+  path: "/admin/branding/email",
   getParentRoute: () => rootRouteImport,
-} as any)
-const AdminWorkflowsChar91idChar93IndexRoute =
-  AdminWorkflowsChar91idChar93IndexRouteImport.update({
-    id: '/admin/workflows/id/',
-    path: '/admin/workflows/id/',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const AdminRolesChar91idChar93IndexRoute =
-  AdminRolesChar91idChar93IndexRouteImport.update({
-    id: '/admin/roles/id/',
-    path: '/admin/roles/id/',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const AdminMailboxesChar91idChar93IndexRoute =
-  AdminMailboxesChar91idChar93IndexRouteImport.update({
-    id: '/admin/mailboxes/id/',
-    path: '/admin/mailboxes/id/',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const AdminFormsChar91idChar93IndexRoute =
-  AdminFormsChar91idChar93IndexRouteImport.update({
-    id: '/admin/forms/id/',
-    path: '/admin/forms/id/',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const AdminWorkflowsChar91idChar93LogsRoute =
-  AdminWorkflowsChar91idChar93LogsRouteImport.update({
-    id: '/admin/workflows/id/logs',
-    path: '/admin/workflows/id/logs',
-    getParentRoute: () => rootRouteImport,
-  } as any)
+} as any);
+const AdminWorkflowsChar91idChar93IndexRoute = AdminWorkflowsChar91idChar93IndexRouteImport.update({
+  id: "/admin/workflows/id/",
+  path: "/admin/workflows/id/",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const AdminRolesChar91idChar93IndexRoute = AdminRolesChar91idChar93IndexRouteImport.update({
+  id: "/admin/roles/id/",
+  path: "/admin/roles/id/",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const AdminMailboxesChar91idChar93IndexRoute = AdminMailboxesChar91idChar93IndexRouteImport.update({
+  id: "/admin/mailboxes/id/",
+  path: "/admin/mailboxes/id/",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const AdminFormsChar91idChar93IndexRoute = AdminFormsChar91idChar93IndexRouteImport.update({
+  id: "/admin/forms/id/",
+  path: "/admin/forms/id/",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const AdminWorkflowsChar91idChar93LogsRoute = AdminWorkflowsChar91idChar93LogsRouteImport.update({
+  id: "/admin/workflows/id/logs",
+  path: "/admin/workflows/id/logs",
+  getParentRoute: () => rootRouteImport,
+} as any);
 const AdminRolesChar91idChar93PermissionsRoute =
   AdminRolesChar91idChar93PermissionsRouteImport.update({
-    id: '/admin/roles/id/permissions',
-    path: '/admin/roles/id/permissions',
+    id: "/admin/roles/id/permissions",
+    path: "/admin/roles/id/permissions",
     getParentRoute: () => rootRouteImport,
-  } as any)
+  } as any);
 const AdminMailboxesChar91idChar93RoutingRoute =
   AdminMailboxesChar91idChar93RoutingRouteImport.update({
-    id: '/admin/mailboxes/id/routing',
-    path: '/admin/mailboxes/id/routing',
+    id: "/admin/mailboxes/id/routing",
+    path: "/admin/mailboxes/id/routing",
     getParentRoute: () => rootRouteImport,
-  } as any)
+  } as any);
 const AdminMailboxesChar91idChar93ConfigureRoute =
   AdminMailboxesChar91idChar93ConfigureRouteImport.update({
-    id: '/admin/mailboxes/id/configure',
-    path: '/admin/mailboxes/id/configure',
+    id: "/admin/mailboxes/id/configure",
+    path: "/admin/mailboxes/id/configure",
     getParentRoute: () => rootRouteImport,
-  } as any)
+  } as any);
 const AdminFormsChar91idChar93SubmissionsRoute =
   AdminFormsChar91idChar93SubmissionsRouteImport.update({
-    id: '/admin/forms/id/submissions',
-    path: '/admin/forms/id/submissions',
+    id: "/admin/forms/id/submissions",
+    path: "/admin/forms/id/submissions",
     getParentRoute: () => rootRouteImport,
-  } as any)
+  } as any);
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/ai': typeof AiRoute
-  '/todos': typeof TodosRoute
-  '/admin/audit-log': typeof AdminAuditLogRoute
-  '/admin/custom-domain': typeof AdminCustomDomainRoute
-  '/chat/active': typeof ChatActiveRoute
-  '/chat/ended': typeof ChatEndedRoute
-  '/chat/id': typeof ChatChar91idChar93Route
-  '/contacts/id': typeof ContactsChar91idChar93Route
-  '/contacts/new': typeof ContactsNewRoute
-  '/forms/id': typeof FormsChar91idChar93Route
-  '/kb/$slug': typeof KbSlugRoute
-  '/kb/new': typeof KbNewRoute
-  '/portal/login': typeof PortalLoginRoute
-  '/settings/appearance': typeof SettingsAppearanceRoute
-  '/settings/notifications': typeof SettingsNotificationsRoute
-  '/settings/password': typeof SettingsPasswordRoute
-  '/settings/profile': typeof SettingsProfileRoute
-  '/settings/security': typeof SettingsSecurityRoute
-  '/teams/id': typeof TeamsChar91idChar93Route
-  '/teams/new': typeof TeamsNewRoute
-  '/tickets/id': typeof TicketsChar91idChar93Route
-  '/tickets/kanban': typeof TicketsKanbanRoute
-  '/tickets/merged': typeof TicketsMergedRoute
-  '/tickets/new': typeof TicketsNewRoute
-  '/tickets/spam': typeof TicketsSpamRoute
-  '/chat/': typeof ChatIndexRoute
-  '/contacts/': typeof ContactsIndexRoute
-  '/dashboard/': typeof DashboardIndexRoute
-  '/kb/': typeof KbIndexRoute
-  '/settings/': typeof SettingsIndexRoute
-  '/teams/': typeof TeamsIndexRoute
-  '/tickets/': typeof TicketsIndexRoute
-  '/admin/branding/email': typeof AdminBrandingEmailRoute
-  '/admin/branding/portal': typeof AdminBrandingPortalRoute
-  '/admin/branding/theme': typeof AdminBrandingThemeRoute
-  '/admin/ecommerce/amazon': typeof AdminEcommerceAmazonRoute
-  '/admin/ecommerce/connect': typeof AdminEcommerceConnectRoute
-  '/admin/ecommerce/id': typeof AdminEcommerceChar91idChar93Route
-  '/admin/forms/builder': typeof AdminFormsBuilderRoute
-  '/admin/forms/new': typeof AdminFormsNewRoute
-  '/admin/mailboxes/new': typeof AdminMailboxesNewRoute
-  '/admin/reports/agents': typeof AdminReportsAgentsRoute
-  '/admin/reports/csat': typeof AdminReportsCsatRoute
-  '/admin/reports/custom': typeof AdminReportsCustomRoute
-  '/admin/reports/sla': typeof AdminReportsSlaRoute
-  '/admin/reports/tickets': typeof AdminReportsTicketsRoute
-  '/admin/roles/new': typeof AdminRolesNewRoute
-  '/admin/saved-replies/folders': typeof AdminSavedRepliesFoldersRoute
-  '/admin/security/ip-whitelist': typeof AdminSecurityIpWhitelistRoute
-  '/admin/security/sso': typeof AdminSecuritySsoRoute
-  '/admin/settings/chatbot': typeof AdminSettingsChatbotRoute
-  '/admin/settings/license': typeof AdminSettingsLicenseRoute
-  '/admin/settings/mobile-sdk': typeof AdminSettingsMobileSdkRoute
-  '/admin/settings/translation': typeof AdminSettingsTranslationRoute
-  '/admin/sla/new': typeof AdminSlaNewRoute
-  '/admin/social/disqus': typeof AdminSocialDisqusRoute
-  '/admin/social/facebook': typeof AdminSocialFacebookRoute
-  '/admin/social/instagram': typeof AdminSocialInstagramRoute
-  '/admin/social/twitter': typeof AdminSocialTwitterRoute
-  '/admin/social/whatsapp': typeof AdminSocialWhatsappRoute
-  '/admin/users/id': typeof AdminUsersChar91idChar93Route
-  '/admin/users/invite': typeof AdminUsersInviteRoute
-  '/admin/workflows/builder': typeof AdminWorkflowsBuilderRoute
-  '/admin/workflows/new': typeof AdminWorkflowsNewRoute
-  '/kb/categories/id': typeof KbCategoriesChar91idChar93Route
-  '/admin/branding/': typeof AdminBrandingIndexRoute
-  '/admin/ecommerce/': typeof AdminEcommerceIndexRoute
-  '/admin/email-templates/': typeof AdminEmailTemplatesIndexRoute
-  '/admin/forms/': typeof AdminFormsIndexRoute
-  '/admin/mailboxes/': typeof AdminMailboxesIndexRoute
-  '/admin/reports/': typeof AdminReportsIndexRoute
-  '/admin/roles/': typeof AdminRolesIndexRoute
-  '/admin/saved-replies/': typeof AdminSavedRepliesIndexRoute
-  '/admin/security/': typeof AdminSecurityIndexRoute
-  '/admin/sla/': typeof AdminSlaIndexRoute
-  '/admin/social/': typeof AdminSocialIndexRoute
-  '/admin/users/': typeof AdminUsersIndexRoute
-  '/admin/workflows/': typeof AdminWorkflowsIndexRoute
-  '/kb/categories/': typeof KbCategoriesIndexRoute
-  '/admin/forms/id/submissions': typeof AdminFormsChar91idChar93SubmissionsRoute
-  '/admin/mailboxes/id/configure': typeof AdminMailboxesChar91idChar93ConfigureRoute
-  '/admin/mailboxes/id/routing': typeof AdminMailboxesChar91idChar93RoutingRoute
-  '/admin/roles/id/permissions': typeof AdminRolesChar91idChar93PermissionsRoute
-  '/admin/workflows/id/logs': typeof AdminWorkflowsChar91idChar93LogsRoute
-  '/admin/forms/id/': typeof AdminFormsChar91idChar93IndexRoute
-  '/admin/mailboxes/id/': typeof AdminMailboxesChar91idChar93IndexRoute
-  '/admin/roles/id/': typeof AdminRolesChar91idChar93IndexRoute
-  '/admin/workflows/id/': typeof AdminWorkflowsChar91idChar93IndexRoute
+  "/": typeof IndexRoute;
+  "/ai": typeof AiRoute;
+  "/todos": typeof TodosRoute;
+  "/admin/audit-log": typeof AdminAuditLogRoute;
+  "/admin/custom-domain": typeof AdminCustomDomainRoute;
+  "/chat/active": typeof ChatActiveRoute;
+  "/chat/ended": typeof ChatEndedRoute;
+  "/chat/id": typeof ChatChar91idChar93Route;
+  "/contacts/id": typeof ContactsChar91idChar93Route;
+  "/contacts/new": typeof ContactsNewRoute;
+  "/forms/id": typeof FormsChar91idChar93Route;
+  "/kb/$slug": typeof KbSlugRoute;
+  "/kb/new": typeof KbNewRoute;
+  "/portal/login": typeof PortalLoginRoute;
+  "/settings/appearance": typeof SettingsAppearanceRoute;
+  "/settings/notifications": typeof SettingsNotificationsRoute;
+  "/settings/password": typeof SettingsPasswordRoute;
+  "/settings/profile": typeof SettingsProfileRoute;
+  "/settings/security": typeof SettingsSecurityRoute;
+  "/teams/id": typeof TeamsChar91idChar93Route;
+  "/teams/new": typeof TeamsNewRoute;
+  "/tickets/id": typeof TicketsChar91idChar93Route;
+  "/tickets/kanban": typeof TicketsKanbanRoute;
+  "/tickets/merged": typeof TicketsMergedRoute;
+  "/tickets/new": typeof TicketsNewRoute;
+  "/tickets/spam": typeof TicketsSpamRoute;
+  "/chat/": typeof ChatIndexRoute;
+  "/contacts/": typeof ContactsIndexRoute;
+  "/dashboard/": typeof DashboardIndexRoute;
+  "/kb/": typeof KbIndexRoute;
+  "/settings/": typeof SettingsIndexRoute;
+  "/teams/": typeof TeamsIndexRoute;
+  "/tickets/": typeof TicketsIndexRoute;
+  "/admin/branding/email": typeof AdminBrandingEmailRoute;
+  "/admin/branding/portal": typeof AdminBrandingPortalRoute;
+  "/admin/branding/theme": typeof AdminBrandingThemeRoute;
+  "/admin/ecommerce/amazon": typeof AdminEcommerceAmazonRoute;
+  "/admin/ecommerce/connect": typeof AdminEcommerceConnectRoute;
+  "/admin/ecommerce/id": typeof AdminEcommerceChar91idChar93Route;
+  "/admin/forms/builder": typeof AdminFormsBuilderRoute;
+  "/admin/forms/new": typeof AdminFormsNewRoute;
+  "/admin/mailboxes/new": typeof AdminMailboxesNewRoute;
+  "/admin/reports/agents": typeof AdminReportsAgentsRoute;
+  "/admin/reports/csat": typeof AdminReportsCsatRoute;
+  "/admin/reports/custom": typeof AdminReportsCustomRoute;
+  "/admin/reports/sla": typeof AdminReportsSlaRoute;
+  "/admin/reports/tickets": typeof AdminReportsTicketsRoute;
+  "/admin/roles/new": typeof AdminRolesNewRoute;
+  "/admin/saved-replies/folders": typeof AdminSavedRepliesFoldersRoute;
+  "/admin/security/ip-whitelist": typeof AdminSecurityIpWhitelistRoute;
+  "/admin/security/sso": typeof AdminSecuritySsoRoute;
+  "/admin/settings/chatbot": typeof AdminSettingsChatbotRoute;
+  "/admin/settings/license": typeof AdminSettingsLicenseRoute;
+  "/admin/settings/mobile-sdk": typeof AdminSettingsMobileSdkRoute;
+  "/admin/settings/translation": typeof AdminSettingsTranslationRoute;
+  "/admin/sla/new": typeof AdminSlaNewRoute;
+  "/admin/social/disqus": typeof AdminSocialDisqusRoute;
+  "/admin/social/facebook": typeof AdminSocialFacebookRoute;
+  "/admin/social/instagram": typeof AdminSocialInstagramRoute;
+  "/admin/social/twitter": typeof AdminSocialTwitterRoute;
+  "/admin/social/whatsapp": typeof AdminSocialWhatsappRoute;
+  "/admin/users/id": typeof AdminUsersChar91idChar93Route;
+  "/admin/users/invite": typeof AdminUsersInviteRoute;
+  "/admin/workflows/builder": typeof AdminWorkflowsBuilderRoute;
+  "/admin/workflows/new": typeof AdminWorkflowsNewRoute;
+  "/kb/categories/id": typeof KbCategoriesChar91idChar93Route;
+  "/admin/branding/": typeof AdminBrandingIndexRoute;
+  "/admin/ecommerce/": typeof AdminEcommerceIndexRoute;
+  "/admin/email-templates/": typeof AdminEmailTemplatesIndexRoute;
+  "/admin/excel/": typeof AdminExcelIndexRoute;
+  "/admin/forms/": typeof AdminFormsIndexRoute;
+  "/admin/mailboxes/": typeof AdminMailboxesIndexRoute;
+  "/admin/reports/": typeof AdminReportsIndexRoute;
+  "/admin/roles/": typeof AdminRolesIndexRoute;
+  "/admin/saved-replies/": typeof AdminSavedRepliesIndexRoute;
+  "/admin/security/": typeof AdminSecurityIndexRoute;
+  "/admin/sla/": typeof AdminSlaIndexRoute;
+  "/admin/social/": typeof AdminSocialIndexRoute;
+  "/admin/users/": typeof AdminUsersIndexRoute;
+  "/admin/workflows/": typeof AdminWorkflowsIndexRoute;
+  "/kb/categories/": typeof KbCategoriesIndexRoute;
+  "/admin/forms/id/submissions": typeof AdminFormsChar91idChar93SubmissionsRoute;
+  "/admin/mailboxes/id/configure": typeof AdminMailboxesChar91idChar93ConfigureRoute;
+  "/admin/mailboxes/id/routing": typeof AdminMailboxesChar91idChar93RoutingRoute;
+  "/admin/roles/id/permissions": typeof AdminRolesChar91idChar93PermissionsRoute;
+  "/admin/workflows/id/logs": typeof AdminWorkflowsChar91idChar93LogsRoute;
+  "/admin/forms/id/": typeof AdminFormsChar91idChar93IndexRoute;
+  "/admin/mailboxes/id/": typeof AdminMailboxesChar91idChar93IndexRoute;
+  "/admin/roles/id/": typeof AdminRolesChar91idChar93IndexRoute;
+  "/admin/workflows/id/": typeof AdminWorkflowsChar91idChar93IndexRoute;
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/ai': typeof AiRoute
-  '/todos': typeof TodosRoute
-  '/admin/audit-log': typeof AdminAuditLogRoute
-  '/admin/custom-domain': typeof AdminCustomDomainRoute
-  '/chat/active': typeof ChatActiveRoute
-  '/chat/ended': typeof ChatEndedRoute
-  '/chat/id': typeof ChatChar91idChar93Route
-  '/contacts/id': typeof ContactsChar91idChar93Route
-  '/contacts/new': typeof ContactsNewRoute
-  '/forms/id': typeof FormsChar91idChar93Route
-  '/kb/$slug': typeof KbSlugRoute
-  '/kb/new': typeof KbNewRoute
-  '/portal/login': typeof PortalLoginRoute
-  '/settings/appearance': typeof SettingsAppearanceRoute
-  '/settings/notifications': typeof SettingsNotificationsRoute
-  '/settings/password': typeof SettingsPasswordRoute
-  '/settings/profile': typeof SettingsProfileRoute
-  '/settings/security': typeof SettingsSecurityRoute
-  '/teams/id': typeof TeamsChar91idChar93Route
-  '/teams/new': typeof TeamsNewRoute
-  '/tickets/id': typeof TicketsChar91idChar93Route
-  '/tickets/kanban': typeof TicketsKanbanRoute
-  '/tickets/merged': typeof TicketsMergedRoute
-  '/tickets/new': typeof TicketsNewRoute
-  '/tickets/spam': typeof TicketsSpamRoute
-  '/chat': typeof ChatIndexRoute
-  '/contacts': typeof ContactsIndexRoute
-  '/dashboard': typeof DashboardIndexRoute
-  '/kb': typeof KbIndexRoute
-  '/settings': typeof SettingsIndexRoute
-  '/teams': typeof TeamsIndexRoute
-  '/tickets': typeof TicketsIndexRoute
-  '/admin/branding/email': typeof AdminBrandingEmailRoute
-  '/admin/branding/portal': typeof AdminBrandingPortalRoute
-  '/admin/branding/theme': typeof AdminBrandingThemeRoute
-  '/admin/ecommerce/amazon': typeof AdminEcommerceAmazonRoute
-  '/admin/ecommerce/connect': typeof AdminEcommerceConnectRoute
-  '/admin/ecommerce/id': typeof AdminEcommerceChar91idChar93Route
-  '/admin/forms/builder': typeof AdminFormsBuilderRoute
-  '/admin/forms/new': typeof AdminFormsNewRoute
-  '/admin/mailboxes/new': typeof AdminMailboxesNewRoute
-  '/admin/reports/agents': typeof AdminReportsAgentsRoute
-  '/admin/reports/csat': typeof AdminReportsCsatRoute
-  '/admin/reports/custom': typeof AdminReportsCustomRoute
-  '/admin/reports/sla': typeof AdminReportsSlaRoute
-  '/admin/reports/tickets': typeof AdminReportsTicketsRoute
-  '/admin/roles/new': typeof AdminRolesNewRoute
-  '/admin/saved-replies/folders': typeof AdminSavedRepliesFoldersRoute
-  '/admin/security/ip-whitelist': typeof AdminSecurityIpWhitelistRoute
-  '/admin/security/sso': typeof AdminSecuritySsoRoute
-  '/admin/settings/chatbot': typeof AdminSettingsChatbotRoute
-  '/admin/settings/license': typeof AdminSettingsLicenseRoute
-  '/admin/settings/mobile-sdk': typeof AdminSettingsMobileSdkRoute
-  '/admin/settings/translation': typeof AdminSettingsTranslationRoute
-  '/admin/sla/new': typeof AdminSlaNewRoute
-  '/admin/social/disqus': typeof AdminSocialDisqusRoute
-  '/admin/social/facebook': typeof AdminSocialFacebookRoute
-  '/admin/social/instagram': typeof AdminSocialInstagramRoute
-  '/admin/social/twitter': typeof AdminSocialTwitterRoute
-  '/admin/social/whatsapp': typeof AdminSocialWhatsappRoute
-  '/admin/users/id': typeof AdminUsersChar91idChar93Route
-  '/admin/users/invite': typeof AdminUsersInviteRoute
-  '/admin/workflows/builder': typeof AdminWorkflowsBuilderRoute
-  '/admin/workflows/new': typeof AdminWorkflowsNewRoute
-  '/kb/categories/id': typeof KbCategoriesChar91idChar93Route
-  '/admin/branding': typeof AdminBrandingIndexRoute
-  '/admin/ecommerce': typeof AdminEcommerceIndexRoute
-  '/admin/email-templates': typeof AdminEmailTemplatesIndexRoute
-  '/admin/forms': typeof AdminFormsIndexRoute
-  '/admin/mailboxes': typeof AdminMailboxesIndexRoute
-  '/admin/reports': typeof AdminReportsIndexRoute
-  '/admin/roles': typeof AdminRolesIndexRoute
-  '/admin/saved-replies': typeof AdminSavedRepliesIndexRoute
-  '/admin/security': typeof AdminSecurityIndexRoute
-  '/admin/sla': typeof AdminSlaIndexRoute
-  '/admin/social': typeof AdminSocialIndexRoute
-  '/admin/users': typeof AdminUsersIndexRoute
-  '/admin/workflows': typeof AdminWorkflowsIndexRoute
-  '/kb/categories': typeof KbCategoriesIndexRoute
-  '/admin/forms/id/submissions': typeof AdminFormsChar91idChar93SubmissionsRoute
-  '/admin/mailboxes/id/configure': typeof AdminMailboxesChar91idChar93ConfigureRoute
-  '/admin/mailboxes/id/routing': typeof AdminMailboxesChar91idChar93RoutingRoute
-  '/admin/roles/id/permissions': typeof AdminRolesChar91idChar93PermissionsRoute
-  '/admin/workflows/id/logs': typeof AdminWorkflowsChar91idChar93LogsRoute
-  '/admin/forms/id': typeof AdminFormsChar91idChar93IndexRoute
-  '/admin/mailboxes/id': typeof AdminMailboxesChar91idChar93IndexRoute
-  '/admin/roles/id': typeof AdminRolesChar91idChar93IndexRoute
-  '/admin/workflows/id': typeof AdminWorkflowsChar91idChar93IndexRoute
+  "/": typeof IndexRoute;
+  "/ai": typeof AiRoute;
+  "/todos": typeof TodosRoute;
+  "/admin/audit-log": typeof AdminAuditLogRoute;
+  "/admin/custom-domain": typeof AdminCustomDomainRoute;
+  "/chat/active": typeof ChatActiveRoute;
+  "/chat/ended": typeof ChatEndedRoute;
+  "/chat/id": typeof ChatChar91idChar93Route;
+  "/contacts/id": typeof ContactsChar91idChar93Route;
+  "/contacts/new": typeof ContactsNewRoute;
+  "/forms/id": typeof FormsChar91idChar93Route;
+  "/kb/$slug": typeof KbSlugRoute;
+  "/kb/new": typeof KbNewRoute;
+  "/portal/login": typeof PortalLoginRoute;
+  "/settings/appearance": typeof SettingsAppearanceRoute;
+  "/settings/notifications": typeof SettingsNotificationsRoute;
+  "/settings/password": typeof SettingsPasswordRoute;
+  "/settings/profile": typeof SettingsProfileRoute;
+  "/settings/security": typeof SettingsSecurityRoute;
+  "/teams/id": typeof TeamsChar91idChar93Route;
+  "/teams/new": typeof TeamsNewRoute;
+  "/tickets/id": typeof TicketsChar91idChar93Route;
+  "/tickets/kanban": typeof TicketsKanbanRoute;
+  "/tickets/merged": typeof TicketsMergedRoute;
+  "/tickets/new": typeof TicketsNewRoute;
+  "/tickets/spam": typeof TicketsSpamRoute;
+  "/chat": typeof ChatIndexRoute;
+  "/contacts": typeof ContactsIndexRoute;
+  "/dashboard": typeof DashboardIndexRoute;
+  "/kb": typeof KbIndexRoute;
+  "/settings": typeof SettingsIndexRoute;
+  "/teams": typeof TeamsIndexRoute;
+  "/tickets": typeof TicketsIndexRoute;
+  "/admin/branding/email": typeof AdminBrandingEmailRoute;
+  "/admin/branding/portal": typeof AdminBrandingPortalRoute;
+  "/admin/branding/theme": typeof AdminBrandingThemeRoute;
+  "/admin/ecommerce/amazon": typeof AdminEcommerceAmazonRoute;
+  "/admin/ecommerce/connect": typeof AdminEcommerceConnectRoute;
+  "/admin/ecommerce/id": typeof AdminEcommerceChar91idChar93Route;
+  "/admin/forms/builder": typeof AdminFormsBuilderRoute;
+  "/admin/forms/new": typeof AdminFormsNewRoute;
+  "/admin/mailboxes/new": typeof AdminMailboxesNewRoute;
+  "/admin/reports/agents": typeof AdminReportsAgentsRoute;
+  "/admin/reports/csat": typeof AdminReportsCsatRoute;
+  "/admin/reports/custom": typeof AdminReportsCustomRoute;
+  "/admin/reports/sla": typeof AdminReportsSlaRoute;
+  "/admin/reports/tickets": typeof AdminReportsTicketsRoute;
+  "/admin/roles/new": typeof AdminRolesNewRoute;
+  "/admin/saved-replies/folders": typeof AdminSavedRepliesFoldersRoute;
+  "/admin/security/ip-whitelist": typeof AdminSecurityIpWhitelistRoute;
+  "/admin/security/sso": typeof AdminSecuritySsoRoute;
+  "/admin/settings/chatbot": typeof AdminSettingsChatbotRoute;
+  "/admin/settings/license": typeof AdminSettingsLicenseRoute;
+  "/admin/settings/mobile-sdk": typeof AdminSettingsMobileSdkRoute;
+  "/admin/settings/translation": typeof AdminSettingsTranslationRoute;
+  "/admin/sla/new": typeof AdminSlaNewRoute;
+  "/admin/social/disqus": typeof AdminSocialDisqusRoute;
+  "/admin/social/facebook": typeof AdminSocialFacebookRoute;
+  "/admin/social/instagram": typeof AdminSocialInstagramRoute;
+  "/admin/social/twitter": typeof AdminSocialTwitterRoute;
+  "/admin/social/whatsapp": typeof AdminSocialWhatsappRoute;
+  "/admin/users/id": typeof AdminUsersChar91idChar93Route;
+  "/admin/users/invite": typeof AdminUsersInviteRoute;
+  "/admin/workflows/builder": typeof AdminWorkflowsBuilderRoute;
+  "/admin/workflows/new": typeof AdminWorkflowsNewRoute;
+  "/kb/categories/id": typeof KbCategoriesChar91idChar93Route;
+  "/admin/branding": typeof AdminBrandingIndexRoute;
+  "/admin/ecommerce": typeof AdminEcommerceIndexRoute;
+  "/admin/email-templates": typeof AdminEmailTemplatesIndexRoute;
+  "/admin/excel": typeof AdminExcelIndexRoute;
+  "/admin/forms": typeof AdminFormsIndexRoute;
+  "/admin/mailboxes": typeof AdminMailboxesIndexRoute;
+  "/admin/reports": typeof AdminReportsIndexRoute;
+  "/admin/roles": typeof AdminRolesIndexRoute;
+  "/admin/saved-replies": typeof AdminSavedRepliesIndexRoute;
+  "/admin/security": typeof AdminSecurityIndexRoute;
+  "/admin/sla": typeof AdminSlaIndexRoute;
+  "/admin/social": typeof AdminSocialIndexRoute;
+  "/admin/users": typeof AdminUsersIndexRoute;
+  "/admin/workflows": typeof AdminWorkflowsIndexRoute;
+  "/kb/categories": typeof KbCategoriesIndexRoute;
+  "/admin/forms/id/submissions": typeof AdminFormsChar91idChar93SubmissionsRoute;
+  "/admin/mailboxes/id/configure": typeof AdminMailboxesChar91idChar93ConfigureRoute;
+  "/admin/mailboxes/id/routing": typeof AdminMailboxesChar91idChar93RoutingRoute;
+  "/admin/roles/id/permissions": typeof AdminRolesChar91idChar93PermissionsRoute;
+  "/admin/workflows/id/logs": typeof AdminWorkflowsChar91idChar93LogsRoute;
+  "/admin/forms/id": typeof AdminFormsChar91idChar93IndexRoute;
+  "/admin/mailboxes/id": typeof AdminMailboxesChar91idChar93IndexRoute;
+  "/admin/roles/id": typeof AdminRolesChar91idChar93IndexRoute;
+  "/admin/workflows/id": typeof AdminWorkflowsChar91idChar93IndexRoute;
 }
 export interface FileRoutesById {
-  __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/ai': typeof AiRoute
-  '/todos': typeof TodosRoute
-  '/admin/audit-log': typeof AdminAuditLogRoute
-  '/admin/custom-domain': typeof AdminCustomDomainRoute
-  '/chat/active': typeof ChatActiveRoute
-  '/chat/ended': typeof ChatEndedRoute
-  '/chat/id': typeof ChatChar91idChar93Route
-  '/contacts/id': typeof ContactsChar91idChar93Route
-  '/contacts/new': typeof ContactsNewRoute
-  '/forms/id': typeof FormsChar91idChar93Route
-  '/kb/$slug': typeof KbSlugRoute
-  '/kb/new': typeof KbNewRoute
-  '/portal/login': typeof PortalLoginRoute
-  '/settings/appearance': typeof SettingsAppearanceRoute
-  '/settings/notifications': typeof SettingsNotificationsRoute
-  '/settings/password': typeof SettingsPasswordRoute
-  '/settings/profile': typeof SettingsProfileRoute
-  '/settings/security': typeof SettingsSecurityRoute
-  '/teams/id': typeof TeamsChar91idChar93Route
-  '/teams/new': typeof TeamsNewRoute
-  '/tickets/id': typeof TicketsChar91idChar93Route
-  '/tickets/kanban': typeof TicketsKanbanRoute
-  '/tickets/merged': typeof TicketsMergedRoute
-  '/tickets/new': typeof TicketsNewRoute
-  '/tickets/spam': typeof TicketsSpamRoute
-  '/chat/': typeof ChatIndexRoute
-  '/contacts/': typeof ContactsIndexRoute
-  '/dashboard/': typeof DashboardIndexRoute
-  '/kb/': typeof KbIndexRoute
-  '/settings/': typeof SettingsIndexRoute
-  '/teams/': typeof TeamsIndexRoute
-  '/tickets/': typeof TicketsIndexRoute
-  '/admin/branding/email': typeof AdminBrandingEmailRoute
-  '/admin/branding/portal': typeof AdminBrandingPortalRoute
-  '/admin/branding/theme': typeof AdminBrandingThemeRoute
-  '/admin/ecommerce/amazon': typeof AdminEcommerceAmazonRoute
-  '/admin/ecommerce/connect': typeof AdminEcommerceConnectRoute
-  '/admin/ecommerce/id': typeof AdminEcommerceChar91idChar93Route
-  '/admin/forms/builder': typeof AdminFormsBuilderRoute
-  '/admin/forms/new': typeof AdminFormsNewRoute
-  '/admin/mailboxes/new': typeof AdminMailboxesNewRoute
-  '/admin/reports/agents': typeof AdminReportsAgentsRoute
-  '/admin/reports/csat': typeof AdminReportsCsatRoute
-  '/admin/reports/custom': typeof AdminReportsCustomRoute
-  '/admin/reports/sla': typeof AdminReportsSlaRoute
-  '/admin/reports/tickets': typeof AdminReportsTicketsRoute
-  '/admin/roles/new': typeof AdminRolesNewRoute
-  '/admin/saved-replies/folders': typeof AdminSavedRepliesFoldersRoute
-  '/admin/security/ip-whitelist': typeof AdminSecurityIpWhitelistRoute
-  '/admin/security/sso': typeof AdminSecuritySsoRoute
-  '/admin/settings/chatbot': typeof AdminSettingsChatbotRoute
-  '/admin/settings/license': typeof AdminSettingsLicenseRoute
-  '/admin/settings/mobile-sdk': typeof AdminSettingsMobileSdkRoute
-  '/admin/settings/translation': typeof AdminSettingsTranslationRoute
-  '/admin/sla/new': typeof AdminSlaNewRoute
-  '/admin/social/disqus': typeof AdminSocialDisqusRoute
-  '/admin/social/facebook': typeof AdminSocialFacebookRoute
-  '/admin/social/instagram': typeof AdminSocialInstagramRoute
-  '/admin/social/twitter': typeof AdminSocialTwitterRoute
-  '/admin/social/whatsapp': typeof AdminSocialWhatsappRoute
-  '/admin/users/id': typeof AdminUsersChar91idChar93Route
-  '/admin/users/invite': typeof AdminUsersInviteRoute
-  '/admin/workflows/builder': typeof AdminWorkflowsBuilderRoute
-  '/admin/workflows/new': typeof AdminWorkflowsNewRoute
-  '/kb/categories/id': typeof KbCategoriesChar91idChar93Route
-  '/admin/branding/': typeof AdminBrandingIndexRoute
-  '/admin/ecommerce/': typeof AdminEcommerceIndexRoute
-  '/admin/email-templates/': typeof AdminEmailTemplatesIndexRoute
-  '/admin/forms/': typeof AdminFormsIndexRoute
-  '/admin/mailboxes/': typeof AdminMailboxesIndexRoute
-  '/admin/reports/': typeof AdminReportsIndexRoute
-  '/admin/roles/': typeof AdminRolesIndexRoute
-  '/admin/saved-replies/': typeof AdminSavedRepliesIndexRoute
-  '/admin/security/': typeof AdminSecurityIndexRoute
-  '/admin/sla/': typeof AdminSlaIndexRoute
-  '/admin/social/': typeof AdminSocialIndexRoute
-  '/admin/users/': typeof AdminUsersIndexRoute
-  '/admin/workflows/': typeof AdminWorkflowsIndexRoute
-  '/kb/categories/': typeof KbCategoriesIndexRoute
-  '/admin/forms/id/submissions': typeof AdminFormsChar91idChar93SubmissionsRoute
-  '/admin/mailboxes/id/configure': typeof AdminMailboxesChar91idChar93ConfigureRoute
-  '/admin/mailboxes/id/routing': typeof AdminMailboxesChar91idChar93RoutingRoute
-  '/admin/roles/id/permissions': typeof AdminRolesChar91idChar93PermissionsRoute
-  '/admin/workflows/id/logs': typeof AdminWorkflowsChar91idChar93LogsRoute
-  '/admin/forms/id/': typeof AdminFormsChar91idChar93IndexRoute
-  '/admin/mailboxes/id/': typeof AdminMailboxesChar91idChar93IndexRoute
-  '/admin/roles/id/': typeof AdminRolesChar91idChar93IndexRoute
-  '/admin/workflows/id/': typeof AdminWorkflowsChar91idChar93IndexRoute
+  __root__: typeof rootRouteImport;
+  "/": typeof IndexRoute;
+  "/ai": typeof AiRoute;
+  "/todos": typeof TodosRoute;
+  "/admin/audit-log": typeof AdminAuditLogRoute;
+  "/admin/custom-domain": typeof AdminCustomDomainRoute;
+  "/chat/active": typeof ChatActiveRoute;
+  "/chat/ended": typeof ChatEndedRoute;
+  "/chat/id": typeof ChatChar91idChar93Route;
+  "/contacts/id": typeof ContactsChar91idChar93Route;
+  "/contacts/new": typeof ContactsNewRoute;
+  "/forms/id": typeof FormsChar91idChar93Route;
+  "/kb/$slug": typeof KbSlugRoute;
+  "/kb/new": typeof KbNewRoute;
+  "/portal/login": typeof PortalLoginRoute;
+  "/settings/appearance": typeof SettingsAppearanceRoute;
+  "/settings/notifications": typeof SettingsNotificationsRoute;
+  "/settings/password": typeof SettingsPasswordRoute;
+  "/settings/profile": typeof SettingsProfileRoute;
+  "/settings/security": typeof SettingsSecurityRoute;
+  "/teams/id": typeof TeamsChar91idChar93Route;
+  "/teams/new": typeof TeamsNewRoute;
+  "/tickets/id": typeof TicketsChar91idChar93Route;
+  "/tickets/kanban": typeof TicketsKanbanRoute;
+  "/tickets/merged": typeof TicketsMergedRoute;
+  "/tickets/new": typeof TicketsNewRoute;
+  "/tickets/spam": typeof TicketsSpamRoute;
+  "/chat/": typeof ChatIndexRoute;
+  "/contacts/": typeof ContactsIndexRoute;
+  "/dashboard/": typeof DashboardIndexRoute;
+  "/kb/": typeof KbIndexRoute;
+  "/settings/": typeof SettingsIndexRoute;
+  "/teams/": typeof TeamsIndexRoute;
+  "/tickets/": typeof TicketsIndexRoute;
+  "/admin/branding/email": typeof AdminBrandingEmailRoute;
+  "/admin/branding/portal": typeof AdminBrandingPortalRoute;
+  "/admin/branding/theme": typeof AdminBrandingThemeRoute;
+  "/admin/ecommerce/amazon": typeof AdminEcommerceAmazonRoute;
+  "/admin/ecommerce/connect": typeof AdminEcommerceConnectRoute;
+  "/admin/ecommerce/id": typeof AdminEcommerceChar91idChar93Route;
+  "/admin/forms/builder": typeof AdminFormsBuilderRoute;
+  "/admin/forms/new": typeof AdminFormsNewRoute;
+  "/admin/mailboxes/new": typeof AdminMailboxesNewRoute;
+  "/admin/reports/agents": typeof AdminReportsAgentsRoute;
+  "/admin/reports/csat": typeof AdminReportsCsatRoute;
+  "/admin/reports/custom": typeof AdminReportsCustomRoute;
+  "/admin/reports/sla": typeof AdminReportsSlaRoute;
+  "/admin/reports/tickets": typeof AdminReportsTicketsRoute;
+  "/admin/roles/new": typeof AdminRolesNewRoute;
+  "/admin/saved-replies/folders": typeof AdminSavedRepliesFoldersRoute;
+  "/admin/security/ip-whitelist": typeof AdminSecurityIpWhitelistRoute;
+  "/admin/security/sso": typeof AdminSecuritySsoRoute;
+  "/admin/settings/chatbot": typeof AdminSettingsChatbotRoute;
+  "/admin/settings/license": typeof AdminSettingsLicenseRoute;
+  "/admin/settings/mobile-sdk": typeof AdminSettingsMobileSdkRoute;
+  "/admin/settings/translation": typeof AdminSettingsTranslationRoute;
+  "/admin/sla/new": typeof AdminSlaNewRoute;
+  "/admin/social/disqus": typeof AdminSocialDisqusRoute;
+  "/admin/social/facebook": typeof AdminSocialFacebookRoute;
+  "/admin/social/instagram": typeof AdminSocialInstagramRoute;
+  "/admin/social/twitter": typeof AdminSocialTwitterRoute;
+  "/admin/social/whatsapp": typeof AdminSocialWhatsappRoute;
+  "/admin/users/id": typeof AdminUsersChar91idChar93Route;
+  "/admin/users/invite": typeof AdminUsersInviteRoute;
+  "/admin/workflows/builder": typeof AdminWorkflowsBuilderRoute;
+  "/admin/workflows/new": typeof AdminWorkflowsNewRoute;
+  "/kb/categories/id": typeof KbCategoriesChar91idChar93Route;
+  "/admin/branding/": typeof AdminBrandingIndexRoute;
+  "/admin/ecommerce/": typeof AdminEcommerceIndexRoute;
+  "/admin/email-templates/": typeof AdminEmailTemplatesIndexRoute;
+  "/admin/excel/": typeof AdminExcelIndexRoute;
+  "/admin/forms/": typeof AdminFormsIndexRoute;
+  "/admin/mailboxes/": typeof AdminMailboxesIndexRoute;
+  "/admin/reports/": typeof AdminReportsIndexRoute;
+  "/admin/roles/": typeof AdminRolesIndexRoute;
+  "/admin/saved-replies/": typeof AdminSavedRepliesIndexRoute;
+  "/admin/security/": typeof AdminSecurityIndexRoute;
+  "/admin/sla/": typeof AdminSlaIndexRoute;
+  "/admin/social/": typeof AdminSocialIndexRoute;
+  "/admin/users/": typeof AdminUsersIndexRoute;
+  "/admin/workflows/": typeof AdminWorkflowsIndexRoute;
+  "/kb/categories/": typeof KbCategoriesIndexRoute;
+  "/admin/forms/id/submissions": typeof AdminFormsChar91idChar93SubmissionsRoute;
+  "/admin/mailboxes/id/configure": typeof AdminMailboxesChar91idChar93ConfigureRoute;
+  "/admin/mailboxes/id/routing": typeof AdminMailboxesChar91idChar93RoutingRoute;
+  "/admin/roles/id/permissions": typeof AdminRolesChar91idChar93PermissionsRoute;
+  "/admin/workflows/id/logs": typeof AdminWorkflowsChar91idChar93LogsRoute;
+  "/admin/forms/id/": typeof AdminFormsChar91idChar93IndexRoute;
+  "/admin/mailboxes/id/": typeof AdminMailboxesChar91idChar93IndexRoute;
+  "/admin/roles/id/": typeof AdminRolesChar91idChar93IndexRoute;
+  "/admin/workflows/id/": typeof AdminWorkflowsChar91idChar93IndexRoute;
 }
 export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath
+  fileRoutesByFullPath: FileRoutesByFullPath;
   fullPaths:
-    | '/'
-    | '/ai'
-    | '/todos'
-    | '/admin/audit-log'
-    | '/admin/custom-domain'
-    | '/chat/active'
-    | '/chat/ended'
-    | '/chat/id'
-    | '/contacts/id'
-    | '/contacts/new'
-    | '/forms/id'
-    | '/kb/$slug'
-    | '/kb/new'
-    | '/portal/login'
-    | '/settings/appearance'
-    | '/settings/notifications'
-    | '/settings/password'
-    | '/settings/profile'
-    | '/settings/security'
-    | '/teams/id'
-    | '/teams/new'
-    | '/tickets/id'
-    | '/tickets/kanban'
-    | '/tickets/merged'
-    | '/tickets/new'
-    | '/tickets/spam'
-    | '/chat/'
-    | '/contacts/'
-    | '/dashboard/'
-    | '/kb/'
-    | '/settings/'
-    | '/teams/'
-    | '/tickets/'
-    | '/admin/branding/email'
-    | '/admin/branding/portal'
-    | '/admin/branding/theme'
-    | '/admin/ecommerce/amazon'
-    | '/admin/ecommerce/connect'
-    | '/admin/ecommerce/id'
-    | '/admin/forms/builder'
-    | '/admin/forms/new'
-    | '/admin/mailboxes/new'
-    | '/admin/reports/agents'
-    | '/admin/reports/csat'
-    | '/admin/reports/custom'
-    | '/admin/reports/sla'
-    | '/admin/reports/tickets'
-    | '/admin/roles/new'
-    | '/admin/saved-replies/folders'
-    | '/admin/security/ip-whitelist'
-    | '/admin/security/sso'
-    | '/admin/settings/chatbot'
-    | '/admin/settings/license'
-    | '/admin/settings/mobile-sdk'
-    | '/admin/settings/translation'
-    | '/admin/sla/new'
-    | '/admin/social/disqus'
-    | '/admin/social/facebook'
-    | '/admin/social/instagram'
-    | '/admin/social/twitter'
-    | '/admin/social/whatsapp'
-    | '/admin/users/id'
-    | '/admin/users/invite'
-    | '/admin/workflows/builder'
-    | '/admin/workflows/new'
-    | '/kb/categories/id'
-    | '/admin/branding/'
-    | '/admin/ecommerce/'
-    | '/admin/email-templates/'
-    | '/admin/forms/'
-    | '/admin/mailboxes/'
-    | '/admin/reports/'
-    | '/admin/roles/'
-    | '/admin/saved-replies/'
-    | '/admin/security/'
-    | '/admin/sla/'
-    | '/admin/social/'
-    | '/admin/users/'
-    | '/admin/workflows/'
-    | '/kb/categories/'
-    | '/admin/forms/id/submissions'
-    | '/admin/mailboxes/id/configure'
-    | '/admin/mailboxes/id/routing'
-    | '/admin/roles/id/permissions'
-    | '/admin/workflows/id/logs'
-    | '/admin/forms/id/'
-    | '/admin/mailboxes/id/'
-    | '/admin/roles/id/'
-    | '/admin/workflows/id/'
-  fileRoutesByTo: FileRoutesByTo
+    | "/"
+    | "/ai"
+    | "/todos"
+    | "/admin/audit-log"
+    | "/admin/custom-domain"
+    | "/chat/active"
+    | "/chat/ended"
+    | "/chat/id"
+    | "/contacts/id"
+    | "/contacts/new"
+    | "/forms/id"
+    | "/kb/$slug"
+    | "/kb/new"
+    | "/portal/login"
+    | "/settings/appearance"
+    | "/settings/notifications"
+    | "/settings/password"
+    | "/settings/profile"
+    | "/settings/security"
+    | "/teams/id"
+    | "/teams/new"
+    | "/tickets/id"
+    | "/tickets/kanban"
+    | "/tickets/merged"
+    | "/tickets/new"
+    | "/tickets/spam"
+    | "/chat/"
+    | "/contacts/"
+    | "/dashboard/"
+    | "/kb/"
+    | "/settings/"
+    | "/teams/"
+    | "/tickets/"
+    | "/admin/branding/email"
+    | "/admin/branding/portal"
+    | "/admin/branding/theme"
+    | "/admin/ecommerce/amazon"
+    | "/admin/ecommerce/connect"
+    | "/admin/ecommerce/id"
+    | "/admin/forms/builder"
+    | "/admin/forms/new"
+    | "/admin/mailboxes/new"
+    | "/admin/reports/agents"
+    | "/admin/reports/csat"
+    | "/admin/reports/custom"
+    | "/admin/reports/sla"
+    | "/admin/reports/tickets"
+    | "/admin/roles/new"
+    | "/admin/saved-replies/folders"
+    | "/admin/security/ip-whitelist"
+    | "/admin/security/sso"
+    | "/admin/settings/chatbot"
+    | "/admin/settings/license"
+    | "/admin/settings/mobile-sdk"
+    | "/admin/settings/translation"
+    | "/admin/sla/new"
+    | "/admin/social/disqus"
+    | "/admin/social/facebook"
+    | "/admin/social/instagram"
+    | "/admin/social/twitter"
+    | "/admin/social/whatsapp"
+    | "/admin/users/id"
+    | "/admin/users/invite"
+    | "/admin/workflows/builder"
+    | "/admin/workflows/new"
+    | "/kb/categories/id"
+    | "/admin/branding/"
+    | "/admin/ecommerce/"
+    | "/admin/email-templates/"
+    | "/admin/excel/"
+    | "/admin/forms/"
+    | "/admin/mailboxes/"
+    | "/admin/reports/"
+    | "/admin/roles/"
+    | "/admin/saved-replies/"
+    | "/admin/security/"
+    | "/admin/sla/"
+    | "/admin/social/"
+    | "/admin/users/"
+    | "/admin/workflows/"
+    | "/kb/categories/"
+    | "/admin/forms/id/submissions"
+    | "/admin/mailboxes/id/configure"
+    | "/admin/mailboxes/id/routing"
+    | "/admin/roles/id/permissions"
+    | "/admin/workflows/id/logs"
+    | "/admin/forms/id/"
+    | "/admin/mailboxes/id/"
+    | "/admin/roles/id/"
+    | "/admin/workflows/id/";
+  fileRoutesByTo: FileRoutesByTo;
   to:
-    | '/'
-    | '/ai'
-    | '/todos'
-    | '/admin/audit-log'
-    | '/admin/custom-domain'
-    | '/chat/active'
-    | '/chat/ended'
-    | '/chat/id'
-    | '/contacts/id'
-    | '/contacts/new'
-    | '/forms/id'
-    | '/kb/$slug'
-    | '/kb/new'
-    | '/portal/login'
-    | '/settings/appearance'
-    | '/settings/notifications'
-    | '/settings/password'
-    | '/settings/profile'
-    | '/settings/security'
-    | '/teams/id'
-    | '/teams/new'
-    | '/tickets/id'
-    | '/tickets/kanban'
-    | '/tickets/merged'
-    | '/tickets/new'
-    | '/tickets/spam'
-    | '/chat'
-    | '/contacts'
-    | '/dashboard'
-    | '/kb'
-    | '/settings'
-    | '/teams'
-    | '/tickets'
-    | '/admin/branding/email'
-    | '/admin/branding/portal'
-    | '/admin/branding/theme'
-    | '/admin/ecommerce/amazon'
-    | '/admin/ecommerce/connect'
-    | '/admin/ecommerce/id'
-    | '/admin/forms/builder'
-    | '/admin/forms/new'
-    | '/admin/mailboxes/new'
-    | '/admin/reports/agents'
-    | '/admin/reports/csat'
-    | '/admin/reports/custom'
-    | '/admin/reports/sla'
-    | '/admin/reports/tickets'
-    | '/admin/roles/new'
-    | '/admin/saved-replies/folders'
-    | '/admin/security/ip-whitelist'
-    | '/admin/security/sso'
-    | '/admin/settings/chatbot'
-    | '/admin/settings/license'
-    | '/admin/settings/mobile-sdk'
-    | '/admin/settings/translation'
-    | '/admin/sla/new'
-    | '/admin/social/disqus'
-    | '/admin/social/facebook'
-    | '/admin/social/instagram'
-    | '/admin/social/twitter'
-    | '/admin/social/whatsapp'
-    | '/admin/users/id'
-    | '/admin/users/invite'
-    | '/admin/workflows/builder'
-    | '/admin/workflows/new'
-    | '/kb/categories/id'
-    | '/admin/branding'
-    | '/admin/ecommerce'
-    | '/admin/email-templates'
-    | '/admin/forms'
-    | '/admin/mailboxes'
-    | '/admin/reports'
-    | '/admin/roles'
-    | '/admin/saved-replies'
-    | '/admin/security'
-    | '/admin/sla'
-    | '/admin/social'
-    | '/admin/users'
-    | '/admin/workflows'
-    | '/kb/categories'
-    | '/admin/forms/id/submissions'
-    | '/admin/mailboxes/id/configure'
-    | '/admin/mailboxes/id/routing'
-    | '/admin/roles/id/permissions'
-    | '/admin/workflows/id/logs'
-    | '/admin/forms/id'
-    | '/admin/mailboxes/id'
-    | '/admin/roles/id'
-    | '/admin/workflows/id'
+    | "/"
+    | "/ai"
+    | "/todos"
+    | "/admin/audit-log"
+    | "/admin/custom-domain"
+    | "/chat/active"
+    | "/chat/ended"
+    | "/chat/id"
+    | "/contacts/id"
+    | "/contacts/new"
+    | "/forms/id"
+    | "/kb/$slug"
+    | "/kb/new"
+    | "/portal/login"
+    | "/settings/appearance"
+    | "/settings/notifications"
+    | "/settings/password"
+    | "/settings/profile"
+    | "/settings/security"
+    | "/teams/id"
+    | "/teams/new"
+    | "/tickets/id"
+    | "/tickets/kanban"
+    | "/tickets/merged"
+    | "/tickets/new"
+    | "/tickets/spam"
+    | "/chat"
+    | "/contacts"
+    | "/dashboard"
+    | "/kb"
+    | "/settings"
+    | "/teams"
+    | "/tickets"
+    | "/admin/branding/email"
+    | "/admin/branding/portal"
+    | "/admin/branding/theme"
+    | "/admin/ecommerce/amazon"
+    | "/admin/ecommerce/connect"
+    | "/admin/ecommerce/id"
+    | "/admin/forms/builder"
+    | "/admin/forms/new"
+    | "/admin/mailboxes/new"
+    | "/admin/reports/agents"
+    | "/admin/reports/csat"
+    | "/admin/reports/custom"
+    | "/admin/reports/sla"
+    | "/admin/reports/tickets"
+    | "/admin/roles/new"
+    | "/admin/saved-replies/folders"
+    | "/admin/security/ip-whitelist"
+    | "/admin/security/sso"
+    | "/admin/settings/chatbot"
+    | "/admin/settings/license"
+    | "/admin/settings/mobile-sdk"
+    | "/admin/settings/translation"
+    | "/admin/sla/new"
+    | "/admin/social/disqus"
+    | "/admin/social/facebook"
+    | "/admin/social/instagram"
+    | "/admin/social/twitter"
+    | "/admin/social/whatsapp"
+    | "/admin/users/id"
+    | "/admin/users/invite"
+    | "/admin/workflows/builder"
+    | "/admin/workflows/new"
+    | "/kb/categories/id"
+    | "/admin/branding"
+    | "/admin/ecommerce"
+    | "/admin/email-templates"
+    | "/admin/excel"
+    | "/admin/forms"
+    | "/admin/mailboxes"
+    | "/admin/reports"
+    | "/admin/roles"
+    | "/admin/saved-replies"
+    | "/admin/security"
+    | "/admin/sla"
+    | "/admin/social"
+    | "/admin/users"
+    | "/admin/workflows"
+    | "/kb/categories"
+    | "/admin/forms/id/submissions"
+    | "/admin/mailboxes/id/configure"
+    | "/admin/mailboxes/id/routing"
+    | "/admin/roles/id/permissions"
+    | "/admin/workflows/id/logs"
+    | "/admin/forms/id"
+    | "/admin/mailboxes/id"
+    | "/admin/roles/id"
+    | "/admin/workflows/id";
   id:
-    | '__root__'
-    | '/'
-    | '/ai'
-    | '/todos'
-    | '/admin/audit-log'
-    | '/admin/custom-domain'
-    | '/chat/active'
-    | '/chat/ended'
-    | '/chat/id'
-    | '/contacts/id'
-    | '/contacts/new'
-    | '/forms/id'
-    | '/kb/$slug'
-    | '/kb/new'
-    | '/portal/login'
-    | '/settings/appearance'
-    | '/settings/notifications'
-    | '/settings/password'
-    | '/settings/profile'
-    | '/settings/security'
-    | '/teams/id'
-    | '/teams/new'
-    | '/tickets/id'
-    | '/tickets/kanban'
-    | '/tickets/merged'
-    | '/tickets/new'
-    | '/tickets/spam'
-    | '/chat/'
-    | '/contacts/'
-    | '/dashboard/'
-    | '/kb/'
-    | '/settings/'
-    | '/teams/'
-    | '/tickets/'
-    | '/admin/branding/email'
-    | '/admin/branding/portal'
-    | '/admin/branding/theme'
-    | '/admin/ecommerce/amazon'
-    | '/admin/ecommerce/connect'
-    | '/admin/ecommerce/id'
-    | '/admin/forms/builder'
-    | '/admin/forms/new'
-    | '/admin/mailboxes/new'
-    | '/admin/reports/agents'
-    | '/admin/reports/csat'
-    | '/admin/reports/custom'
-    | '/admin/reports/sla'
-    | '/admin/reports/tickets'
-    | '/admin/roles/new'
-    | '/admin/saved-replies/folders'
-    | '/admin/security/ip-whitelist'
-    | '/admin/security/sso'
-    | '/admin/settings/chatbot'
-    | '/admin/settings/license'
-    | '/admin/settings/mobile-sdk'
-    | '/admin/settings/translation'
-    | '/admin/sla/new'
-    | '/admin/social/disqus'
-    | '/admin/social/facebook'
-    | '/admin/social/instagram'
-    | '/admin/social/twitter'
-    | '/admin/social/whatsapp'
-    | '/admin/users/id'
-    | '/admin/users/invite'
-    | '/admin/workflows/builder'
-    | '/admin/workflows/new'
-    | '/kb/categories/id'
-    | '/admin/branding/'
-    | '/admin/ecommerce/'
-    | '/admin/email-templates/'
-    | '/admin/forms/'
-    | '/admin/mailboxes/'
-    | '/admin/reports/'
-    | '/admin/roles/'
-    | '/admin/saved-replies/'
-    | '/admin/security/'
-    | '/admin/sla/'
-    | '/admin/social/'
-    | '/admin/users/'
-    | '/admin/workflows/'
-    | '/kb/categories/'
-    | '/admin/forms/id/submissions'
-    | '/admin/mailboxes/id/configure'
-    | '/admin/mailboxes/id/routing'
-    | '/admin/roles/id/permissions'
-    | '/admin/workflows/id/logs'
-    | '/admin/forms/id/'
-    | '/admin/mailboxes/id/'
-    | '/admin/roles/id/'
-    | '/admin/workflows/id/'
-  fileRoutesById: FileRoutesById
+    | "__root__"
+    | "/"
+    | "/ai"
+    | "/todos"
+    | "/admin/audit-log"
+    | "/admin/custom-domain"
+    | "/chat/active"
+    | "/chat/ended"
+    | "/chat/id"
+    | "/contacts/id"
+    | "/contacts/new"
+    | "/forms/id"
+    | "/kb/$slug"
+    | "/kb/new"
+    | "/portal/login"
+    | "/settings/appearance"
+    | "/settings/notifications"
+    | "/settings/password"
+    | "/settings/profile"
+    | "/settings/security"
+    | "/teams/id"
+    | "/teams/new"
+    | "/tickets/id"
+    | "/tickets/kanban"
+    | "/tickets/merged"
+    | "/tickets/new"
+    | "/tickets/spam"
+    | "/chat/"
+    | "/contacts/"
+    | "/dashboard/"
+    | "/kb/"
+    | "/settings/"
+    | "/teams/"
+    | "/tickets/"
+    | "/admin/branding/email"
+    | "/admin/branding/portal"
+    | "/admin/branding/theme"
+    | "/admin/ecommerce/amazon"
+    | "/admin/ecommerce/connect"
+    | "/admin/ecommerce/id"
+    | "/admin/forms/builder"
+    | "/admin/forms/new"
+    | "/admin/mailboxes/new"
+    | "/admin/reports/agents"
+    | "/admin/reports/csat"
+    | "/admin/reports/custom"
+    | "/admin/reports/sla"
+    | "/admin/reports/tickets"
+    | "/admin/roles/new"
+    | "/admin/saved-replies/folders"
+    | "/admin/security/ip-whitelist"
+    | "/admin/security/sso"
+    | "/admin/settings/chatbot"
+    | "/admin/settings/license"
+    | "/admin/settings/mobile-sdk"
+    | "/admin/settings/translation"
+    | "/admin/sla/new"
+    | "/admin/social/disqus"
+    | "/admin/social/facebook"
+    | "/admin/social/instagram"
+    | "/admin/social/twitter"
+    | "/admin/social/whatsapp"
+    | "/admin/users/id"
+    | "/admin/users/invite"
+    | "/admin/workflows/builder"
+    | "/admin/workflows/new"
+    | "/kb/categories/id"
+    | "/admin/branding/"
+    | "/admin/ecommerce/"
+    | "/admin/email-templates/"
+    | "/admin/excel/"
+    | "/admin/forms/"
+    | "/admin/mailboxes/"
+    | "/admin/reports/"
+    | "/admin/roles/"
+    | "/admin/saved-replies/"
+    | "/admin/security/"
+    | "/admin/sla/"
+    | "/admin/social/"
+    | "/admin/users/"
+    | "/admin/workflows/"
+    | "/kb/categories/"
+    | "/admin/forms/id/submissions"
+    | "/admin/mailboxes/id/configure"
+    | "/admin/mailboxes/id/routing"
+    | "/admin/roles/id/permissions"
+    | "/admin/workflows/id/logs"
+    | "/admin/forms/id/"
+    | "/admin/mailboxes/id/"
+    | "/admin/roles/id/"
+    | "/admin/workflows/id/";
+  fileRoutesById: FileRoutesById;
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  AiRoute: typeof AiRoute
-  TodosRoute: typeof TodosRoute
-  AdminAuditLogRoute: typeof AdminAuditLogRoute
-  AdminCustomDomainRoute: typeof AdminCustomDomainRoute
-  ChatActiveRoute: typeof ChatActiveRoute
-  ChatEndedRoute: typeof ChatEndedRoute
-  ChatChar91idChar93Route: typeof ChatChar91idChar93Route
-  ContactsChar91idChar93Route: typeof ContactsChar91idChar93Route
-  ContactsNewRoute: typeof ContactsNewRoute
-  FormsChar91idChar93Route: typeof FormsChar91idChar93Route
-  KbSlugRoute: typeof KbSlugRoute
-  KbNewRoute: typeof KbNewRoute
-  PortalLoginRoute: typeof PortalLoginRoute
-  SettingsAppearanceRoute: typeof SettingsAppearanceRoute
-  SettingsNotificationsRoute: typeof SettingsNotificationsRoute
-  SettingsPasswordRoute: typeof SettingsPasswordRoute
-  SettingsProfileRoute: typeof SettingsProfileRoute
-  SettingsSecurityRoute: typeof SettingsSecurityRoute
-  TeamsChar91idChar93Route: typeof TeamsChar91idChar93Route
-  TeamsNewRoute: typeof TeamsNewRoute
-  TicketsChar91idChar93Route: typeof TicketsChar91idChar93Route
-  TicketsKanbanRoute: typeof TicketsKanbanRoute
-  TicketsMergedRoute: typeof TicketsMergedRoute
-  TicketsNewRoute: typeof TicketsNewRoute
-  TicketsSpamRoute: typeof TicketsSpamRoute
-  ChatIndexRoute: typeof ChatIndexRoute
-  ContactsIndexRoute: typeof ContactsIndexRoute
-  DashboardIndexRoute: typeof DashboardIndexRoute
-  KbIndexRoute: typeof KbIndexRoute
-  SettingsIndexRoute: typeof SettingsIndexRoute
-  TeamsIndexRoute: typeof TeamsIndexRoute
-  TicketsIndexRoute: typeof TicketsIndexRoute
-  AdminBrandingEmailRoute: typeof AdminBrandingEmailRoute
-  AdminBrandingPortalRoute: typeof AdminBrandingPortalRoute
-  AdminBrandingThemeRoute: typeof AdminBrandingThemeRoute
-  AdminEcommerceAmazonRoute: typeof AdminEcommerceAmazonRoute
-  AdminEcommerceConnectRoute: typeof AdminEcommerceConnectRoute
-  AdminEcommerceChar91idChar93Route: typeof AdminEcommerceChar91idChar93Route
-  AdminFormsBuilderRoute: typeof AdminFormsBuilderRoute
-  AdminFormsNewRoute: typeof AdminFormsNewRoute
-  AdminMailboxesNewRoute: typeof AdminMailboxesNewRoute
-  AdminReportsAgentsRoute: typeof AdminReportsAgentsRoute
-  AdminReportsCsatRoute: typeof AdminReportsCsatRoute
-  AdminReportsCustomRoute: typeof AdminReportsCustomRoute
-  AdminReportsSlaRoute: typeof AdminReportsSlaRoute
-  AdminReportsTicketsRoute: typeof AdminReportsTicketsRoute
-  AdminRolesNewRoute: typeof AdminRolesNewRoute
-  AdminSavedRepliesFoldersRoute: typeof AdminSavedRepliesFoldersRoute
-  AdminSecurityIpWhitelistRoute: typeof AdminSecurityIpWhitelistRoute
-  AdminSecuritySsoRoute: typeof AdminSecuritySsoRoute
-  AdminSettingsChatbotRoute: typeof AdminSettingsChatbotRoute
-  AdminSettingsLicenseRoute: typeof AdminSettingsLicenseRoute
-  AdminSettingsMobileSdkRoute: typeof AdminSettingsMobileSdkRoute
-  AdminSettingsTranslationRoute: typeof AdminSettingsTranslationRoute
-  AdminSlaNewRoute: typeof AdminSlaNewRoute
-  AdminSocialDisqusRoute: typeof AdminSocialDisqusRoute
-  AdminSocialFacebookRoute: typeof AdminSocialFacebookRoute
-  AdminSocialInstagramRoute: typeof AdminSocialInstagramRoute
-  AdminSocialTwitterRoute: typeof AdminSocialTwitterRoute
-  AdminSocialWhatsappRoute: typeof AdminSocialWhatsappRoute
-  AdminUsersChar91idChar93Route: typeof AdminUsersChar91idChar93Route
-  AdminUsersInviteRoute: typeof AdminUsersInviteRoute
-  AdminWorkflowsBuilderRoute: typeof AdminWorkflowsBuilderRoute
-  AdminWorkflowsNewRoute: typeof AdminWorkflowsNewRoute
-  KbCategoriesChar91idChar93Route: typeof KbCategoriesChar91idChar93Route
-  AdminBrandingIndexRoute: typeof AdminBrandingIndexRoute
-  AdminEcommerceIndexRoute: typeof AdminEcommerceIndexRoute
-  AdminEmailTemplatesIndexRoute: typeof AdminEmailTemplatesIndexRoute
-  AdminFormsIndexRoute: typeof AdminFormsIndexRoute
-  AdminMailboxesIndexRoute: typeof AdminMailboxesIndexRoute
-  AdminReportsIndexRoute: typeof AdminReportsIndexRoute
-  AdminRolesIndexRoute: typeof AdminRolesIndexRoute
-  AdminSavedRepliesIndexRoute: typeof AdminSavedRepliesIndexRoute
-  AdminSecurityIndexRoute: typeof AdminSecurityIndexRoute
-  AdminSlaIndexRoute: typeof AdminSlaIndexRoute
-  AdminSocialIndexRoute: typeof AdminSocialIndexRoute
-  AdminUsersIndexRoute: typeof AdminUsersIndexRoute
-  AdminWorkflowsIndexRoute: typeof AdminWorkflowsIndexRoute
-  KbCategoriesIndexRoute: typeof KbCategoriesIndexRoute
-  AdminFormsChar91idChar93SubmissionsRoute: typeof AdminFormsChar91idChar93SubmissionsRoute
-  AdminMailboxesChar91idChar93ConfigureRoute: typeof AdminMailboxesChar91idChar93ConfigureRoute
-  AdminMailboxesChar91idChar93RoutingRoute: typeof AdminMailboxesChar91idChar93RoutingRoute
-  AdminRolesChar91idChar93PermissionsRoute: typeof AdminRolesChar91idChar93PermissionsRoute
-  AdminWorkflowsChar91idChar93LogsRoute: typeof AdminWorkflowsChar91idChar93LogsRoute
-  AdminFormsChar91idChar93IndexRoute: typeof AdminFormsChar91idChar93IndexRoute
-  AdminMailboxesChar91idChar93IndexRoute: typeof AdminMailboxesChar91idChar93IndexRoute
-  AdminRolesChar91idChar93IndexRoute: typeof AdminRolesChar91idChar93IndexRoute
-  AdminWorkflowsChar91idChar93IndexRoute: typeof AdminWorkflowsChar91idChar93IndexRoute
+  IndexRoute: typeof IndexRoute;
+  AiRoute: typeof AiRoute;
+  TodosRoute: typeof TodosRoute;
+  AdminAuditLogRoute: typeof AdminAuditLogRoute;
+  AdminCustomDomainRoute: typeof AdminCustomDomainRoute;
+  ChatActiveRoute: typeof ChatActiveRoute;
+  ChatEndedRoute: typeof ChatEndedRoute;
+  ChatChar91idChar93Route: typeof ChatChar91idChar93Route;
+  ContactsChar91idChar93Route: typeof ContactsChar91idChar93Route;
+  ContactsNewRoute: typeof ContactsNewRoute;
+  FormsChar91idChar93Route: typeof FormsChar91idChar93Route;
+  KbSlugRoute: typeof KbSlugRoute;
+  KbNewRoute: typeof KbNewRoute;
+  PortalLoginRoute: typeof PortalLoginRoute;
+  SettingsAppearanceRoute: typeof SettingsAppearanceRoute;
+  SettingsNotificationsRoute: typeof SettingsNotificationsRoute;
+  SettingsPasswordRoute: typeof SettingsPasswordRoute;
+  SettingsProfileRoute: typeof SettingsProfileRoute;
+  SettingsSecurityRoute: typeof SettingsSecurityRoute;
+  TeamsChar91idChar93Route: typeof TeamsChar91idChar93Route;
+  TeamsNewRoute: typeof TeamsNewRoute;
+  TicketsChar91idChar93Route: typeof TicketsChar91idChar93Route;
+  TicketsKanbanRoute: typeof TicketsKanbanRoute;
+  TicketsMergedRoute: typeof TicketsMergedRoute;
+  TicketsNewRoute: typeof TicketsNewRoute;
+  TicketsSpamRoute: typeof TicketsSpamRoute;
+  ChatIndexRoute: typeof ChatIndexRoute;
+  ContactsIndexRoute: typeof ContactsIndexRoute;
+  DashboardIndexRoute: typeof DashboardIndexRoute;
+  KbIndexRoute: typeof KbIndexRoute;
+  SettingsIndexRoute: typeof SettingsIndexRoute;
+  TeamsIndexRoute: typeof TeamsIndexRoute;
+  TicketsIndexRoute: typeof TicketsIndexRoute;
+  AdminBrandingEmailRoute: typeof AdminBrandingEmailRoute;
+  AdminBrandingPortalRoute: typeof AdminBrandingPortalRoute;
+  AdminBrandingThemeRoute: typeof AdminBrandingThemeRoute;
+  AdminEcommerceAmazonRoute: typeof AdminEcommerceAmazonRoute;
+  AdminEcommerceConnectRoute: typeof AdminEcommerceConnectRoute;
+  AdminEcommerceChar91idChar93Route: typeof AdminEcommerceChar91idChar93Route;
+  AdminFormsBuilderRoute: typeof AdminFormsBuilderRoute;
+  AdminFormsNewRoute: typeof AdminFormsNewRoute;
+  AdminMailboxesNewRoute: typeof AdminMailboxesNewRoute;
+  AdminReportsAgentsRoute: typeof AdminReportsAgentsRoute;
+  AdminReportsCsatRoute: typeof AdminReportsCsatRoute;
+  AdminReportsCustomRoute: typeof AdminReportsCustomRoute;
+  AdminReportsSlaRoute: typeof AdminReportsSlaRoute;
+  AdminReportsTicketsRoute: typeof AdminReportsTicketsRoute;
+  AdminRolesNewRoute: typeof AdminRolesNewRoute;
+  AdminSavedRepliesFoldersRoute: typeof AdminSavedRepliesFoldersRoute;
+  AdminSecurityIpWhitelistRoute: typeof AdminSecurityIpWhitelistRoute;
+  AdminSecuritySsoRoute: typeof AdminSecuritySsoRoute;
+  AdminSettingsChatbotRoute: typeof AdminSettingsChatbotRoute;
+  AdminSettingsLicenseRoute: typeof AdminSettingsLicenseRoute;
+  AdminSettingsMobileSdkRoute: typeof AdminSettingsMobileSdkRoute;
+  AdminSettingsTranslationRoute: typeof AdminSettingsTranslationRoute;
+  AdminSlaNewRoute: typeof AdminSlaNewRoute;
+  AdminSocialDisqusRoute: typeof AdminSocialDisqusRoute;
+  AdminSocialFacebookRoute: typeof AdminSocialFacebookRoute;
+  AdminSocialInstagramRoute: typeof AdminSocialInstagramRoute;
+  AdminSocialTwitterRoute: typeof AdminSocialTwitterRoute;
+  AdminSocialWhatsappRoute: typeof AdminSocialWhatsappRoute;
+  AdminUsersChar91idChar93Route: typeof AdminUsersChar91idChar93Route;
+  AdminUsersInviteRoute: typeof AdminUsersInviteRoute;
+  AdminWorkflowsBuilderRoute: typeof AdminWorkflowsBuilderRoute;
+  AdminWorkflowsNewRoute: typeof AdminWorkflowsNewRoute;
+  KbCategoriesChar91idChar93Route: typeof KbCategoriesChar91idChar93Route;
+  AdminBrandingIndexRoute: typeof AdminBrandingIndexRoute;
+  AdminEcommerceIndexRoute: typeof AdminEcommerceIndexRoute;
+  AdminEmailTemplatesIndexRoute: typeof AdminEmailTemplatesIndexRoute;
+  AdminExcelIndexRoute: typeof AdminExcelIndexRoute;
+  AdminFormsIndexRoute: typeof AdminFormsIndexRoute;
+  AdminMailboxesIndexRoute: typeof AdminMailboxesIndexRoute;
+  AdminReportsIndexRoute: typeof AdminReportsIndexRoute;
+  AdminRolesIndexRoute: typeof AdminRolesIndexRoute;
+  AdminSavedRepliesIndexRoute: typeof AdminSavedRepliesIndexRoute;
+  AdminSecurityIndexRoute: typeof AdminSecurityIndexRoute;
+  AdminSlaIndexRoute: typeof AdminSlaIndexRoute;
+  AdminSocialIndexRoute: typeof AdminSocialIndexRoute;
+  AdminUsersIndexRoute: typeof AdminUsersIndexRoute;
+  AdminWorkflowsIndexRoute: typeof AdminWorkflowsIndexRoute;
+  KbCategoriesIndexRoute: typeof KbCategoriesIndexRoute;
+  AdminFormsChar91idChar93SubmissionsRoute: typeof AdminFormsChar91idChar93SubmissionsRoute;
+  AdminMailboxesChar91idChar93ConfigureRoute: typeof AdminMailboxesChar91idChar93ConfigureRoute;
+  AdminMailboxesChar91idChar93RoutingRoute: typeof AdminMailboxesChar91idChar93RoutingRoute;
+  AdminRolesChar91idChar93PermissionsRoute: typeof AdminRolesChar91idChar93PermissionsRoute;
+  AdminWorkflowsChar91idChar93LogsRoute: typeof AdminWorkflowsChar91idChar93LogsRoute;
+  AdminFormsChar91idChar93IndexRoute: typeof AdminFormsChar91idChar93IndexRoute;
+  AdminMailboxesChar91idChar93IndexRoute: typeof AdminMailboxesChar91idChar93IndexRoute;
+  AdminRolesChar91idChar93IndexRoute: typeof AdminRolesChar91idChar93IndexRoute;
+  AdminWorkflowsChar91idChar93IndexRoute: typeof AdminWorkflowsChar91idChar93IndexRoute;
 }
 
-declare module '@tanstack/react-router' {
+declare module "@tanstack/react-router" {
   interface FileRoutesByPath {
-    '/todos': {
-      id: '/todos'
-      path: '/todos'
-      fullPath: '/todos'
-      preLoaderRoute: typeof TodosRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/ai': {
-      id: '/ai'
-      path: '/ai'
-      fullPath: '/ai'
-      preLoaderRoute: typeof AiRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/tickets/': {
-      id: '/tickets/'
-      path: '/tickets'
-      fullPath: '/tickets/'
-      preLoaderRoute: typeof TicketsIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/teams/': {
-      id: '/teams/'
-      path: '/teams'
-      fullPath: '/teams/'
-      preLoaderRoute: typeof TeamsIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/settings/': {
-      id: '/settings/'
-      path: '/settings'
-      fullPath: '/settings/'
-      preLoaderRoute: typeof SettingsIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/kb/': {
-      id: '/kb/'
-      path: '/kb'
-      fullPath: '/kb/'
-      preLoaderRoute: typeof KbIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dashboard/': {
-      id: '/dashboard/'
-      path: '/dashboard'
-      fullPath: '/dashboard/'
-      preLoaderRoute: typeof DashboardIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/contacts/': {
-      id: '/contacts/'
-      path: '/contacts'
-      fullPath: '/contacts/'
-      preLoaderRoute: typeof ContactsIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/chat/': {
-      id: '/chat/'
-      path: '/chat'
-      fullPath: '/chat/'
-      preLoaderRoute: typeof ChatIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/tickets/spam': {
-      id: '/tickets/spam'
-      path: '/tickets/spam'
-      fullPath: '/tickets/spam'
-      preLoaderRoute: typeof TicketsSpamRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/tickets/new': {
-      id: '/tickets/new'
-      path: '/tickets/new'
-      fullPath: '/tickets/new'
-      preLoaderRoute: typeof TicketsNewRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/tickets/merged': {
-      id: '/tickets/merged'
-      path: '/tickets/merged'
-      fullPath: '/tickets/merged'
-      preLoaderRoute: typeof TicketsMergedRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/tickets/kanban': {
-      id: '/tickets/kanban'
-      path: '/tickets/kanban'
-      fullPath: '/tickets/kanban'
-      preLoaderRoute: typeof TicketsKanbanRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/tickets/id': {
-      id: '/tickets/id'
-      path: '/tickets/id'
-      fullPath: '/tickets/id'
-      preLoaderRoute: typeof TicketsChar91idChar93RouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/teams/new': {
-      id: '/teams/new'
-      path: '/teams/new'
-      fullPath: '/teams/new'
-      preLoaderRoute: typeof TeamsNewRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/teams/id': {
-      id: '/teams/id'
-      path: '/teams/id'
-      fullPath: '/teams/id'
-      preLoaderRoute: typeof TeamsChar91idChar93RouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/settings/security': {
-      id: '/settings/security'
-      path: '/settings/security'
-      fullPath: '/settings/security'
-      preLoaderRoute: typeof SettingsSecurityRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/settings/profile': {
-      id: '/settings/profile'
-      path: '/settings/profile'
-      fullPath: '/settings/profile'
-      preLoaderRoute: typeof SettingsProfileRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/settings/password': {
-      id: '/settings/password'
-      path: '/settings/password'
-      fullPath: '/settings/password'
-      preLoaderRoute: typeof SettingsPasswordRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/settings/notifications': {
-      id: '/settings/notifications'
-      path: '/settings/notifications'
-      fullPath: '/settings/notifications'
-      preLoaderRoute: typeof SettingsNotificationsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/settings/appearance': {
-      id: '/settings/appearance'
-      path: '/settings/appearance'
-      fullPath: '/settings/appearance'
-      preLoaderRoute: typeof SettingsAppearanceRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/portal/login': {
-      id: '/portal/login'
-      path: '/portal/login'
-      fullPath: '/portal/login'
-      preLoaderRoute: typeof PortalLoginRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/kb/new': {
-      id: '/kb/new'
-      path: '/kb/new'
-      fullPath: '/kb/new'
-      preLoaderRoute: typeof KbNewRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/kb/$slug': {
-      id: '/kb/$slug'
-      path: '/kb/$slug'
-      fullPath: '/kb/$slug'
-      preLoaderRoute: typeof KbSlugRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/forms/id': {
-      id: '/forms/id'
-      path: '/forms/id'
-      fullPath: '/forms/id'
-      preLoaderRoute: typeof FormsChar91idChar93RouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/contacts/new': {
-      id: '/contacts/new'
-      path: '/contacts/new'
-      fullPath: '/contacts/new'
-      preLoaderRoute: typeof ContactsNewRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/contacts/id': {
-      id: '/contacts/id'
-      path: '/contacts/id'
-      fullPath: '/contacts/id'
-      preLoaderRoute: typeof ContactsChar91idChar93RouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/chat/id': {
-      id: '/chat/id'
-      path: '/chat/id'
-      fullPath: '/chat/id'
-      preLoaderRoute: typeof ChatChar91idChar93RouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/chat/ended': {
-      id: '/chat/ended'
-      path: '/chat/ended'
-      fullPath: '/chat/ended'
-      preLoaderRoute: typeof ChatEndedRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/chat/active': {
-      id: '/chat/active'
-      path: '/chat/active'
-      fullPath: '/chat/active'
-      preLoaderRoute: typeof ChatActiveRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/custom-domain': {
-      id: '/admin/custom-domain'
-      path: '/admin/custom-domain'
-      fullPath: '/admin/custom-domain'
-      preLoaderRoute: typeof AdminCustomDomainRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/audit-log': {
-      id: '/admin/audit-log'
-      path: '/admin/audit-log'
-      fullPath: '/admin/audit-log'
-      preLoaderRoute: typeof AdminAuditLogRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/kb/categories/': {
-      id: '/kb/categories/'
-      path: '/kb/categories'
-      fullPath: '/kb/categories/'
-      preLoaderRoute: typeof KbCategoriesIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/workflows/': {
-      id: '/admin/workflows/'
-      path: '/admin/workflows'
-      fullPath: '/admin/workflows/'
-      preLoaderRoute: typeof AdminWorkflowsIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/users/': {
-      id: '/admin/users/'
-      path: '/admin/users'
-      fullPath: '/admin/users/'
-      preLoaderRoute: typeof AdminUsersIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/social/': {
-      id: '/admin/social/'
-      path: '/admin/social'
-      fullPath: '/admin/social/'
-      preLoaderRoute: typeof AdminSocialIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/sla/': {
-      id: '/admin/sla/'
-      path: '/admin/sla'
-      fullPath: '/admin/sla/'
-      preLoaderRoute: typeof AdminSlaIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/security/': {
-      id: '/admin/security/'
-      path: '/admin/security'
-      fullPath: '/admin/security/'
-      preLoaderRoute: typeof AdminSecurityIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/saved-replies/': {
-      id: '/admin/saved-replies/'
-      path: '/admin/saved-replies'
-      fullPath: '/admin/saved-replies/'
-      preLoaderRoute: typeof AdminSavedRepliesIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/roles/': {
-      id: '/admin/roles/'
-      path: '/admin/roles'
-      fullPath: '/admin/roles/'
-      preLoaderRoute: typeof AdminRolesIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/reports/': {
-      id: '/admin/reports/'
-      path: '/admin/reports'
-      fullPath: '/admin/reports/'
-      preLoaderRoute: typeof AdminReportsIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/mailboxes/': {
-      id: '/admin/mailboxes/'
-      path: '/admin/mailboxes'
-      fullPath: '/admin/mailboxes/'
-      preLoaderRoute: typeof AdminMailboxesIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/forms/': {
-      id: '/admin/forms/'
-      path: '/admin/forms'
-      fullPath: '/admin/forms/'
-      preLoaderRoute: typeof AdminFormsIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/email-templates/': {
-      id: '/admin/email-templates/'
-      path: '/admin/email-templates'
-      fullPath: '/admin/email-templates/'
-      preLoaderRoute: typeof AdminEmailTemplatesIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/ecommerce/': {
-      id: '/admin/ecommerce/'
-      path: '/admin/ecommerce'
-      fullPath: '/admin/ecommerce/'
-      preLoaderRoute: typeof AdminEcommerceIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/branding/': {
-      id: '/admin/branding/'
-      path: '/admin/branding'
-      fullPath: '/admin/branding/'
-      preLoaderRoute: typeof AdminBrandingIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/kb/categories/id': {
-      id: '/kb/categories/id'
-      path: '/kb/categories/id'
-      fullPath: '/kb/categories/id'
-      preLoaderRoute: typeof KbCategoriesChar91idChar93RouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/workflows/new': {
-      id: '/admin/workflows/new'
-      path: '/admin/workflows/new'
-      fullPath: '/admin/workflows/new'
-      preLoaderRoute: typeof AdminWorkflowsNewRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/workflows/builder': {
-      id: '/admin/workflows/builder'
-      path: '/admin/workflows/builder'
-      fullPath: '/admin/workflows/builder'
-      preLoaderRoute: typeof AdminWorkflowsBuilderRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/users/invite': {
-      id: '/admin/users/invite'
-      path: '/admin/users/invite'
-      fullPath: '/admin/users/invite'
-      preLoaderRoute: typeof AdminUsersInviteRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/users/id': {
-      id: '/admin/users/id'
-      path: '/admin/users/id'
-      fullPath: '/admin/users/id'
-      preLoaderRoute: typeof AdminUsersChar91idChar93RouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/social/whatsapp': {
-      id: '/admin/social/whatsapp'
-      path: '/admin/social/whatsapp'
-      fullPath: '/admin/social/whatsapp'
-      preLoaderRoute: typeof AdminSocialWhatsappRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/social/twitter': {
-      id: '/admin/social/twitter'
-      path: '/admin/social/twitter'
-      fullPath: '/admin/social/twitter'
-      preLoaderRoute: typeof AdminSocialTwitterRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/social/instagram': {
-      id: '/admin/social/instagram'
-      path: '/admin/social/instagram'
-      fullPath: '/admin/social/instagram'
-      preLoaderRoute: typeof AdminSocialInstagramRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/social/facebook': {
-      id: '/admin/social/facebook'
-      path: '/admin/social/facebook'
-      fullPath: '/admin/social/facebook'
-      preLoaderRoute: typeof AdminSocialFacebookRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/social/disqus': {
-      id: '/admin/social/disqus'
-      path: '/admin/social/disqus'
-      fullPath: '/admin/social/disqus'
-      preLoaderRoute: typeof AdminSocialDisqusRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/sla/new': {
-      id: '/admin/sla/new'
-      path: '/admin/sla/new'
-      fullPath: '/admin/sla/new'
-      preLoaderRoute: typeof AdminSlaNewRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/settings/translation': {
-      id: '/admin/settings/translation'
-      path: '/admin/settings/translation'
-      fullPath: '/admin/settings/translation'
-      preLoaderRoute: typeof AdminSettingsTranslationRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/settings/mobile-sdk': {
-      id: '/admin/settings/mobile-sdk'
-      path: '/admin/settings/mobile-sdk'
-      fullPath: '/admin/settings/mobile-sdk'
-      preLoaderRoute: typeof AdminSettingsMobileSdkRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/settings/license': {
-      id: '/admin/settings/license'
-      path: '/admin/settings/license'
-      fullPath: '/admin/settings/license'
-      preLoaderRoute: typeof AdminSettingsLicenseRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/settings/chatbot': {
-      id: '/admin/settings/chatbot'
-      path: '/admin/settings/chatbot'
-      fullPath: '/admin/settings/chatbot'
-      preLoaderRoute: typeof AdminSettingsChatbotRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/security/sso': {
-      id: '/admin/security/sso'
-      path: '/admin/security/sso'
-      fullPath: '/admin/security/sso'
-      preLoaderRoute: typeof AdminSecuritySsoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/security/ip-whitelist': {
-      id: '/admin/security/ip-whitelist'
-      path: '/admin/security/ip-whitelist'
-      fullPath: '/admin/security/ip-whitelist'
-      preLoaderRoute: typeof AdminSecurityIpWhitelistRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/saved-replies/folders': {
-      id: '/admin/saved-replies/folders'
-      path: '/admin/saved-replies/folders'
-      fullPath: '/admin/saved-replies/folders'
-      preLoaderRoute: typeof AdminSavedRepliesFoldersRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/roles/new': {
-      id: '/admin/roles/new'
-      path: '/admin/roles/new'
-      fullPath: '/admin/roles/new'
-      preLoaderRoute: typeof AdminRolesNewRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/reports/tickets': {
-      id: '/admin/reports/tickets'
-      path: '/admin/reports/tickets'
-      fullPath: '/admin/reports/tickets'
-      preLoaderRoute: typeof AdminReportsTicketsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/reports/sla': {
-      id: '/admin/reports/sla'
-      path: '/admin/reports/sla'
-      fullPath: '/admin/reports/sla'
-      preLoaderRoute: typeof AdminReportsSlaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/reports/custom': {
-      id: '/admin/reports/custom'
-      path: '/admin/reports/custom'
-      fullPath: '/admin/reports/custom'
-      preLoaderRoute: typeof AdminReportsCustomRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/reports/csat': {
-      id: '/admin/reports/csat'
-      path: '/admin/reports/csat'
-      fullPath: '/admin/reports/csat'
-      preLoaderRoute: typeof AdminReportsCsatRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/reports/agents': {
-      id: '/admin/reports/agents'
-      path: '/admin/reports/agents'
-      fullPath: '/admin/reports/agents'
-      preLoaderRoute: typeof AdminReportsAgentsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/mailboxes/new': {
-      id: '/admin/mailboxes/new'
-      path: '/admin/mailboxes/new'
-      fullPath: '/admin/mailboxes/new'
-      preLoaderRoute: typeof AdminMailboxesNewRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/forms/new': {
-      id: '/admin/forms/new'
-      path: '/admin/forms/new'
-      fullPath: '/admin/forms/new'
-      preLoaderRoute: typeof AdminFormsNewRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/forms/builder': {
-      id: '/admin/forms/builder'
-      path: '/admin/forms/builder'
-      fullPath: '/admin/forms/builder'
-      preLoaderRoute: typeof AdminFormsBuilderRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/ecommerce/id': {
-      id: '/admin/ecommerce/id'
-      path: '/admin/ecommerce/id'
-      fullPath: '/admin/ecommerce/id'
-      preLoaderRoute: typeof AdminEcommerceChar91idChar93RouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/ecommerce/connect': {
-      id: '/admin/ecommerce/connect'
-      path: '/admin/ecommerce/connect'
-      fullPath: '/admin/ecommerce/connect'
-      preLoaderRoute: typeof AdminEcommerceConnectRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/ecommerce/amazon': {
-      id: '/admin/ecommerce/amazon'
-      path: '/admin/ecommerce/amazon'
-      fullPath: '/admin/ecommerce/amazon'
-      preLoaderRoute: typeof AdminEcommerceAmazonRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/branding/theme': {
-      id: '/admin/branding/theme'
-      path: '/admin/branding/theme'
-      fullPath: '/admin/branding/theme'
-      preLoaderRoute: typeof AdminBrandingThemeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/branding/portal': {
-      id: '/admin/branding/portal'
-      path: '/admin/branding/portal'
-      fullPath: '/admin/branding/portal'
-      preLoaderRoute: typeof AdminBrandingPortalRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/branding/email': {
-      id: '/admin/branding/email'
-      path: '/admin/branding/email'
-      fullPath: '/admin/branding/email'
-      preLoaderRoute: typeof AdminBrandingEmailRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/workflows/id/': {
-      id: '/admin/workflows/id/'
-      path: '/admin/workflows/id'
-      fullPath: '/admin/workflows/id/'
-      preLoaderRoute: typeof AdminWorkflowsChar91idChar93IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/roles/id/': {
-      id: '/admin/roles/id/'
-      path: '/admin/roles/id'
-      fullPath: '/admin/roles/id/'
-      preLoaderRoute: typeof AdminRolesChar91idChar93IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/mailboxes/id/': {
-      id: '/admin/mailboxes/id/'
-      path: '/admin/mailboxes/id'
-      fullPath: '/admin/mailboxes/id/'
-      preLoaderRoute: typeof AdminMailboxesChar91idChar93IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/forms/id/': {
-      id: '/admin/forms/id/'
-      path: '/admin/forms/id'
-      fullPath: '/admin/forms/id/'
-      preLoaderRoute: typeof AdminFormsChar91idChar93IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/workflows/id/logs': {
-      id: '/admin/workflows/id/logs'
-      path: '/admin/workflows/id/logs'
-      fullPath: '/admin/workflows/id/logs'
-      preLoaderRoute: typeof AdminWorkflowsChar91idChar93LogsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/roles/id/permissions': {
-      id: '/admin/roles/id/permissions'
-      path: '/admin/roles/id/permissions'
-      fullPath: '/admin/roles/id/permissions'
-      preLoaderRoute: typeof AdminRolesChar91idChar93PermissionsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/mailboxes/id/routing': {
-      id: '/admin/mailboxes/id/routing'
-      path: '/admin/mailboxes/id/routing'
-      fullPath: '/admin/mailboxes/id/routing'
-      preLoaderRoute: typeof AdminMailboxesChar91idChar93RoutingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/mailboxes/id/configure': {
-      id: '/admin/mailboxes/id/configure'
-      path: '/admin/mailboxes/id/configure'
-      fullPath: '/admin/mailboxes/id/configure'
-      preLoaderRoute: typeof AdminMailboxesChar91idChar93ConfigureRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin/forms/id/submissions': {
-      id: '/admin/forms/id/submissions'
-      path: '/admin/forms/id/submissions'
-      fullPath: '/admin/forms/id/submissions'
-      preLoaderRoute: typeof AdminFormsChar91idChar93SubmissionsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
+    "/todos": {
+      id: "/todos";
+      path: "/todos";
+      fullPath: "/todos";
+      preLoaderRoute: typeof TodosRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/ai": {
+      id: "/ai";
+      path: "/ai";
+      fullPath: "/ai";
+      preLoaderRoute: typeof AiRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/": {
+      id: "/";
+      path: "/";
+      fullPath: "/";
+      preLoaderRoute: typeof IndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/tickets/": {
+      id: "/tickets/";
+      path: "/tickets";
+      fullPath: "/tickets/";
+      preLoaderRoute: typeof TicketsIndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/teams/": {
+      id: "/teams/";
+      path: "/teams";
+      fullPath: "/teams/";
+      preLoaderRoute: typeof TeamsIndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/settings/": {
+      id: "/settings/";
+      path: "/settings";
+      fullPath: "/settings/";
+      preLoaderRoute: typeof SettingsIndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/kb/": {
+      id: "/kb/";
+      path: "/kb";
+      fullPath: "/kb/";
+      preLoaderRoute: typeof KbIndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/dashboard/": {
+      id: "/dashboard/";
+      path: "/dashboard";
+      fullPath: "/dashboard/";
+      preLoaderRoute: typeof DashboardIndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/contacts/": {
+      id: "/contacts/";
+      path: "/contacts";
+      fullPath: "/contacts/";
+      preLoaderRoute: typeof ContactsIndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/chat/": {
+      id: "/chat/";
+      path: "/chat";
+      fullPath: "/chat/";
+      preLoaderRoute: typeof ChatIndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/tickets/spam": {
+      id: "/tickets/spam";
+      path: "/tickets/spam";
+      fullPath: "/tickets/spam";
+      preLoaderRoute: typeof TicketsSpamRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/tickets/new": {
+      id: "/tickets/new";
+      path: "/tickets/new";
+      fullPath: "/tickets/new";
+      preLoaderRoute: typeof TicketsNewRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/tickets/merged": {
+      id: "/tickets/merged";
+      path: "/tickets/merged";
+      fullPath: "/tickets/merged";
+      preLoaderRoute: typeof TicketsMergedRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/tickets/kanban": {
+      id: "/tickets/kanban";
+      path: "/tickets/kanban";
+      fullPath: "/tickets/kanban";
+      preLoaderRoute: typeof TicketsKanbanRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/tickets/id": {
+      id: "/tickets/id";
+      path: "/tickets/id";
+      fullPath: "/tickets/id";
+      preLoaderRoute: typeof TicketsChar91idChar93RouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/teams/new": {
+      id: "/teams/new";
+      path: "/teams/new";
+      fullPath: "/teams/new";
+      preLoaderRoute: typeof TeamsNewRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/teams/id": {
+      id: "/teams/id";
+      path: "/teams/id";
+      fullPath: "/teams/id";
+      preLoaderRoute: typeof TeamsChar91idChar93RouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/settings/security": {
+      id: "/settings/security";
+      path: "/settings/security";
+      fullPath: "/settings/security";
+      preLoaderRoute: typeof SettingsSecurityRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/settings/profile": {
+      id: "/settings/profile";
+      path: "/settings/profile";
+      fullPath: "/settings/profile";
+      preLoaderRoute: typeof SettingsProfileRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/settings/password": {
+      id: "/settings/password";
+      path: "/settings/password";
+      fullPath: "/settings/password";
+      preLoaderRoute: typeof SettingsPasswordRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/settings/notifications": {
+      id: "/settings/notifications";
+      path: "/settings/notifications";
+      fullPath: "/settings/notifications";
+      preLoaderRoute: typeof SettingsNotificationsRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/settings/appearance": {
+      id: "/settings/appearance";
+      path: "/settings/appearance";
+      fullPath: "/settings/appearance";
+      preLoaderRoute: typeof SettingsAppearanceRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/portal/login": {
+      id: "/portal/login";
+      path: "/portal/login";
+      fullPath: "/portal/login";
+      preLoaderRoute: typeof PortalLoginRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/kb/new": {
+      id: "/kb/new";
+      path: "/kb/new";
+      fullPath: "/kb/new";
+      preLoaderRoute: typeof KbNewRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/kb/$slug": {
+      id: "/kb/$slug";
+      path: "/kb/$slug";
+      fullPath: "/kb/$slug";
+      preLoaderRoute: typeof KbSlugRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/forms/id": {
+      id: "/forms/id";
+      path: "/forms/id";
+      fullPath: "/forms/id";
+      preLoaderRoute: typeof FormsChar91idChar93RouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/contacts/new": {
+      id: "/contacts/new";
+      path: "/contacts/new";
+      fullPath: "/contacts/new";
+      preLoaderRoute: typeof ContactsNewRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/contacts/id": {
+      id: "/contacts/id";
+      path: "/contacts/id";
+      fullPath: "/contacts/id";
+      preLoaderRoute: typeof ContactsChar91idChar93RouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/chat/id": {
+      id: "/chat/id";
+      path: "/chat/id";
+      fullPath: "/chat/id";
+      preLoaderRoute: typeof ChatChar91idChar93RouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/chat/ended": {
+      id: "/chat/ended";
+      path: "/chat/ended";
+      fullPath: "/chat/ended";
+      preLoaderRoute: typeof ChatEndedRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/chat/active": {
+      id: "/chat/active";
+      path: "/chat/active";
+      fullPath: "/chat/active";
+      preLoaderRoute: typeof ChatActiveRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/custom-domain": {
+      id: "/admin/custom-domain";
+      path: "/admin/custom-domain";
+      fullPath: "/admin/custom-domain";
+      preLoaderRoute: typeof AdminCustomDomainRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/audit-log": {
+      id: "/admin/audit-log";
+      path: "/admin/audit-log";
+      fullPath: "/admin/audit-log";
+      preLoaderRoute: typeof AdminAuditLogRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/kb/categories/": {
+      id: "/kb/categories/";
+      path: "/kb/categories";
+      fullPath: "/kb/categories/";
+      preLoaderRoute: typeof KbCategoriesIndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/workflows/": {
+      id: "/admin/workflows/";
+      path: "/admin/workflows";
+      fullPath: "/admin/workflows/";
+      preLoaderRoute: typeof AdminWorkflowsIndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/users/": {
+      id: "/admin/users/";
+      path: "/admin/users";
+      fullPath: "/admin/users/";
+      preLoaderRoute: typeof AdminUsersIndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/social/": {
+      id: "/admin/social/";
+      path: "/admin/social";
+      fullPath: "/admin/social/";
+      preLoaderRoute: typeof AdminSocialIndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/sla/": {
+      id: "/admin/sla/";
+      path: "/admin/sla";
+      fullPath: "/admin/sla/";
+      preLoaderRoute: typeof AdminSlaIndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/security/": {
+      id: "/admin/security/";
+      path: "/admin/security";
+      fullPath: "/admin/security/";
+      preLoaderRoute: typeof AdminSecurityIndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/saved-replies/": {
+      id: "/admin/saved-replies/";
+      path: "/admin/saved-replies";
+      fullPath: "/admin/saved-replies/";
+      preLoaderRoute: typeof AdminSavedRepliesIndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/roles/": {
+      id: "/admin/roles/";
+      path: "/admin/roles";
+      fullPath: "/admin/roles/";
+      preLoaderRoute: typeof AdminRolesIndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/reports/": {
+      id: "/admin/reports/";
+      path: "/admin/reports";
+      fullPath: "/admin/reports/";
+      preLoaderRoute: typeof AdminReportsIndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/mailboxes/": {
+      id: "/admin/mailboxes/";
+      path: "/admin/mailboxes";
+      fullPath: "/admin/mailboxes/";
+      preLoaderRoute: typeof AdminMailboxesIndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/forms/": {
+      id: "/admin/forms/";
+      path: "/admin/forms";
+      fullPath: "/admin/forms/";
+      preLoaderRoute: typeof AdminFormsIndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/excel/": {
+      id: "/admin/excel/";
+      path: "/admin/excel";
+      fullPath: "/admin/excel/";
+      preLoaderRoute: typeof AdminExcelIndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/email-templates/": {
+      id: "/admin/email-templates/";
+      path: "/admin/email-templates";
+      fullPath: "/admin/email-templates/";
+      preLoaderRoute: typeof AdminEmailTemplatesIndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/ecommerce/": {
+      id: "/admin/ecommerce/";
+      path: "/admin/ecommerce";
+      fullPath: "/admin/ecommerce/";
+      preLoaderRoute: typeof AdminEcommerceIndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/branding/": {
+      id: "/admin/branding/";
+      path: "/admin/branding";
+      fullPath: "/admin/branding/";
+      preLoaderRoute: typeof AdminBrandingIndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/kb/categories/id": {
+      id: "/kb/categories/id";
+      path: "/kb/categories/id";
+      fullPath: "/kb/categories/id";
+      preLoaderRoute: typeof KbCategoriesChar91idChar93RouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/workflows/new": {
+      id: "/admin/workflows/new";
+      path: "/admin/workflows/new";
+      fullPath: "/admin/workflows/new";
+      preLoaderRoute: typeof AdminWorkflowsNewRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/workflows/builder": {
+      id: "/admin/workflows/builder";
+      path: "/admin/workflows/builder";
+      fullPath: "/admin/workflows/builder";
+      preLoaderRoute: typeof AdminWorkflowsBuilderRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/users/invite": {
+      id: "/admin/users/invite";
+      path: "/admin/users/invite";
+      fullPath: "/admin/users/invite";
+      preLoaderRoute: typeof AdminUsersInviteRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/users/id": {
+      id: "/admin/users/id";
+      path: "/admin/users/id";
+      fullPath: "/admin/users/id";
+      preLoaderRoute: typeof AdminUsersChar91idChar93RouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/social/whatsapp": {
+      id: "/admin/social/whatsapp";
+      path: "/admin/social/whatsapp";
+      fullPath: "/admin/social/whatsapp";
+      preLoaderRoute: typeof AdminSocialWhatsappRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/social/twitter": {
+      id: "/admin/social/twitter";
+      path: "/admin/social/twitter";
+      fullPath: "/admin/social/twitter";
+      preLoaderRoute: typeof AdminSocialTwitterRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/social/instagram": {
+      id: "/admin/social/instagram";
+      path: "/admin/social/instagram";
+      fullPath: "/admin/social/instagram";
+      preLoaderRoute: typeof AdminSocialInstagramRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/social/facebook": {
+      id: "/admin/social/facebook";
+      path: "/admin/social/facebook";
+      fullPath: "/admin/social/facebook";
+      preLoaderRoute: typeof AdminSocialFacebookRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/social/disqus": {
+      id: "/admin/social/disqus";
+      path: "/admin/social/disqus";
+      fullPath: "/admin/social/disqus";
+      preLoaderRoute: typeof AdminSocialDisqusRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/sla/new": {
+      id: "/admin/sla/new";
+      path: "/admin/sla/new";
+      fullPath: "/admin/sla/new";
+      preLoaderRoute: typeof AdminSlaNewRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/settings/translation": {
+      id: "/admin/settings/translation";
+      path: "/admin/settings/translation";
+      fullPath: "/admin/settings/translation";
+      preLoaderRoute: typeof AdminSettingsTranslationRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/settings/mobile-sdk": {
+      id: "/admin/settings/mobile-sdk";
+      path: "/admin/settings/mobile-sdk";
+      fullPath: "/admin/settings/mobile-sdk";
+      preLoaderRoute: typeof AdminSettingsMobileSdkRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/settings/license": {
+      id: "/admin/settings/license";
+      path: "/admin/settings/license";
+      fullPath: "/admin/settings/license";
+      preLoaderRoute: typeof AdminSettingsLicenseRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/settings/chatbot": {
+      id: "/admin/settings/chatbot";
+      path: "/admin/settings/chatbot";
+      fullPath: "/admin/settings/chatbot";
+      preLoaderRoute: typeof AdminSettingsChatbotRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/security/sso": {
+      id: "/admin/security/sso";
+      path: "/admin/security/sso";
+      fullPath: "/admin/security/sso";
+      preLoaderRoute: typeof AdminSecuritySsoRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/security/ip-whitelist": {
+      id: "/admin/security/ip-whitelist";
+      path: "/admin/security/ip-whitelist";
+      fullPath: "/admin/security/ip-whitelist";
+      preLoaderRoute: typeof AdminSecurityIpWhitelistRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/saved-replies/folders": {
+      id: "/admin/saved-replies/folders";
+      path: "/admin/saved-replies/folders";
+      fullPath: "/admin/saved-replies/folders";
+      preLoaderRoute: typeof AdminSavedRepliesFoldersRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/roles/new": {
+      id: "/admin/roles/new";
+      path: "/admin/roles/new";
+      fullPath: "/admin/roles/new";
+      preLoaderRoute: typeof AdminRolesNewRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/reports/tickets": {
+      id: "/admin/reports/tickets";
+      path: "/admin/reports/tickets";
+      fullPath: "/admin/reports/tickets";
+      preLoaderRoute: typeof AdminReportsTicketsRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/reports/sla": {
+      id: "/admin/reports/sla";
+      path: "/admin/reports/sla";
+      fullPath: "/admin/reports/sla";
+      preLoaderRoute: typeof AdminReportsSlaRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/reports/custom": {
+      id: "/admin/reports/custom";
+      path: "/admin/reports/custom";
+      fullPath: "/admin/reports/custom";
+      preLoaderRoute: typeof AdminReportsCustomRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/reports/csat": {
+      id: "/admin/reports/csat";
+      path: "/admin/reports/csat";
+      fullPath: "/admin/reports/csat";
+      preLoaderRoute: typeof AdminReportsCsatRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/reports/agents": {
+      id: "/admin/reports/agents";
+      path: "/admin/reports/agents";
+      fullPath: "/admin/reports/agents";
+      preLoaderRoute: typeof AdminReportsAgentsRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/mailboxes/new": {
+      id: "/admin/mailboxes/new";
+      path: "/admin/mailboxes/new";
+      fullPath: "/admin/mailboxes/new";
+      preLoaderRoute: typeof AdminMailboxesNewRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/forms/new": {
+      id: "/admin/forms/new";
+      path: "/admin/forms/new";
+      fullPath: "/admin/forms/new";
+      preLoaderRoute: typeof AdminFormsNewRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/forms/builder": {
+      id: "/admin/forms/builder";
+      path: "/admin/forms/builder";
+      fullPath: "/admin/forms/builder";
+      preLoaderRoute: typeof AdminFormsBuilderRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/ecommerce/id": {
+      id: "/admin/ecommerce/id";
+      path: "/admin/ecommerce/id";
+      fullPath: "/admin/ecommerce/id";
+      preLoaderRoute: typeof AdminEcommerceChar91idChar93RouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/ecommerce/connect": {
+      id: "/admin/ecommerce/connect";
+      path: "/admin/ecommerce/connect";
+      fullPath: "/admin/ecommerce/connect";
+      preLoaderRoute: typeof AdminEcommerceConnectRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/ecommerce/amazon": {
+      id: "/admin/ecommerce/amazon";
+      path: "/admin/ecommerce/amazon";
+      fullPath: "/admin/ecommerce/amazon";
+      preLoaderRoute: typeof AdminEcommerceAmazonRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/branding/theme": {
+      id: "/admin/branding/theme";
+      path: "/admin/branding/theme";
+      fullPath: "/admin/branding/theme";
+      preLoaderRoute: typeof AdminBrandingThemeRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/branding/portal": {
+      id: "/admin/branding/portal";
+      path: "/admin/branding/portal";
+      fullPath: "/admin/branding/portal";
+      preLoaderRoute: typeof AdminBrandingPortalRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/branding/email": {
+      id: "/admin/branding/email";
+      path: "/admin/branding/email";
+      fullPath: "/admin/branding/email";
+      preLoaderRoute: typeof AdminBrandingEmailRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/workflows/id/": {
+      id: "/admin/workflows/id/";
+      path: "/admin/workflows/id";
+      fullPath: "/admin/workflows/id/";
+      preLoaderRoute: typeof AdminWorkflowsChar91idChar93IndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/roles/id/": {
+      id: "/admin/roles/id/";
+      path: "/admin/roles/id";
+      fullPath: "/admin/roles/id/";
+      preLoaderRoute: typeof AdminRolesChar91idChar93IndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/mailboxes/id/": {
+      id: "/admin/mailboxes/id/";
+      path: "/admin/mailboxes/id";
+      fullPath: "/admin/mailboxes/id/";
+      preLoaderRoute: typeof AdminMailboxesChar91idChar93IndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/forms/id/": {
+      id: "/admin/forms/id/";
+      path: "/admin/forms/id";
+      fullPath: "/admin/forms/id/";
+      preLoaderRoute: typeof AdminFormsChar91idChar93IndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/workflows/id/logs": {
+      id: "/admin/workflows/id/logs";
+      path: "/admin/workflows/id/logs";
+      fullPath: "/admin/workflows/id/logs";
+      preLoaderRoute: typeof AdminWorkflowsChar91idChar93LogsRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/roles/id/permissions": {
+      id: "/admin/roles/id/permissions";
+      path: "/admin/roles/id/permissions";
+      fullPath: "/admin/roles/id/permissions";
+      preLoaderRoute: typeof AdminRolesChar91idChar93PermissionsRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/mailboxes/id/routing": {
+      id: "/admin/mailboxes/id/routing";
+      path: "/admin/mailboxes/id/routing";
+      fullPath: "/admin/mailboxes/id/routing";
+      preLoaderRoute: typeof AdminMailboxesChar91idChar93RoutingRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/mailboxes/id/configure": {
+      id: "/admin/mailboxes/id/configure";
+      path: "/admin/mailboxes/id/configure";
+      fullPath: "/admin/mailboxes/id/configure";
+      preLoaderRoute: typeof AdminMailboxesChar91idChar93ConfigureRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/admin/forms/id/submissions": {
+      id: "/admin/forms/id/submissions";
+      path: "/admin/forms/id/submissions";
+      fullPath: "/admin/forms/id/submissions";
+      preLoaderRoute: typeof AdminFormsChar91idChar93SubmissionsRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
   }
 }
 
@@ -1901,6 +1909,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminBrandingIndexRoute: AdminBrandingIndexRoute,
   AdminEcommerceIndexRoute: AdminEcommerceIndexRoute,
   AdminEmailTemplatesIndexRoute: AdminEmailTemplatesIndexRoute,
+  AdminExcelIndexRoute: AdminExcelIndexRoute,
   AdminFormsIndexRoute: AdminFormsIndexRoute,
   AdminMailboxesIndexRoute: AdminMailboxesIndexRoute,
   AdminReportsIndexRoute: AdminReportsIndexRoute,
@@ -1912,22 +1921,16 @@ const rootRouteChildren: RootRouteChildren = {
   AdminUsersIndexRoute: AdminUsersIndexRoute,
   AdminWorkflowsIndexRoute: AdminWorkflowsIndexRoute,
   KbCategoriesIndexRoute: KbCategoriesIndexRoute,
-  AdminFormsChar91idChar93SubmissionsRoute:
-    AdminFormsChar91idChar93SubmissionsRoute,
-  AdminMailboxesChar91idChar93ConfigureRoute:
-    AdminMailboxesChar91idChar93ConfigureRoute,
-  AdminMailboxesChar91idChar93RoutingRoute:
-    AdminMailboxesChar91idChar93RoutingRoute,
-  AdminRolesChar91idChar93PermissionsRoute:
-    AdminRolesChar91idChar93PermissionsRoute,
+  AdminFormsChar91idChar93SubmissionsRoute: AdminFormsChar91idChar93SubmissionsRoute,
+  AdminMailboxesChar91idChar93ConfigureRoute: AdminMailboxesChar91idChar93ConfigureRoute,
+  AdminMailboxesChar91idChar93RoutingRoute: AdminMailboxesChar91idChar93RoutingRoute,
+  AdminRolesChar91idChar93PermissionsRoute: AdminRolesChar91idChar93PermissionsRoute,
   AdminWorkflowsChar91idChar93LogsRoute: AdminWorkflowsChar91idChar93LogsRoute,
   AdminFormsChar91idChar93IndexRoute: AdminFormsChar91idChar93IndexRoute,
-  AdminMailboxesChar91idChar93IndexRoute:
-    AdminMailboxesChar91idChar93IndexRoute,
+  AdminMailboxesChar91idChar93IndexRoute: AdminMailboxesChar91idChar93IndexRoute,
   AdminRolesChar91idChar93IndexRoute: AdminRolesChar91idChar93IndexRoute,
-  AdminWorkflowsChar91idChar93IndexRoute:
-    AdminWorkflowsChar91idChar93IndexRoute,
-}
+  AdminWorkflowsChar91idChar93IndexRoute: AdminWorkflowsChar91idChar93IndexRoute,
+};
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>()
+  ._addFileTypes<FileRouteTypes>();

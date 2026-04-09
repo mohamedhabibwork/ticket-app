@@ -23,6 +23,7 @@
     "@ticket-app/env": "workspace:*",
     "@ticket-app/ui": "workspace:*",
     "ai": "catalog:",
+    "date-fns": "^4.1.0",
     "dotenv": "catalog:",
     "lucide-react": "catalog:",
     "next-themes": "catalog:",

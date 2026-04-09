@@ -16,6 +16,7 @@
     "electrobun": "^1.15.1"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260409.1",
     "@types/bun": "catalog:",
     "concurrently": "^9.1.0",
     "typescript": "^5"

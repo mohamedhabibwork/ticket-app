@@ -8,8 +8,8 @@ import {
   markNotificationAsRead,
   markAllNotificationsAsRead,
   deleteNotification,
-} from "@ticket-app/services/notifications";
-import { verifyUnsubscribeToken } from "@ticket-app/services/notificationEmail";
+} from "../services/notifications";
+import { verifyUnsubscribeToken } from "../services/notificationEmail";
 import { publicProcedure } from "../index";
 import * as z from "zod";
 

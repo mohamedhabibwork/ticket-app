@@ -18,6 +18,7 @@ import { joinTicket, leaveTicket, heartbeat, getTicketViewers } from "@ticket-ap
 import { auth as authRoutes } from "./routes/auth";
 import { billing as billingRoutes } from "./routes/billing";
 import { widget as chatWidgetRoutes } from "./routes/chat/widget";
+import { createExcelExportWorker, createExcelImportWorker } from "@ticket-app/queue";
 
 const app = new Hono();
 const { upgradeWebSocket, websocket } = websocket({
@@ -28,6 +29,12 @@ const { upgradeWebSocket, websocket } = websocket({
     console.log("WebSocket closed");
   },
 });
+
+console.log("Starting Excel export worker...");
+createExcelExportWorker();
+
+console.log("Starting Excel import worker...");
+createExcelImportWorker();
 
 app.use(logger());
 app.use(

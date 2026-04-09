@@ -1,3 +1,10 @@
 {
-  "extends": "@ticket-app/config/tsconfig.base.json"
+  "extends": "@ticket-app/config/tsconfig.base.json",
+  "references": [
+    { "path": "./packages/db" },
+    { "path": "./packages/api" },
+    { "path": "./packages/queue" },
+    { "path": "./apps/server" },
+    { "path": "./apps/web" }
+  ]
 }

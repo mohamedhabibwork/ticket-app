@@ -11,7 +11,15 @@ import {
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { users } from "./_users";
-import { subscriptionPlans } from "./_billing";
+import { roles, teams } from "./_users";
+import { subscriptionPlans, subscriptions } from "./_billing";
+import { lookups } from "./_lookups";
+import { contacts } from "./_contacts";
+import { mailboxes } from "./_mailboxes";
+import { tickets } from "./_tickets";
+import { forms } from "./_forms";
+import { workflows } from "./_workflows";
+import { kbCategories } from "./_knowledgebase";
 
 export const organizations = pgTable("organizations", {
   id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
@@ -52,7 +60,7 @@ export const organizationSettings = pgTable(
   },
   (table) => ({
     orgKeyUnique: unique().on(table.organizationId, table.key),
-  })
+  }),
 );
 
 export const brandingConfigs = pgTable("branding_configs", {

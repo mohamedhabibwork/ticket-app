@@ -1,9 +1,9 @@
 import { eq } from "drizzle-orm";
 import { db } from "@ticket-app/db";
 import { users } from "@ticket-app/db/schema";
-import { getSlackWebhookUrl } from "@ticket-app/services/notifications";
-import { formatForSlack, TemplateData } from "@ticket-app/services/notificationTemplates";
-import { NotificationType } from "@ticket-app/services/notifications";
+import { getSlackWebhookUrl } from "./notifications";
+import { formatForSlack, TemplateData } from "./notificationTemplates";
+import { NotificationType } from "./notifications";
 
 interface SlackMessage {
   text: string;

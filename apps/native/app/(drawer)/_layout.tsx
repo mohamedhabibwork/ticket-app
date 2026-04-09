@@ -209,6 +209,22 @@ function DrawerLayout() {
           ),
         }}
       />
+      <Drawer.Screen
+        name="excel"
+        options={{
+          headerTitle: "Excel",
+          drawerLabel: ({ color, focused }) => (
+            <Text style={{ color: focused ? color : themeColorForeground }}>Excel</Text>
+          ),
+          drawerIcon: ({ size, color, focused }) => (
+            <Ionicons
+              name="document-text-outline"
+              size={size}
+              color={focused ? color : themeColorForeground}
+            />
+          ),
+        }}
+      />
     </Drawer>
   );
 }

@@ -27,7 +27,7 @@ export * from "./_ticketForwards";
 export * from "./_gdpr";
 export * from "./_calendar";
 export * from "./_customerAuth";
-export * from "./_translation";
+
 export * from "./_mobileSdk";
 export * from "./_chatbot";
 export * from "./_onPremise";
