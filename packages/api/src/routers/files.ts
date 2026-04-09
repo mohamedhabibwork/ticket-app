@@ -1,36 +1,64 @@
 import { db } from "@ticket-app/db";
 import { ticketAttachments } from "@ticket-app/db/schema/_tickets";
-import { eq, desc } from "drizzle-orm";
-import { writeFile, mkdir, readFile, existsSync } from "fs/promises";
+import { eq, and } from "drizzle-orm";
+import { writeFile, mkdir, readFile } from "fs/promises";
+import { existsSync } from "fs";
 import { join, dirname } from "path";
 import z from "zod";
 import { publicProcedure } from "../index";
-import { generateUploadUrl, generateDownloadUrl, getPublicUrl, deleteFile } from "../lib/storage";
+import { generateUploadUrl, getPublicUrl, validateFile, isImageMimeType } from "../lib/storage";
 import { env } from "@ticket-app/env/server";
+import {
+  generateOrganizationUploadUrl,
+  generateOrganizationDownloadUrl,
+  createAttachmentRecord,
+  getAttachmentById,
+  listAttachmentsByTicket,
+  listAttachmentsByMessage,
+  deleteAttachment,
+  type AttachmentType,
+} from "../services/storage";
 
-const IMAGE_MIME_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp", "image/svg+xml"];
 const THUMBNAIL_SIZE = 200;
 
 export const fileRouter = {
   generateUploadUrl: publicProcedure
     .input(
       z.object({
+        organizationId: z.number(),
         filename: z.string(),
         contentType: z.string(),
-        folder: z.string().default("attachments"),
+        sizeBytes: z.number(),
+        attachmentType: z
+          .enum(["ticket", "kb_article", "contact", "avatar", "brand", "email"])
+          .default("ticket"),
+        ticketId: z.number().optional(),
+        ticketMessageId: z.number().optional(),
+        kbArticleId: z.number().optional(),
+        contactId: z.number().optional(),
+        expiresIn: z.number().default(3600),
       }),
     )
     .handler(async ({ input }) => {
-      const result = await generateUploadUrl({
+      const result = await generateOrganizationUploadUrl({
+        organizationId: input.organizationId,
         filename: input.filename,
         contentType: input.contentType,
-        folder: input.folder,
+        sizeBytes: input.sizeBytes,
+        attachmentType: input.attachmentType as AttachmentType,
+        ticketId: input.ticketId,
+        ticketMessageId: input.ticketMessageId,
+        kbArticleId: input.kbArticleId,
+        contactId: input.contactId,
+        expiresIn: input.expiresIn,
       });
 
       return {
         uploadUrl: result.uploadUrl,
         fileKey: result.fileKey,
+        storageKey: result.storageKey,
         publicUrl: result.publicUrl,
+        expiresAt: result.expiresAt.toISOString(),
       };
     }),
 
@@ -41,9 +69,12 @@ export const fileRouter = {
         fileKey: z.string(),
         filename: z.string(),
         contentType: z.string(),
-        folder: z.string().default("attachments"),
+        sizeBytes: z.number(),
+        organizationId: z.number(),
         ticketId: z.number().optional(),
         ticketMessageId: z.number().optional(),
+        kbArticleId: z.number().optional(),
+        contactId: z.number().optional(),
         createdBy: z.number().optional(),
         isInlineImage: z.boolean().default(false),
         galleryOrder: z.number().optional(),
@@ -52,6 +83,7 @@ export const fileRouter = {
     .output(
       z.object({
         id: z.number(),
+        uuid: z.string(),
         filename: z.string(),
         mimeType: z.string(),
         sizeBytes: z.number(),
@@ -59,12 +91,18 @@ export const fileRouter = {
         thumbnailKey: z.string().optional(),
         imageWidth: z.number().optional(),
         imageHeight: z.number().optional(),
+        publicUrl: z.string(),
       }),
     )
     .handler(async ({ input }) => {
+      const validation = validateFile(input.contentType, input.sizeBytes);
+      if (!validation.valid) {
+        throw new Error(validation.error);
+      }
+
       const provider = env.STORAGE_PROVIDER || "local";
       const fileBuffer = Buffer.from(await input.file.arrayBuffer());
-      const isImage = IMAGE_MIME_TYPES.includes(input.contentType);
+      const isImage = isImageMimeType(input.contentType);
 
       let thumbnailKey: string | undefined;
       let imageWidth: number | undefined;
@@ -91,25 +129,15 @@ export const fileRouter = {
 
             const thumbnailFileName = `thumb_${input.fileKey}`;
             const thumbnailPath = join(basePath, thumbnailFileName);
-            await image.resize(THUMBNAIL_SIZE, THUMBNAIL_SIZE, { fit: "cover" }).toFile(thumbnailPath);
+            await image
+              .resize(THUMBNAIL_SIZE, THUMBNAIL_SIZE, { fit: "cover" })
+              .toFile(thumbnailPath);
             thumbnailKey = thumbnailFileName;
           } catch (e) {
             console.error("Failed to generate thumbnail:", e);
           }
         }
       } else {
-        const url = await generateUploadUrl({
-          filename: input.filename,
-          contentType: input.contentType,
-          folder: input.folder,
-        });
-
-        await fetch(url.uploadUrl, {
-          method: "PUT",
-          body: fileBuffer,
-          headers: { "Content-Type": input.contentType },
-        });
-
         if (isImage) {
           try {
             const sharp = (await import("sharp")).default;
@@ -118,18 +146,22 @@ export const fileRouter = {
             imageWidth = metadata.width;
             imageHeight = metadata.height;
 
-            const thumbnailBuffer = await image.resize(THUMBNAIL_SIZE, THUMBNAIL_SIZE, { fit: "cover" }).toBuffer();
+            const thumbnailBuffer = await image
+              .resize(THUMBNAIL_SIZE, THUMBNAIL_SIZE, { fit: "cover" })
+              .toBuffer();
             const thumbnailKeyParts = input.fileKey.split("/");
-            thumbnailKeyParts[thumbnailKeyParts.length - 1] = `thumb_${thumbnailKeyParts[thumbnailKeyParts.length - 1]}`;
+            thumbnailKeyParts[thumbnailKeyParts.length - 1] =
+              `thumb_${thumbnailKeyParts[thumbnailKeyParts.length - 1]}`;
             const thumbnailFileKey = thumbnailKeyParts.join("/");
 
-            const thumbnailUrl = await generateUploadUrl({
+            const thumbnailResult = await generateUploadUrl({
               filename: `thumb_${input.filename}`,
               contentType: input.contentType,
-              folder: input.folder,
+              folder: input.fileKey.split("/").slice(0, -1).join("/"),
+              organizationId: input.organizationId,
             });
 
-            await fetch(thumbnailUrl.uploadUrl, {
+            await fetch(thumbnailResult.uploadUrl, {
               method: "PUT",
               body: thumbnailBuffer,
               headers: { "Content-Type": input.contentType },
@@ -142,26 +174,25 @@ export const fileRouter = {
         }
       }
 
-      const [attachment] = await db
-        .insert(ticketAttachments)
-        .values({
-          ticketId: input.ticketId,
-          ticketMessageId: input.ticketMessageId,
-          filename: input.filename,
-          mimeType: input.contentType,
-          sizeBytes: fileBuffer.length,
-          storageKey: input.fileKey,
-          thumbnailKey,
-          imageWidth,
-          imageHeight,
-          isInlineImage: input.isInlineImage,
-          galleryOrder: input.galleryOrder,
-          createdBy: input.createdBy,
-        })
-        .returning();
+      const attachment = await createAttachmentRecord({
+        organizationId: input.organizationId,
+        ticketId: input.ticketId,
+        ticketMessageId: input.ticketMessageId,
+        kbArticleId: input.kbArticleId,
+        contactId: input.contactId,
+        filename: input.filename,
+        mimeType: input.contentType,
+        sizeBytes: input.sizeBytes,
+        storageKey: input.fileKey,
+        thumbnailKey,
+        imageWidth,
+        imageHeight,
+        createdBy: input.createdBy,
+      });
 
       return {
         id: attachment.id,
+        uuid: attachment.uuid,
         filename: attachment.filename,
         mimeType: attachment.mimeType,
         sizeBytes: Number(attachment.sizeBytes),
@@ -169,6 +200,7 @@ export const fileRouter = {
         thumbnailKey: attachment.thumbnailKey || undefined,
         imageWidth: attachment.imageWidth || undefined,
         imageHeight: attachment.imageHeight || undefined,
+        publicUrl: getPublicUrl(attachment.storageKey),
       };
     }),
 
@@ -176,13 +208,11 @@ export const fileRouter = {
     .input(
       z.object({
         id: z.number(),
+        organizationId: z.number(),
       }),
     )
     .handler(async ({ input }) => {
-      const [attachment] = await db
-        .select()
-        .from(ticketAttachments)
-        .where(eq(ticketAttachments.id, input.id));
+      const attachment = await getAttachmentById(input.organizationId, input.id);
 
       if (!attachment) {
         throw new Error("Attachment not found");
@@ -210,84 +240,95 @@ export const fileRouter = {
     .input(
       z.object({
         id: z.number(),
+        organizationId: z.number(),
         expiresIn: z.number().default(3600),
       }),
     )
     .handler(async ({ input }) => {
-      const [attachment] = await db
-        .select()
-        .from(ticketAttachments)
-        .where(eq(ticketAttachments.id, input.id));
+      const attachment = await getAttachmentById(input.organizationId, input.id);
 
       if (!attachment) {
         throw new Error("Attachment not found");
       }
 
-      const url = await generateDownloadUrl(attachment.storageKey, input.expiresIn);
+      const cdnUrl = env.STORAGE_CDN_URL;
+      let downloadUrl: string;
+      let publicUrl: string;
+
+      if (cdnUrl) {
+        publicUrl = `${cdnUrl.replace(/\/$/, "")}/${attachment.storageKey}`;
+        downloadUrl = publicUrl;
+      } else {
+        const result = await generateOrganizationDownloadUrl({
+          organizationId: input.organizationId,
+          attachmentId: input.id,
+          expiresIn: input.expiresIn,
+        });
+        downloadUrl = result.downloadUrl;
+        publicUrl = result.publicUrl;
+      }
 
       return {
-        downloadUrl: url,
-        publicUrl: getPublicUrl(attachment.storageKey),
+        downloadUrl,
+        publicUrl,
         expiresIn: input.expiresIn,
       };
     }),
 
-  delete: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
-    const [attachment] = await db
-      .select()
-      .from(ticketAttachments)
-      .where(eq(ticketAttachments.id, input.id));
+  delete: publicProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        organizationId: z.number(),
+      }),
+    )
+    .handler(async ({ input }) => {
+      const deleted = await deleteAttachment(input.organizationId, input.id);
 
-    if (!attachment) {
-      throw new Error("Attachment not found");
-    }
+      if (!deleted) {
+        throw new Error("Attachment not found");
+      }
 
-    await deleteFile(attachment.storageKey);
-
-    await db.delete(ticketAttachments).where(eq(ticketAttachments.id, input.id));
-
-    return { success: true };
-  }),
+      return { success: true };
+    }),
 
   listByTicket: publicProcedure
     .input(
       z.object({
+        organizationId: z.number(),
         ticketId: z.number(),
       }),
     )
     .handler(async ({ input }) => {
-      return db
-        .select()
-        .from(ticketAttachments)
-        .where(eq(ticketAttachments.ticketId, input.ticketId))
-        .orderBy(desc(ticketAttachments.createdAt));
+      return await listAttachmentsByTicket(input.organizationId, input.ticketId);
     }),
 
   listByMessage: publicProcedure
     .input(
       z.object({
+        organizationId: z.number(),
         ticketMessageId: z.number(),
       }),
     )
     .handler(async ({ input }) => {
-      return db
-        .select()
-        .from(ticketAttachments)
-        .where(eq(ticketAttachments.ticketMessageId, input.ticketMessageId))
-        .orderBy(desc(ticketAttachments.createdAt));
+      return await listAttachmentsByMessage(input.organizationId, input.ticketMessageId);
     }),
 
-  get: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
-    const [attachment] = await db
-      .select()
-      .from(ticketAttachments)
-      .where(eq(ticketAttachments.id, input.id));
-    return attachment ?? null;
-  }),
+  get: publicProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        organizationId: z.number(),
+      }),
+    )
+    .handler(async ({ input }) => {
+      return await getAttachmentById(input.organizationId, input.id);
+    }),
 
   getGallery: publicProcedure
     .input(
       z.object({
+        organizationId: z.number(),
         ticketId: z.number(),
       }),
     )
@@ -295,7 +336,12 @@ export const fileRouter = {
       return db
         .select()
         .from(ticketAttachments)
-        .where(eq(ticketAttachments.ticketId, input.ticketId))
+        .where(
+          and(
+            eq(ticketAttachments.ticketId, input.ticketId),
+            eq(ticketAttachments.organizationId, input.organizationId),
+          ),
+        )
         .orderBy(ticketAttachments.galleryOrder);
     }),
 
@@ -303,10 +349,17 @@ export const fileRouter = {
     .input(
       z.object({
         id: z.number(),
+        organizationId: z.number(),
         galleryOrder: z.number(),
       }),
     )
     .handler(async ({ input }) => {
+      const attachment = await getAttachmentById(input.organizationId, input.id);
+
+      if (!attachment) {
+        throw new Error("Attachment not found");
+      }
+
       const [updated] = await db
         .update(ticketAttachments)
         .set({ galleryOrder: input.galleryOrder })

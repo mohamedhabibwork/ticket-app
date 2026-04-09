@@ -1,6 +1,7 @@
 import { Worker, Job } from "bullmq";
 import { db } from "@ticket-app/db";
 import { workflows, workflowExecutionLogs } from "@ticket-app/db/schema/_workflows";
+import { tickets } from "@ticket-app/db/schema/_tickets";
 import { workflowEngine } from "../services/workflowEngine";
 import { workflowActions } from "../services/workflowActions";
 import { eq, and } from "drizzle-orm";
@@ -16,12 +17,10 @@ export async function executeWorkflow(job: Job<WorkflowJobData>): Promise<void> 
   const startTime = Date.now();
 
   try {
-    const [workflow] = await db.select()
+    const [workflow] = await db
+      .select()
       .from(workflows)
-      .where(and(
-        eq(workflows.id, Number(workflowId)),
-        eq(workflows.isActive, true)
-      ));
+      .where(and(eq(workflows.id, Number(workflowId)), eq(workflows.isActive, true)));
 
     if (!workflow) {
       throw new Error(`Workflow ${workflowId} not found or inactive`);
@@ -32,9 +31,7 @@ export async function executeWorkflow(job: Job<WorkflowJobData>): Promise<void> 
     }
 
     const ticketId = Number(entityId);
-    const [ticket] = await db.select()
-      .from(/* tickets */ {} as any)
-      .where(eq(/* tickets.id */ ticketId as any, ticketId));
+    const [ticket] = await db.select().from(tickets).where(eq(tickets.id, ticketId));
 
     if (!ticket) {
       throw new Error(`Ticket ${ticketId} not found`);
@@ -44,7 +41,7 @@ export async function executeWorkflow(job: Job<WorkflowJobData>): Promise<void> 
 
     const conditionsResult = workflowEngine.evaluateConditions(
       workflow.conditions as { operator: "and" | "or"; rules: any[] },
-      ticketData
+      ticketData,
     );
 
     await db.insert(workflowExecutionLogs).values({
@@ -78,7 +75,7 @@ export async function executeWorkflow(job: Job<WorkflowJobData>): Promise<void> 
     const actionsResult = await workflowActions.executeActions(
       workflow.actions as any[],
       ticketData,
-      { workflowId: workflow.id, ticketId }
+      { workflowId: workflow.id, ticketId },
     );
 
     await db.insert(workflowExecutionLogs).values({
@@ -102,7 +99,6 @@ export async function executeWorkflow(job: Job<WorkflowJobData>): Promise<void> 
         }
       }
     }
-
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
 
@@ -121,16 +117,12 @@ export async function executeWorkflow(job: Job<WorkflowJobData>): Promise<void> 
 }
 
 export function createWorkflowWorker() {
-  return new Worker<WorkflowJobData>(
-    "workflow",
-    executeWorkflow,
-    {
-      connection,
-      concurrency: 5,
-      removeOnComplete: { count: 500 },
-      removeOnFail: { count: 1000 },
-    }
-  );
+  return new Worker<WorkflowJobData>("workflow", executeWorkflow, {
+    connection,
+    concurrency: 5,
+    removeOnComplete: { count: 500 },
+    removeOnFail: { count: 1000 },
+  });
 }
 
 export { Job };

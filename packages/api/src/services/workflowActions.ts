@@ -20,7 +20,8 @@ export interface WorkflowAction {
     | "create_task"
     | "add_note"
     | "apply_saved_reply"
-    | "create_calendar_event";
+    | "create_calendar_event"
+    | "escalate_sla";
   params: Record<string, unknown>;
 }
 
@@ -101,6 +102,9 @@ export const workflowActions = {
 
       case "create_calendar_event":
         return await this.createCalendarEvent(action.params, ticket, context);
+
+      case "escalate_sla":
+        return await this.escalateSla(action.params, ticket, context);
 
       default:
         return {
@@ -526,8 +530,8 @@ export const workflowActions = {
     const description = params.description as string;
     const durationMinutes = (params.durationMinutes as number) || 30;
     const addAttendees = params.addAttendees as boolean;
-    const agentCalendarConnectionId = params.agentCalendarConnectionId as number;
-    const organizationId = ticket.organizationId as number;
+    const _agentCalendarConnectionId = params.agentCalendarConnectionId as number;
+    const _organizationId = ticket.organizationId as number;
 
     if (!title) {
       return {
@@ -540,10 +544,12 @@ export const workflowActions = {
     const startAt = new Date();
     const endAt = new Date(startAt.getTime() + durationMinutes * 60 * 1000);
 
-    const titleInterpolated = title.replace(/#\{ticket\.id\}/g, String(context.ticketId))
+    const titleInterpolated = title
+      .replace(/#\{ticket\.id\}/g, String(context.ticketId))
       .replace(/#\{ticket\.subject\}/g, String(ticket.subject || ""));
     const descriptionInterpolated = description
-      ? description.replace(/#\{ticket\.id\}/g, String(context.ticketId))
+      ? description
+          .replace(/#\{ticket\.id\}/g, String(context.ticketId))
           .replace(/#\{ticket\.subject\}/g, String(ticket.subject || ""))
       : "";
 
@@ -554,8 +560,8 @@ export const workflowActions = {
 
     let calendarEvent;
     try {
-      const { calendarRouter } = await import("../routers/calendar");
-      
+      const { _calendarRouter } = await import("../routers/calendar");
+
       const connection = await db.query.agentCalendarConnections.findFirst({
         where: and(
           eq(agentCalendarConnections.userId, ticket.assignedAgentId as number),
@@ -603,6 +609,71 @@ export const workflowActions = {
         title: titleInterpolated,
         startAt: startAt.toISOString(),
         endAt: endAt.toISOString(),
+      },
+    };
+  },
+
+  async escalateSla(
+    params: Record<string, unknown>,
+    ticket: Record<string, unknown>,
+    context: ActionContext,
+  ): Promise<ActionResult> {
+    const { addSlaEscalationJob } = await import("../jobs/slaEscalation");
+
+    const breachType = (params.breachType as "first_response" | "resolution") || "first_response";
+    const slaPolicyTargetId = params.slaPolicyTargetId as number | undefined;
+    const escalationLevel = (params.escalationLevel as number) || 1;
+
+    if (!slaPolicyTargetId) {
+      const sla = await db.query.ticketSla.findFirst({
+        where: eq(db.query.ticketSla.baseTable.ticketId, context.ticketId),
+        with: {
+          slaPolicy: {
+            with: {
+              targets: {
+                where: eq(
+                  db.query.slaPolicyTargets.baseTable.priorityId,
+                  ticket.priorityId as number,
+                ),
+              },
+            },
+          },
+        },
+      });
+
+      const target = sla?.slaPolicy?.targets?.[0];
+      if (target) {
+        await addSlaEscalationJob(context.ticketId, breachType, target.id, escalationLevel);
+
+        return {
+          success: true,
+          actionType: "escalate_sla",
+          result: {
+            ticketId: context.ticketId,
+            breachType,
+            escalationLevel,
+            slaPolicyTargetId: target.id,
+          },
+        };
+      }
+
+      return {
+        success: false,
+        actionType: "escalate_sla",
+        error: "No SLA policy target found for ticket priority",
+      };
+    }
+
+    await addSlaEscalationJob(context.ticketId, breachType, slaPolicyTargetId, escalationLevel);
+
+    return {
+      success: true,
+      actionType: "escalate_sla",
+      result: {
+        ticketId: context.ticketId,
+        breachType,
+        escalationLevel,
+        slaPolicyTargetId,
       },
     };
   },

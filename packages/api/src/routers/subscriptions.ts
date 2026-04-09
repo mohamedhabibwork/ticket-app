@@ -4,20 +4,24 @@ import {
   subscriptionPlans,
   seats,
   organizations,
-  invoiceItems,
-  invoices,
+  stripeCustomers,
 } from "@ticket-app/db/schema";
-import { eq, and, desc, sql } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 import z from "zod";
 
 import { publicProcedure } from "../index";
+import {
+  createBillingPortalSession,
+  createCheckoutSession,
+  getOrCreateStripeCustomer,
+} from "../services/stripe";
 
 export const subscriptionsRouter = {
   get: publicProcedure
     .input(
       z.object({
         organizationId: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const subscription = await db.query.subscriptions.findFirst({
@@ -44,9 +48,7 @@ export const subscriptionsRouter = {
         },
       });
 
-      const activeSeats = subscription.seats?.filter(
-        (seat) => !seat.removedAt
-      ) || [];
+      const activeSeats = subscription.seats?.filter((seat) => !seat.removedAt) || [];
 
       const agentCount = activeSeats.length;
       const maxAgents = plan?.maxAgents || 0;
@@ -69,7 +71,7 @@ export const subscriptionsRouter = {
         billingCycle: z.enum(["monthly", "annual"]),
         seatCount: z.number().min(1),
         couponCode: z.string().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const plan = await db.query.subscriptionPlans.findFirst({
@@ -116,7 +118,7 @@ export const subscriptionsRouter = {
         planId: z.number().optional(),
         billingCycle: z.enum(["monthly", "annual"]).optional(),
         seatCount: z.number().min(1).optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const existing = await db.query.subscriptions.findFirst({
@@ -164,7 +166,7 @@ export const subscriptionsRouter = {
       z.object({
         organizationId: z.number(),
         immediate: z.boolean().default(false),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const subscription = await db.query.subscriptions.findFirst({
@@ -176,9 +178,7 @@ export const subscriptionsRouter = {
       }
 
       const canceledAt = new Date();
-      const effectiveDate = input.immediate
-        ? canceledAt
-        : subscription.currentPeriodEnd;
+      const effectiveDate = input.immediate ? canceledAt : subscription.currentPeriodEnd;
 
       const [updated] = await db
         .update(subscriptions)
@@ -202,21 +202,18 @@ export const subscriptionsRouter = {
     .input(
       z.object({
         organizationId: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const activeSeats = await db
         .select({ count: sql<number>`count(*)` })
         .from(seats)
-        .innerJoin(
-          subscriptions,
-          eq(seats.subscriptionId, subscriptions.id)
-        )
+        .innerJoin(subscriptions, eq(seats.subscriptionId, subscriptions.id))
         .where(
           and(
             eq(subscriptions.organizationId, input.organizationId),
-            sql`${seats.removedAt} IS NULL`
-          )
+            sql`${seats.removedAt} IS NULL`,
+          ),
         );
 
       const subscription = await db.query.subscriptions.findFirst({
@@ -238,7 +235,7 @@ export const subscriptionsRouter = {
       z.object({
         organizationId: z.number(),
         userId: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const subscription = await db.query.subscriptions.findFirst({
@@ -253,9 +250,7 @@ export const subscriptionsRouter = {
         throw new Error("No subscription found");
       }
 
-      const activeSeats = subscription.seats?.filter(
-        (seat) => !seat.removedAt
-      ) || [];
+      const activeSeats = subscription.seats?.filter((seat) => !seat.removedAt) || [];
       const maxAgents = subscription.plan?.maxAgents || 0;
 
       if (maxAgents > 0 && activeSeats.length >= maxAgents) {
@@ -263,7 +258,7 @@ export const subscriptionsRouter = {
       }
 
       const existingSeat = subscription.seats?.find(
-        (s) => s.userId === input.userId && !s.removedAt
+        (s) => s.userId === input.userId && !s.removedAt,
       );
 
       if (existingSeat) {
@@ -288,7 +283,7 @@ export const subscriptionsRouter = {
       z.object({
         organizationId: z.number(),
         userId: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const subscription = await db.query.subscriptions.findFirst({
@@ -302,9 +297,7 @@ export const subscriptionsRouter = {
         throw new Error("No subscription found");
       }
 
-      const seat = subscription.seats?.find(
-        (s) => s.userId === input.userId && !s.removedAt
-      );
+      const seat = subscription.seats?.find((s) => s.userId === input.userId && !s.removedAt);
 
       if (!seat) {
         throw new Error("Seat not found");
@@ -329,4 +322,89 @@ export const subscriptionsRouter = {
       orderBy: [subscriptionPlans.priceMonthly],
     });
   }),
+
+  createBillingPortalSession: publicProcedure
+    .input(
+      z.object({
+        organizationId: z.number(),
+        returnUrl: z.string().url(),
+      }),
+    )
+    .handler(async ({ input }) => {
+      const customer = await db.query.stripeCustomers.findFirst({
+        where: eq(stripeCustomers.organizationId, input.organizationId),
+      });
+
+      if (!customer) {
+        throw new Error("No Stripe customer found. Please contact support.");
+      }
+
+      const sessionUrl = await createBillingPortalSession(customer.customerId, input.returnUrl);
+
+      return { url: sessionUrl };
+    }),
+
+  createCheckout: publicProcedure
+    .input(
+      z.object({
+        organizationId: z.number(),
+        planId: z.number(),
+        seatCount: z.number().min(1),
+        billingCycle: z.enum(["monthly", "annual"]),
+        successUrl: z.string().url(),
+        cancelUrl: z.string().url(),
+      }),
+    )
+    .handler(async ({ input }) => {
+      const plan = await db.query.subscriptionPlans.findFirst({
+        where: eq(subscriptionPlans.id, input.planId),
+      });
+
+      if (!plan) {
+        throw new Error("Plan not found");
+      }
+
+      let customer = await db.query.stripeCustomers.findFirst({
+        where: eq(stripeCustomers.organizationId, input.organizationId),
+      });
+
+      if (!customer) {
+        const org = await db.query.organizations.findFirst({
+          where: eq(organizations.id, input.organizationId),
+        });
+
+        if (!org) {
+          throw new Error("Organization not found");
+        }
+
+        const _customerId = await getOrCreateStripeCustomer(
+          input.organizationId,
+          org.email || "unknown@unknown.com",
+          org.name,
+        );
+
+        customer = await db.query.stripeCustomers.findFirst({
+          where: eq(stripeCustomers.organizationId, input.organizationId),
+        });
+      }
+
+      const priceId =
+        input.billingCycle === "monthly"
+          ? plan.stripePriceIdMonthly || ""
+          : plan.stripePriceIdYearly || "";
+
+      if (!priceId) {
+        throw new Error(`No Stripe price configured for ${input.billingCycle} billing`);
+      }
+
+      const sessionUrl = await createCheckoutSession({
+        organizationId: input.organizationId,
+        priceId,
+        seatCount: input.seatCount,
+        successUrl: input.successUrl,
+        cancelUrl: input.cancelUrl,
+      });
+
+      return { url: sessionUrl };
+    }),
 };

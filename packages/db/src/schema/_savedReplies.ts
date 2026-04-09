@@ -1,6 +1,7 @@
 import {
   pgTable,
   bigint,
+  integer,
   text,
   timestamp,
   uuid,
@@ -29,7 +30,7 @@ export const savedReplyFolders = pgTable(
   },
   (table) => ({
     orgIdx: index("saved_reply_folders_org_idx").on(table.organizationId),
-  })
+  }),
 );
 
 export const savedReplies = pgTable(
@@ -48,6 +49,8 @@ export const savedReplies = pgTable(
     bodyText: text("body_text"),
     shortcuts: varchar("shortcuts", { length: 100 }),
     scope: varchar("scope", { length: 20 }).default("personal").notNull(),
+    usageCount: integer("usage_count").default(0).notNull(),
+    lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
     deletedAt: timestamp("deleted_at", { withTimezone: true }),
@@ -57,7 +60,7 @@ export const savedReplies = pgTable(
   },
   (table) => ({
     orgIdx: index("saved_replies_org_idx").on(table.organizationId),
-  })
+  }),
 );
 
 export const savedReplyFoldersRelations = relations(savedReplyFolders, ({ one, many }) => ({

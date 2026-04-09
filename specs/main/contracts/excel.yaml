@@ -1,0 +1,249 @@
+openapi: 3.1.0
+info:
+  title: Excel Import/Export API
+  version: 1.0.0
+  description: Bulk data import and export operations for the support platform
+
+servers:
+  - url: /api/v1
+
+paths:
+  /excel/export:
+    post:
+      operationId: createExportJob
+      summary: Create a new Excel export job
+      tags:
+        - Excel
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateExportRequest"
+      responses:
+        "202":
+          description: Export job created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExportJobResponse"
+
+  /excel/export/{jobId}:
+    get:
+      operationId: getExportJobStatus
+      summary: Get export job status
+      tags:
+        - Excel
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Export job details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExportJobResponse"
+
+  /excel/export/{jobId}/download:
+    get:
+      operationId: downloadExportFile
+      summary: Get download URL for completed export
+      tags:
+        - Excel
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Download URL
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  downloadUrl:
+                    type: string
+                    format: uri
+
+  /excel/import:
+    post:
+      operationId: createImportJob
+      summary: Upload and create import job
+      tags:
+        - Excel
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              $ref: "#/components/schemas/CreateImportRequest"
+      responses:
+        "202":
+          description: Import job created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportJobResponse"
+
+  /excel/import/{jobId}:
+    get:
+      operationId: getImportJobStatus
+      summary: Get import job status
+      tags:
+        - Excel
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Import job details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImportJobResponse"
+
+components:
+  schemas:
+    CreateExportRequest:
+      type: object
+      required:
+        - organizationId
+        - entityType
+      properties:
+        organizationId:
+          type: integer
+          format: int64
+        entityType:
+          type: string
+          enum:
+            - tickets
+            - contacts
+            - users
+            - kb_articles
+            - saved_replies
+        filters:
+          type: object
+          description: Entity-specific filter criteria
+
+    ExportJobResponse:
+      type: object
+      properties:
+        jobId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum:
+            - pending
+            - processing
+            - completed
+            - failed
+        entityType:
+          type: string
+        recordCount:
+          type: integer
+        fileUrl:
+          type: string
+          format: uri
+        errorMessage:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+
+    CreateImportRequest:
+      type: object
+      required:
+        - organizationId
+        - entityType
+        - file
+      properties:
+        organizationId:
+          type: integer
+          format: int64
+        entityType:
+          type: string
+          enum:
+            - tickets
+            - contacts
+            - users
+            - kb_articles
+            - saved_replies
+        file:
+          type: string
+          format: binary
+        mode:
+          type: string
+          enum:
+            - create
+            - upsert
+          default: create
+        matchField:
+          type: string
+          description: Unique field to match for upsert mode (e.g., "email" for contacts)
+
+    ImportJobResponse:
+      type: object
+      properties:
+        jobId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum:
+            - pending
+            - validating
+            - processing
+            - completed
+            - failed
+        entityType:
+          type: string
+        mode:
+          type: string
+        totalRows:
+          type: integer
+        processedRows:
+          type: integer
+        successCount:
+          type: integer
+        errorCount:
+          type: integer
+        errors:
+          type: array
+          items:
+            $ref: "#/components/schemas/ImportError"
+        createdAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+
+    ImportError:
+      type: object
+      properties:
+        row:
+          type: integer
+          description: Row number in the Excel file
+        field:
+          type: string
+          description: Field name that caused the error
+        message:
+          type: string
+          description: Error description

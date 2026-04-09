@@ -1,6 +1,6 @@
 import { db } from "@ticket-app/db";
 import { kbArticles, kbCategories } from "@ticket-app/db/schema";
-import { and, eq, isNull, desc } from "drizzle-orm";
+import { and, eq, isNull, desc, sql } from "drizzle-orm";
 
 interface SearchKbArticlesOptions {
   organizationId: number;
@@ -32,27 +32,33 @@ interface KbArticleSearchResult {
 }
 
 export async function searchKbArticles(
-  options: SearchKbArticlesOptions
+  options: SearchKbArticlesOptions,
 ): Promise<KbArticleSearchResult[]> {
-  const {
-    organizationId,
-    query,
-    locale = "en",
-    limit = 20,
-    categoryId,
-  } = options;
+  const { organizationId, query, locale = "en", limit = 20, categoryId } = options;
 
   const searchQuery = query.trim();
+  const tsQuery = searchQuery.replace(/\s+/g, " & ") + ":*";
 
-  const conditions = [
+  const _titleField =
+    locale === "ar" ? sql`COALESCE(${kbArticles.titleAr}, ${kbArticles.title})` : kbArticles.title;
+
+  const baseConditions = [
     eq(kbArticles.organizationId, organizationId),
     eq(kbArticles.status, "published"),
     isNull(kbArticles.deletedAt),
   ];
 
   if (categoryId) {
-    conditions.push(eq(kbArticles.categoryId, categoryId));
+    baseConditions.push(eq(kbArticles.categoryId, categoryId));
   }
+
+  const _fullTextSearch = sql`
+    setweight(to_tsvector('english', ${kbArticles.title}), 'A') ||
+    setweight(to_tsvector('english', COALESCE(${kbArticles.titleAr}, '')), 'B') ||
+    setweight(to_tsvector('english', COALESCE(${kbArticles.bodyText}, '')), 'C') ||
+    setweight(to_tsvector('english', COALESCE(${kbArticles.metaDescription}, '')), 'D')
+    @@ to_tsquery('english', ${tsQuery})
+  `;
 
   const results = await db
     .select({
@@ -68,52 +74,36 @@ export async function searchKbArticles(
       helpfulYes: kbArticles.helpfulYes,
       helpfulNo: kbArticles.helpfulNo,
       category: kbCategories,
+      tsRank: sql<number>`ts_rank(
+        setweight(to_tsvector('english', ${kbArticles.title}), 'A') ||
+        setweight(to_tsvector('english', COALESCE(${kbArticles.titleAr}, '')), 'B') ||
+        setweight(to_tsvector('english', COALESCE(${kbArticles.bodyText}, '')), 'C') ||
+        setweight(to_tsvector('english', COALESCE(${kbArticles.metaDescription}, '')), 'D'),
+        to_tsquery('english', ${tsQuery})
+      )`.as("ts_rank"),
     })
     .from(kbArticles)
     .leftJoin(
       kbCategories,
-      and(
-        eq(kbArticles.categoryId, kbCategories.id),
-        isNull(kbCategories.deletedAt)
-      )
+      and(eq(kbArticles.categoryId, kbCategories.id), isNull(kbCategories.deletedAt)),
     )
-    .where(and(...conditions))
+    .where(and(...baseConditions))
     .orderBy(
+      desc(sql`ts_rank`),
       desc(kbArticles.helpfulYes),
       desc(kbArticles.viewCount),
-      desc(kbArticles.publishedAt)
+      desc(kbArticles.publishedAt),
     )
     .limit(limit);
 
   const processedResults = results
     .map((article) => {
       const title = locale === "ar" && article.titleAr ? article.titleAr : article.title;
-      const bodyText = article.bodyText || "";
-      const searchLower = searchQuery.toLowerCase();
-      const titleLower = title.toLowerCase();
-
-      let relevanceScore = 0;
-      if (titleLower.includes(searchLower)) {
-        relevanceScore += 100;
-      }
-      if (bodyText.toLowerCase().includes(searchLower)) {
-        relevanceScore += 50;
-      }
-
-      const searchWords = searchLower.split(/\s+/);
-      for (const word of searchWords) {
-        if (titleLower.includes(word)) {
-          relevanceScore += 20;
-        }
-        if (bodyText.toLowerCase().includes(word)) {
-          relevanceScore += 10;
-        }
-      }
 
       return {
         ...article,
         title,
-        rank: relevanceScore,
+        rank: Number(article.tsRank) * 1000,
       };
     })
     .filter((article) => article.rank > 0)
@@ -124,7 +114,7 @@ export async function searchKbArticles(
 }
 
 export async function getKbArticleSuggestions(
-  options: SearchKbArticlesOptions
+  options: SearchKbArticlesOptions,
 ): Promise<KbArticleSearchResult[]> {
   return searchKbArticles({
     ...options,

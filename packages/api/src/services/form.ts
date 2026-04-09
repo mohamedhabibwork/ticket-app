@@ -8,8 +8,10 @@ import {
   ticketMessages,
   contacts,
   lookups,
+  type FieldConditionalLogic,
 } from "@ticket-app/db/schema";
 import { eq, and, isNull, sql } from "drizzle-orm";
+import { evaluateConditionalLogic, verifyCaptcha, type CaptchaProvider } from "../lib/captcha";
 
 export interface FormSubmissionData {
   formId: number;
@@ -20,22 +22,82 @@ export interface FormSubmissionData {
   email?: string;
   firstName?: string;
   lastName?: string;
+  captchaToken?: string;
+}
+
+function getVisibleFields(
+  fieldsList: Array<{
+    id: number;
+    showWhen: FieldConditionalLogic | null;
+    hideWhen: FieldConditionalLogic | null;
+  }>,
+  fieldValues: Record<string, string>,
+): Set<number> {
+  const visible = new Set<number>();
+
+  for (const field of fieldsList) {
+    const showWhen = field.showWhen as FieldConditionalLogic | null;
+    const hideWhen = field.hideWhen as FieldConditionalLogic | null;
+
+    const showConditionMet = evaluateConditionalLogic(showWhen, fieldValues);
+    const hideConditionMet = evaluateConditionalLogic(hideWhen, fieldValues);
+
+    if (showConditionMet && !hideConditionMet) {
+      visible.add(field.id);
+    }
+  }
+
+  return visible;
 }
 
 export async function convertFormToTicket(
-  data: FormSubmissionData
+  data: FormSubmissionData,
 ): Promise<{ ticket: any; submission: any }> {
   const form = await db.query.forms.findFirst({
     where: and(
       eq(forms.id, data.formId),
       eq(forms.organizationId, data.organizationId),
       eq(forms.isPublished, true),
-      isNull(forms.deletedAt)
+      isNull(forms.deletedAt),
     ),
   });
 
   if (!form) {
     throw new Error("Form not found or not published");
+  }
+
+  const formFieldsList = await db.query.formFields.findMany({
+    where: and(eq(formFields.formId, data.formId), eq(formFields.isActive, true)),
+  });
+
+  const visibleFieldIds = getVisibleFields(formFieldsList, data.fields);
+  const visibleFields = formFieldsList.filter((f) => visibleFieldIds.has(f.id));
+
+  for (const field of visibleFields) {
+    if (field.isRequired) {
+      const value = data.fields[field.id.toString()];
+      if (!value || value.trim() === "") {
+        throw new Error(`Field "${field.label}" is required`);
+      }
+    }
+  }
+
+  if (form.captchaEnabled && data.captchaToken) {
+    const captchaSecret =
+      process.env[
+        form.captchaProvider === "recaptcha_v3" ? "RECAPTCHA_V3_SECRET" : "HCAPTCHA_SECRET"
+      ];
+    if (captchaSecret) {
+      const result = await verifyCaptcha(
+        (form.captchaProvider as CaptchaProvider) || "hcaptcha",
+        captchaSecret,
+        data.captchaToken,
+        data.ipAddress,
+      );
+      if (!result.success) {
+        throw new Error("CAPTCHA verification failed");
+      }
+    }
   }
 
   let contactId: number | undefined;
@@ -45,7 +107,7 @@ export async function convertFormToTicket(
       where: and(
         eq(contacts.email, data.email.toLowerCase()),
         eq(contacts.organizationId, data.organizationId),
-        isNull(contacts.deletedAt)
+        isNull(contacts.deletedAt),
       ),
     });
 
@@ -75,16 +137,9 @@ export async function convertFormToTicket(
     })
     .returning();
 
-  const formFieldsList = await db.query.formFields.findMany({
-    where: and(
-      eq(formFields.formId, data.formId),
-      eq(formFields.isActive, true)
-    ),
-  });
-
   const fieldValues = Object.entries(data.fields);
   for (const [fieldId, value] of fieldValues) {
-    const field = formFieldsList.find((f) => f.id === parseInt(fieldId));
+    const field = visibleFields.find((f) => f.id === parseInt(fieldId));
     if (field) {
       await db.insert(formSubmissionValues).values({
         submissionId: submission.id,
@@ -94,25 +149,23 @@ export async function convertFormToTicket(
     }
   }
 
-  const subjectField = formFieldsList.find(
-    (f) => f.fieldType === "subject" || f.label.toLowerCase() === "subject"
+  const subjectField = visibleFields.find(
+    (f) => f.fieldType === "subject" || f.label.toLowerCase() === "subject",
   );
-  const descriptionField = formFieldsList.find(
-    (f) => f.fieldType === "description" || f.label.toLowerCase() === "description"
+  const descriptionField = visibleFields.find(
+    (f) => f.fieldType === "description" || f.label.toLowerCase() === "description",
   );
 
   const subject = subjectField
     ? data.fields[subjectField.id.toString()] || "Web Form Submission"
     : "Web Form Submission";
 
-  let descriptionHtml = descriptionField
-    ? data.fields[descriptionField.id.toString()]
-    : "";
+  let descriptionHtml = descriptionField ? data.fields[descriptionField.id.toString()] : "";
 
   if (!descriptionHtml) {
     const fieldEntries = Object.entries(data.fields)
       .map(([fieldId, value]) => {
-        const field = formFieldsList.find((f) => f.id === parseInt(fieldId));
+        const field = visibleFields.find((f) => f.id === parseInt(fieldId));
         if (field && field.fieldType !== "subject" && field.fieldType !== "description") {
           return `<p><strong>${field.label}:</strong> ${value}</p>`;
         }
@@ -126,7 +179,7 @@ export async function convertFormToTicket(
   const channelLookup = await db.query.lookups.findFirst({
     where: and(
       eq(lookups.lookupTypeId, sql`(SELECT id FROM lookup_types WHERE name = 'channel')`),
-      sql`${lookups.metadata}->>'slug' = 'web'`
+      sql`${lookups.metadata}->>'slug' = 'web'`,
     ),
   });
 
@@ -134,7 +187,7 @@ export async function convertFormToTicket(
     await db.query.lookups.findFirst({
       where: and(
         eq(lookups.lookupTypeId, sql`(SELECT id FROM lookup_types WHERE name = 'ticket_status')`),
-        eq(lookups.isDefault, true)
+        eq(lookups.isDefault, true),
       ),
     })
   )?.id;
@@ -143,7 +196,7 @@ export async function convertFormToTicket(
     await db.query.lookups.findFirst({
       where: and(
         eq(lookups.lookupTypeId, sql`(SELECT id FROM lookup_types WHERE name = 'ticket_priority')`),
-        eq(lookups.isDefault, true)
+        eq(lookups.isDefault, true),
       ),
     })
   )?.id;
@@ -154,7 +207,7 @@ export async function convertFormToTicket(
     .select({ count: sql<number>`COUNT(*)::int` })
     .from(tickets)
     .where(
-      sql`${tickets.organizationId} = ${data.organizationId} AND ${tickets.referenceNumber} LIKE ${prefix}%`
+      sql`${tickets.organizationId} = ${data.organizationId} AND ${tickets.referenceNumber} LIKE ${prefix}%`,
     );
   const sequence = (countResult[0]?.count ?? 0) + 1;
   const referenceNumber = `${prefix}${sequence.toString().padStart(6, "0")}`;

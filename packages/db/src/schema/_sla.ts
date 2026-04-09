@@ -40,7 +40,7 @@ export const slaPolicies = pgTable(
   },
   (table) => ({
     orgIdx: index("sla_policies_org_idx").on(table.organizationId),
-  })
+  }),
 );
 
 export const slaPolicyTargets = pgTable(
@@ -55,14 +55,16 @@ export const slaPolicyTargets = pgTable(
       .notNull(),
     firstResponseMinutes: integer("first_response_minutes").notNull(),
     resolutionMinutes: integer("resolution_minutes").notNull(),
-    escalateAgentId: bigint("escalate_agent_id", { mode: "number" }).references((): any => users.id),
+    escalateAgentId: bigint("escalate_agent_id", { mode: "number" }).references(
+      (): any => users.id,
+    ),
     escalateTeamId: bigint("escalate_team_id", { mode: "number" }).references((): any => teams.id),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => ({
     policyPriorityUnique: unique().on(table.slaPolicyId, table.priorityId),
-  })
+  }),
 );
 
 export const ticketSla = pgTable(
@@ -91,8 +93,11 @@ export const ticketSla = pgTable(
     ticketIdx: index("ticket_sla_ticket_idx").on(table.ticketId),
     firstResponseDueIdx: index("ticket_sla_first_response_due_idx").on(table.firstResponseDueAt),
     resolutionDueIdx: index("ticket_sla_resolution_due_idx").on(table.resolutionDueAt),
-    breachedIdx: index("ticket_sla_breached_idx").on(table.firstResponseBreached, table.resolutionBreached),
-  })
+    breachedIdx: index("ticket_sla_breached_idx").on(
+      table.firstResponseBreached,
+      table.resolutionBreached,
+    ),
+  }),
 );
 
 export const ticketCustomFields = pgTable(
@@ -120,7 +125,7 @@ export const ticketCustomFields = pgTable(
   },
   (table) => ({
     orgIdx: index("ticket_custom_fields_org_idx").on(table.organizationId),
-  })
+  }),
 );
 
 export const csatSurveys = pgTable(
@@ -143,7 +148,7 @@ export const csatSurveys = pgTable(
   (table) => ({
     ticketIdx: index("csat_surveys_ticket_idx").on(table.ticketId),
     expiresIdx: index("csat_surveys_expires_idx").on(table.expiresAt),
-  })
+  }),
 );
 
 export const slaPoliciesRelations = relations(slaPolicies, ({ one, many }) => ({
@@ -154,7 +159,42 @@ export const slaPoliciesRelations = relations(slaPolicies, ({ one, many }) => ({
   targets: many(slaPolicyTargets),
 }));
 
-export const slaPolicyTargetsRelations = relations(slaPolicyTargets, ({ one }) => ({
+export const ticketEscalations = pgTable(
+  "ticket_escalations",
+  {
+    id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
+    uuid: uuid("uuid").defaultRandom().notNull().unique(),
+    ticketId: bigint("ticket_id", { mode: "number" })
+      .references(() => tickets.id)
+      .notNull(),
+    slaPolicyTargetId: bigint("sla_policy_target_id", { mode: "number" }).references(
+      () => slaPolicyTargets.id,
+    ),
+    escalationLevel: integer("escalation_level").default(1).notNull(),
+    escalateToAgentId: bigint("escalate_to_agent_id", { mode: "number" }).references(
+      (): any => users.id,
+    ),
+    escalateToTeamId: bigint("escalate_to_team_id", { mode: "number" }).references(
+      (): any => teams.id,
+    ),
+    escalationType: varchar("escalation_type", { length: 50 }).notNull(),
+    breachedAt: timestamp("breached_at", { withTimezone: true }).notNull(),
+    reason: varchar("reason", { length: 255 }),
+    previousAssigneeAgentId: bigint("previous_assignee_agent_id", { mode: "number" }).references(
+      (): any => users.id,
+    ),
+    previousAssigneeTeamId: bigint("previous_assignee_team_id", { mode: "number" }).references(
+      (): any => teams.id,
+    ),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    ticketIdx: index("ticket_escalations_ticket_idx").on(table.ticketId),
+    breachedIdx: index("ticket_escalations_breached_idx").on(table.breachedAt),
+  }),
+);
+
+export const slaPolicyTargetsRelations = relations(slaPolicyTargets, ({ one, many }) => ({
   slaPolicy: one(slaPolicies, {
     fields: [slaPolicyTargets.slaPolicyId],
     references: [slaPolicies.id],
@@ -171,9 +211,10 @@ export const slaPolicyTargetsRelations = relations(slaPolicyTargets, ({ one }) =
     fields: [slaPolicyTargets.escalateTeamId],
     references: [teams.id],
   }),
+  escalations: many(ticketEscalations),
 }));
 
-export const ticketSlaRelations = relations(ticketSla, ({ one }) => ({
+export const ticketSlaRelations = relations(ticketSla, ({ one, many }) => ({
   ticket: one(tickets, {
     fields: [ticketSla.ticketId],
     references: [tickets.id],
@@ -181,6 +222,34 @@ export const ticketSlaRelations = relations(ticketSla, ({ one }) => ({
   slaPolicy: one(slaPolicies, {
     fields: [ticketSla.slaPolicyId],
     references: [slaPolicies.id],
+  }),
+  escalations: many(ticketEscalations),
+}));
+
+export const ticketEscalationsRelations = relations(ticketEscalations, ({ one }) => ({
+  ticket: one(tickets, {
+    fields: [ticketEscalations.ticketId],
+    references: [tickets.id],
+  }),
+  slaPolicyTarget: one(slaPolicyTargets, {
+    fields: [ticketEscalations.slaPolicyTargetId],
+    references: [slaPolicyTargets.id],
+  }),
+  escalateToAgent: one(users, {
+    fields: [ticketEscalations.escalateToAgentId],
+    references: [users.id],
+  }),
+  escalateToTeam: one(teams, {
+    fields: [ticketEscalations.escalateToTeamId],
+    references: [teams.id],
+  }),
+  previousAssigneeAgent: one(users, {
+    fields: [ticketEscalations.previousAssigneeAgentId],
+    references: [users.id],
+  }),
+  previousAssigneeTeam: one(teams, {
+    fields: [ticketEscalations.previousAssigneeTeamId],
+    references: [teams.id],
   }),
 }));
 

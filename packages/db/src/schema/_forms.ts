@@ -40,8 +40,28 @@ export const forms = pgTable(
   },
   (table) => ({
     orgIdx: index("forms_org_idx").on(table.organizationId),
-  })
+  }),
 );
+
+export type FieldConditionOperator =
+  | "equals"
+  | "not_equals"
+  | "contains"
+  | "not_contains"
+  | "is_empty"
+  | "is_not_empty";
+export type FieldConditionLogic = "AND" | "OR";
+
+export interface FieldCondition {
+  field: string;
+  operator: FieldConditionOperator;
+  value?: string;
+}
+
+export interface FieldConditionalLogic {
+  operator: FieldConditionLogic;
+  conditions: FieldCondition[];
+}
 
 export const formFields = pgTable(
   "form_fields",
@@ -58,12 +78,14 @@ export const formFields = pgTable(
     isRequired: boolean("is_required").default(false).notNull(),
     orderBy: integer("order_by").default(0).notNull(),
     isActive: boolean("is_active").default(true).notNull(),
+    showWhen: jsonb("show_when"),
+    hideWhen: jsonb("hide_when"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => ({
     formIdx: index("form_fields_form_idx").on(table.formId),
-  })
+  }),
 );
 
 export const formSubmissions = pgTable(
@@ -82,7 +104,7 @@ export const formSubmissions = pgTable(
   },
   (table) => ({
     formIdx: index("form_submissions_form_idx").on(table.formId),
-  })
+  }),
 );
 
 export const formSubmissionValues = pgTable(
@@ -100,7 +122,7 @@ export const formSubmissionValues = pgTable(
   },
   (table) => ({
     submissionIdx: index("form_submission_values_submission_idx").on(table.submissionId),
-  })
+  }),
 );
 
 export const formsRelations = relations(forms, ({ one, many }) => ({

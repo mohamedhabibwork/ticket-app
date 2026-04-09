@@ -72,16 +72,40 @@ export function createEmailPollWorker() {
         return { polled: 0, success: true, skipped: true };
       }
 
-      const { host, port, username, passwordEnc, useSsl } = mailbox.imapConfig;
+      const {
+        host,
+        port,
+        username,
+        passwordEnc,
+        useSsl,
+        oauthTokenEnc,
+        oauthRefreshTokenEnc,
+        _oauthExpiresAt,
+      } = mailbox.imapConfig;
+
+      let accessToken: string | undefined;
+      let useOAuth = false;
+
+      if (oauthTokenEnc && oauthRefreshTokenEnc) {
+        const { _decryptToken } = await import("../lib/crypto");
+        const { refreshGmailAccessToken } = await import("../services/email");
+
+        const tokenResult = await refreshGmailAccessToken(mailboxId);
+        if (tokenResult) {
+          accessToken = tokenResult.accessToken;
+          useOAuth = true;
+        }
+      }
 
       try {
         const emails = await pollImapMailbox({
           host,
           port,
           username,
-          password: passwordEnc,
+          password: useOAuth ? "" : passwordEnc,
           useSsl,
           lastSyncAt: mailbox.lastSyncedAt,
+          xoauth2Token: accessToken,
         });
 
         for (const email of emails) {
@@ -131,6 +155,7 @@ interface ImapConfig {
   password: string;
   useSsl: boolean;
   lastSyncAt: Date | null;
+  xoauth2Token?: string;
 }
 
 async function pollImapMailbox(config: ImapConfig): Promise<EmailMessage[]> {
@@ -138,14 +163,21 @@ async function pollImapMailbox(config: ImapConfig): Promise<EmailMessage[]> {
   const { simpleParser } = await import("mailparser");
 
   return new Promise((resolve, reject) => {
-    const imap = new Imap.default({
-      user: config.username,
-      password: config.password,
+    const imapConfig: any = {
       host: config.host,
       port: config.port,
       tls: config.useSsl,
       tlsOptions: { rejectUnauthorized: false },
-    });
+    };
+
+    if (config.xoauth2Token) {
+      imapConfig.xoauth2 = `user=${config.username}\x01auth=Bearer ${config.xoauth2Token}\x01\x01`;
+    } else {
+      imapConfig.user = config.username;
+      imapConfig.password = config.password;
+    }
+
+    const imap = new Imap.default(imapConfig);
 
     const messages: EmailMessage[] = [];
 

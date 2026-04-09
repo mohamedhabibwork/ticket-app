@@ -11,6 +11,7 @@ export interface PresignedUrlOptions {
   contentType: string;
   expiresIn?: number;
   folder?: string;
+  organizationId?: number;
 }
 
 export interface PresignedUploadResult {
@@ -26,11 +27,81 @@ export interface StorageDriver {
   deleteFile(fileKey: string): Promise<void>;
 }
 
-function generateFileKey(folder: string, filename: string): string {
+const ALLOWED_MIME_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/gif",
+  "image/webp",
+  "image/svg+xml",
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.ms-excel",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "application/vnd.ms-powerpoint",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  "text/plain",
+  "text/csv",
+  "text/html",
+  "application/zip",
+  "application/x-zip-compressed",
+]);
+
+const IMAGE_MIME_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/gif",
+  "image/webp",
+  "image/svg+xml",
+]);
+
+const DEFAULT_MAX_SIZE_BYTES = 50 * 1024 * 1024; // 50MB
+
+export interface FileValidationResult {
+  valid: boolean;
+  error?: string;
+  mimeType?: string;
+  sizeBytes?: number;
+}
+
+export function validateFile(contentType: string, sizeBytes: number): FileValidationResult {
+  const maxSize = env.STORAGE_MAX_FILE_SIZE || DEFAULT_MAX_SIZE_BYTES;
+
+  if (sizeBytes > maxSize) {
+    return {
+      valid: false,
+      error: `File size exceeds maximum allowed size of ${maxSize / 1024 / 1024}MB`,
+    };
+  }
+
+  if (!ALLOWED_MIME_TYPES.has(contentType)) {
+    return {
+      valid: false,
+      error: `File type ${contentType} is not allowed`,
+    };
+  }
+
+  return {
+    valid: true,
+    mimeType: contentType,
+    sizeBytes,
+  };
+}
+
+export function isImageMimeType(mimeType: string): boolean {
+  return IMAGE_MIME_TYPES.has(mimeType);
+}
+
+export function isAllowedMimeType(mimeType: string): boolean {
+  return ALLOWED_MIME_TYPES.has(mimeType);
+}
+
+function generateFileKey(folder: string, filename: string, organizationId?: number): string {
   const timestamp = Date.now();
   const random = Math.random().toString(36).substring(2, 15);
   const sanitizedFilename = filename.replace(/[^a-zA-Z0-9.-]/g, "_");
-  return `${folder}/${timestamp}-${random}-${sanitizedFilename}`;
+  const prefix = organizationId ? `org-${organizationId}/` : "";
+  return `${prefix}${folder}/${timestamp}-${random}-${sanitizedFilename}`;
 }
 
 function getS3Config() {
@@ -109,8 +180,8 @@ class S3StorageDriver implements StorageDriver {
   }
 
   async generateUploadUrl(options: PresignedUrlOptions): Promise<PresignedUploadResult> {
-    const { filename, contentType, expiresIn = 3600, folder = "uploads" } = options;
-    const fileKey = generateFileKey(folder, filename);
+    const { filename, contentType, expiresIn = 3600, folder = "uploads", organizationId } = options;
+    const fileKey = generateFileKey(folder, filename, organizationId);
     const uploadUrl = await this.createPresignedUrl("PUT", fileKey, expiresIn, contentType);
     const publicUrl = this.getPublicUrl(fileKey);
 
@@ -174,7 +245,12 @@ class S3StorageDriver implements StorageDriver {
         headers,
       );
       url.searchParams.set("X-Amz-Signature", signature);
-      url.searchParams.set("X-Amz-SignedHeaders", Object.keys(headers).map((k) => k.toLowerCase()).join(";"));
+      url.searchParams.set(
+        "X-Amz-SignedHeaders",
+        Object.keys(headers)
+          .map((k) => k.toLowerCase())
+          .join(";"),
+      );
     }
 
     return url.toString();
@@ -201,8 +277,8 @@ class MinIOStorageDriver implements StorageDriver {
   }
 
   async generateUploadUrl(options: PresignedUrlOptions): Promise<PresignedUploadResult> {
-    const { filename, contentType, expiresIn = 3600, folder = "uploads" } = options;
-    const fileKey = generateFileKey(folder, filename);
+    const { filename, contentType, expiresIn = 3600, folder = "uploads", organizationId } = options;
+    const fileKey = generateFileKey(folder, filename, organizationId);
     const uploadUrl = await this.createPresignedUrl("PUT", fileKey, expiresIn, contentType);
     const publicUrl = this.getPublicUrl(fileKey);
 
@@ -266,7 +342,12 @@ class MinIOStorageDriver implements StorageDriver {
         headers,
       );
       url.searchParams.set("X-Amz-Signature", signature);
-      url.searchParams.set("X-Amz-SignedHeaders", Object.keys(headers).map((k) => k.toLowerCase()).join(";"));
+      url.searchParams.set(
+        "X-Amz-SignedHeaders",
+        Object.keys(headers)
+          .map((k) => k.toLowerCase())
+          .join(";"),
+      );
     }
 
     return url.toString();
@@ -283,8 +364,8 @@ class LocalStorageDriver implements StorageDriver {
   }
 
   async generateUploadUrl(options: PresignedUrlOptions): Promise<PresignedUploadResult> {
-    const { filename, folder = "uploads" } = options;
-    const fileKey = generateFileKey(folder, filename);
+    const { filename, folder = "uploads", organizationId } = options;
+    const fileKey = generateFileKey(folder, filename, organizationId);
     const publicUrl = this.getPublicUrl(fileKey);
 
     const uploadUrl = `/api/storage/upload?key=${encodeURIComponent(fileKey)}`;
@@ -354,8 +435,8 @@ class OracleStorageDriver implements StorageDriver {
   }
 
   async generateUploadUrl(options: PresignedUrlOptions): Promise<PresignedUploadResult> {
-    const { filename, contentType, expiresIn = 3600, folder = "uploads" } = options;
-    const fileKey = generateFileKey(folder, filename);
+    const { filename, contentType, expiresIn = 3600, folder = "uploads", organizationId } = options;
+    const fileKey = generateFileKey(folder, filename, organizationId);
     const uploadUrl = await this.createPresignedUrl("PUT", fileKey, expiresIn, contentType);
     const publicUrl = this.getPublicUrl(fileKey);
 
@@ -448,7 +529,9 @@ export function getStorageDriver(): StorageDriver {
   return storageDriver;
 }
 
-export async function generateUploadUrl(options: PresignedUrlOptions): Promise<PresignedUploadResult> {
+export async function generateUploadUrl(
+  options: PresignedUrlOptions,
+): Promise<PresignedUploadResult> {
   return getStorageDriver().generateUploadUrl(options);
 }
 

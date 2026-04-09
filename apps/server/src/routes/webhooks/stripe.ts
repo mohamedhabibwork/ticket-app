@@ -22,11 +22,7 @@ app.post("/stripe", async (c) => {
   let event;
 
   try {
-    event = stripe.webhooks.constructEvent(
-      payload,
-      sig,
-      process.env.STRIPE_WEBHOOK_SECRET!
-    );
+    event = stripe.webhooks.constructEvent(payload, sig, process.env.STRIPE_WEBHOOK_SECRET!);
   } catch (err: any) {
     console.error("Webhook signature verification failed:", err.message);
     return c.json({ error: `Webhook Error: ${err.message}` }, 400);
@@ -108,12 +104,8 @@ async function handleSubscriptionUpdate(stripeSub: any) {
         currentPeriodStart: periodStart,
         currentPeriodEnd: periodEnd,
         cancelAtPeriodEnd: stripeSub.cancel_at_period_end,
-        trialStart: stripeSub.trial_start
-          ? new Date(stripeSub.trial_start * 1000)
-          : null,
-        trialEnd: stripeSub.trial_end
-          ? new Date(stripeSub.trial_end * 1000)
-          : null,
+        trialStart: stripeSub.trial_start ? new Date(stripeSub.trial_start * 1000) : null,
+        trialEnd: stripeSub.trial_end ? new Date(stripeSub.trial_end * 1000) : null,
         updatedAt: now,
       })
       .where(eq(stripeSubscriptions.id, existingStripeSub.id));
@@ -124,8 +116,7 @@ async function handleSubscriptionUpdate(stripeSub: any) {
   });
 
   if (subscription) {
-    let status: "active" | "past_due" | "canceled" | "trialing" | "paused" =
-      "active";
+    let status: "active" | "past_due" | "canceled" | "trialing" | "paused" = "active";
 
     if (stripeSub.status === "past_due") status = "past_due";
     if (stripeSub.status === "canceled") status = "canceled";
@@ -244,13 +235,22 @@ async function handleCheckoutCompleted(session: any) {
   if (!session.metadata?.organizationId) return;
 
   const organizationId = parseInt(session.metadata.organizationId);
-  const subscriptionId = session.subscription;
+  const stripeSubscriptionId = session.subscription;
 
-  if (subscriptionId) {
-    const stripeSub = await stripe.subscriptions.retrieve(subscriptionId);
+  if (stripeSubscriptionId) {
+    const stripeSub = await stripe.subscriptions.retrieve(stripeSubscriptionId);
+
+    const localSubscription = await db.query.subscriptions.findFirst({
+      where: eq(subscriptions.organizationId, organizationId),
+    });
+
+    if (!localSubscription) {
+      console.log("Local subscription not found for org:", organizationId);
+      return;
+    }
 
     await db.insert(stripeSubscriptions).values({
-      subscriptionId: 0,
+      subscriptionId: localSubscription.id,
       stripeSubscriptionId: stripeSub.id,
       stripeCustomerId: session.customer,
       status: stripeSub.status,

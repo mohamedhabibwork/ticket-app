@@ -12,13 +12,10 @@ export const formsRouter = {
       z.object({
         organizationId: z.number(),
         isPublished: z.boolean().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
-      const conditions = [
-        eq(forms.organizationId, input.organizationId),
-        isNull(forms.deletedAt),
-      ];
+      const conditions = [eq(forms.organizationId, input.organizationId), isNull(forms.deletedAt)];
 
       if (input.isPublished !== undefined) {
         conditions.push(eq(forms.isPublished, input.isPublished));
@@ -41,14 +38,14 @@ export const formsRouter = {
       z.object({
         organizationId: z.number(),
         id: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       return await db.query.forms.findFirst({
         where: and(
           eq(forms.id, input.id),
           eq(forms.organizationId, input.organizationId),
-          isNull(forms.deletedAt)
+          isNull(forms.deletedAt),
         ),
         with: {
           fields: {
@@ -64,14 +61,14 @@ export const formsRouter = {
       z.object({
         organizationId: z.number(),
         slug: z.string(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       return await db.query.forms.findFirst({
         where: and(
           eq(forms.organizationId, input.organizationId),
           isNull(forms.deletedAt),
-          eq(forms.isPublished, true)
+          eq(forms.isPublished, true),
         ),
         with: {
           fields: {
@@ -93,7 +90,8 @@ export const formsRouter = {
         lastName: z.string().optional(),
         ipAddress: z.string().optional(),
         userAgent: z.string().optional(),
-      })
+        captchaToken: z.string().optional(),
+      }),
     )
     .handler(async ({ input }) => {
       const result = await convertFormToTicket({
@@ -105,6 +103,7 @@ export const formsRouter = {
         email: input.email,
         firstName: input.firstName,
         lastName: input.lastName,
+        captchaToken: input.captchaToken,
       });
 
       return {

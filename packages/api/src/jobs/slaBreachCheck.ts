@@ -2,9 +2,9 @@ import { Queue, Worker, Job } from "bullmq";
 import { eq } from "drizzle-orm";
 
 import { db } from "@ticket-app/db";
-import { ticketSla, slaPolicies, slaPolicyTargets } from "@ticket-app/db/schema/_sla";
-import { tickets } from "@ticket-app/db/schema/_tickets";
+import { ticketSla } from "@ticket-app/db/schema/_sla";
 import { addNotificationJob } from "@ticket-app/db/lib/queues";
+import { addSlaEscalationJob, getEscalationLevel } from "./slaEscalation";
 
 export const SLA_BREACH_CHECK_QUEUE = "sla-breach-check";
 
@@ -18,32 +18,29 @@ const connection = {
   port: parseInt(process.env.REDIS_URL?.split(":")[2] || "6379"),
 };
 
-export const slaBreachCheckQueue = new Queue<SlaBreachJobData>(
-  SLA_BREACH_CHECK_QUEUE,
-  {
-    connection,
-    defaultJobOptions: {
-      attempts: 3,
-      backoff: {
-        type: "exponential",
-        delay: 5000,
-      },
-      removeOnComplete: { count: 500 },
-      removeOnFail: { count: 1000 },
+export const slaBreachCheckQueue = new Queue<SlaBreachJobData>(SLA_BREACH_CHECK_QUEUE, {
+  connection,
+  defaultJobOptions: {
+    attempts: 3,
+    backoff: {
+      type: "exponential",
+      delay: 5000,
     },
-  }
-);
+    removeOnComplete: { count: 500 },
+    removeOnFail: { count: 1000 },
+  },
+});
 
 export async function addSlaBreachCheckJob(
   ticketId: number,
-  checkType: "first_response" | "resolution"
+  checkType: "first_response" | "resolution",
 ): Promise<Job<SlaBreachJobData>> {
   return slaBreachCheckQueue.add(
     "breach-check",
     { ticketId, checkType },
     {
       jobId: `sla-breach-${ticketId}-${checkType}-${Date.now()}`,
-    }
+    },
   );
 }
 
@@ -104,7 +101,7 @@ export function createSlaBreachWorker() {
     {
       connection,
       concurrency: 5,
-    }
+    },
   );
 }
 
@@ -123,6 +120,7 @@ interface SlaWithRelations {
   slaPolicy?: {
     id: number;
     targets: Array<{
+      id: number;
       escalateAgentId: number | null;
       escalateTeamId: number | null;
     }>;
@@ -135,40 +133,46 @@ interface SlaWithRelations {
 
 async function executeEscalation(
   sla: SlaWithRelations,
-  breachType: "first_response" | "resolution"
+  breachType: "first_response" | "resolution",
 ) {
   if (!sla.ticket) return;
 
   const target = sla.slaPolicy?.targets?.[0];
   if (!target) return;
 
-  if (target.escalateAgentId) {
-    await addNotificationJob({
-      userId: target.escalateAgentId.toString(),
-      type: "sla_breach",
-      title: `SLA Breach: ${breachType === "first_response" ? "First Response" : "Resolution"}`,
-      message: `Ticket #${sla.ticket.referenceNumber} has breached the SLA for ${breachType === "first_response" ? "first response" : "resolution"} time.`,
-      metadata: {
-        ticketId: sla.ticketId,
-        breachType,
-        slaPolicyId: sla.slaPolicyId,
-      },
-    });
-  }
+  const escalationLevel = (await getEscalationLevel(sla.ticketId)) + 1;
 
-  if (target.escalateTeamId) {
-    await addNotificationJob({
-      userId: `team-${target.escalateTeamId}`,
-      type: "sla_breach",
-      title: `SLA Breach: ${breachType === "first_response" ? "First Response" : "Resolution"}`,
-      message: `Ticket #${sla.ticket.referenceNumber} has breached the SLA for ${breachType === "first_response" ? "first response" : "resolution"} time.`,
-      metadata: {
-        ticketId: sla.ticketId,
-        breachType,
-        slaPolicyId: sla.slaPolicyId,
-        teamId: target.escalateTeamId,
-      },
-    });
+  if (target.escalateAgentId || target.escalateTeamId) {
+    await addSlaEscalationJob(sla.ticketId, breachType, target.id, escalationLevel);
+  } else {
+    if (target.escalateAgentId) {
+      await addNotificationJob({
+        userId: target.escalateAgentId.toString(),
+        type: "sla_breach",
+        title: `SLA Breach: ${breachType === "first_response" ? "First Response" : "Resolution"}`,
+        message: `Ticket #${sla.ticket.referenceNumber} has breached the SLA for ${breachType === "first_response" ? "first response" : "resolution"} time.`,
+        metadata: {
+          ticketId: sla.ticketId,
+          breachType,
+          slaPolicyId: sla.slaPolicyId,
+        },
+      });
+    }
+
+    if (target.escalateTeamId) {
+      await addNotificationJob({
+        userId: `team-${target.escalateTeamId}`,
+        type: "sla_breach",
+        title: `SLA Breach: ${breachType === "first_response" ? "First Response" : "Resolution"}`,
+        message: `Ticket #${sla.ticket.referenceNumber} has breached the SLA for ${breachType === "first_response" ? "first response" : "resolution"} time.`,
+        metadata: {
+          ticketId: sla.ticketId,
+          breachType,
+          slaPolicyId: sla.slaPolicyId,
+          teamId: target.escalateTeamId,
+        },
+      });
+    }
   }
 }
 
@@ -179,14 +183,8 @@ export async function scheduleBreachChecks(ticketId: number): Promise<void> {
 
   if (!sla) return;
 
-  const delayFirstResponse = Math.max(
-    0,
-    sla.firstResponseDueAt.getTime() - Date.now()
-  );
-  const delayResolution = Math.max(
-    0,
-    sla.resolutionDueAt.getTime() - Date.now()
-  );
+  const delayFirstResponse = Math.max(0, sla.firstResponseDueAt.getTime() - Date.now());
+  const delayResolution = Math.max(0, sla.resolutionDueAt.getTime() - Date.now());
 
   if (!sla.firstResponseBreached && delayFirstResponse > 0) {
     await slaBreachCheckQueue.add(
@@ -195,7 +193,7 @@ export async function scheduleBreachChecks(ticketId: number): Promise<void> {
       {
         jobId: `sla-breach-${ticketId}-first_response`,
         delay: delayFirstResponse,
-      }
+      },
     );
   }
 
@@ -206,7 +204,7 @@ export async function scheduleBreachChecks(ticketId: number): Promise<void> {
       {
         jobId: `sla-breach-${ticketId}-resolution`,
         delay: delayResolution,
-      }
+      },
     );
   }
 }

@@ -8,11 +8,35 @@ import {
   twoFactorAuth,
   subscriptions,
   seats,
+  apiKeys,
 } from "@ticket-app/db/schema";
 import { hashPassword, verifyPassword } from "../lib/auth";
 import { publicProcedure } from "../index";
 import z from "zod";
 import { authenticator } from "otplib";
+import {
+  getUserPermissions,
+  hasPermission,
+  getRoleWithPermissions,
+  createRole,
+  updateRolePermissions,
+  deleteRole,
+  seedDefaultPermissions,
+  seedSystemRoles,
+  assignUserToTeam,
+  removeUserFromTeam,
+  createGroup,
+  updateGroup,
+  deleteGroup,
+  listGroups,
+  listTeams,
+  createTeam,
+  updateTeam,
+  deleteTeam,
+  listPermissions,
+  getUsersByPermission,
+} from "../services/rbac";
+import { createAuditLog, trackChanges } from "@ticket-app/server/middleware/audit";
 
 export const usersRouter = {
   list: publicProcedure
@@ -644,7 +668,7 @@ export const usersRouter = {
         where: and(
           eq(users.email, input.email.toLowerCase()),
           eq(users.organizationId, input.organizationId),
-          isNull(users.deletedAt)
+          isNull(users.deletedAt),
         ),
       });
 
@@ -683,7 +707,7 @@ export const usersRouter = {
         where: and(
           eq(users.id, input.userId),
           eq(users.organizationId, input.organizationId),
-          isNull(users.deletedAt)
+          isNull(users.deletedAt),
         ),
       });
 
@@ -695,7 +719,7 @@ export const usersRouter = {
       const resetExpiresAt = new Date(Date.now() + 60 * 60 * 1000);
 
       const { createPasswordReset } = await import("../services/passwordResetService");
-      const reset = await createPasswordReset({
+      const _reset = await createPasswordReset({
         userId: input.userId,
         token: resetToken,
         expiresAt: resetExpiresAt,
@@ -706,5 +730,520 @@ export const usersRouter = {
       await sendPasswordResetEmail(user.email, resetToken);
 
       return { success: true, message: "Password reset email sent" };
+    }),
+
+  getPermissions: publicProcedure
+    .input(
+      z.object({
+        organizationId: z.number(),
+      }),
+    )
+    .handler(async () => {
+      return listPermissions();
+    }),
+
+  getRoleWithPermissions: publicProcedure
+    .input(
+      z.object({
+        id: z.number(),
+      }),
+    )
+    .handler(async ({ input }) => {
+      return getRoleWithPermissions(input.id);
+    }),
+
+  createRole: publicProcedure
+    .input(
+      z.object({
+        organizationId: z.number(),
+        name: z.string().min(1).max(100),
+        slug: z.string().min(1).max(100),
+        description: z.string().optional(),
+        ticketViewScope: z.enum(["all", "group", "self"]).default("all"),
+        permissionIds: z.array(z.number()).optional(),
+        createdBy: z.number(),
+      }),
+    )
+    .handler(async ({ input }) => {
+      const existingRole = await db.query.roles.findFirst({
+        where: and(eq(roles.organizationId, input.organizationId), eq(roles.slug, input.slug)),
+      });
+
+      if (existingRole) {
+        throw new Error("Role with this slug already exists");
+      }
+
+      return createRole({
+        organizationId: input.organizationId,
+        name: input.name,
+        slug: input.slug,
+        description: input.description,
+        ticketViewScope: input.ticketViewScope,
+        permissionIds: input.permissionIds,
+        createdBy: input.createdBy,
+      });
+    }),
+
+  updateRolePermissions: publicProcedure
+    .input(
+      z.object({
+        roleId: z.number(),
+        permissionIds: z.array(z.number()),
+        updatedBy: z.number(),
+        userId: z.number().optional(),
+        organizationId: z.number().optional(),
+        ipAddress: z.string().optional(),
+        userAgent: z.string().optional(),
+      }),
+    )
+    .handler(async ({ input }) => {
+      return updateRolePermissions({
+        roleId: input.roleId,
+        permissionIds: input.permissionIds,
+        updatedBy: input.updatedBy,
+        auditContext: input.userId
+          ? {
+              userId: input.userId,
+              organizationId: input.organizationId,
+              ipAddress: input.ipAddress,
+              userAgent: input.userAgent,
+            }
+          : undefined,
+      });
+    }),
+
+  deleteRole: publicProcedure
+    .input(
+      z.object({
+        roleId: z.number(),
+        userId: z.number().optional(),
+        organizationId: z.number().optional(),
+        ipAddress: z.string().optional(),
+        userAgent: z.string().optional(),
+      }),
+    )
+    .handler(async ({ input }) => {
+      return deleteRole({
+        roleId: input.roleId,
+        auditContext: input.userId
+          ? {
+              userId: input.userId,
+              organizationId: input.organizationId,
+              ipAddress: input.ipAddress,
+              userAgent: input.userAgent,
+            }
+          : undefined,
+      });
+    }),
+
+  getUserPermissions: publicProcedure
+    .input(
+      z.object({
+        userId: z.number(),
+        organizationId: z.number(),
+        isPlatformAdmin: z.boolean().optional(),
+      }),
+    )
+    .handler(async ({ input }) => {
+      return getUserPermissions({
+        userId: input.userId,
+        organizationId: input.organizationId,
+        isPlatformAdmin: input.isPlatformAdmin,
+      });
+    }),
+
+  checkPermission: publicProcedure
+    .input(
+      z.object({
+        userId: z.number(),
+        organizationId: z.number(),
+        permission: z.string(),
+        isPlatformAdmin: z.boolean().optional(),
+      }),
+    )
+    .handler(async ({ input }) => {
+      return hasPermission(
+        {
+          userId: input.userId,
+          organizationId: input.organizationId,
+          isPlatformAdmin: input.isPlatformAdmin,
+        },
+        input.permission,
+      );
+    }),
+
+  listGroups: publicProcedure
+    .input(
+      z.object({
+        organizationId: z.number(),
+      }),
+    )
+    .handler(async ({ input }) => {
+      return listGroups(input.organizationId);
+    }),
+
+  createGroup: publicProcedure
+    .input(
+      z.object({
+        organizationId: z.number(),
+        name: z.string().min(1).max(150),
+        description: z.string().optional(),
+        defaultTeamId: z.number().optional(),
+        createdBy: z.number(),
+      }),
+    )
+    .handler(async ({ input }) => {
+      return createGroup({
+        organizationId: input.organizationId,
+        name: input.name,
+        description: input.description,
+        defaultTeamId: input.defaultTeamId,
+        createdBy: input.createdBy,
+      });
+    }),
+
+  updateGroup: publicProcedure
+    .input(
+      z.object({
+        groupId: z.number(),
+        name: z.string().optional(),
+        description: z.string().optional(),
+        defaultTeamId: z.number().optional(),
+        isActive: z.boolean().optional(),
+        updatedBy: z.number(),
+      }),
+    )
+    .handler(async ({ input }) => {
+      return updateGroup({
+        groupId: input.groupId,
+        name: input.name,
+        description: input.description,
+        defaultTeamId: input.defaultTeamId,
+        isActive: input.isActive,
+        updatedBy: input.updatedBy,
+      });
+    }),
+
+  deleteGroup: publicProcedure
+    .input(
+      z.object({
+        groupId: z.number(),
+        force: z.boolean().optional(),
+      }),
+    )
+    .handler(async ({ input }) => {
+      return deleteGroup({
+        groupId: input.groupId,
+        force: input.force,
+      });
+    }),
+
+  listTeams: publicProcedure
+    .input(
+      z.object({
+        organizationId: z.number(),
+        groupId: z.number().optional(),
+      }),
+    )
+    .handler(async ({ input }) => {
+      return listTeams(input.organizationId, input.groupId);
+    }),
+
+  createTeam: publicProcedure
+    .input(
+      z.object({
+        organizationId: z.number(),
+        name: z.string().min(1).max(150),
+        description: z.string().optional(),
+        groupId: z.number().optional(),
+        autoAssignMethod: z.enum(["round_robin", "least_load", "random"]).default("round_robin"),
+        createdBy: z.number(),
+      }),
+    )
+    .handler(async ({ input }) => {
+      return createTeam({
+        organizationId: input.organizationId,
+        name: input.name,
+        description: input.description,
+        groupId: input.groupId,
+        autoAssignMethod: input.autoAssignMethod,
+        createdBy: input.createdBy,
+      });
+    }),
+
+  updateTeam: publicProcedure
+    .input(
+      z.object({
+        teamId: z.number(),
+        name: z.string().optional(),
+        description: z.string().optional(),
+        groupId: z.number().optional(),
+        autoAssignMethod: z.enum(["round_robin", "least_load", "random"]).optional(),
+        isActive: z.boolean().optional(),
+        updatedBy: z.number(),
+      }),
+    )
+    .handler(async ({ input }) => {
+      return updateTeam({
+        teamId: input.teamId,
+        name: input.name,
+        description: input.description,
+        groupId: input.groupId,
+        autoAssignMethod: input.autoAssignMethod,
+        isActive: input.isActive,
+        updatedBy: input.updatedBy,
+      });
+    }),
+
+  deleteTeam: publicProcedure
+    .input(
+      z.object({
+        teamId: z.number(),
+      }),
+    )
+    .handler(async ({ input }) => {
+      return deleteTeam(input.teamId);
+    }),
+
+  assignUserToTeam: publicProcedure
+    .input(
+      z.object({
+        userId: z.number(),
+        teamId: z.number(),
+        isLead: z.boolean().optional(),
+        assignedBy: z.number(),
+      }),
+    )
+    .handler(async ({ input }) => {
+      return assignUserToTeam({
+        userId: input.userId,
+        teamId: input.teamId,
+        isLead: input.isLead,
+        assignedBy: input.assignedBy,
+      });
+    }),
+
+  removeUserFromTeam: publicProcedure
+    .input(
+      z.object({
+        userId: z.number(),
+        teamId: z.number(),
+      }),
+    )
+    .handler(async ({ input }) => {
+      return removeUserFromTeam({
+        userId: input.userId,
+        teamId: input.teamId,
+      });
+    }),
+
+  seedSystemRoles: publicProcedure
+    .input(
+      z.object({
+        organizationId: z.number(),
+      }),
+    )
+    .handler(async ({ input }) => {
+      await seedDefaultPermissions();
+      await seedSystemRoles(input.organizationId);
+      return { success: true };
+    }),
+
+  getUsersByPermission: publicProcedure
+    .input(
+      z.object({
+        organizationId: z.number(),
+        permission: z.string(),
+      }),
+    )
+    .handler(async ({ input }) => {
+      return getUsersByPermission(input.organizationId, input.permission);
+    }),
+
+  createApiKey: publicProcedure
+    .input(
+      z.object({
+        organizationId: z.number(),
+        userId: z.number().optional(),
+        name: z.string().min(1).max(150),
+        scopes: z.array(z.string()),
+        expiresAt: z.date().optional(),
+        createdBy: z.number(),
+      }),
+    )
+    .handler(async ({ input }) => {
+      const keyPrefix = `sk_${crypto.randomUUID().replace(/-/g, "").substring(0, 8)}`;
+      const keyData = `${keyPrefix}_${crypto.randomUUID()}_${Date.now()}`;
+      const keyHash = await hashPassword(keyData);
+
+      const [newKey] = await db
+        .insert(apiKeys)
+        .values({
+          organizationId: input.organizationId,
+          userId: input.userId,
+          name: input.name,
+          keyHash,
+          keyPrefix,
+          scopes: input.scopes,
+          expiresAt: input.expiresAt,
+          createdBy: input.createdBy,
+        })
+        .returning();
+
+      await createAuditLog(
+        {
+          userId: input.createdBy,
+          organizationId: input.organizationId,
+        },
+        {
+          action: "API_KEY_CREATE",
+          resourceType: "api_key",
+          resourceId: newKey.id.toString(),
+          metadata: { name: input.name, scopes: input.scopes },
+        },
+      );
+
+      return {
+        id: newKey.id,
+        uuid: newKey.uuid,
+        name: newKey.name,
+        keyPrefix: newKey.keyPrefix,
+        key: keyData,
+        scopes: newKey.scopes,
+        expiresAt: newKey.expiresAt,
+        createdAt: newKey.createdAt,
+      };
+    }),
+
+  listApiKeys: publicProcedure
+    .input(
+      z.object({
+        organizationId: z.number(),
+        userId: z.number().optional(),
+      }),
+    )
+    .handler(async ({ input }) => {
+      const conditions = [
+        eq(apiKeys.organizationId, input.organizationId),
+        sql`${apiKeys.revokedAt} IS NULL`,
+      ];
+
+      if (input.userId) {
+        conditions.push(eq(apiKeys.userId, input.userId));
+      }
+
+      return db.query.apiKeys.findMany({
+        where: and(...conditions),
+        orderBy: [desc(apiKeys.createdAt)],
+      });
+    }),
+
+  revokeApiKey: publicProcedure
+    .input(
+      z.object({
+        keyId: z.number(),
+        revokedBy: z.number(),
+        organizationId: z.number(),
+      }),
+    )
+    .handler(async ({ input }) => {
+      const key = await db.query.apiKeys.findFirst({
+        where: and(eq(apiKeys.id, input.keyId), eq(apiKeys.organizationId, input.organizationId)),
+      });
+
+      if (!key) {
+        throw new Error("API key not found");
+      }
+
+      await db
+        .update(apiKeys)
+        .set({
+          revokedAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .where(eq(apiKeys.id, input.keyId));
+
+      await createAuditLog(
+        {
+          userId: input.revokedBy,
+          organizationId: input.organizationId,
+        },
+        {
+          action: "API_KEY_REVOKE",
+          resourceType: "api_key",
+          resourceId: input.keyId.toString(),
+        },
+      );
+
+      return { success: true };
+    }),
+
+  updateUserRoles: publicProcedure
+    .input(
+      z.object({
+        userId: z.number(),
+        roleIds: z.array(z.number()),
+        updatedBy: z.number(),
+        organizationId: z.number(),
+        ipAddress: z.string().optional(),
+        userAgent: z.string().optional(),
+      }),
+    )
+    .handler(async ({ input }) => {
+      const user = await db.query.users.findFirst({
+        where: and(
+          eq(users.id, input.userId),
+          eq(users.organizationId, input.organizationId),
+          isNull(users.deletedAt),
+        ),
+      });
+
+      if (!user) {
+        throw new Error("User not found");
+      }
+
+      const existingRoles = await db.query.userRoles.findMany({
+        where: eq(userRoles.userId, input.userId),
+      });
+
+      const oldRoleIds = existingRoles.map((r) => r.roleId).sort();
+
+      await db.delete(userRoles).where(eq(userRoles.userId, input.userId));
+
+      if (input.roleIds.length > 0) {
+        await db.insert(userRoles).values(
+          input.roleIds.map((roleId) => ({
+            userId: input.userId,
+            roleId,
+            createdBy: input.updatedBy,
+          })),
+        );
+      }
+
+      await createAuditLog(
+        {
+          userId: input.updatedBy,
+          organizationId: input.organizationId,
+          ipAddress: input.ipAddress,
+          userAgent: input.userAgent,
+        },
+        {
+          action: "USER_ROLE_UPDATE",
+          resourceType: "user",
+          resourceId: input.userId.toString(),
+          changes: trackChanges({ roles: oldRoleIds }, { roles: input.roleIds.sort() }),
+        },
+      );
+
+      return db.query.users.findFirst({
+        where: eq(users.id, input.userId),
+        with: {
+          roles: {
+            with: {
+              role: true,
+            },
+          },
+        },
+      });
     }),
 };

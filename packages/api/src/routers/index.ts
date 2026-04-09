@@ -52,6 +52,8 @@ import { translationRouter } from "./translation";
 import { mobileSdkRouter } from "./mobileSdk";
 import { chatbotRouter } from "./chatbot";
 import { onPremiseRouter } from "./onPremise";
+import { organizationsRouter } from "./organizations";
+import { authRouter } from "./auth";
 
 export const appRouter = {
   healthCheck: publicProcedure.handler(() => {
@@ -108,6 +110,8 @@ export const appRouter = {
   mobileSdk: mobileSdkRouter,
   chatbot: chatbotRouter,
   onPremise: onPremiseRouter,
+  organizations: organizationsRouter,
+  auth: authRouter,
 };
 
 export type AppRouter = typeof appRouter;

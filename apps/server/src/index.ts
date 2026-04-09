@@ -15,13 +15,16 @@ import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import { websocket } from "@hono/node-ws";
 import { joinTicket, leaveTicket, heartbeat, getTicketViewers } from "@ticket-app/api/lib/presence";
+import { auth as authRoutes } from "./routes/auth";
+import { billing as billingRoutes } from "./routes/billing";
+import { widget as chatWidgetRoutes } from "./routes/chat/widget";
 
 const app = new Hono();
 const { upgradeWebSocket, websocket } = websocket({
-  open(ws) {
+  open(_ws) {
     console.log("WebSocket opened");
   },
-  close(ws) {
+  close(_ws) {
     console.log("WebSocket closed");
   },
 });
@@ -80,6 +83,10 @@ app.use("/*", async (c, next) => {
   await next();
 });
 
+app.route("/auth", authRoutes);
+app.route("/billing", billingRoutes);
+app.route("/chat", chatWidgetRoutes);
+
 app.post("/ai", async (c) => {
   const body = await c.req.json();
   const uiMessages = body.messages || [];
@@ -123,11 +130,11 @@ app.get(
           });
         }
       },
-      onClose(ws) {
+      onClose(_ws) {
         leaveTicket(ticketId, userId);
       },
     };
-  })
+  }),
 );
 
 export { websocket };

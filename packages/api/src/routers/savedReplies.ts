@@ -1,6 +1,6 @@
 import { db } from "@ticket-app/db";
 import { savedReplies, savedReplyFolders } from "@ticket-app/db/schema";
-import { eq, and, desc, or } from "drizzle-orm";
+import { eq, desc, or, sql } from "drizzle-orm";
 import z from "zod";
 
 import { publicProcedure } from "../index";
@@ -15,8 +15,8 @@ export const savedRepliesRouter = {
         .where(
           or(
             eq(savedReplies.organizationId, input.organizationId),
-            eq(savedReplies.userId, input.userId ?? 0)
-          )
+            eq(savedReplies.userId, input.userId ?? 0),
+          ),
         )
         .orderBy(desc(savedReplies.createdAt));
     }),
@@ -31,15 +31,10 @@ export const savedRepliesRouter = {
         .orderBy(desc(savedReplyFolders.createdAt));
     }),
 
-  get: publicProcedure
-    .input(z.object({ id: z.number() }))
-    .handler(async ({ input }) => {
-      const [reply] = await db
-        .select()
-        .from(savedReplies)
-        .where(eq(savedReplies.id, input.id));
-      return reply ?? null;
-    }),
+  get: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
+    const [reply] = await db.select().from(savedReplies).where(eq(savedReplies.id, input.id));
+    return reply ?? null;
+  }),
 
   create: publicProcedure
     .input(
@@ -54,7 +49,7 @@ export const savedRepliesRouter = {
         folderId: z.number().optional(),
         userId: z.number().optional(),
         createdBy: z.number().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const [reply] = await db
@@ -86,7 +81,7 @@ export const savedRepliesRouter = {
         shortcuts: z.string().max(100).optional(),
         scope: z.enum(["personal", "team", "organization"]).optional(),
         folderId: z.number().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const [updated] = await db
@@ -105,11 +100,47 @@ export const savedRepliesRouter = {
       return updated;
     }),
 
-  delete: publicProcedure
-    .input(z.object({ id: z.number() }))
+  delete: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
+    await db.delete(savedReplies).where(eq(savedReplies.id, input.id));
+    return { success: true };
+  }),
+
+  recordUsage: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
+    const [updated] = await db
+      .update(savedReplies)
+      .set({
+        usageCount: sql`${savedReplies.usageCount} + 1`,
+        lastUsedAt: new Date(),
+      })
+      .where(eq(savedReplies.id, input.id))
+      .returning();
+    return updated;
+  }),
+
+  getUsageStats: publicProcedure
+    .input(z.object({ organizationId: z.number() }))
     .handler(async ({ input }) => {
-      await db.delete(savedReplies).where(eq(savedReplies.id, input.id));
-      return { success: true };
+      const replies = await db
+        .select({
+          id: savedReplies.id,
+          name: savedReplies.name,
+          usageCount: savedReplies.usageCount,
+          lastUsedAt: savedReplies.lastUsedAt,
+        })
+        .from(savedReplies)
+        .where(eq(savedReplies.organizationId, input.organizationId))
+        .orderBy(desc(savedReplies.usageCount));
+
+      const totalUses = replies.reduce((sum, r) => sum + Number(r.usageCount), 0);
+
+      return {
+        totalUses,
+        topReplies: replies.slice(0, 10),
+        recentlyUsed: replies
+          .filter((r) => r.lastUsedAt)
+          .sort((a, b) => new Date(b.lastUsedAt!).getTime() - new Date(a.lastUsedAt!).getTime())
+          .slice(0, 10),
+      };
     }),
 
   createFolder: publicProcedure
@@ -118,7 +149,7 @@ export const savedRepliesRouter = {
         organizationId: z.number(),
         name: z.string().min(1).max(150),
         createdBy: z.number().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const [folder] = await db
@@ -132,25 +163,21 @@ export const savedRepliesRouter = {
       return folder;
     }),
 
-  deleteFolder: publicProcedure
-    .input(z.object({ id: z.number() }))
-    .handler(async ({ input }) => {
-      await db
-        .update(savedReplies)
-        .set({ folderId: null })
-        .where(eq(savedReplies.folderId, input.id));
-      await db
-        .delete(savedReplyFolders)
-        .where(eq(savedReplyFolders.id, input.id));
-      return { success: true };
-    }),
+  deleteFolder: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
+    await db
+      .update(savedReplies)
+      .set({ folderId: null })
+      .where(eq(savedReplies.folderId, input.id));
+    await db.delete(savedReplyFolders).where(eq(savedReplyFolders.id, input.id));
+    return { success: true };
+  }),
 
   updateFolder: publicProcedure
     .input(
       z.object({
         id: z.number(),
         name: z.string().min(1).max(150).optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const [updated] = await db

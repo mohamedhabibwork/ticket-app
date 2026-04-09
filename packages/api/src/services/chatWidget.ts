@@ -1,3 +1,7 @@
+import { db } from "@ticket-app/db";
+import { chatWidgets, chatSessions, contacts, tickets, lookups } from "@ticket-app/db/schema";
+import { eq, and, isNull, sql } from "drizzle-orm";
+
 export interface WidgetTheme {
   primaryColor?: string;
   backgroundColor?: string;
@@ -327,7 +331,7 @@ export function generateWidgetSnippet(config: ChatWidgetConfig): string {
 export function buildPreChatFormHtml(fields: PreChatFormField[]): string {
   if (!fields || fields.length === 0) return "";
 
-  let html = '<h3>Before we start...</h3>';
+  let html = "<h3>Before we start...</h3>";
 
   for (const field of fields) {
     const required = field.required ? "required" : "";
@@ -372,4 +376,248 @@ export function buildOfflineMessageHtml(title: string, body: string): string {
       <div id="binaka-offline-fields"></div>
     </div>
   `;
+}
+
+export interface WidgetConnectionInfo {
+  widgetId: number;
+  widgetUuid: string;
+  organizationId: number;
+  organizationSlug: string;
+  widgetName: string;
+  position: string;
+  theme: Record<string, unknown>;
+  preChatFormFields: PreChatFormField[];
+  greetingMessage?: string;
+  agentUnavailableMessage?: string;
+  offlineMessageEnabled: boolean;
+  offlineMessageTitle?: string;
+  offlineMessageBody?: string;
+  isAgentOnline: boolean;
+  allowFileUpload: boolean;
+  maxFileSizeBytes: number;
+  allowedFileTypes: string[];
+}
+
+export async function getConnectionInfo(
+  widgetUuid: string,
+  organizationSlug: string,
+): Promise<WidgetConnectionInfo | null> {
+  const widget = await db.query.chatWidgets.findFirst({
+    where: and(
+      eq(chatWidgets.uuid, widgetUuid),
+      eq(chatWidgets.isActive, true),
+      isNull(chatWidgets.deletedAt),
+    ),
+    with: {
+      organization: true,
+    },
+  });
+
+  if (!widget || widget.organization.slug !== organizationSlug) {
+    return null;
+  }
+
+  const activeSessions = await db.query.chatSessions.findMany({
+    where: and(eq(chatSessions.widgetId, widget.id), eq(chatSessions.status, "active")),
+  });
+
+  const isAgentOnline = activeSessions.length > 0;
+
+  return {
+    widgetId: widget.id,
+    widgetUuid: widget.uuid,
+    organizationId: widget.organizationId,
+    organizationSlug: widget.organization.slug,
+    widgetName: widget.name,
+    position: widget.position,
+    theme: widget.theme as Record<string, unknown>,
+    preChatFormFields: widget.preChatFormFields as PreChatFormField[],
+    greetingMessage: widget.greetingMessage || undefined,
+    agentUnavailableMessage: widget.agentUnavailableMessage || undefined,
+    offlineMessageEnabled: widget.offlineMessageEnabled,
+    offlineMessageTitle: widget.offlineMessageTitle || undefined,
+    offlineMessageBody: widget.offlineMessageBody || undefined,
+    isAgentOnline,
+    allowFileUpload: widget.allowFileUpload,
+    maxFileSizeBytes: widget.maxFileSizeBytes,
+    allowedFileTypes: widget.allowedFileTypes as string[],
+  };
+}
+
+export interface CreateSessionResult {
+  sessionId: number;
+  sessionUuid: string;
+  contactId: number;
+  token: string;
+}
+
+export async function createChatSession(
+  widgetUuid: string,
+  organizationSlug: string,
+  preChatData: Record<string, unknown>,
+  contactEmail?: string,
+  contactName?: string,
+): Promise<CreateSessionResult | null> {
+  const widget = await db.query.chatWidgets.findFirst({
+    where: and(
+      eq(chatWidgets.uuid, widgetUuid),
+      eq(chatWidgets.isActive, true),
+      isNull(chatWidgets.deletedAt),
+    ),
+    with: {
+      organization: true,
+    },
+  });
+
+  if (!widget || widget.organization.slug !== organizationSlug) {
+    return null;
+  }
+
+  let contactId: number | undefined;
+
+  if (contactEmail) {
+    let contact = await db.query.contacts.findFirst({
+      where: and(
+        eq(sql`LOWER(${sql`contacts.email`})`, contactEmail.toLowerCase()),
+        eq(contacts.organizationId, widget.organizationId),
+        isNull(contacts.deletedAt),
+      ),
+    });
+
+    if (!contact) {
+      const [newContact] = await db
+        .insert(contacts)
+        .values({
+          organizationId: widget.organizationId,
+          email: contactEmail.toLowerCase(),
+          firstName: contactName?.split(" ")[0] || null,
+          lastName: contactName?.includes(" ") ? contactName.split(" ").slice(1).join(" ") : null,
+        })
+        .returning();
+      contact = newContact;
+    }
+
+    contactId = contact.id;
+  }
+
+  const token = crypto.randomUUID();
+
+  const [session] = await db
+    .insert(chatSessions)
+    .values({
+      widgetId: widget.id,
+      organizationId: widget.organizationId,
+      contactId,
+      preChatData,
+      status: "waiting",
+      ipAddress: undefined,
+      userAgent: undefined,
+    })
+    .returning();
+
+  return {
+    sessionId: session.id,
+    sessionUuid: session.uuid,
+    contactId: contactId || 0,
+    token,
+  };
+}
+
+export async function submitOfflineMessage(
+  widgetUuid: string,
+  organizationSlug: string,
+  email: string,
+  message: string,
+  name?: string,
+): Promise<boolean> {
+  const widget = await db.query.chatWidgets.findFirst({
+    where: and(
+      eq(chatWidgets.uuid, widgetUuid),
+      eq(chatWidgets.isActive, true),
+      isNull(chatWidgets.deletedAt),
+    ),
+    with: {
+      organization: true,
+    },
+  });
+
+  if (!widget || widget.organization.slug !== organizationSlug) {
+    return false;
+  }
+
+  let contactId: number | undefined;
+
+  const contact = await db.query.contacts.findFirst({
+    where: and(
+      eq(sql`LOWER(${sql`contacts.email`})`, email.toLowerCase()),
+      eq(contacts.organizationId, widget.organizationId),
+      isNull(contacts.deletedAt),
+    ),
+  });
+
+  if (contact) {
+    contactId = contact.id;
+  } else {
+    const [newContact] = await db
+      .insert(contacts)
+      .values({
+        organizationId: widget.organizationId,
+        email: email.toLowerCase(),
+        firstName: name?.split(" ")[0] || null,
+        lastName: name?.includes(" ") ? name.split(" ").slice(1).join(" ") : null,
+      })
+      .returning();
+    contactId = newContact.id;
+  }
+
+  const defaultStatusId = (
+    await db.query.lookups.findFirst({
+      where: and(
+        eq(lookups.lookupTypeId, sql`(SELECT id FROM lookup_types WHERE name = 'ticket_status')`),
+        eq(lookups.isDefault, true),
+      ),
+    })
+  )?.id;
+
+  const defaultPriorityId = (
+    await db.query.lookups.findFirst({
+      where: and(
+        eq(lookups.lookupTypeId, sql`(SELECT id FROM lookup_types WHERE name = 'ticket_priority')`),
+        eq(lookups.isDefault, true),
+      ),
+    })
+  )?.id;
+
+  const channelChatId = (
+    await db.query.lookups.findFirst({
+      where: sql`${lookups.lookupTypeId} = (SELECT id FROM lookup_types WHERE name = 'channel_type') AND ${lookups.name} = 'chat'`,
+    })
+  )?.id;
+
+  const year = new Date().getFullYear();
+  const prefix = `TKT-${year}-`;
+  const countResult = await db
+    .select({ count: sql<number>`COUNT(*)::int` })
+    .from(tickets)
+    .where(
+      sql`${tickets.organizationId} = ${widget.organizationId} AND ${tickets.referenceNumber} LIKE ${prefix}%`,
+    );
+  const sequence = (countResult[0]?.count ?? 0) + 1;
+  const referenceNumber = `${prefix}${sequence.toString().padStart(6, "0")}`;
+
+  await db
+    .insert(tickets)
+    .values({
+      organizationId: widget.organizationId,
+      referenceNumber,
+      subject: `Offline chat message from ${email}`,
+      descriptionHtml: `<p>${message}</p>`,
+      channelId: channelChatId,
+      contactId,
+      statusId: defaultStatusId,
+      priorityId: defaultPriorityId,
+    })
+    .returning();
+
+  return true;
 }

@@ -1,9 +1,25 @@
 import { db } from "@ticket-app/db";
-import { mailboxes, mailboxAliases, mailboxRoutingRules, imapConfigs, smtpConfigs } from "@ticket-app/db/schema";
+import {
+  mailboxes,
+  mailboxAliases,
+  mailboxRoutingRules,
+  mailboxImapConfigs,
+  mailboxSmtpConfigs,
+} from "@ticket-app/db/schema";
 import { eq, and, isNull, desc } from "drizzle-orm";
 import z from "zod";
 
 import { publicProcedure } from "../index";
+import { env } from "@ticket-app/env/server";
+import { encryptToken } from "../lib/crypto";
+
+const GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
+const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
+
+const IMAP_SCOPES = [
+  "https://www.googleapis.com/auth/gmail.readonly",
+  "https://www.googleapis.com/auth/gmail.modify",
+];
 
 export const mailboxesRouter = {
   list: publicProcedure
@@ -11,7 +27,7 @@ export const mailboxesRouter = {
       z.object({
         organizationId: z.number(),
         isActive: z.boolean().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const conditions = [
@@ -38,14 +54,14 @@ export const mailboxesRouter = {
       z.object({
         organizationId: z.number(),
         id: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       return await db.query.mailboxes.findFirst({
         where: and(
           eq(mailboxes.id, input.id),
           eq(mailboxes.organizationId, input.organizationId),
-          isNull(mailboxes.deletedAt)
+          isNull(mailboxes.deletedAt),
         ),
         with: {
           imapConfig: true,
@@ -59,7 +75,7 @@ export const mailboxesRouter = {
     .input(
       z.object({
         organizationId: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       return await db.query.mailboxes.findFirst({
@@ -67,7 +83,7 @@ export const mailboxesRouter = {
           eq(mailboxes.organizationId, input.organizationId),
           eq(mailboxes.isDefault, true),
           eq(mailboxes.isActive, true),
-          isNull(mailboxes.deletedAt)
+          isNull(mailboxes.deletedAt),
         ),
       });
     }),
@@ -86,7 +102,7 @@ export const mailboxesRouter = {
         autoReplySubject: z.string().optional(),
         autoReplyBodyHtml: z.string().optional(),
         defaultTeamId: z.number().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const [mailbox] = await db
@@ -122,7 +138,7 @@ export const mailboxesRouter = {
         autoReplySubject: z.string().optional(),
         autoReplyBodyHtml: z.string().optional(),
         defaultTeamId: z.number().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const [updated] = await db
@@ -138,12 +154,7 @@ export const mailboxesRouter = {
           defaultTeamId: input.defaultTeamId,
           updatedAt: new Date(),
         })
-        .where(
-          and(
-            eq(mailboxes.id, input.id),
-            eq(mailboxes.organizationId, input.organizationId)
-          )
-        )
+        .where(and(eq(mailboxes.id, input.id), eq(mailboxes.organizationId, input.organizationId)))
         .returning();
 
       return updated;
@@ -155,7 +166,7 @@ export const mailboxesRouter = {
         id: z.number(),
         organizationId: z.number(),
         deletedBy: z.number().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       await db
@@ -165,12 +176,7 @@ export const mailboxesRouter = {
           isActive: false,
           updatedAt: new Date(),
         })
-        .where(
-          and(
-            eq(mailboxes.id, input.id),
-            eq(mailboxes.organizationId, input.organizationId)
-          )
-        );
+        .where(and(eq(mailboxes.id, input.id), eq(mailboxes.organizationId, input.organizationId)));
 
       return { success: true };
     }),
@@ -180,14 +186,14 @@ export const mailboxesRouter = {
       z.object({
         id: z.number(),
         organizationId: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const mailbox = await db.query.mailboxes.findFirst({
         where: and(
           eq(mailboxes.id, input.id),
           eq(mailboxes.organizationId, input.organizationId),
-          isNull(mailboxes.deletedAt)
+          isNull(mailboxes.deletedAt),
         ),
         with: {
           imapConfig: true,
@@ -241,14 +247,11 @@ export const mailboxesRouter = {
         useSsl: z.boolean().default(true),
         useTls: z.boolean().default(false),
         folderMapping: z.record(z.string()).optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const mailbox = await db.query.mailboxes.findFirst({
-        where: and(
-          eq(mailboxes.id, input.id),
-          eq(mailboxes.organizationId, input.organizationId)
-        ),
+        where: and(eq(mailboxes.id, input.id), eq(mailboxes.organizationId, input.organizationId)),
       });
 
       if (!mailbox) {
@@ -258,7 +261,7 @@ export const mailboxesRouter = {
       const { encryptPassword } = await import("../lib/crypto");
 
       const [config] = await db
-        .insert(imapConfigs)
+        .insert(mailboxImapConfigs)
         .values({
           mailboxId: input.id,
           host: input.host,
@@ -266,19 +269,15 @@ export const mailboxesRouter = {
           username: input.username,
           passwordEnc: encryptPassword(input.password),
           useSsl: input.useSsl,
-          useTls: input.useTls,
-          folderMapping: input.folderMapping ?? {},
         })
         .onConflictDoUpdate({
-          target: imapConfigs.mailboxId,
+          target: mailboxImapConfigs.mailboxId,
           set: {
             host: input.host,
             port: input.port,
             username: input.username,
             passwordEnc: encryptPassword(input.password),
             useSsl: input.useSsl,
-            useTls: input.useTls,
-            folderMapping: input.folderMapping ?? {},
             updatedAt: new Date(),
           },
         })
@@ -299,14 +298,11 @@ export const mailboxesRouter = {
         useSsl: z.boolean().default(true),
         useTls: z.boolean().default(false),
         fromName: z.string().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const mailbox = await db.query.mailboxes.findFirst({
-        where: and(
-          eq(mailboxes.id, input.id),
-          eq(mailboxes.organizationId, input.organizationId)
-        ),
+        where: and(eq(mailboxes.id, input.id), eq(mailboxes.organizationId, input.organizationId)),
       });
 
       if (!mailbox) {
@@ -316,7 +312,7 @@ export const mailboxesRouter = {
       const { encryptPassword } = await import("../lib/crypto");
 
       const [config] = await db
-        .insert(smtpConfigs)
+        .insert(mailboxSmtpConfigs)
         .values({
           mailboxId: input.id,
           host: input.host,
@@ -328,7 +324,7 @@ export const mailboxesRouter = {
           fromName: input.fromName,
         })
         .onConflictDoUpdate({
-          target: smtpConfigs.mailboxId,
+          target: mailboxSmtpConfigs.mailboxId,
           set: {
             host: input.host,
             port: input.port,
@@ -350,14 +346,14 @@ export const mailboxesRouter = {
       z.object({
         id: z.number(),
         organizationId: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const mailbox = await db.query.mailboxes.findFirst({
         where: and(
           eq(mailboxes.id, input.id),
           eq(mailboxes.organizationId, input.organizationId),
-          isNull(mailboxes.deletedAt)
+          isNull(mailboxes.deletedAt),
         ),
       });
 
@@ -368,10 +364,7 @@ export const mailboxesRouter = {
       const { queueEmailSync } = await import("../services/emailSyncQueue");
       await queueEmailSync(input.id);
 
-      await db
-        .update(mailboxes)
-        .set({ updatedAt: new Date() })
-        .where(eq(mailboxes.id, input.id));
+      await db.update(mailboxes).set({ updatedAt: new Date() }).where(eq(mailboxes.id, input.id));
 
       return { success: true, message: "Email sync queued" };
     }),
@@ -383,14 +376,14 @@ export const mailboxesRouter = {
         organizationId: z.number(),
         startDate: z.string().optional(),
         endDate: z.string().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const mailbox = await db.query.mailboxes.findFirst({
         where: and(
           eq(mailboxes.id, input.id),
           eq(mailboxes.organizationId, input.organizationId),
-          isNull(mailboxes.deletedAt)
+          isNull(mailboxes.deletedAt),
         ),
       });
 
@@ -410,7 +403,7 @@ export const mailboxesRouter = {
         email: z.string().email(),
         name: z.string().optional(),
         isDefault: z.boolean().default(false),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const [alias] = await db
@@ -430,12 +423,10 @@ export const mailboxesRouter = {
     .input(
       z.object({
         aliasId: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
-      await db
-        .delete(mailboxAliases)
-        .where(eq(mailboxAliases.id, input.aliasId));
+      await db.delete(mailboxAliases).where(eq(mailboxAliases.id, input.aliasId));
 
       return { success: true };
     }),
@@ -446,19 +437,23 @@ export const mailboxesRouter = {
         mailboxId: z.number(),
         organizationId: z.number(),
         name: z.string().min(1).max(150),
-        conditions: z.object({
-          field: z.string(),
-          operator: z.string(),
-          value: z.unknown(),
-        }).array(),
+        conditions: z
+          .object({
+            field: z.string(),
+            operator: z.string(),
+            value: z.unknown(),
+          })
+          .array(),
         conditionOperator: z.enum(["and", "or"]).default("and"),
-        actions: z.array(z.object({
-          type: z.string(),
-          params: z.record(z.unknown()),
-        })),
+        actions: z.array(
+          z.object({
+            type: z.string(),
+            params: z.record(z.unknown()),
+          }),
+        ),
         priority: z.number().default(0),
         isActive: z.boolean().default(true),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const [rule] = await db
@@ -482,19 +477,26 @@ export const mailboxesRouter = {
       z.object({
         ruleId: z.number(),
         name: z.string().min(1).max(150).optional(),
-        conditions: z.object({
-          field: z.string(),
-          operator: z.string(),
-          value: z.unknown(),
-        }).array().optional(),
+        conditions: z
+          .object({
+            field: z.string(),
+            operator: z.string(),
+            value: z.unknown(),
+          })
+          .array()
+          .optional(),
         conditionOperator: z.enum(["and", "or"]).optional(),
-        actions: z.array(z.object({
-          type: z.string(),
-          params: z.record(z.unknown()),
-        })).optional(),
+        actions: z
+          .array(
+            z.object({
+              type: z.string(),
+              params: z.record(z.unknown()),
+            }),
+          )
+          .optional(),
         priority: z.number().optional(),
         isActive: z.boolean().optional(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
       const [updated] = await db
@@ -518,13 +520,249 @@ export const mailboxesRouter = {
     .input(
       z.object({
         ruleId: z.number(),
-      })
+      }),
     )
     .handler(async ({ input }) => {
-      await db
-        .delete(mailboxRoutingRules)
-        .where(eq(mailboxRoutingRules.id, input.ruleId));
+      await db.delete(mailboxRoutingRules).where(eq(mailboxRoutingRules.id, input.ruleId));
 
       return { success: true };
+    }),
+
+  getGmailOAuthUrl: publicProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        organizationId: z.number(),
+      }),
+    )
+    .handler(async ({ input }) => {
+      const mailbox = await db.query.mailboxes.findFirst({
+        where: and(
+          eq(mailboxes.id, input.id),
+          eq(mailboxes.organizationId, input.organizationId),
+          isNull(mailboxes.deletedAt),
+        ),
+      });
+
+      if (!mailbox) {
+        throw new Error("Mailbox not found");
+      }
+
+      const state = crypto.randomUUID();
+      const redirectUri = `${env.CORS_ORIGIN}/api/mailboxes/gmail/callback`;
+
+      const authUrl = new URL(GOOGLE_AUTH_URL);
+      authUrl.searchParams.set("client_id", env.GOOGLE_CLIENT_ID);
+      authUrl.searchParams.set("redirect_uri", redirectUri);
+      authUrl.searchParams.set("response_type", "code");
+      authUrl.searchParams.set("scope", IMAP_SCOPES.join(" "));
+      authUrl.searchParams.set("state", state);
+      authUrl.searchParams.set("access_type", "offline");
+      authUrl.searchParams.set("prompt", "consent");
+
+      const { sessions } = await import("@ticket-app/db/lib/sessions");
+      await sessions.set(
+        `gmail_oauth_state:${state}`,
+        {
+          mailboxId: input.id,
+          organizationId: input.organizationId,
+          expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+        },
+        600,
+      );
+
+      return { authUrl: authUrl.toString(), state };
+    }),
+
+  handleGmailCallback: publicProcedure
+    .input(
+      z.object({
+        code: z.string(),
+        state: z.string(),
+      }),
+    )
+    .handler(async ({ input }) => {
+      const { sessions } = await import("@ticket-app/db/lib/sessions");
+      const storedState = await sessions.get(`gmail_oauth_state:${input.state}`);
+
+      if (!storedState) {
+        throw new Error("Invalid or expired state");
+      }
+
+      const stateData = storedState as { mailboxId: number; organizationId: number };
+      await sessions.delete(`gmail_oauth_state:${input.state}`);
+
+      const mailbox = await db.query.mailboxes.findFirst({
+        where: and(
+          eq(mailboxes.id, stateData.mailboxId),
+          eq(mailboxes.organizationId, stateData.organizationId),
+          isNull(mailboxes.deletedAt),
+        ),
+      });
+
+      if (!mailbox) {
+        throw new Error("Mailbox not found");
+      }
+
+      const redirectUri = `${env.CORS_ORIGIN}/api/mailboxes/gmail/callback`;
+
+      const tokenResponse = await fetch(GOOGLE_TOKEN_URL, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          code: input.code,
+          client_id: env.GOOGLE_CLIENT_ID,
+          client_secret: env.GOOGLE_CLIENT_SECRET,
+          redirect_uri: redirectUri,
+          grant_type: "authorization_code",
+        }),
+      });
+
+      if (!tokenResponse.ok) {
+        const errorText = await tokenResponse.text();
+        throw new Error(`Token exchange failed: ${errorText}`);
+      }
+
+      const tokens: {
+        access_token: string;
+        refresh_token: string;
+        expires_in: number;
+        token_type: string;
+      } = await tokenResponse.json();
+
+      const expiresAt = new Date(Date.now() + tokens.expires_in * 1000);
+      const encryptedAccessToken = encryptToken(tokens.access_token);
+      const encryptedRefreshToken = encryptToken(tokens.refresh_token);
+
+      await db
+        .insert(mailboxImapConfigs)
+        .values({
+          mailboxId: mailbox.id,
+          host: "imap.gmail.com",
+          port: 993,
+          username: mailbox.email,
+          passwordEnc: "",
+          useSsl: true,
+          oauthTokenEnc: encryptedAccessToken,
+          oauthRefreshTokenEnc: encryptedRefreshToken,
+          oauthExpiresAt: expiresAt,
+        })
+        .onConflictDoUpdate({
+          target: mailboxImapConfigs.mailboxId,
+          set: {
+            host: "imap.gmail.com",
+            port: 993,
+            username: mailbox.email,
+            passwordEnc: "",
+            useSsl: true,
+            oauthTokenEnc: encryptedAccessToken,
+            oauthRefreshTokenEnc: encryptedRefreshToken,
+            oauthExpiresAt: expiresAt,
+            updatedAt: new Date(),
+          },
+        });
+
+      return { success: true, mailboxId: mailbox.id };
+    }),
+
+  configureImapOAuth: publicProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        organizationId: z.number(),
+        host: z.string().default("imap.gmail.com"),
+        port: z.number().default(993),
+        username: z.string(),
+        accessToken: z.string(),
+        refreshToken: z.string(),
+        expiresIn: z.number(),
+      }),
+    )
+    .handler(async ({ input }) => {
+      const mailbox = await db.query.mailboxes.findFirst({
+        where: and(
+          eq(mailboxes.id, input.id),
+          eq(mailboxes.organizationId, input.organizationId),
+          isNull(mailboxes.deletedAt),
+        ),
+      });
+
+      if (!mailbox) {
+        throw new Error("Mailbox not found");
+      }
+
+      const expiresAt = new Date(Date.now() + input.expiresIn * 1000);
+      const encryptedAccessToken = encryptToken(input.accessToken);
+      const encryptedRefreshToken = encryptToken(input.refreshToken);
+
+      const [config] = await db
+        .insert(mailboxImapConfigs)
+        .values({
+          mailboxId: input.id,
+          host: input.host,
+          port: input.port,
+          username: input.username,
+          passwordEnc: "",
+          useSsl: true,
+          oauthTokenEnc: encryptedAccessToken,
+          oauthRefreshTokenEnc: encryptedRefreshToken,
+          oauthExpiresAt: expiresAt,
+        })
+        .onConflictDoUpdate({
+          target: mailboxImapConfigs.mailboxId,
+          set: {
+            host: input.host,
+            port: input.port,
+            username: input.username,
+            passwordEnc: "",
+            useSsl: true,
+            oauthTokenEnc: encryptedAccessToken,
+            oauthRefreshTokenEnc: encryptedRefreshToken,
+            oauthExpiresAt: expiresAt,
+            updatedAt: new Date(),
+          },
+        })
+        .returning();
+
+      return config;
+    }),
+
+  refreshGmailToken: publicProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        organizationId: z.number(),
+      }),
+    )
+    .handler(async ({ input }) => {
+      const mailbox = await db.query.mailboxes.findFirst({
+        where: and(
+          eq(mailboxes.id, input.id),
+          eq(mailboxes.organizationId, input.organizationId),
+          isNull(mailboxes.deletedAt),
+        ),
+        with: {
+          imapConfig: true,
+        },
+      });
+
+      if (!mailbox || !mailbox.imapConfig) {
+        throw new Error("Mailbox not found or not configured");
+      }
+
+      if (!mailbox.imapConfig.oauthRefreshTokenEnc) {
+        throw new Error("No refresh token available");
+      }
+
+      const { refreshGmailAccessToken } = await import("../services/email");
+      const result = await refreshGmailAccessToken(mailbox.id);
+
+      if (!result) {
+        throw new Error("Failed to refresh token");
+      }
+
+      return { success: true, expiresAt: result.expiresAt };
     }),
 };

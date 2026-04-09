@@ -10,6 +10,7 @@ export const QUEUE_NAMES = {
   CSAT_EXPIRATION: "csat:expiration",
   SPAM_CHECK: "spam:check",
   AUTO_ASSIGN: "ticket:auto_assign",
+  SLA_ESCALATION: "sla:escalation",
 } as const;
 
 export type EmailJobData = {

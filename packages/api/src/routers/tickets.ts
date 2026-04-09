@@ -7,17 +7,48 @@ import {
   ticketMerges,
   ticketFollowers,
   lookups,
-  tags,
-  users,
-  ticketForwards,
-  ticketCategories,
   teams,
+  savedReplies,
 } from "@ticket-app/db/schema";
-import { eq, and, isNull, desc, sql, inArray } from "drizzle-orm";
+import { eq, and, isNull, desc, sql, inArray, asc } from "drizzle-orm";
 import z from "zod";
 
 import { publicProcedure } from "../index";
 import { generateReferenceNumber } from "../lib/reference";
+import {
+  createMessage,
+  createActivity,
+  getTimeline,
+  applySavedReply,
+  initializeSLA,
+  updateTicketStatusWithSLA,
+  checkAndUpdateSLABreaches,
+  getConversationThread,
+  getInternalNotes,
+} from "../services/ticketTimeline";
+import {
+  logAudit,
+  logTicketCreated,
+  logTicketStatusChange,
+  logTicketPriorityChange,
+  logTicketAssignment,
+  logTicketMerge,
+  logMessageCreated,
+  notifyTicketAssigned,
+  getTicketAuditHistory,
+} from "../services/activityLog";
+
+const MessageType = {
+  REPLY: "reply",
+  NOTE: "note",
+  ACTIVITY: "activity",
+} as const;
+
+const AuthorType = {
+  AGENT: "agent",
+  CONTACT: "contact",
+  SYSTEM: "system",
+} as const;
 
 export const ticketsRouter = {
   list: publicProcedure
@@ -32,8 +63,12 @@ export const ticketsRouter = {
         groupId: z.number().optional(),
         categoryId: z.number().optional(),
         search: z.string().optional(),
+        tagIds: z.array(z.number()).optional(),
+        isSpam: z.boolean().optional(),
         limit: z.number().min(1).max(100).default(50),
         offset: z.number().min(0).default(0),
+        sortBy: z.enum(["created_at", "updated_at", "priority", "status"]).default("created_at"),
+        sortDir: z.enum(["asc", "desc"]).default("desc"),
       }),
     )
     .handler(async ({ input }) => {
@@ -48,6 +83,7 @@ export const ticketsRouter = {
       if (input.assignedAgentId)
         conditions.push(eq(tickets.assignedAgentId, input.assignedAgentId));
       if (input.contactId) conditions.push(eq(tickets.contactId, input.contactId));
+      if (input.isSpam !== undefined) conditions.push(eq(tickets.isSpam, input.isSpam));
       if (input.search) {
         conditions.push(sql`${tickets.subject} ILIKE ${`%${input.search}%`}`);
       }
@@ -56,7 +92,7 @@ export const ticketsRouter = {
         const teamIdsResult = await db
           .select({ id: teams.id })
           .from(teams)
-          .where(eq(teams.groupId, input.groupId));
+          .where(eq(teams.organizationId, input.organizationId));
         const teamIds = teamIdsResult.map((t) => t.id);
         if (teamIds.length > 0) {
           conditions.push(inArray(tickets.assignedTeamId, teamIds));
@@ -65,9 +101,20 @@ export const ticketsRouter = {
         }
       }
 
-      return await db.query.tickets.findMany({
+      const orderByColumn =
+        input.sortBy === "priority"
+          ? tickets.priorityId
+          : input.sortBy === "status"
+            ? tickets.statusId
+            : input.sortBy === "updated_at"
+              ? tickets.updatedAt
+              : tickets.createdAt;
+
+      const orderBy = input.sortDir === "asc" ? asc(orderByColumn) : desc(orderByColumn);
+
+      let ticketList = await db.query.tickets.findMany({
         where: and(...conditions),
-        orderBy: [desc(tickets.createdAt)],
+        orderBy: [orderBy],
         limit: input.limit,
         offset: input.offset,
         with: {
@@ -77,8 +124,21 @@ export const ticketsRouter = {
           channel: true,
           assignedAgent: true,
           assignedTeam: true,
+          sla: true,
         },
       });
+
+      if (input.tagIds && input.tagIds.length > 0) {
+        const ticketIdsWithTags = await db
+          .select({ ticketId: ticketTags.ticketId })
+          .from(ticketTags)
+          .where(inArray(ticketTags.tagId, input.tagIds));
+
+        const taggedTicketIds = new Set(ticketIdsWithTags.map((t) => t.ticketId));
+        ticketList = ticketList.filter((t) => taggedTicketIds.has(t.id));
+      }
+
+      return ticketList;
     }),
 
   get: publicProcedure
@@ -108,9 +168,10 @@ export const ticketsRouter = {
             with: {
               authorUser: true,
               authorContact: true,
+              attachments: true,
             },
           },
-          cc: true,
+          sla: true,
         },
       });
 
@@ -136,6 +197,9 @@ export const ticketsRouter = {
           status: true,
           priority: true,
           channel: true,
+          assignedAgent: true,
+          assignedTeam: true,
+          sla: true,
         },
       });
     }),
@@ -156,32 +220,13 @@ export const ticketsRouter = {
         mailboxId: z.number().optional(),
         formSubmissionId: z.number().optional(),
         parentTicketId: z.number().optional(),
-        categoryId: z.number().optional(),
         ccEmails: z.array(z.string().email()).optional(),
-        bccEmails: z.array(z.string().email()).optional(),
         isSpam: z.boolean().default(false),
+        createdBy: z.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
       const referenceNumber = await generateReferenceNumber(input.organizationId);
-
-      let effectivePriorityId = input.priorityId;
-      let effectiveTeamId = input.assignedTeamId;
-
-      if (input.categoryId) {
-        const category = await db.query.ticketCategories.findFirst({
-          where: eq(ticketCategories.id, input.categoryId),
-        });
-
-        if (category) {
-          if (!input.priorityId && category.priorityId) {
-            effectivePriorityId = category.priorityId;
-          }
-          if (!input.assignedTeamId && category.teamId) {
-            effectiveTeamId = category.teamId;
-          }
-        }
-      }
 
       const defaultStatusId =
         input.statusId ??
@@ -198,7 +243,7 @@ export const ticketsRouter = {
         )?.id;
 
       const defaultPriorityId =
-        effectivePriorityId ??
+        input.priorityId ??
         (
           await db.query.lookups.findFirst({
             where: and(
@@ -223,13 +268,27 @@ export const ticketsRouter = {
           channelId: input.channelId,
           contactId: input.contactId,
           assignedAgentId: input.assignedAgentId,
-          assignedTeamId: effectiveTeamId,
+          assignedTeamId: input.assignedTeamId,
           mailboxId: input.mailboxId,
           formSubmissionId: input.formSubmissionId,
           parentTicketId: input.parentTicketId,
           isSpam: input.isSpam,
+          createdBy: input.createdBy,
         })
         .returning();
+
+      if (input.descriptionHtml || input.descriptionText) {
+        await createMessage({
+          ticketId: ticket.id,
+          authorType: input.contactId ? AuthorType.CONTACT : AuthorType.AGENT,
+          authorContactId: input.contactId,
+          authorUserId: input.createdBy,
+          messageType: MessageType.REPLY,
+          bodyHtml: input.descriptionHtml,
+          bodyText: input.descriptionText,
+          createdBy: input.createdBy,
+        });
+      }
 
       if (input.ccEmails && input.ccEmails.length > 0) {
         await db.insert(ticketCc).values(
@@ -240,7 +299,204 @@ export const ticketsRouter = {
         );
       }
 
+      await initializeSLA(ticket.id, input.organizationId);
+
+      await logTicketCreated({
+        ticketId: ticket.id,
+        organizationId: input.organizationId,
+        userId: input.createdBy,
+        subject: input.subject,
+        referenceNumber,
+      });
+
       return ticket;
+    }),
+
+  update: publicProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        organizationId: z.number(),
+        subject: z.string().min(1).max(500).optional(),
+        descriptionHtml: z.string().optional(),
+        priorityId: z.number().optional(),
+        statusId: z.number().optional(),
+        assignedAgentId: z.number().nullable().optional(),
+        assignedTeamId: z.number().nullable().optional(),
+        updatedBy: z.number().optional(),
+      }),
+    )
+    .handler(async ({ input }) => {
+      const existing = await db.query.tickets.findFirst({
+        where: and(
+          eq(tickets.id, input.id),
+          eq(tickets.organizationId, input.organizationId),
+          isNull(tickets.deletedAt),
+        ),
+        with: {
+          status: true,
+          priority: true,
+          assignedAgent: true,
+          assignedTeam: true,
+        },
+      });
+
+      if (!existing) return null;
+
+      const updates: Record<string, unknown> = {
+        updatedAt: new Date(),
+        updatedBy: input.updatedBy,
+      };
+
+      if (input.subject !== undefined) updates.subject = input.subject;
+      if (input.descriptionHtml !== undefined) updates.descriptionHtml = input.descriptionHtml;
+      if (input.priorityId !== undefined) updates.priorityId = input.priorityId;
+      if (input.assignedAgentId !== undefined) updates.assignedAgentId = input.assignedAgentId;
+      if (input.assignedTeamId !== undefined) updates.assignedTeamId = input.assignedTeamId;
+
+      if (input.statusId !== undefined) {
+        const [updated] = await db
+          .update(tickets)
+          .set({ ...updates, statusId: input.statusId })
+          .where(eq(tickets.id, input.id))
+          .returning();
+
+        await updateTicketStatusWithSLA(input.id, input.statusId, input.updatedBy);
+
+        const newStatus = await db.query.lookups.findFirst({
+          where: eq(lookups.id, input.statusId),
+        });
+
+        if (newStatus && existing.status) {
+          await logTicketStatusChange({
+            ticketId: input.id,
+            organizationId: input.organizationId,
+            userId: input.updatedBy,
+            fromStatus: existing.status.label,
+            toStatus: newStatus.label,
+            referenceNumber: existing.referenceNumber,
+          });
+        }
+
+        return updated;
+      }
+
+      if (input.assignedAgentId !== undefined || input.assignedTeamId !== undefined) {
+        const [updated] = await db
+          .update(tickets)
+          .set(updates)
+          .where(eq(tickets.id, input.id))
+          .returning();
+
+        await logTicketAssignment({
+          ticketId: input.id,
+          organizationId: input.organizationId,
+          userId: input.updatedBy,
+          fromAgent: existing.assignedAgent
+            ? `${existing.assignedAgent.firstName} ${existing.assignedAgent.lastName}`
+            : undefined,
+          toAgent:
+            input.assignedAgentId !== undefined
+              ? input.assignedAgentId
+                ? "New Agent"
+                : "Unassigned"
+              : undefined,
+          fromTeam: existing.assignedTeam?.name,
+          toTeam:
+            input.assignedTeamId !== undefined
+              ? input.assignedTeamId
+                ? "New Team"
+                : "Unassigned"
+              : undefined,
+          referenceNumber: existing.referenceNumber,
+        });
+
+        if (input.assignedAgentId && input.assignedAgentId !== existing.assignedAgentId) {
+          await notifyTicketAssigned({
+            ticketId: input.id,
+            referenceNumber: existing.referenceNumber,
+            assignedUserId: input.assignedAgentId,
+            organizationId: input.organizationId,
+            assignedBy: input.updatedBy,
+          });
+        }
+
+        return updated;
+      }
+
+      if (input.priorityId !== undefined && input.priorityId !== existing.priorityId) {
+        const newPriority = await db.query.lookups.findFirst({
+          where: eq(lookups.id, input.priorityId),
+        });
+
+        const [updated] = await db
+          .update(tickets)
+          .set(updates)
+          .where(eq(tickets.id, input.id))
+          .returning();
+
+        await logTicketPriorityChange({
+          ticketId: input.id,
+          organizationId: input.organizationId,
+          userId: input.updatedBy,
+          fromPriority: existing.priority?.label ?? "Unknown",
+          toPriority: newPriority?.label ?? "Unknown",
+          referenceNumber: existing.referenceNumber,
+        });
+
+        return updated;
+      }
+
+      const [updated] = await db
+        .update(tickets)
+        .set(updates)
+        .where(eq(tickets.id, input.id))
+        .returning();
+
+      return updated;
+    }),
+
+  delete: publicProcedure
+    .input(
+      z.object({
+        id: z.number(),
+        organizationId: z.number(),
+        deletedBy: z.number().optional(),
+      }),
+    )
+    .handler(async ({ input }) => {
+      const ticket = await db.query.tickets.findFirst({
+        where: and(
+          eq(tickets.id, input.id),
+          eq(tickets.organizationId, input.organizationId),
+          isNull(tickets.deletedAt),
+        ),
+      });
+
+      if (!ticket) return null;
+
+      const [deleted] = await db
+        .update(tickets)
+        .set({
+          deletedAt: new Date(),
+          deletedBy: input.deletedBy,
+        })
+        .where(eq(tickets.id, input.id))
+        .returning();
+
+      await logAudit({
+        organizationId: input.organizationId,
+        userId: input.deletedBy,
+        action: "ticket.deleted",
+        resourceType: "ticket",
+        resourceId: String(input.id),
+        metadata: {
+          referenceNumber: ticket.referenceNumber,
+          subject: ticket.subject,
+        },
+      });
+
+      return deleted;
     }),
 
   addCc: publicProcedure
@@ -248,6 +504,7 @@ export const ticketsRouter = {
       z.object({
         ticketId: z.number(),
         email: z.string().email(),
+        createdBy: z.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -259,6 +516,18 @@ export const ticketsRouter = {
         })
         .onConflictDoNothing()
         .returning();
+
+      if (cc) {
+        await logAudit({
+          organizationId: 0,
+          userId: input.createdBy,
+          action: "cc.added",
+          resourceType: "ticket",
+          resourceId: String(input.ticketId),
+          metadata: { email: input.email },
+        });
+      }
+
       return cc;
     }),
 
@@ -275,6 +544,15 @@ export const ticketsRouter = {
         .where(
           and(eq(ticketCc.ticketId, input.ticketId), eq(ticketCc.email, input.email.toLowerCase())),
         );
+
+      await logAudit({
+        organizationId: 0,
+        action: "cc.removed",
+        resourceType: "ticket",
+        resourceId: String(input.ticketId),
+        metadata: { email: input.email },
+      });
+
       return { success: true };
     }),
 
@@ -282,12 +560,18 @@ export const ticketsRouter = {
     .input(
       z.object({
         id: z.number(),
+        organizationId: z.number(),
         assignedAgentId: z.number().nullable().optional(),
         assignedTeamId: z.number().nullable().optional(),
         updatedBy: z.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
+      const existing = await db.query.tickets.findFirst({
+        where: eq(tickets.id, input.id),
+        with: { assignedAgent: true, assignedTeam: true },
+      });
+
       const [updated] = await db
         .update(tickets)
         .set({
@@ -298,6 +582,42 @@ export const ticketsRouter = {
         })
         .where(eq(tickets.id, input.id))
         .returning();
+
+      if (updated && existing) {
+        await logTicketAssignment({
+          ticketId: input.id,
+          organizationId: input.organizationId,
+          userId: input.updatedBy,
+          fromAgent: existing.assignedAgent
+            ? `${existing.assignedAgent.firstName} ${existing.assignedAgent.lastName}`
+            : undefined,
+          toAgent:
+            input.assignedAgentId !== undefined
+              ? input.assignedAgentId
+                ? "New Agent"
+                : "Unassigned"
+              : undefined,
+          fromTeam: existing.assignedTeam?.name,
+          toTeam:
+            input.assignedTeamId !== undefined
+              ? input.assignedTeamId
+                ? "New Team"
+                : "Unassigned"
+              : undefined,
+          referenceNumber: existing.referenceNumber,
+        });
+
+        if (input.assignedAgentId && input.assignedAgentId !== existing.assignedAgentId) {
+          await notifyTicketAssigned({
+            ticketId: input.id,
+            referenceNumber: existing.referenceNumber,
+            assignedUserId: input.assignedAgentId,
+            organizationId: input.organizationId,
+            assignedBy: input.updatedBy,
+          });
+        }
+      }
+
       return updated;
     }),
 
@@ -305,36 +625,34 @@ export const ticketsRouter = {
     .input(
       z.object({
         id: z.number(),
+        organizationId: z.number(),
         statusId: z.number(),
         updatedBy: z.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
-      const status = await db.query.lookups.findFirst({
-        where: eq(lookups.id, input.statusId),
+      const existing = await db.query.tickets.findFirst({
+        where: eq(tickets.id, input.id),
+        with: { status: true },
       });
 
-      const updates: Record<string, unknown> = {
-        statusId: input.statusId,
-        updatedAt: new Date(),
-        updatedBy: input.updatedBy,
-      };
+      const updated = await updateTicketStatusWithSLA(input.id, input.statusId, input.updatedBy);
 
-      if (status?.metadata && typeof status.metadata === "object") {
-        const meta = status.metadata as Record<string, unknown>;
-        if (meta.resolved === true) {
-          updates.resolvedAt = new Date();
-        }
-        if (meta.closed === true) {
-          updates.closedAt = new Date();
-        }
+      if (updated && existing) {
+        const newStatus = await db.query.lookups.findFirst({
+          where: eq(lookups.id, input.statusId),
+        });
+
+        await logTicketStatusChange({
+          ticketId: input.id,
+          organizationId: input.organizationId,
+          userId: input.updatedBy,
+          fromStatus: existing.status?.label ?? "Unknown",
+          toStatus: newStatus?.label ?? "Unknown",
+          referenceNumber: existing.referenceNumber,
+        });
       }
 
-      const [updated] = await db
-        .update(tickets)
-        .set(updates)
-        .where(eq(tickets.id, input.id))
-        .returning();
       return updated;
     }),
 
@@ -342,11 +660,17 @@ export const ticketsRouter = {
     .input(
       z.object({
         id: z.number(),
+        organizationId: z.number(),
         priorityId: z.number(),
         updatedBy: z.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
+      const existing = await db.query.tickets.findFirst({
+        where: eq(tickets.id, input.id),
+        with: { priority: true },
+      });
+
       const [updated] = await db
         .update(tickets)
         .set({
@@ -356,6 +680,22 @@ export const ticketsRouter = {
         })
         .where(eq(tickets.id, input.id))
         .returning();
+
+      if (updated && existing) {
+        const newPriority = await db.query.lookups.findFirst({
+          where: eq(lookups.id, input.priorityId),
+        });
+
+        await logTicketPriorityChange({
+          ticketId: input.id,
+          organizationId: input.organizationId,
+          userId: input.updatedBy,
+          fromPriority: existing.priority?.label ?? "Unknown",
+          toPriority: newPriority?.label ?? "Unknown",
+          referenceNumber: existing.referenceNumber,
+        });
+      }
+
       return updated;
     }),
 
@@ -363,6 +703,7 @@ export const ticketsRouter = {
     .input(
       z.object({
         id: z.number(),
+        organizationId: z.number(),
         lockedBy: z.number(),
       }),
     )
@@ -376,6 +717,15 @@ export const ticketsRouter = {
         })
         .where(eq(tickets.id, input.id))
         .returning();
+
+      await logAudit({
+        organizationId: input.organizationId,
+        userId: input.lockedBy,
+        action: "ticket.locked",
+        resourceType: "ticket",
+        resourceId: String(input.id),
+      });
+
       return updated;
     }),
 
@@ -383,9 +733,14 @@ export const ticketsRouter = {
     .input(
       z.object({
         id: z.number(),
+        organizationId: z.number(),
       }),
     )
     .handler(async ({ input }) => {
+      const ticket = await db.query.tickets.findFirst({
+        where: eq(tickets.id, input.id),
+      });
+
       const [updated] = await db
         .update(tickets)
         .set({
@@ -395,6 +750,15 @@ export const ticketsRouter = {
         })
         .where(eq(tickets.id, input.id))
         .returning();
+
+      await logAudit({
+        organizationId: input.organizationId,
+        userId: ticket?.lockedBy ?? undefined,
+        action: "ticket.unlocked",
+        resourceType: "ticket",
+        resourceId: String(input.id),
+      });
+
       return updated;
     }),
 
@@ -403,10 +767,19 @@ export const ticketsRouter = {
       z.object({
         masterTicketId: z.number(),
         mergedTicketId: z.number(),
+        organizationId: z.number(),
         mergedBy: z.number(),
       }),
     )
     .handler(async ({ input }) => {
+      const masterTicket = await db.query.tickets.findFirst({
+        where: eq(tickets.id, input.masterTicketId),
+      });
+
+      const mergedTicket = await db.query.tickets.findFirst({
+        where: eq(tickets.id, input.mergedTicketId),
+      });
+
       const [mergeRecord] = await db
         .insert(ticketMerges)
         .values({
@@ -426,6 +799,17 @@ export const ticketsRouter = {
         })
         .where(eq(tickets.id, input.mergedTicketId));
 
+      if (masterTicket && mergedTicket) {
+        await logTicketMerge({
+          masterTicketId: input.masterTicketId,
+          mergedTicketId: input.mergedTicketId,
+          organizationId: input.organizationId,
+          userId: input.mergedBy,
+          masterReference: masterTicket.referenceNumber,
+          mergedReference: mergedTicket.referenceNumber,
+        });
+      }
+
       return mergeRecord;
     }),
 
@@ -437,103 +821,171 @@ export const ticketsRouter = {
       }),
     )
     .handler(async ({ input }) => {
-      const ticket = await db.query.tickets.findFirst({
-        where: eq(tickets.id, input.id),
-        with: {
-          contact: true,
-          status: true,
-          priority: true,
-          channel: true,
-          assignedAgent: true,
-          assignedTeam: true,
-        },
+      return await getTimeline(input.id, { includePrivate: input.includePrivate });
+    }),
+
+  getConversation: publicProcedure
+    .input(
+      z.object({
+        ticketId: z.number(),
+        includePrivate: z.boolean().default(false),
+      }),
+    )
+    .handler(async ({ input }) => {
+      return await getConversationThread(input.ticketId, {
+        includePrivate: input.includePrivate,
       });
+    }),
 
-      if (!ticket) return null;
+  getNotes: publicProcedure
+    .input(
+      z.object({
+        ticketId: z.number(),
+        includePrivate: z.boolean().default(true),
+      }),
+    )
+    .handler(async ({ input }) => {
+      return await getInternalNotes(input.ticketId, { includePrivate: input.includePrivate });
+    }),
 
-      const messageConditions = [eq(ticketMessages.ticketId, input.id)];
+  addReply: publicProcedure
+    .input(
+      z.object({
+        ticketId: z.number(),
+        organizationId: z.number(),
+        bodyHtml: z.string(),
+        bodyText: z.string().optional(),
+        authorUserId: z.number(),
+        isPrivate: z.boolean().default(false),
+        savedReplyId: z.number().optional(),
+        attachments: z
+          .array(
+            z.object({
+              filename: z.string(),
+              mimeType: z.string(),
+              sizeBytes: z.number(),
+              storageKey: z.string(),
+            }),
+          )
+          .optional(),
+        createdBy: z.number().optional(),
+      }),
+    )
+    .handler(async ({ input }) => {
+      let finalBodyHtml = input.bodyHtml;
+      let finalBodyText = input.bodyText;
 
-      if (!input.includePrivate) {
-        messageConditions.push(eq(ticketMessages.isPrivate, false));
+      if (input.savedReplyId) {
+        const applied = await applySavedReply(
+          input.savedReplyId,
+          input.ticketId,
+          input.authorUserId,
+        );
+        if (applied) {
+          finalBodyHtml = applied.bodyHtml;
+          finalBodyText = applied.bodyText;
+        }
       }
 
-      const messages = await db
-        .select({
-          id: ticketMessages.id,
-          uuid: ticketMessages.uuid,
-          authorType: ticketMessages.authorType,
-          authorUserId: ticketMessages.authorUserId,
-          authorContactId: ticketMessages.authorContactId,
-          messageType: ticketMessages.messageType,
-          bodyHtml: ticketMessages.bodyHtml,
-          bodyText: ticketMessages.bodyText,
-          isPrivate: ticketMessages.isPrivate,
-          createdAt: ticketMessages.createdAt,
-          createdBy: ticketMessages.createdBy,
-          authorFirstName: users.firstName,
-          authorLastName: users.lastName,
-          authorEmail: users.email,
-          authorAvatarUrl: users.avatarUrl,
-        })
-        .from(ticketMessages)
-        .leftJoin(users, eq(ticketMessages.authorUserId, users.id))
-        .where(and(...messageConditions))
-        .orderBy(desc(ticketMessages.createdAt));
+      const ticket = await db.query.tickets.findFirst({
+        where: eq(tickets.id, input.ticketId),
+      });
 
-      const ticketTagsList = await db
-        .select({
-          id: tags.id,
-          uuid: tags.uuid,
-          name: tags.name,
-          color: tags.color,
-        })
-        .from(tags)
-        .innerJoin(ticketTags, eq(ticketTags.tagId, tags.id))
-        .where(eq(ticketTags.ticketId, input.id));
+      const message = await createMessage({
+        ticketId: input.ticketId,
+        authorType: AuthorType.AGENT,
+        authorUserId: input.authorUserId,
+        messageType: input.isPrivate ? MessageType.NOTE : MessageType.REPLY,
+        bodyHtml: finalBodyHtml,
+        bodyText: finalBodyText,
+        isPrivate: input.isPrivate,
+        attachments: input.attachments,
+        createdBy: input.createdBy ?? input.authorUserId,
+      });
 
-      const followers = await db
-        .select({
-          id: ticketFollowers.id,
-          userId: ticketFollowers.userId,
-          firstName: users.firstName,
-          lastName: users.lastName,
-          email: users.email,
-        })
-        .from(ticketFollowers)
-        .innerJoin(users, eq(ticketFollowers.userId, users.id))
-        .where(eq(ticketFollowers.ticketId, input.id));
+      if (message && ticket) {
+        await logMessageCreated({
+          ticketId: input.ticketId,
+          messageId: message.id,
+          organizationId: input.organizationId,
+          userId: input.authorUserId,
+          messageType: input.isPrivate ? "note" : "reply",
+          isPrivate: input.isPrivate,
+          referenceNumber: ticket.referenceNumber,
+        });
+      }
 
-      const forwards = await db
-        .select({
-          id: ticketForwards.id,
-          ticketMessageId: ticketForwards.ticketMessageId,
-          to: ticketForwards.to,
-          cc: ticketForwards.cc,
-          bcc: ticketForwards.bcc,
-          subject: ticketForwards.subject,
-          body: ticketForwards.body,
-          createdAt: ticketForwards.createdAt,
-          creatorFirstName: users.firstName,
-          creatorLastName: users.lastName,
-        })
-        .from(ticketForwards)
-        .leftJoin(users, eq(ticketForwards.createdBy, users.id))
-        .where(eq(ticketForwards.ticketId, input.id))
-        .orderBy(desc(ticketForwards.createdAt));
+      return message;
+    }),
 
-      return {
-        ...ticket,
-        messages,
-        tags: ticketTagsList,
-        followers,
-        forwards,
-      };
+  addNote: publicProcedure
+    .input(
+      z.object({
+        ticketId: z.number(),
+        organizationId: z.number(),
+        bodyHtml: z.string(),
+        bodyText: z.string().optional(),
+        authorUserId: z.number(),
+        createdBy: z.number().optional(),
+      }),
+    )
+    .handler(async ({ input }) => {
+      const ticket = await db.query.tickets.findFirst({
+        where: eq(tickets.id, input.ticketId),
+      });
+
+      const message = await createMessage({
+        ticketId: input.ticketId,
+        authorType: AuthorType.AGENT,
+        authorUserId: input.authorUserId,
+        messageType: MessageType.NOTE,
+        bodyHtml: input.bodyHtml,
+        bodyText: input.bodyText,
+        isPrivate: true,
+        createdBy: input.createdBy ?? input.authorUserId,
+      });
+
+      if (message && ticket) {
+        await logMessageCreated({
+          ticketId: input.ticketId,
+          messageId: message.id,
+          organizationId: input.organizationId,
+          userId: input.authorUserId,
+          messageType: "note",
+          isPrivate: true,
+          referenceNumber: ticket.referenceNumber,
+        });
+      }
+
+      return message;
+    }),
+
+  addActivity: publicProcedure
+    .input(
+      z.object({
+        ticketId: z.number(),
+        organizationId: z.number(),
+        activityType: z.string(),
+        description: z.string(),
+        metadata: z.record(z.string(), z.unknown()).optional(),
+        createdBy: z.number().optional(),
+      }),
+    )
+    .handler(async ({ input }) => {
+      return await createActivity({
+        ticketId: input.ticketId,
+        activityType: input.activityType,
+        description: input.description,
+        metadata: input.metadata,
+        createdBy: input.createdBy,
+      });
     }),
 
   bulkAssign: publicProcedure
     .input(
       z.object({
         ticketIds: z.array(z.number()),
+        organizationId: z.number(),
         assignedAgentId: z.number().nullable().optional(),
         assignedTeamId: z.number().nullable().optional(),
         updatedBy: z.number().optional(),
@@ -557,19 +1009,15 @@ export const ticketsRouter = {
     .input(
       z.object({
         ticketIds: z.array(z.number()),
+        organizationId: z.number(),
         statusId: z.number(),
         updatedBy: z.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
-      await db
-        .update(tickets)
-        .set({
-          statusId: input.statusId,
-          updatedAt: new Date(),
-          updatedBy: input.updatedBy,
-        })
-        .where(inArray(tickets.id, input.ticketIds));
+      for (const ticketId of input.ticketIds) {
+        await updateTicketStatusWithSLA(ticketId, input.statusId, input.updatedBy);
+      }
 
       return { success: true, updated: input.ticketIds.length };
     }),
@@ -620,6 +1068,7 @@ export const ticketsRouter = {
     .input(
       z.object({
         ticketIds: z.array(z.number()),
+        organizationId: z.number(),
         deletedBy: z.number().optional(),
       }),
     )
@@ -640,6 +1089,7 @@ export const ticketsRouter = {
       z.object({
         ticketId: z.number(),
         userId: z.number(),
+        createdBy: z.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -651,6 +1101,18 @@ export const ticketsRouter = {
         })
         .onConflictDoNothing()
         .returning();
+
+      if (follower) {
+        await logAudit({
+          organizationId: 0,
+          userId: input.createdBy,
+          action: "follower.added",
+          resourceType: "ticket",
+          resourceId: String(input.ticketId),
+          metadata: { userId: input.userId },
+        });
+      }
+
       return follower;
     }),
 
@@ -670,6 +1132,15 @@ export const ticketsRouter = {
             eq(ticketFollowers.userId, input.userId),
           ),
         );
+
+      await logAudit({
+        organizationId: 0,
+        action: "follower.removed",
+        resourceType: "ticket",
+        resourceId: String(input.ticketId),
+        metadata: { userId: input.userId },
+      });
+
       return { success: true };
     }),
 
@@ -706,6 +1177,7 @@ export const ticketsRouter = {
       z.object({
         id: z.number(),
         organizationId: z.number(),
+        markedBy: z.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -717,6 +1189,15 @@ export const ticketsRouter = {
         })
         .where(and(eq(tickets.id, input.id), eq(tickets.organizationId, input.organizationId)))
         .returning();
+
+      await logAudit({
+        organizationId: input.organizationId,
+        userId: input.markedBy,
+        action: "ticket.spam_marked",
+        resourceType: "ticket",
+        resourceId: String(input.id),
+      });
+
       return updated;
     }),
 
@@ -725,6 +1206,7 @@ export const ticketsRouter = {
       z.object({
         id: z.number(),
         organizationId: z.number(),
+        markedBy: z.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -736,6 +1218,15 @@ export const ticketsRouter = {
         })
         .where(and(eq(tickets.id, input.id), eq(tickets.organizationId, input.organizationId)))
         .returning();
+
+      await logAudit({
+        organizationId: input.organizationId,
+        userId: input.markedBy,
+        action: "ticket.spam_unmarked",
+        resourceType: "ticket",
+        resourceId: String(input.id),
+      });
+
       return updated;
     }),
 
@@ -768,5 +1259,91 @@ export const ticketsRouter = {
     .handler(async ({ input }) => {
       const { detectSpam } = await import("../services/spamDetection");
       return await detectSpam(input.id);
+    }),
+
+  getAuditHistory: publicProcedure
+    .input(
+      z.object({
+        ticketId: z.number(),
+        limit: z.number().min(1).max(100).default(50),
+        offset: z.number().min(0).default(0),
+      }),
+    )
+    .handler(async ({ input }) => {
+      return await getTicketAuditHistory(input.ticketId, {
+        limit: input.limit,
+        offset: input.offset,
+      });
+    }),
+
+  checkSLABreach: publicProcedure
+    .input(
+      z.object({
+        ticketId: z.number(),
+      }),
+    )
+    .handler(async ({ input }) => {
+      await checkAndUpdateSLABreaches(input.ticketId);
+      return { success: true };
+    }),
+
+  getSavedReplies: publicProcedure
+    .input(
+      z.object({
+        organizationId: z.number(),
+        userId: z.number().optional(),
+        folderId: z.number().optional(),
+        search: z.string().optional(),
+      }),
+    )
+    .handler(async ({ input }) => {
+      const conditions = [
+        isNull(savedReplies.deletedAt),
+        sql`(${savedReplies.scope} = 'organization' OR ${savedReplies.organizationId} = ${input.organizationId})`,
+      ];
+
+      if (input.folderId) {
+        conditions.push(eq(savedReplies.folderId, input.folderId));
+      }
+
+      if (input.userId) {
+        conditions.push(
+          sql`(${savedReplies.scope} = 'personal' AND ${savedReplies.userId} = ${input.userId} OR ${savedReplies.scope} != 'personal')`,
+        );
+      }
+
+      if (input.search) {
+        conditions.push(
+          sql`(${savedReplies.name} ILIKE ${`%${input.search}%`} OR ${savedReplies.bodyHtml} ILIKE ${`%${input.search}%`})`,
+        );
+      }
+
+      return await db
+        .select({
+          id: savedReplies.id,
+          uuid: savedReplies.uuid,
+          name: savedReplies.name,
+          subject: savedReplies.subject,
+          bodyHtml: savedReplies.bodyHtml,
+          shortcuts: savedReplies.shortcuts,
+          scope: savedReplies.scope,
+          folderId: savedReplies.folderId,
+          createdAt: savedReplies.createdAt,
+        })
+        .from(savedReplies)
+        .where(and(...conditions))
+        .orderBy(desc(savedReplies.createdAt));
+    }),
+
+  applySavedReply: publicProcedure
+    .input(
+      z.object({
+        savedReplyId: z.number(),
+        ticketId: z.number(),
+        agentId: z.number(),
+      }),
+    )
+    .handler(async ({ input }) => {
+      return await applySavedReply(input.savedReplyId, input.ticketId, input.agentId);
     }),
 };

@@ -41,13 +41,23 @@ export const tickets = pgTable(
       .notNull(),
     channelId: bigint("channel_id", { mode: "number" }).references((): any => lookups.id),
     contactId: bigint("contact_id", { mode: "number" }).references((): any => contacts.id),
-    assignedAgentId: bigint("assigned_agent_id", { mode: "number" }).references((): any => users.id),
+    assignedAgentId: bigint("assigned_agent_id", { mode: "number" }).references(
+      (): any => users.id,
+    ),
     assignedTeamId: bigint("assigned_team_id", { mode: "number" }).references((): any => teams.id),
     mailboxId: bigint("mailbox_id", { mode: "number" }).references((): any => mailboxes.id),
-    formSubmissionId: bigint("form_submission_id", { mode: "number" }).references((): any => formSubmissions.id),
-    socialMessageId: bigint("social_message_id", { mode: "number" }).references((): any => socialMessages.id),
-    chatSessionId: bigint("chat_session_id", { mode: "number" }).references((): any => chatSessions.id),
-    parentTicketId: bigint("parent_ticket_id", { mode: "number" }).references((): any => tickets.id),
+    formSubmissionId: bigint("form_submission_id", { mode: "number" }).references(
+      (): any => formSubmissions.id,
+    ),
+    socialMessageId: bigint("social_message_id", { mode: "number" }).references(
+      (): any => socialMessages.id,
+    ),
+    chatSessionId: bigint("chat_session_id", { mode: "number" }).references(
+      (): any => chatSessions.id,
+    ),
+    parentTicketId: bigint("parent_ticket_id", { mode: "number" }).references(
+      (): any => tickets.id,
+    ),
     isMerged: boolean("is_merged").default(false).notNull(),
     isSpam: boolean("is_spam").default(false).notNull(),
     isLocked: boolean("is_locked").default(false).notNull(),
@@ -70,7 +80,7 @@ export const tickets = pgTable(
     assignedTeamIdx: index("tickets_assigned_team_idx").on(table.assignedTeamId),
     contactIdx: index("tickets_contact_idx").on(table.contactId),
     createdAtIdx: index("tickets_created_at_idx").on(table.createdAt),
-  })
+  }),
 );
 
 export const ticketMessages = pgTable(
@@ -81,10 +91,14 @@ export const ticketMessages = pgTable(
     ticketId: bigint("ticket_id", { mode: "number" })
       .references(() => tickets.id)
       .notNull(),
-    emailMessageId: bigint("email_message_id", { mode: "number" }).references((): any => emailMessages.id),
+    emailMessageId: bigint("email_message_id", { mode: "number" }).references(
+      (): any => emailMessages.id,
+    ),
     authorType: varchar("author_type", { length: 20 }).notNull(),
     authorUserId: bigint("author_user_id", { mode: "number" }).references((): any => users.id),
-    authorContactId: bigint("author_contact_id", { mode: "number" }).references((): any => contacts.id),
+    authorContactId: bigint("author_contact_id", { mode: "number" }).references(
+      (): any => contacts.id,
+    ),
     messageType: varchar("message_type", { length: 20 }).notNull(),
     bodyHtml: text("body_html"),
     bodyText: text("body_text"),
@@ -102,20 +116,30 @@ export const ticketMessages = pgTable(
   },
   (table) => ({
     ticketIdx: index("ticket_messages_ticket_idx").on(table.ticketId),
-  })
+  }),
 );
 
 export const ticketAttachments = pgTable("ticket_attachments", {
   id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
   uuid: uuid("uuid").defaultRandom().notNull().unique(),
-  ticketId: bigint("ticket_id", { mode: "number" })
-    .references(() => tickets.id)
+  organizationId: bigint("organization_id", { mode: "number" })
+    .references(() => organizations.id)
     .notNull(),
-  ticketMessageId: bigint("ticket_message_id", { mode: "number" }).references((): any => ticketMessages.id),
+  ticketId: bigint("ticket_id", { mode: "number" }).references((): any => tickets.id),
+  ticketMessageId: bigint("ticket_message_id", { mode: "number" }).references(
+    (): any => ticketMessages.id,
+  ),
+  kbArticleId: bigint("kb_article_id", { mode: "number" }),
+  contactId: bigint("contact_id", { mode: "number" }),
   filename: varchar("filename", { length: 500 }).notNull(),
   mimeType: varchar("mime_type", { length: 150 }).notNull(),
   sizeBytes: bigint("size_bytes", { mode: "number" }).notNull(),
   storageKey: text("storage_key").notNull(),
+  thumbnailKey: text("thumbnail_key"),
+  imageWidth: integer("image_width"),
+  imageHeight: integer("image_height"),
+  isInlineImage: boolean("is_inline_image").default(false),
+  galleryOrder: integer("gallery_order"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   createdBy: bigint("created_by", { mode: "number" }).references((): any => users.id),
 });
@@ -135,7 +159,7 @@ export const tags = pgTable(
   },
   (table) => ({
     orgNameUnique: unique().on(table.organizationId, table.name),
-  })
+  }),
 );
 
 export const ticketTags = pgTable(
@@ -153,7 +177,7 @@ export const ticketTags = pgTable(
   },
   (table) => ({
     ticketTagUnique: unique().on(table.ticketId, table.tagId),
-  })
+  }),
 );
 
 export const ticketFollowers = pgTable(
@@ -170,7 +194,7 @@ export const ticketFollowers = pgTable(
   },
   (table) => ({
     ticketFollowerUnique: unique().on(table.ticketId, table.userId),
-  })
+  }),
 );
 
 export const ticketCc = pgTable(
@@ -185,7 +209,7 @@ export const ticketCc = pgTable(
   },
   (table) => ({
     ticketEmailUnique: unique().on(table.ticketId, table.email),
-  })
+  }),
 );
 
 export const ticketMerges = pgTable("ticket_merges", {
@@ -224,7 +248,7 @@ export const ticketCustomFieldValues = pgTable(
   },
   (table) => ({
     ticketFieldUnique: unique().on(table.ticketId, table.fieldId),
-  })
+  }),
 );
 
 export const ticketViews = pgTable(
@@ -248,7 +272,7 @@ export const ticketViews = pgTable(
   },
   (table) => ({
     orgIdx: index("ticket_views_org_idx").on(table.organizationId),
-  })
+  }),
 );
 
 export const ticketsRelations = relations(tickets, ({ one, many }) => ({
@@ -325,6 +349,10 @@ export const ticketMessagesRelations = relations(ticketMessages, ({ one, many })
 }));
 
 export const ticketAttachmentsRelations = relations(ticketAttachments, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [ticketAttachments.organizationId],
+    references: [organizations.id],
+  }),
   ticket: one(tickets, {
     fields: [ticketAttachments.ticketId],
     references: [tickets.id],

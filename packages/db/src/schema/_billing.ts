@@ -15,26 +15,25 @@ import { relations } from "drizzle-orm";
 import { organizations } from "./_organizations";
 import { users } from "./_users";
 
-export const subscriptionPlans = pgTable(
-  "subscription_plans",
-  {
-    id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
-    uuid: uuid("uuid").defaultRandom().notNull().unique(),
-    slug: varchar("slug", { length: 50 }).notNull().unique(),
-    name: varchar("name", { length: 100 }).notNull(),
-    description: text("description"),
-    priceMonthly: bigint("price_monthly", { mode: "number" }).notNull(),
-    priceYearly: bigint("price_yearly", { mode: "number" }).notNull(),
-    currency: varchar("currency", { length: 3 }).default("USD").notNull(),
-    trialDays: integer("trial_days").default(0).notNull(),
-    maxAgents: integer("max_agents").notNull(),
-    maxContacts: integer("max_contacts").notNull(),
-    isActive: boolean("is_active").default(true).notNull(),
-    metadata: jsonb("metadata"),
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
-  }
-);
+export const subscriptionPlans = pgTable("subscription_plans", {
+  id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
+  uuid: uuid("uuid").defaultRandom().notNull().unique(),
+  slug: varchar("slug", { length: 50 }).notNull().unique(),
+  name: varchar("name", { length: 100 }).notNull(),
+  description: text("description"),
+  priceMonthly: bigint("price_monthly", { mode: "number" }).notNull(),
+  priceYearly: bigint("price_yearly", { mode: "number" }).notNull(),
+  currency: varchar("currency", { length: 3 }).default("USD").notNull(),
+  trialDays: integer("trial_days").default(0).notNull(),
+  maxAgents: integer("max_agents").notNull(),
+  maxContacts: integer("max_contacts").notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+  stripePriceIdMonthly: varchar("stripe_price_id_monthly", { length: 255 }),
+  stripePriceIdYearly: varchar("stripe_price_id_yearly", { length: 255 }),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
 
 export const planFeatures = pgTable(
   "plan_features",
@@ -52,7 +51,7 @@ export const planFeatures = pgTable(
   (table) => ({
     planFeatureUnique: unique().on(table.planId, table.feature),
     planIdx: index("plan_features_plan_idx").on(table.planId),
-  })
+  }),
 );
 
 export const planLimits = pgTable(
@@ -68,28 +67,25 @@ export const planLimits = pgTable(
   },
   (table) => ({
     planLimitUnique: unique().on(table.planId, table.limitType),
-  })
+  }),
 );
 
-export const addons = pgTable(
-  "addons",
-  {
-    id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
-    uuid: uuid("uuid").defaultRandom().notNull().unique(),
-    slug: varchar("slug", { length: 50 }).notNull().unique(),
-    name: varchar("name", { length: 100 }).notNull(),
-    description: text("description"),
-    priceMonthly: bigint("price_monthly", { mode: "number" }).notNull(),
-    priceYearly: bigint("price_yearly", { mode: "number" }).notNull(),
-    pricePerUnit: bigint("price_per_unit", { mode: "number" }),
-    currency: varchar("currency", { length: 3 }).default("USD").notNull(),
-    unitLabel: varchar("unit_label", { length: 50 }),
-    isActive: boolean("is_active").default(true).notNull(),
-    metadata: jsonb("metadata"),
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
-  }
-);
+export const addons = pgTable("addons", {
+  id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
+  uuid: uuid("uuid").defaultRandom().notNull().unique(),
+  slug: varchar("slug", { length: 50 }).notNull().unique(),
+  name: varchar("name", { length: 100 }).notNull(),
+  description: text("description"),
+  priceMonthly: bigint("price_monthly", { mode: "number" }).notNull(),
+  priceYearly: bigint("price_yearly", { mode: "number" }).notNull(),
+  pricePerUnit: bigint("price_per_unit", { mode: "number" }),
+  currency: varchar("currency", { length: 3 }).default("USD").notNull(),
+  unitLabel: varchar("unit_label", { length: 50 }),
+  isActive: boolean("is_active").default(true).notNull(),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
 
 export const subscriptions = pgTable(
   "subscriptions",
@@ -121,7 +117,7 @@ export const subscriptions = pgTable(
     orgUnique: unique().on(table.organizationId),
     stripeSubIdx: index("subscriptions_stripe_idx").on(table.stripeSubscriptionId),
     orgIdx: index("subscriptions_org_idx").on(table.organizationId),
-  })
+  }),
 );
 
 export const seats = pgTable(
@@ -143,7 +139,7 @@ export const seats = pgTable(
     subscriptionUserUnique: unique().on(table.subscriptionId, table.userId),
     subscriptionIdx: index("seats_subscription_idx").on(table.subscriptionId),
     userIdx: index("seats_user_idx").on(table.userId),
-  })
+  }),
 );
 
 export const usageSnapshots = pgTable(
@@ -163,7 +159,7 @@ export const usageSnapshots = pgTable(
   },
   (table) => ({
     orgSnapshotIdx: index("usage_snapshots_org_idx").on(table.organizationId, table.snapshotDate),
-  })
+  }),
 );
 
 export const subscriptionPlansRelations = relations(subscriptionPlans, ({ many }) => ({

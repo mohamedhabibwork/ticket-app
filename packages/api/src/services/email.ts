@@ -8,8 +8,12 @@ import {
   contacts,
   lookups,
 } from "@ticket-app/db/schema";
-import { eq, and, isNull, desc } from "drizzle-orm";
+import { eq, and, isNull } from "drizzle-orm";
 import { sql } from "drizzle-orm";
+import { env } from "@ticket-app/env/server";
+import { decryptToken, encryptToken } from "../lib/crypto";
+
+const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
 
 export interface EmailMessage {
   messageId: string;
@@ -27,12 +31,73 @@ export interface EmailMessage {
   rawHeaders?: Record<string, string>;
 }
 
+export interface GmailOAuthTokens {
+  access_token: string;
+  refresh_token?: string;
+  expires_in: number;
+  token_type: string;
+}
+
+export async function refreshGmailAccessToken(
+  mailboxId: number,
+): Promise<{ accessToken: string; expiresAt: Date } | null> {
+  const config = await db.query.mailboxImapConfigs.findFirst({
+    where: eq(mailboxImapConfigs.mailboxId, mailboxId),
+  });
+
+  if (!config?.oauthRefreshTokenEnc) {
+    return null;
+  }
+
+  const refreshToken = decryptToken(config.oauthRefreshTokenEnc);
+  const now = new Date();
+  const tokenExpiresAt = config.oauthExpiresAt ? new Date(config.oauthExpiresAt) : null;
+
+  if (tokenExpiresAt && tokenExpiresAt.getTime() - now.getTime() > 5 * 60 * 1000) {
+    const accessToken = decryptToken(config.oauthTokenEnc!);
+    return { accessToken, expiresAt: tokenExpiresAt };
+  }
+
+  const response = await fetch(GOOGLE_TOKEN_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: new URLSearchParams({
+      client_id: env.GOOGLE_CLIENT_ID,
+      client_secret: env.GOOGLE_CLIENT_SECRET,
+      refresh_token: refreshToken,
+      grant_type: "refresh_token",
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error(`Failed to refresh Gmail token for mailbox ${mailboxId}:`, errorText);
+    return null;
+  }
+
+  const tokens: GmailOAuthTokens = await response.json();
+  const newExpiresAt = new Date(Date.now() + tokens.expires_in * 1000);
+
+  await db
+    .update(mailboxImapConfigs)
+    .set({
+      oauthTokenEnc: encryptToken(tokens.access_token),
+      oauthExpiresAt: newExpiresAt,
+      updatedAt: new Date(),
+    })
+    .where(eq(mailboxImapConfigs.mailboxId, mailboxId));
+
+  return { accessToken: tokens.access_token, expiresAt: newExpiresAt };
+}
+
 export async function pollMailbox(mailboxId: number): Promise<EmailMessage[]> {
   const mailbox = await db.query.mailboxes.findFirst({
     where: and(
       eq(mailboxes.id, mailboxId),
       eq(mailboxes.isActive, true),
-      isNull(mailboxes.deletedAt)
+      isNull(mailboxes.deletedAt),
     ),
     with: {
       imapConfig: true,
@@ -49,12 +114,12 @@ export async function pollMailbox(mailboxId: number): Promise<EmailMessage[]> {
 export async function processEmailToTicket(
   organizationId: number,
   mailboxId: number,
-  email: EmailMessage
+  email: EmailMessage,
 ): Promise<{ ticket: any; isReply: boolean }> {
   const existingEmailMessage = await db.query.emailMessages.findFirst({
     where: and(
       eq(emailMessages.messageId, email.messageId),
-      eq(emailMessages.mailboxId, mailboxId)
+      eq(emailMessages.mailboxId, mailboxId),
     ),
   });
 
@@ -65,7 +130,7 @@ export async function processEmailToTicket(
   const channelLookup = await db.query.lookups.findFirst({
     where: and(
       eq(lookups.lookupTypeId, sql`(SELECT id FROM lookup_types WHERE name = 'channel')`),
-      sql`${lookups.metadata}->>'slug' = 'email'`
+      sql`${lookups.metadata}->>'slug' = 'email'`,
     ),
   });
 
@@ -73,7 +138,7 @@ export async function processEmailToTicket(
     where: and(
       eq(contacts.email, email.fromEmail.toLowerCase()),
       eq(contacts.organizationId, organizationId),
-      isNull(contacts.deletedAt)
+      isNull(contacts.deletedAt),
     ),
   });
 
@@ -119,7 +184,7 @@ export async function processEmailToTicket(
     const parentEmail = await db.query.emailMessages.findFirst({
       where: and(
         eq(emailMessages.messageId, email.inReplyTo),
-        eq(emailMessages.organizationId, organizationId)
+        eq(emailMessages.organizationId, organizationId),
       ),
     });
 
@@ -133,7 +198,7 @@ export async function processEmailToTicket(
     await db.query.lookups.findFirst({
       where: and(
         eq(lookups.lookupTypeId, sql`(SELECT id FROM lookup_types WHERE name = 'ticket_status')`),
-        eq(lookups.isDefault, true)
+        eq(lookups.isDefault, true),
       ),
     })
   )?.id;
@@ -142,7 +207,7 @@ export async function processEmailToTicket(
     await db.query.lookups.findFirst({
       where: and(
         eq(lookups.lookupTypeId, sql`(SELECT id FROM lookup_types WHERE name = 'ticket_priority')`),
-        eq(lookups.isDefault, true)
+        eq(lookups.isDefault, true),
       ),
     })
   )?.id;
@@ -153,7 +218,7 @@ export async function processEmailToTicket(
     .select({ count: sql<number>`COUNT(*)::int` })
     .from(tickets)
     .where(
-      sql`${tickets.organizationId} = ${organizationId} AND ${tickets.referenceNumber} LIKE ${prefix}%`
+      sql`${tickets.organizationId} = ${organizationId} AND ${tickets.referenceNumber} LIKE ${prefix}%`,
     );
   const sequence = (countResult[0]?.count ?? 0) + 1;
   const referenceNumber = `${prefix}${sequence.toString().padStart(6, "0")}`;

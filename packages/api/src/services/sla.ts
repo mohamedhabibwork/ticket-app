@@ -19,7 +19,7 @@ export function calculateSLADueDates(
   firstResponseMinutes: number,
   resolutionMinutes: number,
   businessHoursConfig: BusinessHoursConfig | null,
-  holidays: Holiday[] | null
+  holidays: Holiday[] | null,
 ): { firstResponseDueAt: Date; resolutionDueAt: Date } {
   if (!businessHoursConfig) {
     return {
@@ -28,15 +28,13 @@ export function calculateSLADueDates(
     };
   }
 
-  let businessMinutesRemaining = getBusinessMinutesInDay(
-    startTime,
-    businessHoursConfig,
-    holidays
-  );
+  let businessMinutesRemaining = getBusinessMinutesInDay(startTime, businessHoursConfig, holidays);
 
   let firstResponseRemaining = firstResponseMinutes;
   let resolutionRemaining = resolutionMinutes;
   let currentTime = new Date(startTime);
+
+  let totalBusinessMinutesUsed = 0;
 
   while (firstResponseRemaining > 0 || resolutionRemaining > 0) {
     if (businessMinutesRemaining <= 0) {
@@ -49,29 +47,34 @@ export function calculateSLADueDates(
     const minutesToUse = Math.min(
       businessMinutesRemaining,
       firstResponseRemaining,
-      resolutionRemaining
+      resolutionRemaining,
     );
 
     firstResponseRemaining -= minutesToUse;
     resolutionRemaining -= minutesToUse;
     businessMinutesRemaining -= minutesToUse;
+    totalBusinessMinutesUsed += minutesToUse;
 
     if (firstResponseRemaining > 0 || resolutionRemaining > 0) {
       currentTime = getNextBusinessDayStart(currentTime, businessHoursConfig, holidays);
-      businessMinutesRemaining = getBusinessMinutesInDay(currentTime, businessHoursConfig, holidays);
+      businessMinutesRemaining = getBusinessMinutesInDay(
+        currentTime,
+        businessHoursConfig,
+        holidays,
+      );
     }
   }
 
   return {
-    firstResponseDueAt: new Date(startTime.getTime() + firstResponseMinutes * 60000),
-    resolutionDueAt: new Date(startTime.getTime() + resolutionMinutes * 60000),
+    firstResponseDueAt: new Date(startTime.getTime() + totalBusinessMinutesUsed * 60000),
+    resolutionDueAt: new Date(startTime.getTime() + totalBusinessMinutesUsed * 60000),
   };
 }
 
 export function getBusinessMinutesInDay(
   date: Date,
   config: BusinessHoursConfig,
-  holidays: Holiday[] | null
+  holidays: Holiday[] | null,
 ): number {
   const dayOfWeek = date.getDay();
   const dateStr = date.toISOString().split("T")[0];
@@ -101,7 +104,7 @@ export function getBusinessMinutesInDay(
 export function getNextBusinessDayStart(
   currentTime: Date,
   config: BusinessHoursConfig,
-  holidays: Holiday[] | null
+  holidays: Holiday[] | null,
 ): Date {
   const nextDay = new Date(currentTime);
   nextDay.setDate(nextDay.getDate() + 1);
@@ -130,7 +133,7 @@ export function isWithinBusinessHours(
   startTime: Date,
   endTime: Date,
   config: BusinessHoursConfig,
-  holidays: Holiday[] | null
+  holidays: Holiday[] | null,
 ): number {
   let totalBusinessMinutes = 0;
   let currentTime = new Date(startTime);
@@ -181,5 +184,10 @@ export function isStatusPaused(statusKey: string): boolean {
 }
 
 export function getStatusKey(status: { name?: string; key?: string; label?: string }): string {
-  return status.key || status.name?.toLowerCase().replace(/\s+/g, "_") || status.label?.toLowerCase().replace(/\s+/g, "_") || "";
+  return (
+    status.key ||
+    status.name?.toLowerCase().replace(/\s+/g, "_") ||
+    status.label?.toLowerCase().replace(/\s+/g, "_") ||
+    ""
+  );
 }
