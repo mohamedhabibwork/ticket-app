@@ -5,8 +5,8 @@ import { db } from "@ticket-app/db";
 import { disqusAccounts, tickets, ticketMessages, lookups } from "@ticket-app/db/schema";
 import { getRedis } from "../redis";
 import { env } from "@ticket-app/env/server";
-import { createDisqusClient } from "@ticket-app/api/src/lib/disqus";
-import { decryptToken } from "@ticket-app/api/src/lib/crypto";
+import { createDisqusClient } from "@ticket-app/shared/disqus";
+import { decryptToken } from "@ticket-app/shared/crypto";
 
 const DISQUS_SYNC_QUEUE = `${env.QUEUE_PREFIX}:disqus-sync`;
 
@@ -30,14 +30,14 @@ const disqusSyncQueue = new Queue<DisqusSyncJobData>(DISQUS_SYNC_QUEUE, {
 
 export async function addDisqusSyncJob(
   data: DisqusSyncJobData,
-  options?: { delay?: number; repeat?: { every: number } }
+  options?: { delay?: number; repeat?: { every: number } },
 ): Promise<Job<DisqusSyncJobData>> {
   return disqusSyncQueue.add("disqus-sync", data, options);
 }
 
 export async function scheduleDisqusSync(
   accountId: number,
-  intervalMinutes: number = 5
+  intervalMinutes: number = 5,
 ): Promise<void> {
   await disqusSyncQueue.add(
     "disqus-sync",
@@ -45,7 +45,7 @@ export async function scheduleDisqusSync(
     {
       repeat: { every: intervalMinutes * 60 * 1000 },
       jobId: `disqus-sync-${accountId}`,
-    }
+    },
   );
 }
 
@@ -67,7 +67,7 @@ export function createDisqusSyncWorker(): Worker {
     {
       connection: getRedis(),
       concurrency: 2,
-    }
+    },
   );
 }
 
@@ -75,10 +75,7 @@ async function syncDisqusComments(accountId: number): Promise<void> {
   console.log(`[Disqus-Sync] Syncing comments for account ${accountId}`);
 
   const account = await db.query.disqusAccounts.findFirst({
-    where: and(
-      eq(disqusAccounts.id, accountId),
-      eq(disqusAccounts.status, "active")
-    ),
+    where: and(eq(disqusAccounts.id, accountId), eq(disqusAccounts.status, "active")),
   });
 
   if (!account) {
@@ -117,13 +114,18 @@ async function syncDisqusComments(accountId: number): Promise<void> {
 
 async function processDisqusPost(
   account: typeof disqusAccounts.$inferSelect,
-  post: { id: string; message: string; html?: string; createdAt: string; author: { id: string; name: string; username: string }; thread?: { id: string; identifier: string; title?: string }; parent?: string }
+  post: {
+    id: string;
+    message: string;
+    html?: string;
+    createdAt: string;
+    author: { id: string; name: string; username: string };
+    thread?: { id: string; identifier: string; title?: string };
+    parent?: string;
+  },
 ): Promise<void> {
   const existingMessage = await db.query.marketplaceMessages?.findFirst({
-    where: and(
-      sql`marketplace_account_id = ${account.id}`,
-      sql`platform_message_id = ${post.id}`
-    ),
+    where: and(sql`marketplace_account_id = ${account.id}`, sql`platform_message_id = ${post.id}`),
   });
 
   if (existingMessage) {
@@ -133,7 +135,7 @@ async function processDisqusPost(
   const channelLookup = await db.query.lookups.findFirst({
     where: and(
       eq(lookups.lookupTypeId, sql`(SELECT id FROM lookup_types WHERE name = 'channel')`),
-      sql`${lookups.metadata}->>'slug' = 'disqus'`
+      sql`${lookups.metadata}->>'slug' = 'disqus'`,
     ),
   });
 
@@ -141,7 +143,7 @@ async function processDisqusPost(
     await db.query.lookups.findFirst({
       where: and(
         eq(lookups.lookupTypeId, sql`(SELECT id FROM lookup_types WHERE name = 'ticket_status')`),
-        eq(lookups.isDefault, true)
+        eq(lookups.isDefault, true),
       ),
     })
   )?.id;
@@ -150,12 +152,13 @@ async function processDisqusPost(
     await db.query.lookups.findFirst({
       where: and(
         eq(lookups.lookupTypeId, sql`(SELECT id FROM lookup_types WHERE name = 'ticket_priority')`),
-        eq(lookups.isDefault, true)
+        eq(lookups.isDefault, true),
       ),
     })
   )?.id;
 
-  const threadTitle = post.thread?.title || `Disqus: ${post.author.name} - ${post.message.substring(0, 50)}`;
+  const threadTitle =
+    post.thread?.title || `Disqus: ${post.author.name} - ${post.message.substring(0, 50)}`;
 
   const [ticket] = await db
     .insert(tickets)
@@ -170,7 +173,7 @@ async function processDisqusPost(
     })
     .returning();
 
-  const [message] = await db
+  await db
     .insert(ticketMessages)
     .values({
       ticketId: ticket.id,

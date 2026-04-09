@@ -124,6 +124,10 @@ export const organizationsRelations = relations(organizations, ({ many, one }) =
     fields: [organizations.id],
     references: [brandingConfigs.organizationId],
   }),
+  translationConfig: one(translationConfigs, {
+    fields: [organizations.id],
+    references: [translationConfigs.organizationId],
+  }),
 }));
 
 export const organizationSettingsRelations = relations(organizationSettings, ({ one }) => ({
@@ -139,6 +143,47 @@ export const brandingConfigsRelations = relations(brandingConfigs, ({ one }) => 
     references: [organizations.id],
   }),
 }));
+
+export const translationConfigs = pgTable("translation_configs", {
+  id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
+  organizationId: bigint("organization_id", { mode: "number" })
+    .notNull()
+    .unique()
+    .references(() => organizations.id),
+  provider: varchar("provider", { length: 30 }).notNull().default("google"),
+  apiKeyEnc: text("api_key_enc"),
+  isEnabled: boolean("is_enabled").notNull().default(false),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  createdBy: bigint("created_by", { mode: "number" }).references(() => users.id),
+  updatedBy: bigint("updated_by", { mode: "number" }).references(() => users.id),
+});
+
+export const translationConfigsRelations = relations(translationConfigs, ({ one }) => ({
+  organization: one(organizations, {
+    fields: [translationConfigs.organizationId],
+    references: [organizations.id],
+  }),
+  createdByUser: one(users, {
+    fields: [translationConfigs.createdBy],
+    references: [users.id],
+  }),
+  updatedByUser: one(users, {
+    fields: [translationConfigs.updatedBy],
+    references: [users.id],
+  }),
+}));
+
+export const translationCache = pgTable("translation_cache", {
+  id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
+  sourceHash: varchar("source_hash", { length: 64 }).notNull().unique(),
+  sourceLanguage: varchar("source_language", { length: 10 }),
+  targetLanguage: varchar("target_language", { length: 10 }).notNull(),
+  translatedText: text("translated_text").notNull(),
+  provider: varchar("provider", { length: 30 }).notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
 
 export const themesRelations = relations(themes, ({ one }) => ({
   user: one(users, {

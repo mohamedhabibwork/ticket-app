@@ -1,11 +1,11 @@
 import { Worker, Job, Queue } from "bullmq";
-import { eq, and, isNull } from "drizzle-orm";
+import { eq, isNull } from "drizzle-orm";
 
 import { db } from "@ticket-app/db";
 import { onPremiseLicenses } from "@ticket-app/db/schema";
 import { getRedis } from "../redis";
 import { env } from "@ticket-app/env/server";
-import { verifyLicenseKey } from "@ticket-app/api/src/lib/license";
+import { verifyLicenseKey } from "@ticket-app/shared/license";
 
 const LICENSE_VERIFICATION_QUEUE = `${env.QUEUE_PREFIX}:license-verification`;
 
@@ -29,21 +29,19 @@ const licenseVerificationQueue = new Queue<LicenseVerificationJobData>(LICENSE_V
 
 export async function addLicenseVerificationJob(
   data: LicenseVerificationJobData,
-  options?: { delay?: number }
+  options?: { delay?: number },
 ): Promise<Job<LicenseVerificationJobData>> {
   return licenseVerificationQueue.add("license-verification", data, options);
 }
 
-export async function scheduleLicenseVerification(
-  intervalHours: number = 24
-): Promise<void> {
+export async function scheduleLicenseVerification(intervalHours: number = 24): Promise<void> {
   await licenseVerificationQueue.add(
     "license-verification",
     { type: "verify-all" },
     {
       repeat: { every: intervalHours * 60 * 60 * 1000 },
       jobId: "license-verification-recurring",
-    }
+    },
   );
 }
 
@@ -65,7 +63,7 @@ export function createLicenseVerificationWorker(): Worker {
     {
       connection: getRedis(),
       concurrency: 2,
-    }
+    },
   );
 }
 
@@ -122,7 +120,9 @@ async function verifyAllLicenses(): Promise<void> {
     }
   }
 
-  console.log(`[License-Verification] Verified ${licenses.length} licenses. Status changed: ${verifiedCount}, Inactive: ${failedCount}`);
+  console.log(
+    `[License-Verification] Verified ${licenses.length} licenses. Status changed: ${verifiedCount}, Inactive: ${failedCount}`,
+  );
 }
 
 export async function closeLicenseVerificationQueue(): Promise<void> {

@@ -47,7 +47,7 @@ export const mailboxes = pgTable(
     orgIdx: index("mailboxes_org_idx").on(table.organizationId),
     emailIdx: index("mailboxes_email_idx").on(table.email),
     isDefaultIdx: index("mailboxes_default_idx").on(table.isDefault),
-  })
+  }),
 );
 
 export const mailboxImapConfigs = pgTable("mailbox_imap_configs", {
@@ -100,7 +100,34 @@ export const mailboxAliases = pgTable(
   },
   (table) => ({
     mailboxIdx: index("mailbox_aliases_mailbox_idx").on(table.mailboxId),
-  })
+  }),
+);
+
+export const mailboxRoutingRules = pgTable(
+  "mailbox_routing_rules",
+  {
+    id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
+    uuid: uuid("uuid").defaultRandom().notNull().unique(),
+    mailboxId: bigint("mailbox_id", { mode: "number" })
+      .references(() => mailboxes.id)
+      .notNull(),
+    name: varchar("name", { length: 150 }).notNull(),
+    conditions: jsonb("conditions").notNull(),
+    conditionOperator: varchar("condition_operator", { length: 10 }).default("and").notNull(),
+    actions: jsonb("actions").notNull(),
+    priority: integer("priority").default(0).notNull(),
+    isActive: boolean("is_active").default(true).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+    createdBy: bigint("created_by", { mode: "number" }).references((): any => users.id),
+    updatedBy: bigint("updated_by", { mode: "number" }).references((): any => users.id),
+    deletedBy: bigint("deleted_by", { mode: "number" }).references((): any => users.id),
+  },
+  (table) => ({
+    mailboxIdx: index("mailbox_routing_rules_mailbox_idx").on(table.mailboxId),
+    orgIdx: index("mailbox_routing_rules_org_idx").on(table.mailboxId),
+  }),
 );
 
 export const emailRoutingRules = pgTable(
@@ -116,7 +143,9 @@ export const emailRoutingRules = pgTable(
     conditions: jsonb("conditions").notNull(),
     actionTeamId: bigint("action_team_id", { mode: "number" }).references((): any => teams.id),
     actionTagIds: bigint("action_tag_ids", { mode: "number" }).array(),
-    actionPriorityId: bigint("action_priority_id", { mode: "number" }).references((): any => lookups.id),
+    actionPriorityId: bigint("action_priority_id", { mode: "number" }).references(
+      (): any => lookups.id,
+    ),
     orderBy: integer("order_by").default(0).notNull(),
     isActive: boolean("is_active").default(true).notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
@@ -128,7 +157,7 @@ export const emailRoutingRules = pgTable(
   },
   (table) => ({
     orgIdx: index("email_routing_rules_org_idx").on(table.organizationId),
-  })
+  }),
 );
 
 export const emailMessages = pgTable(
@@ -169,7 +198,7 @@ export const emailMessages = pgTable(
     messageIdIdx: index("email_messages_message_id_idx").on(table.messageId),
     inReplyToIdx: index("email_messages_in_reply_to_idx").on(table.inReplyTo),
     receivedAtIdx: index("email_messages_received_at_idx").on(table.receivedAt),
-  })
+  }),
 );
 
 export const emailAttachments = pgTable("email_attachments", {
@@ -203,6 +232,7 @@ export const mailboxesRelations = relations(mailboxes, ({ one, many }) => ({
     references: [mailboxSmtpConfigs.mailboxId],
   }),
   aliases: many(mailboxAliases),
+  routingRules: many(mailboxRoutingRules),
   emailMessages: many(emailMessages),
 }));
 
@@ -224,6 +254,17 @@ export const mailboxAliasesRelations = relations(mailboxAliases, ({ one }) => ({
   mailbox: one(mailboxes, {
     fields: [mailboxAliases.mailboxId],
     references: [mailboxes.id],
+  }),
+}));
+
+export const mailboxRoutingRulesRelations = relations(mailboxRoutingRules, ({ one }) => ({
+  mailbox: one(mailboxes, {
+    fields: [mailboxRoutingRules.mailboxId],
+    references: [mailboxes.id],
+  }),
+  createdByUser: one(users, {
+    fields: [mailboxRoutingRules.createdBy],
+    references: [users.id],
   }),
 }));
 

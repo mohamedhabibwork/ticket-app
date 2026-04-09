@@ -1,12 +1,18 @@
 import { Worker, Job, Queue } from "bullmq";
-import { eq, and, sql, desc } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 
 import { db } from "@ticket-app/db";
-import { marketplaceAccounts, marketplaceMessages, tickets, ticketMessages, lookups } from "@ticket-app/db/schema";
+import {
+  marketplaceAccounts,
+  marketplaceMessages,
+  tickets,
+  ticketMessages,
+  lookups,
+} from "@ticket-app/db/schema";
 import { getRedis } from "../redis";
 import { env } from "@ticket-app/env/server";
-import { createAmazonClient } from "@ticket-app/api/src/lib/amazon-sp-api";
-import { decryptToken } from "@ticket-app/api/src/lib/crypto";
+import { createAmazonClient } from "@ticket-app/shared/amazon-sp-api";
+import { decryptToken } from "@ticket-app/shared/crypto";
 
 const AMAZON_SYNC_QUEUE = `${env.QUEUE_PREFIX}:amazon-sync`;
 
@@ -30,14 +36,14 @@ const amazonSyncQueue = new Queue<AmazonSyncJobData>(AMAZON_SYNC_QUEUE, {
 
 export async function addAmazonSyncJob(
   data: AmazonSyncJobData,
-  options?: { delay?: number; repeat?: { every: number } }
+  options?: { delay?: number; repeat?: { every: number } },
 ): Promise<Job<AmazonSyncJobData>> {
   return amazonSyncQueue.add("amazon-sync", data, options);
 }
 
 export async function scheduleAmazonSync(
   accountId: number,
-  intervalMinutes: number = 15
+  intervalMinutes: number = 15,
 ): Promise<void> {
   await amazonSyncQueue.add(
     "amazon-sync",
@@ -45,7 +51,7 @@ export async function scheduleAmazonSync(
     {
       repeat: { every: intervalMinutes * 60 * 1000 },
       jobId: `amazon-sync-${accountId}`,
-    }
+    },
   );
 }
 
@@ -67,7 +73,7 @@ export function createAmazonSyncWorker(): Worker {
     {
       connection: getRedis(),
       concurrency: 2,
-    }
+    },
   );
 }
 
@@ -75,10 +81,7 @@ async function syncAmazonMessages(accountId: number): Promise<void> {
   console.log(`[Amazon-Sync] Syncing messages for account ${accountId}`);
 
   const account = await db.query.marketplaceAccounts.findFirst({
-    where: and(
-      eq(marketplaceAccounts.id, accountId),
-      eq(marketplaceAccounts.status, "active")
-    ),
+    where: and(eq(marketplaceAccounts.id, accountId), eq(marketplaceAccounts.status, "active")),
   });
 
   if (!account) {
@@ -133,8 +136,14 @@ async function syncAmazonMessages(accountId: number): Promise<void> {
 
 async function processAmazonOrder(
   account: typeof marketplaceAccounts.$inferSelect,
-  order: { orderId: string; buyerEmail?: string; buyerName?: string; orderStatus: string; items?: Array<{ asin: string; title: string; quantityOrdered: number }> },
-  client: ReturnType<typeof createAmazonClient>
+  order: {
+    orderId: string;
+    buyerEmail?: string;
+    buyerName?: string;
+    orderStatus: string;
+    items?: Array<{ asin: string; title: string; quantityOrdered: number }>;
+  },
+  client: ReturnType<typeof createAmazonClient>,
 ): Promise<void> {
   const messages = await client.getMessagingMessages(order.orderId);
 
@@ -142,7 +151,7 @@ async function processAmazonOrder(
     const existingMessage = await db.query.marketplaceMessages.findFirst({
       where: and(
         eq(marketplaceMessages.marketplaceAccountId, account.id),
-        eq(marketplaceMessages.platformMessageId, message.messageId)
+        eq(marketplaceMessages.platformMessageId, message.messageId),
       ),
     });
 
@@ -153,7 +162,7 @@ async function processAmazonOrder(
     const channelLookup = await db.query.lookups.findFirst({
       where: and(
         eq(lookups.lookupTypeId, sql`(SELECT id FROM lookup_types WHERE name = 'channel')`),
-        sql`${lookups.metadata}->>'slug' = 'amazon_seller'`
+        sql`${lookups.metadata}->>'slug' = 'amazon_seller'`,
       ),
     });
 
@@ -161,7 +170,7 @@ async function processAmazonOrder(
       await db.query.lookups.findFirst({
         where: and(
           eq(lookups.lookupTypeId, sql`(SELECT id FROM lookup_types WHERE name = 'ticket_status')`),
-          eq(lookups.isDefault, true)
+          eq(lookups.isDefault, true),
         ),
       })
     )?.id;
@@ -169,8 +178,11 @@ async function processAmazonOrder(
     const defaultPriorityId = (
       await db.query.lookups.findFirst({
         where: and(
-          eq(lookups.lookupTypeId, sql`(SELECT id FROM lookup_types WHERE name = 'ticket_priority')`),
-          eq(lookups.isDefault, true)
+          eq(
+            lookups.lookupTypeId,
+            sql`(SELECT id FROM lookup_types WHERE name = 'ticket_priority')`,
+          ),
+          eq(lookups.isDefault, true),
         ),
       })
     )?.id;

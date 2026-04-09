@@ -32,19 +32,18 @@ export const chatWidgets = pgTable(
     offlineMessageEnabled: boolean("offline_message_enabled").default(true).notNull(),
     offlineMessageTitle: varchar("offline_message_title", { length: 255 }),
     offlineMessageBody: text("offline_message_body"),
-    businessHours: jsonb("business_hours").default({
-      enabled: false,
-      timezone: "UTC",
-      schedule: {},
-    }).notNull(),
+    businessHours: jsonb("business_hours")
+      .default({
+        enabled: false,
+        timezone: "UTC",
+        schedule: {},
+      })
+      .notNull(),
     allowFileUpload: boolean("allow_file_upload").default(true).notNull(),
     maxFileSizeBytes: integer("max_file_size_bytes").default(10485760).notNull(),
-    allowedFileTypes: jsonb("allowed_file_types").default([
-      "image/jpeg",
-      "image/png",
-      "image/gif",
-      "application/pdf",
-    ]).notNull(),
+    allowedFileTypes: jsonb("allowed_file_types")
+      .default(["image/jpeg", "image/png", "image/gif", "application/pdf"])
+      .notNull(),
     autoTicketConversion: boolean("auto_ticket_conversion").default(true).notNull(),
     greetingMessage: text("greeting_message"),
     agentUnavailableMessage: text("agent_unavailable_message"),
@@ -57,7 +56,7 @@ export const chatWidgets = pgTable(
   },
   (table) => ({
     orgIdx: index("chat_widgets_org_idx").on(table.organizationId),
-  })
+  }),
 );
 
 export const chatSessions = pgTable(
@@ -93,7 +92,7 @@ export const chatSessions = pgTable(
     orgIdx: index("chat_sessions_org_idx").on(table.organizationId),
     contactIdx: index("chat_sessions_contact_idx").on(table.contactId),
     statusIdx: index("chat_sessions_status_idx").on(table.status),
-  })
+  }),
 );
 
 export const chatMessages = pgTable(
@@ -106,7 +105,9 @@ export const chatMessages = pgTable(
       .notNull(),
     authorType: varchar("author_type", { length: 20 }).notNull(),
     authorUserId: bigint("author_user_id", { mode: "number" }).references((): any => users.id),
-    authorContactId: bigint("author_contact_id", { mode: "number" }).references((): any => contacts.id),
+    authorContactId: bigint("author_contact_id", { mode: "number" }).references(
+      (): any => contacts.id,
+    ),
     messageType: varchar("message_type", { length: 20 }).default("text").notNull(),
     body: text("body"),
     attachments: jsonb("attachments").default([]).notNull(),
@@ -116,7 +117,24 @@ export const chatMessages = pgTable(
   (table) => ({
     sessionIdx: index("chat_messages_session_idx").on(table.sessionId),
     createdAtIdx: index("chat_messages_created_at_idx").on(table.createdAt),
-  })
+  }),
+);
+
+export const chatMessageReactions = pgTable(
+  "chat_message_reactions",
+  {
+    id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
+    messageId: bigint("message_id", { mode: "number" })
+      .references(() => chatMessages.id)
+      .notNull(),
+    userId: bigint("user_id", { mode: "number" }).references((): any => users.id),
+    contactId: bigint("contact_id", { mode: "number" }).references((): any => contacts.id),
+    reaction: varchar("reaction", { length: 50 }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    messageIdx: index("chat_message_reactions_message_idx").on(table.messageId),
+  }),
 );
 
 export const chatWidgetsRelations = relations(chatWidgets, ({ one, many }) => ({
@@ -151,7 +169,7 @@ export const chatSessionsRelations = relations(chatSessions, ({ one, many }) => 
   messages: many(chatMessages),
 }));
 
-export const chatMessagesRelations = relations(chatMessages, ({ one }) => ({
+export const chatMessagesRelations = relations(chatMessages, ({ one, many }) => ({
   session: one(chatSessions, {
     fields: [chatMessages.sessionId],
     references: [chatSessions.id],
@@ -164,4 +182,5 @@ export const chatMessagesRelations = relations(chatMessages, ({ one }) => ({
     fields: [chatMessages.authorContactId],
     references: [contacts.id],
   }),
+  reactions: many(chatMessageReactions),
 }));

@@ -3,12 +3,30 @@ import { groups } from "@ticket-app/db/schema";
 import { eq, desc } from "drizzle-orm";
 import * as z from "zod";
 
-import { publicProcedure } from "../index";
+import { protectedProcedure } from "../index";
+import {
+  hasPermission,
+  PERMISSION_GROUPS,
+  PERMISSION_ACTIONS,
+  buildPermissionKey,
+} from "../services/rbac";
 
 export const groupsRouter = {
-  list: publicProcedure
+  list: protectedProcedure
     .input(z.object({ organizationId: z.number() }))
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canRead = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.GROUPS, PERMISSION_ACTIONS.READ),
+      );
+
+      if (!canRead) {
+        throw new Error("Unauthorized: Groups read permission required");
+      }
+
       return await db
         .select()
         .from(groups)
@@ -16,12 +34,26 @@ export const groupsRouter = {
         .orderBy(desc(groups.createdAt));
     }),
 
-  get: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
-    const [group] = await db.select().from(groups).where(eq(groups.id, input.id));
-    return group ?? null;
-  }),
+  get: protectedProcedure
+    .input(z.object({ id: z.number(), organizationId: z.number() }))
+    .handler(async ({ input, context }) => {
+      const canRead = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.GROUPS, PERMISSION_ACTIONS.READ),
+      );
 
-  create: publicProcedure
+      if (!canRead) {
+        throw new Error("Unauthorized: Groups read permission required");
+      }
+
+      const [group] = await db.select().from(groups).where(eq(groups.id, input.id));
+      return group ?? null;
+    }),
+
+  create: protectedProcedure
     .input(
       z.object({
         organizationId: z.number(),
@@ -31,7 +63,19 @@ export const groupsRouter = {
         createdBy: z.number().optional(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.GROUPS, PERMISSION_ACTIONS.WRITE),
+      );
+
+      if (!canWrite) {
+        throw new Error("Unauthorized: Groups write permission required");
+      }
+
       const [group] = await db
         .insert(groups)
         .values({
@@ -45,17 +89,30 @@ export const groupsRouter = {
       return group;
     }),
 
-  update: publicProcedure
+  update: protectedProcedure
     .input(
       z.object({
         id: z.number(),
+        organizationId: z.number(),
         name: z.string().min(1).max(150).optional(),
         description: z.string().optional(),
         parentId: z.number().nullable().optional(),
         isActive: z.boolean().optional(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.GROUPS, PERMISSION_ACTIONS.WRITE),
+      );
+
+      if (!canWrite) {
+        throw new Error("Unauthorized: Groups write permission required");
+      }
+
       const [updated] = await db
         .update(groups)
         .set({
@@ -69,8 +126,22 @@ export const groupsRouter = {
       return updated;
     }),
 
-  delete: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
-    await db.delete(groups).where(eq(groups.id, input.id));
-    return { success: true };
-  }),
+  delete: protectedProcedure
+    .input(z.object({ id: z.number(), organizationId: z.number() }))
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.GROUPS, PERMISSION_ACTIONS.WRITE),
+      );
+
+      if (!canWrite) {
+        throw new Error("Unauthorized: Groups write permission required");
+      }
+
+      await db.delete(groups).where(eq(groups.id, input.id));
+      return { success: true };
+    }),
 };

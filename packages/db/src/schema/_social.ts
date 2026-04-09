@@ -14,6 +14,7 @@ import { relations } from "drizzle-orm";
 import { organizations } from "./_organizations";
 import { tickets } from "./_tickets";
 import { users } from "./_users";
+import { teams } from "./_users";
 
 export const socialAccounts = pgTable(
   "social_accounts",
@@ -40,7 +41,7 @@ export const socialAccounts = pgTable(
   },
   (table) => ({
     orgPlatformUnique: unique().on(table.organizationId, table.platform, table.platformAccountId),
-  })
+  }),
 );
 
 export const socialMessages = pgTable(
@@ -74,7 +75,33 @@ export const socialMessages = pgTable(
   (table) => ({
     accountPlatformMsgUnique: unique().on(table.socialAccountId, table.platformMessageId),
     ticketIdx: index("social_messages_ticket_idx").on(table.ticketId),
-  })
+  }),
+);
+
+export const disqusAccounts = pgTable(
+  "disqus_accounts",
+  {
+    id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
+    uuid: uuid("uuid").defaultRandom().notNull().unique(),
+    organizationId: bigint("organization_id", { mode: "number" })
+      .references(() => organizations.id)
+      .notNull(),
+    forumShortname: varchar("forum_shortname", { length: 150 }).notNull(),
+    apiKeyEnc: text("api_key_enc").notNull(),
+    apiSecretEnc: text("api_secret_enc").notNull(),
+    accessTokenEnc: text("access_token_enc"),
+    defaultTeamId: bigint("default_team_id", { mode: "number" }).references((): any => teams.id),
+    status: varchar("status", { length: 30 }).notNull().default("active"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+    createdBy: bigint("created_by", { mode: "number" }).references((): any => users.id),
+    updatedBy: bigint("updated_by", { mode: "number" }).references((): any => users.id),
+    deletedBy: bigint("deleted_by", { mode: "number" }).references((): any => users.id),
+  },
+  (table) => ({
+    orgIdx: index("disqus_accounts_org_idx").on(table.organizationId),
+  }),
 );
 
 export const socialAccountsRelations = relations(socialAccounts, ({ one, many }) => ({

@@ -13,7 +13,8 @@ import {
 import { relations } from "drizzle-orm";
 import { contacts } from "./_contacts";
 import { organizations } from "./_organizations";
-import { users } from "./_users";
+import { users, teams } from "./_users";
+import { tickets } from "./_tickets";
 
 export const ecommerceStores = pgTable(
   "ecommerce_stores",
@@ -50,7 +51,7 @@ export const ecommerceStores = pgTable(
   (table) => ({
     orgPlatformUnique: unique().on(table.organizationId, table.platform, table.shopDomain),
     orgIdx: index("ecommerce_stores_org_idx").on(table.organizationId),
-  })
+  }),
 );
 
 export const ecommerceOrders = pgTable(
@@ -95,7 +96,62 @@ export const ecommerceOrders = pgTable(
     contactIdx: index("ecommerce_orders_contact_idx").on(table.contactId),
     customerEmailIdx: index("ecommerce_orders_customer_email_idx").on(table.customerEmail),
     orderNumberIdx: index("ecommerce_orders_order_number_idx").on(table.orderNumber),
-  })
+  }),
+);
+
+export const marketplaceAccounts = pgTable(
+  "marketplace_accounts",
+  {
+    id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
+    uuid: uuid("uuid").notNull().defaultRandom(),
+    organizationId: bigint("organization_id", { mode: "number" })
+      .notNull()
+      .references(() => organizations.id),
+    platform: varchar("platform", { length: 50 }).notNull(),
+    accountName: varchar("account_name", { length: 255 }).notNull(),
+    sellerId: varchar("seller_id", { length: 255 }),
+    marketplaceId: varchar("marketplace_id", { length: 50 }),
+    spApiClientIdEnc: text("sp_api_client_id_enc"),
+    spApiClientSecretEnc: text("sp_api_client_secret_enc"),
+    spApiRefreshTokenEnc: text("sp_api_refresh_token_enc"),
+    defaultTeamId: bigint("default_team_id", { mode: "number" }).references(() => teams.id),
+    status: varchar("status", { length: 30 }).notNull().default("active"),
+    lastSyncedAt: timestamp("last_synced_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+    createdBy: bigint("created_by", { mode: "number" }).references(() => users.id),
+    updatedBy: bigint("updated_by", { mode: "number" }).references(() => users.id),
+    deletedBy: bigint("deleted_by", { mode: "number" }).references(() => users.id),
+  },
+  (table) => ({
+    orgIdx: index("marketplace_accounts_org_idx").on(table.organizationId),
+  }),
+);
+
+export const marketplaceMessages = pgTable(
+  "marketplace_messages",
+  {
+    id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
+    uuid: uuid("uuid").notNull().defaultRandom(),
+    marketplaceAccountId: bigint("marketplace_account_id", { mode: "number" })
+      .notNull()
+      .references(() => marketplaceAccounts.id),
+    ticketId: bigint("ticket_id", { mode: "number" }).references(() => tickets.id),
+    platformMessageId: varchar("platform_message_id", { length: 500 }).notNull(),
+    amazonOrderId: varchar("amazon_order_id", { length: 100 }),
+    buyerEmail: varchar("buyer_email", { length: 255 }),
+    buyerName: varchar("buyer_name", { length: 255 }),
+    subject: text("subject"),
+    body: text("body"),
+    direction: varchar("direction", { length: 10 }).notNull(),
+    receivedAt: timestamp("received_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    accountIdx: index("marketplace_messages_account_idx").on(table.marketplaceAccountId),
+    ticketIdx: index("marketplace_messages_ticket_idx").on(table.ticketId),
+  }),
 );
 
 export const ecommerceStoresRelations = relations(ecommerceStores, ({ one, many }) => ({
@@ -118,5 +174,40 @@ export const ecommerceOrdersRelations = relations(ecommerceOrders, ({ one }) => 
   contact: one(contacts, {
     fields: [ecommerceOrders.contactId],
     references: [contacts.id],
+  }),
+}));
+
+export const marketplaceAccountsRelations = relations(marketplaceAccounts, ({ one, many }) => ({
+  organization: one(organizations, {
+    fields: [marketplaceAccounts.organizationId],
+    references: [organizations.id],
+  }),
+  defaultTeam: one(teams, {
+    fields: [marketplaceAccounts.defaultTeamId],
+    references: [teams.id],
+  }),
+  createdByUser: one(users, {
+    fields: [marketplaceAccounts.createdBy],
+    references: [users.id],
+  }),
+  updatedByUser: one(users, {
+    fields: [marketplaceAccounts.updatedBy],
+    references: [users.id],
+  }),
+  deletedByUser: one(users, {
+    fields: [marketplaceAccounts.deletedBy],
+    references: [users.id],
+  }),
+  messages: many(marketplaceMessages),
+}));
+
+export const marketplaceMessagesRelations = relations(marketplaceMessages, ({ one }) => ({
+  account: one(marketplaceAccounts, {
+    fields: [marketplaceMessages.marketplaceAccountId],
+    references: [marketplaceAccounts.id],
+  }),
+  ticket: one(tickets, {
+    fields: [marketplaceMessages.ticketId],
+    references: [tickets.id],
   }),
 }));

@@ -36,7 +36,7 @@ import {
   listPermissions,
   getUsersByPermission,
 } from "../services/rbac";
-import { createAuditLog, trackChanges } from "@ticket-app/server/middleware/audit";
+import { createAuditLog, trackChanges } from "../services/audit";
 
 export const usersRouter = {
   list: publicProcedure

@@ -5,10 +5,19 @@
     "outDir": "dist",
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@ticket-app/api/*": ["../../packages/api/src/*"],
+      "@ticket-app/db/*": ["../../packages/db/src/*"],
+      "@ticket-app/env/*": ["../../packages/env/src/*"],
+      "@ticket-app/queue/*": ["../../packages/queue/src/*"]
     },
     "jsx": "react-jsx",
     "jsxImportSource": "hono/jsx"
   },
-  "references": [{ "path": "../../packages/api" }, { "path": "../../packages/db" }]
+  "references": [
+    { "path": "../../packages/api" },
+    { "path": "../../packages/db" },
+    { "path": "../../packages/env" },
+    { "path": "../../packages/queue" }
+  ]
 }

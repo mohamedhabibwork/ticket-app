@@ -9,7 +9,7 @@ import {
   teamMembers,
   groups,
 } from "@ticket-app/db/schema";
-import { createAuditLog, trackChanges } from "@ticket-app/server/middleware/audit";
+import { createAuditLog, trackChanges } from "./audit";
 
 export const PERMISSION_GROUPS = {
   TICKETS: "tickets",
@@ -28,6 +28,17 @@ export const PERMISSION_GROUPS = {
   ANALYTICS: "analytics",
   API_KEYS: "api_keys",
   AUDIT: "audit",
+  GDPR: "gdpr",
+  CHATBOT: "chatbot",
+  MOBILE_SDK: "mobile_sdk",
+  TICKET_CATEGORIES: "ticket_categories",
+  TICKET_FORWARDS: "ticket_forwards",
+  DISQUS: "disqus",
+  MARKETPLACE: "marketplace",
+  CALENDAR: "calendar",
+  TRANSLATION: "translation",
+  ON_PREMISE: "on_premise",
+  PRESENCE: "presence",
 } as const;
 
 export const PERMISSION_ACTIONS = {
@@ -316,6 +327,116 @@ export const DEFAULT_PERMISSIONS: Array<{ key: string; label: string; group: str
     key: buildPermissionKey(PERMISSION_GROUPS.AUDIT, PERMISSION_ACTIONS.READ),
     label: "View Audit Logs",
     group: PERMISSION_GROUPS.AUDIT,
+  },
+  {
+    key: buildPermissionKey(PERMISSION_GROUPS.GDPR, PERMISSION_ACTIONS.READ),
+    label: "View GDPR Requests",
+    group: PERMISSION_GROUPS.GDPR,
+  },
+  {
+    key: buildPermissionKey(PERMISSION_GROUPS.GDPR, PERMISSION_ACTIONS.WRITE),
+    label: "Manage GDPR Requests",
+    group: PERMISSION_GROUPS.GDPR,
+  },
+  {
+    key: buildPermissionKey(PERMISSION_GROUPS.CHATBOT, PERMISSION_ACTIONS.READ),
+    label: "View Chatbot Configurations",
+    group: PERMISSION_GROUPS.CHATBOT,
+  },
+  {
+    key: buildPermissionKey(PERMISSION_GROUPS.CHATBOT, PERMISSION_ACTIONS.WRITE),
+    label: "Manage Chatbot Configurations",
+    group: PERMISSION_GROUPS.CHATBOT,
+  },
+  {
+    key: buildPermissionKey(PERMISSION_GROUPS.MOBILE_SDK, PERMISSION_ACTIONS.READ),
+    label: "View Mobile SDK Configurations",
+    group: PERMISSION_GROUPS.MOBILE_SDK,
+  },
+  {
+    key: buildPermissionKey(PERMISSION_GROUPS.MOBILE_SDK, PERMISSION_ACTIONS.WRITE),
+    label: "Manage Mobile SDK Configurations",
+    group: PERMISSION_GROUPS.MOBILE_SDK,
+  },
+  {
+    key: buildPermissionKey(PERMISSION_GROUPS.TICKET_CATEGORIES, PERMISSION_ACTIONS.READ),
+    label: "View Ticket Categories",
+    group: PERMISSION_GROUPS.TICKET_CATEGORIES,
+  },
+  {
+    key: buildPermissionKey(PERMISSION_GROUPS.TICKET_CATEGORIES, PERMISSION_ACTIONS.WRITE),
+    label: "Manage Ticket Categories",
+    group: PERMISSION_GROUPS.TICKET_CATEGORIES,
+  },
+  {
+    key: buildPermissionKey(PERMISSION_GROUPS.TICKET_FORWARDS, PERMISSION_ACTIONS.READ),
+    label: "View Ticket Forwards",
+    group: PERMISSION_GROUPS.TICKET_FORWARDS,
+  },
+  {
+    key: buildPermissionKey(PERMISSION_GROUPS.TICKET_FORWARDS, PERMISSION_ACTIONS.WRITE),
+    label: "Create Ticket Forwards",
+    group: PERMISSION_GROUPS.TICKET_FORWARDS,
+  },
+  {
+    key: buildPermissionKey(PERMISSION_GROUPS.DISQUS, PERMISSION_ACTIONS.READ),
+    label: "View Disqus Accounts",
+    group: PERMISSION_GROUPS.DISQUS,
+  },
+  {
+    key: buildPermissionKey(PERMISSION_GROUPS.DISQUS, PERMISSION_ACTIONS.WRITE),
+    label: "Manage Disqus Accounts",
+    group: PERMISSION_GROUPS.DISQUS,
+  },
+  {
+    key: buildPermissionKey(PERMISSION_GROUPS.MARKETPLACE, PERMISSION_ACTIONS.READ),
+    label: "View Marketplace Accounts",
+    group: PERMISSION_GROUPS.MARKETPLACE,
+  },
+  {
+    key: buildPermissionKey(PERMISSION_GROUPS.MARKETPLACE, PERMISSION_ACTIONS.WRITE),
+    label: "Manage Marketplace Accounts",
+    group: PERMISSION_GROUPS.MARKETPLACE,
+  },
+  {
+    key: buildPermissionKey(PERMISSION_GROUPS.CALENDAR, PERMISSION_ACTIONS.READ),
+    label: "View Calendar Connections",
+    group: PERMISSION_GROUPS.CALENDAR,
+  },
+  {
+    key: buildPermissionKey(PERMISSION_GROUPS.CALENDAR, PERMISSION_ACTIONS.WRITE),
+    label: "Manage Calendar Connections",
+    group: PERMISSION_GROUPS.CALENDAR,
+  },
+  {
+    key: buildPermissionKey(PERMISSION_GROUPS.TRANSLATION, PERMISSION_ACTIONS.READ),
+    label: "View Translation Configurations",
+    group: PERMISSION_GROUPS.TRANSLATION,
+  },
+  {
+    key: buildPermissionKey(PERMISSION_GROUPS.TRANSLATION, PERMISSION_ACTIONS.WRITE),
+    label: "Manage Translation Configurations",
+    group: PERMISSION_GROUPS.TRANSLATION,
+  },
+  {
+    key: buildPermissionKey(PERMISSION_GROUPS.ON_PREMISE, PERMISSION_ACTIONS.READ),
+    label: "View On-Premise Licenses",
+    group: PERMISSION_GROUPS.ON_PREMISE,
+  },
+  {
+    key: buildPermissionKey(PERMISSION_GROUPS.ON_PREMISE, PERMISSION_ACTIONS.WRITE),
+    label: "Manage On-Premise Licenses",
+    group: PERMISSION_GROUPS.ON_PREMISE,
+  },
+  {
+    key: buildPermissionKey(PERMISSION_GROUPS.PRESENCE, PERMISSION_ACTIONS.READ),
+    label: "View Ticket Presence",
+    group: PERMISSION_GROUPS.PRESENCE,
+  },
+  {
+    key: buildPermissionKey(PERMISSION_GROUPS.PRESENCE, PERMISSION_ACTIONS.WRITE),
+    label: "Manage Ticket Presence",
+    group: PERMISSION_GROUPS.PRESENCE,
   },
 ];
 

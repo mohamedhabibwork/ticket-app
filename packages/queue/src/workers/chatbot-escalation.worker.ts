@@ -1,11 +1,10 @@
 import { Worker, Job, Queue } from "bullmq";
-import { eq, and, isNull, desc, sql } from "drizzle-orm";
+import { eq, and, isNull, desc } from "drizzle-orm";
 
 import { db } from "@ticket-app/db";
-import { chatbotConfigs, chatbotSessions, chatbotMessages } from "@ticket-app/db/schema";
+import { chatbotSessions, chatbotMessages } from "@ticket-app/db/schema";
 import { getRedis } from "../redis";
 import { env } from "@ticket-app/env/server";
-import { escalateChatbotSession, getChatbotSessionHistory } from "@ticket-app/api/src/lib/chatbot";
 
 const CHATBOT_ESCALATION_QUEUE = `${env.QUEUE_PREFIX}:chatbot-escalation`;
 
@@ -29,21 +28,19 @@ const chatbotEscalationQueue = new Queue<ChatbotEscalationJobData>(CHATBOT_ESCAL
 
 export async function addChatbotEscalationJob(
   data: ChatbotEscalationJobData,
-  options?: { delay?: number }
+  options?: { delay?: number },
 ): Promise<Job<ChatbotEscalationJobData>> {
   return chatbotEscalationQueue.add("chatbot-escalation", data, options);
 }
 
-export async function scheduleChatbotEscalationCheck(
-  intervalMinutes: number = 1
-): Promise<void> {
+export async function scheduleChatbotEscalationCheck(intervalMinutes: number = 1): Promise<void> {
   await chatbotEscalationQueue.add(
     "chatbot-escalation",
     { type: "check-escalation" },
     {
       repeat: { every: intervalMinutes * 60 * 1000 },
       jobId: "chatbot-escalation-recurring",
-    }
+    },
   );
 }
 
@@ -65,7 +62,7 @@ export function createChatbotEscalationWorker(): Worker {
     {
       connection: getRedis(),
       concurrency: 5,
-    }
+    },
   );
 }
 
@@ -73,10 +70,7 @@ async function checkEscalationNeeded(): Promise<void> {
   console.log("[Chatbot-Escalation] Checking for sessions needing escalation");
 
   const activeSessions = await db.query.chatbotSessions.findMany({
-    where: and(
-      eq(chatbotSessions.status, "active"),
-      isNull(chatbotSessions.escalatedAt)
-    ),
+    where: and(eq(chatbotSessions.status, "active"), isNull(chatbotSessions.escalatedAt)),
     with: {
       config: true,
       messages: {
@@ -106,10 +100,7 @@ async function checkConfidenceThresholdEscalation(): Promise<void> {
   console.log("[Chatbot-Escalation] Checking confidence threshold escalation");
 
   const lowConfidenceSessions = await db.query.chatbotSessions.findMany({
-    where: and(
-      eq(chatbotSessions.status, "active"),
-      isNull(chatbotSessions.escalatedAt)
-    ),
+    where: and(eq(chatbotSessions.status, "active"), isNull(chatbotSessions.escalatedAt)),
     with: {
       config: true,
       messages: {
@@ -175,6 +166,37 @@ async function escalateSession(sessionId: number): Promise<void> {
   }
 
   console.log(`[Chatbot-Escalation] Escalation complete for session ${sessionId}`);
+}
+
+async function getChatbotSessionHistory(
+  sessionId: number,
+): Promise<{ user: string; bot: string }[]> {
+  const messages = await db.query.chatbotMessages.findMany({
+    where: eq(chatbotMessages.chatbotSessionId, sessionId),
+    orderBy: [chatbotMessages.createdAt],
+  });
+
+  const history: { user: string; bot: string }[] = [];
+  let currentUser: string | null = null;
+  let currentBot: string | null = null;
+
+  for (const msg of messages) {
+    if (msg.authorType === "user") {
+      if (currentUser !== null && currentBot !== null) {
+        history.push({ user: currentUser, bot: currentBot });
+      }
+      currentUser = msg.message;
+      currentBot = null;
+    } else {
+      currentBot = msg.message;
+    }
+  }
+
+  if (currentUser !== null && currentBot !== null) {
+    history.push({ user: currentUser, bot: currentBot });
+  }
+
+  return history;
 }
 
 export async function closeChatbotEscalationQueue(): Promise<void> {

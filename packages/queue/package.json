@@ -13,9 +13,9 @@
   "dependencies": {
     "@aws-sdk/client-s3": "catalog:",
     "@aws-sdk/s3-request-presigner": "catalog:",
-    "@ticket-app/api": "workspace:*",
     "@ticket-app/db": "workspace:*",
     "@ticket-app/env": "workspace:*",
+    "@ticket-app/shared": "workspace:*",
     "bullmq": "catalog:",
     "dotenv": "catalog:",
     "drizzle-orm": "catalog:",

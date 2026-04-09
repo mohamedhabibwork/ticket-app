@@ -16,6 +16,8 @@ import { lookups } from "./_lookups";
 import { organizations } from "./_organizations";
 import { contacts } from "./_contacts";
 import { teams, users } from "./_users";
+import { groups } from "./_groups";
+import { ticketCategories } from "./_ticketCategories";
 import { emailMessages, mailboxes } from "./_mailboxes";
 import { formSubmissions } from "./_forms";
 import { socialMessages } from "./_social";
@@ -57,6 +59,12 @@ export const tickets = pgTable(
     ),
     parentTicketId: bigint("parent_ticket_id", { mode: "number" }).references(
       (): any => tickets.id,
+    ),
+    categoryId: bigint("category_id", { mode: "number" }).references(
+      (): any => ticketCategories.id,
+    ),
+    assignedGroupId: bigint("assigned_group_id", { mode: "number" }).references(
+      (): any => groups.id,
     ),
     isMerged: boolean("is_merged").default(false).notNull(),
     isSpam: boolean("is_spam").default(false).notNull(),
@@ -311,6 +319,14 @@ export const ticketsRelations = relations(tickets, ({ one, many }) => ({
   mailbox: one(mailboxes, {
     fields: [tickets.mailboxId],
     references: [mailboxes.id],
+  }),
+  category: one(ticketCategories, {
+    fields: [tickets.categoryId],
+    references: [ticketCategories.id],
+  }),
+  assignedGroup: one(groups, {
+    fields: [tickets.assignedGroupId],
+    references: [groups.id],
   }),
   parentTicket: one(tickets, {
     fields: [tickets.parentTicketId],

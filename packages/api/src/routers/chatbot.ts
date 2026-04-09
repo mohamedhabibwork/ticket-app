@@ -3,7 +3,13 @@ import { chatbotConfigs, chatbotSessions, chatbotMessages } from "@ticket-app/db
 import { eq, desc, and } from "drizzle-orm";
 import * as z from "zod";
 
-import { publicProcedure } from "../index";
+import { protectedProcedure } from "../index";
+import {
+  hasPermission,
+  PERMISSION_GROUPS,
+  PERMISSION_ACTIONS,
+  buildPermissionKey,
+} from "../services/rbac";
 import {
   semanticSearchKB,
   processChatbotMessage,
@@ -13,9 +19,21 @@ import {
 } from "../lib/chatbot";
 
 export const chatbotRouter = {
-  listConfigs: publicProcedure
+  listConfigs: protectedProcedure
     .input(z.object({ organizationId: z.number() }))
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canRead = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.CHATBOT, PERMISSION_ACTIONS.READ),
+      );
+
+      if (!canRead) {
+        throw new Error("Unauthorized: Chatbot read permission required");
+      }
+
       return await db
         .select()
         .from(chatbotConfigs)
@@ -23,12 +41,29 @@ export const chatbotRouter = {
         .orderBy(desc(chatbotConfigs.createdAt));
     }),
 
-  getConfig: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
-    const [config] = await db.select().from(chatbotConfigs).where(eq(chatbotConfigs.id, input.id));
-    return config ?? null;
-  }),
+  getConfig: protectedProcedure
+    .input(z.object({ id: z.number(), organizationId: z.number() }))
+    .handler(async ({ input, context }) => {
+      const canRead = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.CHATBOT, PERMISSION_ACTIONS.READ),
+      );
 
-  createConfig: publicProcedure
+      if (!canRead) {
+        throw new Error("Unauthorized: Chatbot read permission required");
+      }
+
+      const [config] = await db
+        .select()
+        .from(chatbotConfigs)
+        .where(eq(chatbotConfigs.id, input.id));
+      return config ?? null;
+    }),
+
+  createConfig: protectedProcedure
     .input(
       z.object({
         organizationId: z.number(),
@@ -39,7 +74,19 @@ export const chatbotRouter = {
         workingHours: z.record(z.string(), z.unknown()).optional(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.CHATBOT, PERMISSION_ACTIONS.WRITE),
+      );
+
+      if (!canWrite) {
+        throw new Error("Unauthorized: Chatbot write permission required");
+      }
+
       const [config] = await db
         .insert(chatbotConfigs)
         .values({
@@ -54,10 +101,11 @@ export const chatbotRouter = {
       return config;
     }),
 
-  updateConfig: publicProcedure
+  updateConfig: protectedProcedure
     .input(
       z.object({
         id: z.number(),
+        organizationId: z.number(),
         name: z.string().optional(),
         isEnabled: z.boolean().optional(),
         escalationThreshold: z.number().min(1).max(10).optional(),
@@ -65,7 +113,19 @@ export const chatbotRouter = {
         workingHours: z.record(z.string(), z.unknown()).optional(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.CHATBOT, PERMISSION_ACTIONS.WRITE),
+      );
+
+      if (!canWrite) {
+        throw new Error("Unauthorized: Chatbot write permission required");
+      }
+
       const [updated] = await db
         .update(chatbotConfigs)
         .set({
@@ -80,12 +140,26 @@ export const chatbotRouter = {
       return updated;
     }),
 
-  deleteConfig: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
-    await db.delete(chatbotConfigs).where(eq(chatbotConfigs.id, input.id));
-    return { success: true };
-  }),
+  deleteConfig: protectedProcedure
+    .input(z.object({ id: z.number(), organizationId: z.number() }))
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.CHATBOT, PERMISSION_ACTIONS.WRITE),
+      );
 
-  configureChatbot: publicProcedure
+      if (!canWrite) {
+        throw new Error("Unauthorized: Chatbot write permission required");
+      }
+
+      await db.delete(chatbotConfigs).where(eq(chatbotConfigs.id, input.id));
+      return { success: true };
+    }),
+
+  configureChatbot: protectedProcedure
     .input(
       z.object({
         organizationId: z.number(),
@@ -96,7 +170,19 @@ export const chatbotRouter = {
         workingHours: z.record(z.string(), z.unknown()).optional(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.CHATBOT, PERMISSION_ACTIONS.WRITE),
+      );
+
+      if (!canWrite) {
+        throw new Error("Unauthorized: Chatbot write permission required");
+      }
+
       const existing = await db.query.chatbotConfigs.findFirst({
         where: eq(chatbotConfigs.organizationId, input.organizationId),
       });
@@ -130,16 +216,29 @@ export const chatbotRouter = {
       return config;
     }),
 
-  listSessions: publicProcedure
+  listSessions: protectedProcedure
     .input(
       z.object({
+        organizationId: z.number(),
         configId: z.number().optional(),
         contactId: z.number().optional(),
         status: z.string().optional(),
         limit: z.number().default(50),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canRead = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.CHATBOT, PERMISSION_ACTIONS.READ),
+      );
+
+      if (!canRead) {
+        throw new Error("Unauthorized: Chatbot read permission required");
+      }
+
       const conditions = [];
       if (input.configId) conditions.push(eq(chatbotSessions.configId, input.configId));
       if (input.contactId) conditions.push(eq(chatbotSessions.contactId, input.contactId));
@@ -153,17 +252,43 @@ export const chatbotRouter = {
         .limit(input.limit);
     }),
 
-  getSession: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
-    const [session] = await db
-      .select()
-      .from(chatbotSessions)
-      .where(eq(chatbotSessions.id, input.id));
-    return session ?? null;
-  }),
+  getSession: protectedProcedure
+    .input(z.object({ id: z.number(), organizationId: z.number() }))
+    .handler(async ({ input, context }) => {
+      const canRead = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.CHATBOT, PERMISSION_ACTIONS.READ),
+      );
 
-  getSessionWithMessages: publicProcedure
-    .input(z.object({ id: z.number() }))
-    .handler(async ({ input }) => {
+      if (!canRead) {
+        throw new Error("Unauthorized: Chatbot read permission required");
+      }
+
+      const [session] = await db
+        .select()
+        .from(chatbotSessions)
+        .where(eq(chatbotSessions.id, input.id));
+      return session ?? null;
+    }),
+
+  getSessionWithMessages: protectedProcedure
+    .input(z.object({ id: z.number(), organizationId: z.number() }))
+    .handler(async ({ input, context }) => {
+      const canRead = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.CHATBOT, PERMISSION_ACTIONS.READ),
+      );
+
+      if (!canRead) {
+        throw new Error("Unauthorized: Chatbot read permission required");
+      }
+
       const session = await db.query.chatbotSessions.findFirst({
         where: eq(chatbotSessions.id, input.id),
         with: {
@@ -175,16 +300,29 @@ export const chatbotRouter = {
       return session ?? null;
     }),
 
-  createSession: publicProcedure
+  createSession: protectedProcedure
     .input(
       z.object({
+        organizationId: z.number(),
         configId: z.number(),
         contactId: z.number(),
         ticketId: z.number().optional(),
         agentId: z.number().optional(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.CHATBOT, PERMISSION_ACTIONS.WRITE),
+      );
+
+      if (!canWrite) {
+        throw new Error("Unauthorized: Chatbot write permission required");
+      }
+
       const config = await db.query.chatbotConfigs.findFirst({
         where: eq(chatbotConfigs.id, input.configId),
       });
@@ -206,14 +344,27 @@ export const chatbotRouter = {
       return session;
     }),
 
-  processMessage: publicProcedure
+  processMessage: protectedProcedure
     .input(
       z.object({
+        organizationId: z.number(),
         sessionId: z.number(),
         message: z.string(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.CHATBOT, PERMISSION_ACTIONS.WRITE),
+      );
+
+      if (!canWrite) {
+        throw new Error("Unauthorized: Chatbot write permission required");
+      }
+
       const response = await processChatbotMessage(input.sessionId, input.message);
 
       const session = await db.query.chatbotSessions.findFirst({
@@ -233,14 +384,27 @@ export const chatbotRouter = {
       return response;
     }),
 
-  escalateSession: publicProcedure
+  escalateSession: protectedProcedure
     .input(
       z.object({
+        organizationId: z.number(),
         sessionId: z.number(),
         agentId: z.number().optional(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.CHATBOT, PERMISSION_ACTIONS.WRITE),
+      );
+
+      if (!canWrite) {
+        throw new Error("Unauthorized: Chatbot write permission required");
+      }
+
       await escalateChatbotSession(input.sessionId, input.agentId);
 
       const session = await db.query.chatbotSessions.findFirst({
@@ -259,14 +423,27 @@ export const chatbotRouter = {
       };
     }),
 
-  endSession: publicProcedure
+  endSession: protectedProcedure
     .input(
       z.object({
+        organizationId: z.number(),
         id: z.number(),
         endReason: z.enum(["resolved", "escalated", "abandoned"]).optional(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.CHATBOT, PERMISSION_ACTIONS.WRITE),
+      );
+
+      if (!canWrite) {
+        throw new Error("Unauthorized: Chatbot write permission required");
+      }
+
       const [updated] = await db
         .update(chatbotSessions)
         .set({
@@ -279,15 +456,28 @@ export const chatbotRouter = {
       return updated;
     }),
 
-  rateSession: publicProcedure
+  rateSession: protectedProcedure
     .input(
       z.object({
+        organizationId: z.number(),
         id: z.number(),
         rating: z.number().min(1).max(5),
         comment: z.string().optional(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.CHATBOT, PERMISSION_ACTIONS.WRITE),
+      );
+
+      if (!canWrite) {
+        throw new Error("Unauthorized: Chatbot write permission required");
+      }
+
       const [updated] = await db
         .update(chatbotSessions)
         .set({
@@ -299,9 +489,21 @@ export const chatbotRouter = {
       return updated;
     }),
 
-  listMessages: publicProcedure
-    .input(z.object({ sessionId: z.number() }))
-    .handler(async ({ input }) => {
+  listMessages: protectedProcedure
+    .input(z.object({ organizationId: z.number(), sessionId: z.number() }))
+    .handler(async ({ input, context }) => {
+      const canRead = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.CHATBOT, PERMISSION_ACTIONS.READ),
+      );
+
+      if (!canRead) {
+        throw new Error("Unauthorized: Chatbot read permission required");
+      }
+
       return await db
         .select()
         .from(chatbotMessages)
@@ -309,7 +511,7 @@ export const chatbotRouter = {
         .orderBy(desc(chatbotMessages.createdAt));
     }),
 
-  searchKB: publicProcedure
+  searchKB: protectedProcedure
     .input(
       z.object({
         organizationId: z.number(),
@@ -317,18 +519,42 @@ export const chatbotRouter = {
         limit: z.number().default(5),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canRead = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.CHATBOT, PERMISSION_ACTIONS.READ),
+      );
+
+      if (!canRead) {
+        throw new Error("Unauthorized: Chatbot read permission required");
+      }
+
       return await semanticSearchKB(input.organizationId, input.query, input.limit);
     }),
 
-  getAnalytics: publicProcedure
+  getAnalytics: protectedProcedure
     .input(
       z.object({
         organizationId: z.number(),
         days: z.number().default(30),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canRead = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.CHATBOT, PERMISSION_ACTIONS.READ),
+      );
+
+      if (!canRead) {
+        throw new Error("Unauthorized: Chatbot read permission required");
+      }
+
       return await getChatbotAnalytics(input.organizationId, input.days);
     }),
 };

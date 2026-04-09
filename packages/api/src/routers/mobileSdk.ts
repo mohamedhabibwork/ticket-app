@@ -8,14 +8,32 @@ import {
 import { eq, desc } from "drizzle-orm";
 import * as z from "zod";
 
-import { publicProcedure } from "../index";
+import { protectedProcedure } from "../index";
+import {
+  hasPermission,
+  PERMISSION_GROUPS,
+  PERMISSION_ACTIONS,
+  buildPermissionKey,
+} from "../services/rbac";
 import { sendFCMNotification } from "../lib/fcm";
 import { sendAPNsNotification } from "../lib/apns";
 
 export const mobileSdkRouter = {
-  listConfigs: publicProcedure
+  listConfigs: protectedProcedure
     .input(z.object({ organizationId: z.number() }))
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canRead = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.MOBILE_SDK, PERMISSION_ACTIONS.READ),
+      );
+
+      if (!canRead) {
+        throw new Error("Unauthorized: Mobile SDK read permission required");
+      }
+
       return await db
         .select()
         .from(mobileSdkConfigs)
@@ -23,15 +41,29 @@ export const mobileSdkRouter = {
         .orderBy(desc(mobileSdkConfigs.createdAt));
     }),
 
-  getConfig: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
-    const [config] = await db
-      .select()
-      .from(mobileSdkConfigs)
-      .where(eq(mobileSdkConfigs.id, input.id));
-    return config ?? null;
-  }),
+  getConfig: protectedProcedure
+    .input(z.object({ id: z.number(), organizationId: z.number() }))
+    .handler(async ({ input, context }) => {
+      const canRead = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.MOBILE_SDK, PERMISSION_ACTIONS.READ),
+      );
 
-  createConfig: publicProcedure
+      if (!canRead) {
+        throw new Error("Unauthorized: Mobile SDK read permission required");
+      }
+
+      const [config] = await db
+        .select()
+        .from(mobileSdkConfigs)
+        .where(eq(mobileSdkConfigs.id, input.id));
+      return config ?? null;
+    }),
+
+  createConfig: protectedProcedure
     .input(
       z.object({
         organizationId: z.number(),
@@ -45,7 +77,19 @@ export const mobileSdkRouter = {
         isEnabled: z.boolean().default(true),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.MOBILE_SDK, PERMISSION_ACTIONS.WRITE),
+      );
+
+      if (!canWrite) {
+        throw new Error("Unauthorized: Mobile SDK write permission required");
+      }
+
       const [config] = await db
         .insert(mobileSdkConfigs)
         .values({
@@ -63,10 +107,11 @@ export const mobileSdkRouter = {
       return config;
     }),
 
-  updateConfig: publicProcedure
+  updateConfig: protectedProcedure
     .input(
       z.object({
         id: z.number(),
+        organizationId: z.number(),
         appBundleId: z.string().optional(),
         fcmServerKey: z.string().optional(),
         apnsKeyId: z.string().optional(),
@@ -76,7 +121,19 @@ export const mobileSdkRouter = {
         isEnabled: z.boolean().optional(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.MOBILE_SDK, PERMISSION_ACTIONS.WRITE),
+      );
+
+      if (!canWrite) {
+        throw new Error("Unauthorized: Mobile SDK write permission required");
+      }
+
       const [updated] = await db
         .update(mobileSdkConfigs)
         .set({
@@ -93,21 +150,48 @@ export const mobileSdkRouter = {
       return updated;
     }),
 
-  deleteConfig: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
-    await db.delete(mobileSdkConfigs).where(eq(mobileSdkConfigs.id, input.id));
-    return { success: true };
-  }),
+  deleteConfig: protectedProcedure
+    .input(z.object({ id: z.number(), organizationId: z.number() }))
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.MOBILE_SDK, PERMISSION_ACTIONS.WRITE),
+      );
 
-  registerToken: publicProcedure
+      if (!canWrite) {
+        throw new Error("Unauthorized: Mobile SDK write permission required");
+      }
+
+      await db.delete(mobileSdkConfigs).where(eq(mobileSdkConfigs.id, input.id));
+      return { success: true };
+    }),
+
+  registerToken: protectedProcedure
     .input(
       z.object({
+        organizationId: z.number(),
         contactId: z.number(),
         platform: z.enum(["ios", "android"]),
         token: z.string(),
         deviceId: z.string().optional(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.MOBILE_SDK, PERMISSION_ACTIONS.WRITE),
+      );
+
+      if (!canWrite) {
+        throw new Error("Unauthorized: Mobile SDK write permission required");
+      }
+
       const existing = await db.query.contactPushTokens.findFirst({
         where: eq(contactPushTokens.token, input.token),
       });
@@ -136,9 +220,21 @@ export const mobileSdkRouter = {
       return newToken;
     }),
 
-  listTokens: publicProcedure
-    .input(z.object({ contactId: z.number() }))
-    .handler(async ({ input }) => {
+  listTokens: protectedProcedure
+    .input(z.object({ organizationId: z.number(), contactId: z.number() }))
+    .handler(async ({ input, context }) => {
+      const canRead = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.MOBILE_SDK, PERMISSION_ACTIONS.READ),
+      );
+
+      if (!canRead) {
+        throw new Error("Unauthorized: Mobile SDK read permission required");
+      }
+
       return await db
         .select()
         .from(contactPushTokens)
@@ -146,14 +242,29 @@ export const mobileSdkRouter = {
         .orderBy(desc(contactPushTokens.createdAt));
     }),
 
-  deleteToken: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
-    await db.delete(contactPushTokens).where(eq(contactPushTokens.id, input.id));
-    return { success: true };
-  }),
+  deleteToken: protectedProcedure
+    .input(z.object({ id: z.number(), organizationId: z.number() }))
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.MOBILE_SDK, PERMISSION_ACTIONS.WRITE),
+      );
 
-  sendPushNotification: publicProcedure
+      if (!canWrite) {
+        throw new Error("Unauthorized: Mobile SDK write permission required");
+      }
+
+      await db.delete(contactPushTokens).where(eq(contactPushTokens.id, input.id));
+      return { success: true };
+    }),
+
+  sendPushNotification: protectedProcedure
     .input(
       z.object({
+        organizationId: z.number(),
         contactId: z.number(),
         title: z.string(),
         body: z.string(),
@@ -161,7 +272,19 @@ export const mobileSdkRouter = {
         ticketId: z.number().optional(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.MOBILE_SDK, PERMISSION_ACTIONS.WRITE),
+      );
+
+      if (!canWrite) {
+        throw new Error("Unauthorized: Mobile SDK write permission required");
+      }
+
       const contact = await db.query.contacts.findFirst({
         where: eq(contacts.id, input.contactId),
       });
@@ -223,9 +346,10 @@ export const mobileSdkRouter = {
       return { successCount, failureCount, errors };
     }),
 
-  sendBatchPushNotification: publicProcedure
+  sendBatchPushNotification: protectedProcedure
     .input(
       z.object({
+        organizationId: z.number(),
         contactIds: z.array(z.number()),
         title: z.string(),
         body: z.string(),
@@ -233,7 +357,19 @@ export const mobileSdkRouter = {
         ticketId: z.number().optional(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.MOBILE_SDK, PERMISSION_ACTIONS.WRITE),
+      );
+
+      if (!canWrite) {
+        throw new Error("Unauthorized: Mobile SDK write permission required");
+      }
+
       let totalSuccess = 0;
       let totalFailure = 0;
       const errors: string[] = [];
@@ -291,9 +427,27 @@ export const mobileSdkRouter = {
       return { successCount: totalSuccess, failureCount: totalFailure, errors };
     }),
 
-  listNotificationLogs: publicProcedure
-    .input(z.object({ contactId: z.number().optional(), limit: z.number().default(50) }))
-    .handler(async ({ input }) => {
+  listNotificationLogs: protectedProcedure
+    .input(
+      z.object({
+        organizationId: z.number(),
+        contactId: z.number().optional(),
+        limit: z.number().default(50),
+      }),
+    )
+    .handler(async ({ input, context }) => {
+      const canRead = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.MOBILE_SDK, PERMISSION_ACTIONS.READ),
+      );
+
+      if (!canRead) {
+        throw new Error("Unauthorized: Mobile SDK read permission required");
+      }
+
       const conditions = input.contactId
         ? [eq(pushNotificationLogs.contactId, input.contactId)]
         : [];

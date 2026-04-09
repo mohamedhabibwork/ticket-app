@@ -3,18 +3,36 @@ import { disqusAccounts } from "@ticket-app/db/schema";
 import { eq, and, desc, isNull } from "drizzle-orm";
 import * as z from "zod";
 
-import { publicProcedure } from "../index";
+import { protectedProcedure } from "../index";
+import {
+  hasPermission,
+  PERMISSION_GROUPS,
+  PERMISSION_ACTIONS,
+  buildPermissionKey,
+} from "../services/rbac";
 import { encryptToken, decryptToken } from "../lib/crypto";
 import { createDisqusClient } from "../lib/disqus";
 
 export const disqusRouter = {
-  listAccounts: publicProcedure
+  listAccounts: protectedProcedure
     .input(
       z.object({
         organizationId: z.number(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canRead = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.DISQUS, PERMISSION_ACTIONS.READ),
+      );
+
+      if (!canRead) {
+        throw new Error("Unauthorized: Disqus read permission required");
+      }
+
       const accounts = await db.query.disqusAccounts.findMany({
         where: and(
           eq(disqusAccounts.organizationId, input.organizationId),
@@ -31,14 +49,26 @@ export const disqusRouter = {
       }));
     }),
 
-  getAccount: publicProcedure
+  getAccount: protectedProcedure
     .input(
       z.object({
         organizationId: z.number(),
         id: z.number(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canRead = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.DISQUS, PERMISSION_ACTIONS.READ),
+      );
+
+      if (!canRead) {
+        throw new Error("Unauthorized: Disqus read permission required");
+      }
+
       const account = await db.query.disqusAccounts.findFirst({
         where: and(
           eq(disqusAccounts.id, input.id),
@@ -57,7 +87,7 @@ export const disqusRouter = {
       };
     }),
 
-  connectDisqusForum: publicProcedure
+  connectDisqusForum: protectedProcedure
     .input(
       z.object({
         organizationId: z.number(),
@@ -68,7 +98,19 @@ export const disqusRouter = {
         userId: z.number().optional(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.DISQUS, PERMISSION_ACTIONS.WRITE),
+      );
+
+      if (!canWrite) {
+        throw new Error("Unauthorized: Disqus write permission required");
+      }
+
       const client = createDisqusClient({
         apiKey: input.apiKey,
         apiSecret: input.apiSecret,
@@ -137,7 +179,7 @@ export const disqusRouter = {
       };
     }),
 
-  updateAccount: publicProcedure
+  updateAccount: protectedProcedure
     .input(
       z.object({
         id: z.number(),
@@ -149,7 +191,19 @@ export const disqusRouter = {
         updatedBy: z.number().optional(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.DISQUS, PERMISSION_ACTIONS.WRITE),
+      );
+
+      if (!canWrite) {
+        throw new Error("Unauthorized: Disqus write permission required");
+      }
+
       const updateData: Record<string, any> = {
         updatedAt: new Date(),
         updatedBy: input.updatedBy,
@@ -158,7 +212,7 @@ export const disqusRouter = {
       if (input.apiKey) updateData.apiKeyEnc = encryptToken(input.apiKey);
       if (input.apiSecret) updateData.apiSecretEnc = encryptToken(input.apiSecret);
       if (input.accessToken !== undefined) {
-        updateData.accessTokenEnc = input.accessToken ? encryptToken(input.accessToken) : null;
+        updateData.apiSecretEnc = input.accessToken ? encryptToken(input.accessToken) : null;
       }
       if (input.isActive !== undefined) updateData.status = input.isActive ? "active" : "inactive";
 
@@ -183,14 +237,26 @@ export const disqusRouter = {
       };
     }),
 
-  disconnect: publicProcedure
+  disconnect: protectedProcedure
     .input(
       z.object({
         id: z.number(),
         organizationId: z.number(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.DISQUS, PERMISSION_ACTIONS.WRITE),
+      );
+
+      if (!canWrite) {
+        throw new Error("Unauthorized: Disqus write permission required");
+      }
+
       await db
         .update(disqusAccounts)
         .set({
@@ -208,14 +274,26 @@ export const disqusRouter = {
       return { success: true };
     }),
 
-  getDecryptedCredentials: publicProcedure
+  getDecryptedCredentials: protectedProcedure
     .input(
       z.object({
         id: z.number(),
         organizationId: z.number(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canRead = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.DISQUS, PERMISSION_ACTIONS.READ),
+      );
+
+      if (!canRead) {
+        throw new Error("Unauthorized: Disqus read permission required");
+      }
+
       const account = await db.query.disqusAccounts.findFirst({
         where: and(
           eq(disqusAccounts.id, input.id),
@@ -235,14 +313,26 @@ export const disqusRouter = {
       };
     }),
 
-  testConnection: publicProcedure
+  testConnection: protectedProcedure
     .input(
       z.object({
         id: z.number(),
         organizationId: z.number(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canRead = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.DISQUS, PERMISSION_ACTIONS.READ),
+      );
+
+      if (!canRead) {
+        throw new Error("Unauthorized: Disqus read permission required");
+      }
+
       const account = await db.query.disqusAccounts.findFirst({
         where: and(
           eq(disqusAccounts.id, input.id),
@@ -272,7 +362,7 @@ export const disqusRouter = {
       }
     }),
 
-  replyToPost: publicProcedure
+  replyToPost: protectedProcedure
     .input(
       z.object({
         id: z.number(),
@@ -282,7 +372,19 @@ export const disqusRouter = {
         authorEmail: z.string().optional(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.DISQUS, PERMISSION_ACTIONS.WRITE),
+      );
+
+      if (!canWrite) {
+        throw new Error("Unauthorized: Disqus write permission required");
+      }
+
       const account = await db.query.disqusAccounts.findFirst({
         where: and(
           eq(disqusAccounts.id, input.id),

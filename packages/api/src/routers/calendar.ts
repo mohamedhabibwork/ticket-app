@@ -3,7 +3,13 @@ import { agentCalendarConnections, ticketCalendarEvents } from "@ticket-app/db/s
 import { eq, and, desc, isNull } from "drizzle-orm";
 import * as z from "zod";
 
-import { publicProcedure } from "../index";
+import { protectedProcedure } from "../index";
+import {
+  hasPermission,
+  PERMISSION_GROUPS,
+  PERMISSION_ACTIONS,
+  buildPermissionKey,
+} from "../services/rbac";
 import { encryptToken, decryptToken } from "../lib/crypto";
 
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "";
@@ -12,13 +18,26 @@ const GOOGLE_REDIRECT_URI =
   process.env.GOOGLE_REDIRECT_URI || "http://localhost:3000/oauth/google/callback";
 
 export const calendarRouter = {
-  listConnections: publicProcedure
+  listConnections: protectedProcedure
     .input(
       z.object({
         userId: z.number(),
+        organizationId: z.number(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canRead = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.CALENDAR, PERMISSION_ACTIONS.READ),
+      );
+
+      if (!canRead) {
+        throw new Error("Unauthorized: Calendar read permission required");
+      }
+
       const connections = await db.query.agentCalendarConnections.findMany({
         where: and(
           eq(agentCalendarConnections.userId, input.userId),
@@ -34,14 +53,27 @@ export const calendarRouter = {
       }));
     }),
 
-  getConnection: publicProcedure
+  getConnection: protectedProcedure
     .input(
       z.object({
         userId: z.number(),
         id: z.number(),
+        organizationId: z.number(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canRead = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.CALENDAR, PERMISSION_ACTIONS.READ),
+      );
+
+      if (!canRead) {
+        throw new Error("Unauthorized: Calendar read permission required");
+      }
+
       const connection = await db.query.agentCalendarConnections.findFirst({
         where: and(
           eq(agentCalendarConnections.id, input.id),
@@ -59,13 +91,26 @@ export const calendarRouter = {
       };
     }),
 
-  getGoogleAuthUrl: publicProcedure
+  getGoogleAuthUrl: protectedProcedure
     .input(
       z.object({
         userId: z.number(),
+        organizationId: z.number(),
       }),
     )
-    .handler(async () => {
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.CALENDAR, PERMISSION_ACTIONS.WRITE),
+      );
+
+      if (!canWrite) {
+        throw new Error("Unauthorized: Calendar write permission required");
+      }
+
       const scopes = [
         "https://www.googleapis.com/auth/calendar",
         "https://www.googleapis.com/auth/calendar.events",
@@ -85,14 +130,27 @@ export const calendarRouter = {
       };
     }),
 
-  connectGoogle: publicProcedure
+  connectGoogle: protectedProcedure
     .input(
       z.object({
         userId: z.number(),
+        organizationId: z.number(),
         code: z.string(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.CALENDAR, PERMISSION_ACTIONS.WRITE),
+      );
+
+      if (!canWrite) {
+        throw new Error("Unauthorized: Calendar write permission required");
+      }
+
       const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -187,14 +245,27 @@ export const calendarRouter = {
       };
     }),
 
-  disconnect: publicProcedure
+  disconnect: protectedProcedure
     .input(
       z.object({
         userId: z.number(),
         id: z.number(),
+        organizationId: z.number(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.CALENDAR, PERMISSION_ACTIONS.WRITE),
+      );
+
+      if (!canWrite) {
+        throw new Error("Unauthorized: Calendar write permission required");
+      }
+
       await db
         .update(agentCalendarConnections)
         .set({
@@ -212,9 +283,10 @@ export const calendarRouter = {
       return { success: true };
     }),
 
-  createCalendarEvent: publicProcedure
+  createCalendarEvent: protectedProcedure
     .input(
       z.object({
+        organizationId: z.number(),
         ticketId: z.number(),
         agentCalendarConnectionId: z.number(),
         title: z.string(),
@@ -226,7 +298,19 @@ export const calendarRouter = {
         createdBy: z.number().optional(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.CALENDAR, PERMISSION_ACTIONS.WRITE),
+      );
+
+      if (!canWrite) {
+        throw new Error("Unauthorized: Calendar write permission required");
+      }
+
       const connection = await db.query.agentCalendarConnections.findFirst({
         where: and(
           eq(agentCalendarConnections.id, input.agentCalendarConnectionId),
@@ -332,13 +416,26 @@ export const calendarRouter = {
       return calendarEvent;
     }),
 
-  listCalendarEvents: publicProcedure
+  listCalendarEvents: protectedProcedure
     .input(
       z.object({
+        organizationId: z.number(),
         ticketId: z.number(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canRead = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.CALENDAR, PERMISSION_ACTIONS.READ),
+      );
+
+      if (!canRead) {
+        throw new Error("Unauthorized: Calendar read permission required");
+      }
+
       const events = await db.query.ticketCalendarEvents.findMany({
         where: eq(ticketCalendarEvents.ticketId, input.ticketId),
         orderBy: [desc(ticketCalendarEvents.startAt)],
@@ -347,15 +444,28 @@ export const calendarRouter = {
       return events;
     }),
 
-  listAgentEvents: publicProcedure
+  listAgentEvents: protectedProcedure
     .input(
       z.object({
         userId: z.number(),
+        organizationId: z.number(),
         startDate: z.string().datetime().optional(),
         endDate: z.string().datetime().optional(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canRead = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.CALENDAR, PERMISSION_ACTIONS.READ),
+      );
+
+      if (!canRead) {
+        throw new Error("Unauthorized: Calendar read permission required");
+      }
+
       const connection = await db.query.agentCalendarConnections.findFirst({
         where: and(
           eq(agentCalendarConnections.userId, input.userId),
@@ -414,14 +524,27 @@ export const calendarRouter = {
       return [];
     }),
 
-  deleteCalendarEvent: publicProcedure
+  deleteCalendarEvent: protectedProcedure
     .input(
       z.object({
+        organizationId: z.number(),
         id: z.number(),
         ticketId: z.number(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.CALENDAR, PERMISSION_ACTIONS.WRITE),
+      );
+
+      if (!canWrite) {
+        throw new Error("Unauthorized: Calendar write permission required");
+      }
+
       const event = await db.query.ticketCalendarEvents.findFirst({
         where: and(
           eq(ticketCalendarEvents.id, input.id),

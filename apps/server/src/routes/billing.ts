@@ -148,3 +148,5 @@ app.post("/paytabs/refund", async (c) => {
 });
 
 export default app;
+
+export { app as billing };

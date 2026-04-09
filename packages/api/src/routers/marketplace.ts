@@ -3,17 +3,35 @@ import { marketplaceAccounts, marketplaceMessages } from "@ticket-app/db/schema"
 import { eq, and, desc, isNull } from "drizzle-orm";
 import * as z from "zod";
 
-import { publicProcedure } from "../index";
+import { protectedProcedure } from "../index";
+import {
+  hasPermission,
+  PERMISSION_GROUPS,
+  PERMISSION_ACTIONS,
+  buildPermissionKey,
+} from "../services/rbac";
 import { encryptToken, decryptToken } from "../lib/crypto";
 
 export const marketplaceRouter = {
-  listAccounts: publicProcedure
+  listAccounts: protectedProcedure
     .input(
       z.object({
         organizationId: z.number(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canRead = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.MARKETPLACE, PERMISSION_ACTIONS.READ),
+      );
+
+      if (!canRead) {
+        throw new Error("Unauthorized: Marketplace read permission required");
+      }
+
       const accounts = await db.query.marketplaceAccounts.findMany({
         where: and(
           eq(marketplaceAccounts.organizationId, input.organizationId),
@@ -30,14 +48,26 @@ export const marketplaceRouter = {
       }));
     }),
 
-  getAccount: publicProcedure
+  getAccount: protectedProcedure
     .input(
       z.object({
         organizationId: z.number(),
         id: z.number(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canRead = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.MARKETPLACE, PERMISSION_ACTIONS.READ),
+      );
+
+      if (!canRead) {
+        throw new Error("Unauthorized: Marketplace read permission required");
+      }
+
       const account = await db.query.marketplaceAccounts.findFirst({
         where: and(
           eq(marketplaceAccounts.id, input.id),
@@ -56,7 +86,7 @@ export const marketplaceRouter = {
       };
     }),
 
-  connectMarketplace: publicProcedure
+  connectMarketplace: protectedProcedure
     .input(
       z.object({
         organizationId: z.number(),
@@ -70,7 +100,19 @@ export const marketplaceRouter = {
         userId: z.number().optional(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.MARKETPLACE, PERMISSION_ACTIONS.WRITE),
+      );
+
+      if (!canWrite) {
+        throw new Error("Unauthorized: Marketplace write permission required");
+      }
+
       const existingAccount = await db.query.marketplaceAccounts.findFirst({
         where: and(
           eq(marketplaceAccounts.organizationId, input.organizationId),
@@ -133,7 +175,7 @@ export const marketplaceRouter = {
       };
     }),
 
-  updateAccount: publicProcedure
+  updateAccount: protectedProcedure
     .input(
       z.object({
         id: z.number(),
@@ -146,7 +188,19 @@ export const marketplaceRouter = {
         updatedBy: z.number().optional(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.MARKETPLACE, PERMISSION_ACTIONS.WRITE),
+      );
+
+      if (!canWrite) {
+        throw new Error("Unauthorized: Marketplace write permission required");
+      }
+
       const updateData: Record<string, any> = {
         updatedAt: new Date(),
         updatedBy: input.updatedBy,
@@ -181,14 +235,26 @@ export const marketplaceRouter = {
       };
     }),
 
-  disconnect: publicProcedure
+  disconnect: protectedProcedure
     .input(
       z.object({
         id: z.number(),
         organizationId: z.number(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.MARKETPLACE, PERMISSION_ACTIONS.WRITE),
+      );
+
+      if (!canWrite) {
+        throw new Error("Unauthorized: Marketplace write permission required");
+      }
+
       await db
         .update(marketplaceAccounts)
         .set({
@@ -206,16 +272,29 @@ export const marketplaceRouter = {
       return { success: true };
     }),
 
-  getMessages: publicProcedure
+  getMessages: protectedProcedure
     .input(
       z.object({
+        organizationId: z.number(),
         accountId: z.number(),
         ticketId: z.number().optional(),
         limit: z.number().default(50),
         offset: z.number().default(0),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canRead = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.MARKETPLACE, PERMISSION_ACTIONS.READ),
+      );
+
+      if (!canRead) {
+        throw new Error("Unauthorized: Marketplace read permission required");
+      }
+
       const conditions = [eq(marketplaceMessages.marketplaceAccountId, input.accountId)];
 
       if (input.ticketId) {
@@ -232,13 +311,26 @@ export const marketplaceRouter = {
       return messages;
     }),
 
-  markMessageRead: publicProcedure
+  markMessageRead: protectedProcedure
     .input(
       z.object({
+        organizationId: z.number(),
         id: z.number(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.MARKETPLACE, PERMISSION_ACTIONS.WRITE),
+      );
+
+      if (!canWrite) {
+        throw new Error("Unauthorized: Marketplace write permission required");
+      }
+
       await db
         .update(marketplaceMessages)
         .set({
@@ -249,14 +341,26 @@ export const marketplaceRouter = {
       return { success: true };
     }),
 
-  getDecryptedCredentials: publicProcedure
+  getDecryptedCredentials: protectedProcedure
     .input(
       z.object({
         id: z.number(),
         organizationId: z.number(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canRead = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.MARKETPLACE, PERMISSION_ACTIONS.READ),
+      );
+
+      if (!canRead) {
+        throw new Error("Unauthorized: Marketplace read permission required");
+      }
+
       const account = await db.query.marketplaceAccounts.findFirst({
         where: and(
           eq(marketplaceAccounts.id, input.id),

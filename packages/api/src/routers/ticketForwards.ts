@@ -5,13 +5,20 @@ import { ticketForwards, tickets, emailMessages } from "@ticket-app/db/schema";
 import { eq, desc } from "drizzle-orm";
 import * as z from "zod";
 
-import { publicProcedure } from "../index";
+import { protectedProcedure } from "../index";
+import {
+  hasPermission,
+  PERMISSION_GROUPS,
+  PERMISSION_ACTIONS,
+  buildPermissionKey,
+} from "../services/rbac";
 import { addEmailSendJob } from "../jobs/emailSend";
 
 export const ticketForwardsRouter = {
-  create: publicProcedure
+  create: protectedProcedure
     .input(
       z.object({
+        organizationId: z.number(),
         ticketId: z.number(),
         messageId: z.number().optional(),
         to: z.array(z.string().email()),
@@ -22,7 +29,19 @@ export const ticketForwardsRouter = {
         forwardedBy: z.number(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.TICKET_FORWARDS, PERMISSION_ACTIONS.WRITE),
+      );
+
+      if (!canWrite) {
+        throw new Error("Unauthorized: Ticket forward write permission required");
+      }
+
       const ticket = await db.query.tickets.findFirst({
         where: eq(tickets.id, input.ticketId),
         with: { mailbox: true },
@@ -71,15 +90,28 @@ export const ticketForwardsRouter = {
       return forward;
     }),
 
-  list: publicProcedure
+  list: protectedProcedure
     .input(
       z.object({
+        organizationId: z.number(),
         ticketId: z.number(),
         limit: z.number().min(1).max(100).default(50),
         offset: z.number().min(0).default(0),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canRead = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.TICKET_FORWARDS, PERMISSION_ACTIONS.READ),
+      );
+
+      if (!canRead) {
+        throw new Error("Unauthorized: Ticket forward read permission required");
+      }
+
       return await db.query.ticketForwards.findMany({
         where: eq(ticketForwards.ticketId, input.ticketId),
         orderBy: [desc(ticketForwards.createdAt)],
@@ -88,9 +120,23 @@ export const ticketForwardsRouter = {
       });
     }),
 
-  get: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
-    return await db.query.ticketForwards.findFirst({
-      where: eq(ticketForwards.id, input.id),
-    });
-  }),
+  get: protectedProcedure
+    .input(z.object({ id: z.number(), organizationId: z.number() }))
+    .handler(async ({ input, context }) => {
+      const canRead = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.TICKET_FORWARDS, PERMISSION_ACTIONS.READ),
+      );
+
+      if (!canRead) {
+        throw new Error("Unauthorized: Ticket forward read permission required");
+      }
+
+      return await db.query.ticketForwards.findFirst({
+        where: eq(ticketForwards.id, input.id),
+      });
+    }),
 };

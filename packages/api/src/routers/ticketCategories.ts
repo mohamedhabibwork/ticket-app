@@ -3,12 +3,30 @@ import { ticketCategories } from "@ticket-app/db/schema";
 import { eq, desc } from "drizzle-orm";
 import * as z from "zod";
 
-import { publicProcedure } from "../index";
+import { protectedProcedure } from "../index";
+import {
+  hasPermission,
+  PERMISSION_GROUPS,
+  PERMISSION_ACTIONS,
+  buildPermissionKey,
+} from "../services/rbac";
 
 export const ticketCategoriesRouter = {
-  list: publicProcedure
+  list: protectedProcedure
     .input(z.object({ organizationId: z.number() }))
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canRead = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.TICKET_CATEGORIES, PERMISSION_ACTIONS.READ),
+      );
+
+      if (!canRead) {
+        throw new Error("Unauthorized: Ticket category read permission required");
+      }
+
       return await db
         .select()
         .from(ticketCategories)
@@ -16,15 +34,29 @@ export const ticketCategoriesRouter = {
         .orderBy(desc(ticketCategories.createdAt));
     }),
 
-  get: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
-    const [category] = await db
-      .select()
-      .from(ticketCategories)
-      .where(eq(ticketCategories.id, input.id));
-    return category ?? null;
-  }),
+  get: protectedProcedure
+    .input(z.object({ id: z.number(), organizationId: z.number() }))
+    .handler(async ({ input, context }) => {
+      const canRead = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.TICKET_CATEGORIES, PERMISSION_ACTIONS.READ),
+      );
 
-  create: publicProcedure
+      if (!canRead) {
+        throw new Error("Unauthorized: Ticket category read permission required");
+      }
+
+      const [category] = await db
+        .select()
+        .from(ticketCategories)
+        .where(eq(ticketCategories.id, input.id));
+      return category ?? null;
+    }),
+
+  create: protectedProcedure
     .input(
       z.object({
         organizationId: z.number(),
@@ -36,7 +68,19 @@ export const ticketCategoriesRouter = {
         createdBy: z.number().optional(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.TICKET_CATEGORIES, PERMISSION_ACTIONS.WRITE),
+      );
+
+      if (!canWrite) {
+        throw new Error("Unauthorized: Ticket category write permission required");
+      }
+
       const [category] = await db
         .insert(ticketCategories)
         .values({
@@ -52,10 +96,11 @@ export const ticketCategoriesRouter = {
       return category;
     }),
 
-  update: publicProcedure
+  update: protectedProcedure
     .input(
       z.object({
         id: z.number(),
+        organizationId: z.number(),
         name: z.string().min(1).max(100).optional(),
         description: z.string().optional(),
         slaPolicyId: z.number().nullable().optional(),
@@ -64,7 +109,19 @@ export const ticketCategoriesRouter = {
         isActive: z.boolean().optional(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.TICKET_CATEGORIES, PERMISSION_ACTIONS.WRITE),
+      );
+
+      if (!canWrite) {
+        throw new Error("Unauthorized: Ticket category write permission required");
+      }
+
       const [updated] = await db
         .update(ticketCategories)
         .set({
@@ -80,8 +137,22 @@ export const ticketCategoriesRouter = {
       return updated;
     }),
 
-  delete: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
-    await db.delete(ticketCategories).where(eq(ticketCategories.id, input.id));
-    return { success: true };
-  }),
+  delete: protectedProcedure
+    .input(z.object({ id: z.number(), organizationId: z.number() }))
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.TICKET_CATEGORIES, PERMISSION_ACTIONS.WRITE),
+      );
+
+      if (!canWrite) {
+        throw new Error("Unauthorized: Ticket category write permission required");
+      }
+
+      await db.delete(ticketCategories).where(eq(ticketCategories.id, input.id));
+      return { success: true };
+    }),
 };

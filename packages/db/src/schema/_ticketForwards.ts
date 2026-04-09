@@ -1,34 +1,27 @@
-import {
-  pgTable,
-  bigint,
-  varchar,
-  text,
-  timestamp,
-  jsonb,
-} from "drizzle-orm/pg-core";
+import { pgTable, bigint, uuid, text, timestamp, jsonb } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { ticketMessages, tickets } from "./_tickets";
 import { users } from "./_users";
 
-export const ticketForwards = pgTable(
-  "ticket_forwards",
-  {
-    id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
-    ticketId: bigint("ticket_id", { mode: "number" })
-      .references(() => tickets.id)
-      .notNull(),
-    ticketMessageId: bigint("ticket_message_id", { mode: "number" }).references(() => ticketMessages.id),
-    to: jsonb("to").notNull(),
-    cc: jsonb("cc").default([]).notNull(),
-    bcc: jsonb("bcc").default([]).notNull(),
-    subject: varchar("subject", { length: 500 }),
-    body: text("body").notNull(),
-    createdBy: bigint("created_by", { mode: "number" })
-      .references(() => users.id)
-      .notNull(),
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-  },
-);
+export const ticketForwards = pgTable("ticket_forwards", {
+  id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
+  uuid: uuid("uuid").defaultRandom().notNull(),
+  ticketId: bigint("ticket_id", { mode: "number" })
+    .references(() => tickets.id)
+    .notNull(),
+  ticketMessageId: bigint("ticket_message_id", { mode: "number" }).references(
+    () => ticketMessages.id,
+  ),
+  forwardedTo: jsonb("forwarded_to").notNull(),
+  ccEmails: jsonb("cc_emails"),
+  bccEmails: jsonb("bcc_emails"),
+  subject: text("subject"),
+  bodyHtml: text("body_html"),
+  forwardedAt: timestamp("forwarded_at", { withTimezone: true }).defaultNow().notNull(),
+  forwardedBy: bigint("forwarded_by", { mode: "number" })
+    .references(() => users.id)
+    .notNull(),
+});
 
 export const ticketForwardsRelations = relations(ticketForwards, ({ one }) => ({
   ticket: one(tickets, {
@@ -39,8 +32,8 @@ export const ticketForwardsRelations = relations(ticketForwards, ({ one }) => ({
     fields: [ticketForwards.ticketMessageId],
     references: [ticketMessages.id],
   }),
-  creator: one(users, {
-    fields: [ticketForwards.createdBy],
+  forwarder: one(users, {
+    fields: [ticketForwards.forwardedBy],
     references: [users.id],
   }),
 }));

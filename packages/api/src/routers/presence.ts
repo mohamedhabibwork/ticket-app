@@ -7,59 +7,131 @@ import {
 } from "../lib/presence";
 import * as z from "zod";
 
-import { publicProcedure } from "../index";
+import { protectedProcedure } from "../index";
+import {
+  hasPermission,
+  PERMISSION_GROUPS,
+  PERMISSION_ACTIONS,
+  buildPermissionKey,
+} from "../services/rbac";
 
 export const presenceRouter = {
-  join: publicProcedure
+  join: protectedProcedure
     .input(
       z.object({
         ticketId: z.number(),
+        organizationId: z.number(),
         userId: z.number(),
         userName: z.string(),
         avatarUrl: z.string().optional(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.PRESENCE, PERMISSION_ACTIONS.WRITE),
+      );
+
+      if (!canWrite) {
+        throw new Error("Unauthorized: Presence write permission required");
+      }
+
       await joinTicket(input.ticketId, input.userId, input.userName, input.avatarUrl);
       return { success: true };
     }),
 
-  leave: publicProcedure
+  leave: protectedProcedure
     .input(
       z.object({
         ticketId: z.number(),
+        organizationId: z.number(),
         userId: z.number(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.PRESENCE, PERMISSION_ACTIONS.WRITE),
+      );
+
+      if (!canWrite) {
+        throw new Error("Unauthorized: Presence write permission required");
+      }
+
       await leaveTicket(input.ticketId, input.userId);
       return { success: true };
     }),
 
-  ping: publicProcedure
+  ping: protectedProcedure
     .input(
       z.object({
         ticketId: z.number(),
+        organizationId: z.number(),
         userId: z.number(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.PRESENCE, PERMISSION_ACTIONS.WRITE),
+      );
+
+      if (!canWrite) {
+        throw new Error("Unauthorized: Presence write permission required");
+      }
+
       const alive = await heartbeat(input.ticketId, input.userId);
       return { alive };
     }),
 
-  list: publicProcedure.input(z.object({ ticketId: z.number() })).handler(async ({ input }) => {
-    return await getTicketViewers(input.ticketId);
-  }),
+  list: protectedProcedure
+    .input(z.object({ ticketId: z.number(), organizationId: z.number() }))
+    .handler(async ({ input, context }) => {
+      const canRead = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.PRESENCE, PERMISSION_ACTIONS.READ),
+      );
 
-  check: publicProcedure
+      if (!canRead) {
+        throw new Error("Unauthorized: Presence read permission required");
+      }
+
+      return await getTicketViewers(input.ticketId);
+    }),
+
+  check: protectedProcedure
     .input(
       z.object({
         ticketId: z.number(),
+        organizationId: z.number(),
         userId: z.number(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canRead = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.PRESENCE, PERMISSION_ACTIONS.READ),
+      );
+
+      if (!canRead) {
+        throw new Error("Unauthorized: Presence read permission required");
+      }
+
       const viewing = await isViewingTicket(input.ticketId, input.userId);
       return { viewing };
     }),

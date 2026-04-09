@@ -3,18 +3,36 @@ import { translationConfigs, translationCache } from "@ticket-app/db/schema";
 import { eq, and, desc } from "drizzle-orm";
 import * as z from "zod";
 
-import { publicProcedure } from "../index";
+import { protectedProcedure } from "../index";
+import {
+  hasPermission,
+  PERMISSION_GROUPS,
+  PERMISSION_ACTIONS,
+  buildPermissionKey,
+} from "../services/rbac";
 import { encryptToken, decryptToken } from "../lib/crypto";
 import { translateText } from "../lib/translation";
 
 export const translationRouter = {
-  listConfigs: publicProcedure
+  listConfigs: protectedProcedure
     .input(
       z.object({
         organizationId: z.number(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canRead = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.TRANSLATION, PERMISSION_ACTIONS.READ),
+      );
+
+      if (!canRead) {
+        throw new Error("Unauthorized: Translation read permission required");
+      }
+
       const configs = await db.query.translationConfigs.findMany({
         where: and(eq(translationConfigs.organizationId, input.organizationId)),
         orderBy: [desc(translationConfigs.createdAt)],
@@ -26,13 +44,25 @@ export const translationRouter = {
       }));
     }),
 
-  getConfig: publicProcedure
+  getConfig: protectedProcedure
     .input(
       z.object({
         organizationId: z.number(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canRead = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.TRANSLATION, PERMISSION_ACTIONS.READ),
+      );
+
+      if (!canRead) {
+        throw new Error("Unauthorized: Translation read permission required");
+      }
+
       const config = await db.query.translationConfigs.findFirst({
         where: and(eq(translationConfigs.organizationId, input.organizationId)),
       });
@@ -45,7 +75,7 @@ export const translationRouter = {
       };
     }),
 
-  createConfig: publicProcedure
+  createConfig: protectedProcedure
     .input(
       z.object({
         organizationId: z.number(),
@@ -54,7 +84,19 @@ export const translationRouter = {
         createdBy: z.number().optional(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.TRANSLATION, PERMISSION_ACTIONS.WRITE),
+      );
+
+      if (!canWrite) {
+        throw new Error("Unauthorized: Translation write permission required");
+      }
+
       const existing = await db.query.translationConfigs.findFirst({
         where: eq(translationConfigs.organizationId, input.organizationId),
       });
@@ -85,7 +127,7 @@ export const translationRouter = {
       };
     }),
 
-  updateConfig: publicProcedure
+  updateConfig: protectedProcedure
     .input(
       z.object({
         organizationId: z.number(),
@@ -95,7 +137,19 @@ export const translationRouter = {
         updatedBy: z.number().optional(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.TRANSLATION, PERMISSION_ACTIONS.WRITE),
+      );
+
+      if (!canWrite) {
+        throw new Error("Unauthorized: Translation write permission required");
+      }
+
       const existing = await db.query.translationConfigs.findFirst({
         where: eq(translationConfigs.organizationId, input.organizationId),
       });
@@ -127,13 +181,25 @@ export const translationRouter = {
       };
     }),
 
-  deleteConfig: publicProcedure
+  deleteConfig: protectedProcedure
     .input(
       z.object({
         organizationId: z.number(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.TRANSLATION, PERMISSION_ACTIONS.WRITE),
+      );
+
+      if (!canWrite) {
+        throw new Error("Unauthorized: Translation write permission required");
+      }
+
       const existing = await db.query.translationConfigs.findFirst({
         where: eq(translationConfigs.organizationId, input.organizationId),
       });
@@ -147,13 +213,25 @@ export const translationRouter = {
       return { success: true };
     }),
 
-  getDecryptedApiKey: publicProcedure
+  getDecryptedApiKey: protectedProcedure
     .input(
       z.object({
         organizationId: z.number(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canRead = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.TRANSLATION, PERMISSION_ACTIONS.READ),
+      );
+
+      if (!canRead) {
+        throw new Error("Unauthorized: Translation read permission required");
+      }
+
       const config = await db.query.translationConfigs.findFirst({
         where: and(
           eq(translationConfigs.organizationId, input.organizationId),
@@ -171,13 +249,25 @@ export const translationRouter = {
       };
     }),
 
-  getUsageStats: publicProcedure
+  getUsageStats: protectedProcedure
     .input(
       z.object({
         organizationId: z.number(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canRead = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.TRANSLATION, PERMISSION_ACTIONS.READ),
+      );
+
+      if (!canRead) {
+        throw new Error("Unauthorized: Translation read permission required");
+      }
+
       const config = await db.query.translationConfigs.findFirst({
         where: eq(translationConfigs.organizationId, input.organizationId),
       });
@@ -192,19 +282,32 @@ export const translationRouter = {
       };
     }),
 
-  clearCache: publicProcedure
+  clearCache: protectedProcedure
     .input(
       z.object({
+        organizationId: z.number(),
         sourceHash: z.string(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.TRANSLATION, PERMISSION_ACTIONS.WRITE),
+      );
+
+      if (!canWrite) {
+        throw new Error("Unauthorized: Translation write permission required");
+      }
+
       await db.delete(translationCache).where(eq(translationCache.sourceHash, input.sourceHash));
 
       return { success: true };
     }),
 
-  translateText: publicProcedure
+  translateText: protectedProcedure
     .input(
       z.object({
         organizationId: z.number(),
@@ -213,7 +316,19 @@ export const translationRouter = {
         targetLang: z.string(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.TRANSLATION, PERMISSION_ACTIONS.WRITE),
+      );
+
+      if (!canWrite) {
+        throw new Error("Unauthorized: Translation write permission required");
+      }
+
       const result = await translateText({
         text: input.text,
         sourceLang: input.sourceLang,

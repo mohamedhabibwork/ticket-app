@@ -3,7 +3,13 @@ import { onPremiseLicenses, users } from "@ticket-app/db/schema";
 import { eq, sql } from "drizzle-orm";
 import * as z from "zod";
 
-import { publicProcedure } from "../index";
+import { protectedProcedure } from "../index";
+import {
+  hasPermission,
+  PERMISSION_GROUPS,
+  PERMISSION_ACTIONS,
+  buildPermissionKey,
+} from "../services/rbac";
 import {
   verifyLicenseKey,
   validateSeatLimit,
@@ -13,9 +19,21 @@ import {
 import { addLicenseVerificationJob } from "@ticket-app/queue";
 
 export const onPremiseRouter = {
-  getLicense: publicProcedure
+  getLicense: protectedProcedure
     .input(z.object({ organizationId: z.number() }))
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canRead = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.ON_PREMISE, PERMISSION_ACTIONS.READ),
+      );
+
+      if (!canRead) {
+        throw new Error("Unauthorized: On-premise read permission required");
+      }
+
       const [license] = await db
         .select()
         .from(onPremiseLicenses)
@@ -23,7 +41,7 @@ export const onPremiseRouter = {
       return license ?? null;
     }),
 
-  verifyLicense: publicProcedure
+  verifyLicense: protectedProcedure
     .input(
       z.object({
         organizationId: z.number(),
@@ -35,7 +53,19 @@ export const onPremiseRouter = {
         validUntil: z.date(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.ON_PREMISE, PERMISSION_ACTIONS.WRITE),
+      );
+
+      if (!canWrite) {
+        throw new Error("Unauthorized: On-premise write permission required");
+      }
+
       const result = await verifyLicenseKey(input.licenseKey, input.domain, input.signature);
 
       if (!result.valid) {
@@ -96,9 +126,21 @@ export const onPremiseRouter = {
       };
     }),
 
-  checkSeatLimit: publicProcedure
+  checkSeatLimit: protectedProcedure
     .input(z.object({ organizationId: z.number() }))
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canRead = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.ON_PREMISE, PERMISSION_ACTIONS.READ),
+      );
+
+      if (!canRead) {
+        throw new Error("Unauthorized: On-premise read permission required");
+      }
+
       const license = await db.query.onPremiseLicenses.findFirst({
         where: eq(onPremiseLicenses.organizationId, input.organizationId),
       });
@@ -127,9 +169,21 @@ export const onPremiseRouter = {
       };
     }),
 
-  getLicenseStatus: publicProcedure
+  getLicenseStatus: protectedProcedure
     .input(z.object({ organizationId: z.number() }))
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canRead = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.ON_PREMISE, PERMISSION_ACTIONS.READ),
+      );
+
+      if (!canRead) {
+        throw new Error("Unauthorized: On-premise read permission required");
+      }
+
       const license = await db.query.onPremiseLicenses.findFirst({
         where: eq(onPremiseLicenses.organizationId, input.organizationId),
       });
@@ -159,14 +213,27 @@ export const onPremiseRouter = {
       };
     }),
 
-  updateLicense: publicProcedure
+  updateLicense: protectedProcedure
     .input(
       z.object({
         id: z.number(),
+        organizationId: z.number(),
         isActive: z.boolean().optional(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.ON_PREMISE, PERMISSION_ACTIONS.WRITE),
+      );
+
+      if (!canWrite) {
+        throw new Error("Unauthorized: On-premise write permission required");
+      }
+
       const [updated] = await db
         .update(onPremiseLicenses)
         .set({
@@ -177,8 +244,22 @@ export const onPremiseRouter = {
       return updated;
     }),
 
-  deleteLicense: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
-    await db.delete(onPremiseLicenses).where(eq(onPremiseLicenses.id, input.id));
-    return { success: true };
-  }),
+  deleteLicense: protectedProcedure
+    .input(z.object({ id: z.number(), organizationId: z.number() }))
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.ON_PREMISE, PERMISSION_ACTIONS.WRITE),
+      );
+
+      if (!canWrite) {
+        throw new Error("Unauthorized: On-premise write permission required");
+      }
+
+      await db.delete(onPremiseLicenses).where(eq(onPremiseLicenses.id, input.id));
+      return { success: true };
+    }),
 };

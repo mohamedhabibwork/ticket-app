@@ -2,19 +2,37 @@ import { db } from "@ticket-app/db";
 import { customerSessions, customerSocialIdentities, contacts } from "@ticket-app/db/schema";
 import { eq, desc } from "drizzle-orm";
 import * as z from "zod";
-import { _randomBytes } from "crypto";
 
-import { publicProcedure } from "../index";
+import { protectedProcedure } from "../index";
+import {
+  hasPermission,
+  PERMISSION_GROUPS,
+  PERMISSION_ACTIONS,
+  buildPermissionKey,
+} from "../services/rbac";
 
 export const customerAuthRouter = {
-  getOAuthUrl: publicProcedure
+  getOAuthUrl: protectedProcedure
     .input(
       z.object({
+        organizationId: z.number(),
         provider: z.enum(["google", "facebook", "apple"]),
         redirectUri: z.string(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canRead = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.USERS, PERMISSION_ACTIONS.READ),
+      );
+
+      if (!canRead) {
+        throw new Error("Unauthorized: Auth read permission required");
+      }
+
       const urls: Record<string, string> = {
         google: `https://accounts.google.com/o/oauth2/v2/auth?client_id=${process.env.GOOGLE_CLIENT_ID}&redirect_uri=${input.redirectUri}&response_type=code&scope=email profile`,
         facebook: `https://www.facebook.com/v18.0/dialog/oauth?client_id=${process.env.FACEBOOK_CLIENT_ID}&redirect_uri=${input.redirectUri}&scope=email`,
@@ -24,14 +42,27 @@ export const customerAuthRouter = {
       return { url: urls[input.provider] };
     }),
 
-  handleGoogleCallback: publicProcedure
+  handleGoogleCallback: protectedProcedure
     .input(
       z.object({
+        organizationId: z.number(),
         code: z.string(),
         redirectUri: z.string(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.USERS, PERMISSION_ACTIONS.WRITE),
+      );
+
+      if (!canWrite) {
+        throw new Error("Unauthorized: Auth write permission required");
+      }
+
       const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -55,14 +86,27 @@ export const customerAuthRouter = {
       return await linkOrCreateCustomer("google", userData.id, userData.email, userData.name);
     }),
 
-  handleFacebookCallback: publicProcedure
+  handleFacebookCallback: protectedProcedure
     .input(
       z.object({
+        organizationId: z.number(),
         code: z.string(),
         redirectUri: z.string(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.USERS, PERMISSION_ACTIONS.WRITE),
+      );
+
+      if (!canWrite) {
+        throw new Error("Unauthorized: Auth write permission required");
+      }
+
       const tokenRes = await fetch(
         `https://graph.facebook.com/v18.0/oauth/access_token?client_id=${process.env.FACEBOOK_CLIENT_ID}&client_secret=${process.env.FACEBOOK_CLIENT_SECRET}&code=${input.code}&redirect_uri=${input.redirectUri}`,
       );
@@ -78,15 +122,28 @@ export const customerAuthRouter = {
       return await linkOrCreateCustomer("facebook", userData.id, userData.email, userData.name);
     }),
 
-  handleAppleCallback: publicProcedure
+  handleAppleCallback: protectedProcedure
     .input(
       z.object({
+        organizationId: z.number(),
         code: z.string(),
         idToken: z.string(),
         redirectUri: z.string(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.USERS, PERMISSION_ACTIONS.WRITE),
+      );
+
+      if (!canWrite) {
+        throw new Error("Unauthorized: Auth write permission required");
+      }
+
       const payload = JSON.parse(Buffer.from(input.idToken.split(".")[1], "base64").toString());
       const appleUserId = payload.sub;
       const email = payload.email;
@@ -94,14 +151,27 @@ export const customerAuthRouter = {
       return await linkOrCreateCustomer("apple", appleUserId, email || null, null);
     }),
 
-  mergeAccounts: publicProcedure
+  mergeAccounts: protectedProcedure
     .input(
       z.object({
+        organizationId: z.number(),
         primaryContactId: z.number(),
         secondaryContactId: z.number(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.USERS, PERMISSION_ACTIONS.WRITE),
+      );
+
+      if (!canWrite) {
+        throw new Error("Unauthorized: Auth write permission required");
+      }
+
       await db
         .update(customerSocialIdentities)
         .set({ contactId: input.primaryContactId })
@@ -115,9 +185,21 @@ export const customerAuthRouter = {
       return { success: true };
     }),
 
-  listIdentities: publicProcedure
-    .input(z.object({ contactId: z.number() }))
-    .handler(async ({ input }) => {
+  listIdentities: protectedProcedure
+    .input(z.object({ organizationId: z.number(), contactId: z.number() }))
+    .handler(async ({ input, context }) => {
+      const canRead = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.USERS, PERMISSION_ACTIONS.READ),
+      );
+
+      if (!canRead) {
+        throw new Error("Unauthorized: Auth read permission required");
+      }
+
       return await db
         .select()
         .from(customerSocialIdentities)
@@ -125,17 +207,32 @@ export const customerAuthRouter = {
         .orderBy(desc(customerSocialIdentities.createdAt));
     }),
 
-  getIdentity: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
-    const [identity] = await db
-      .select()
-      .from(customerSocialIdentities)
-      .where(eq(customerSocialIdentities.id, input.id));
-    return identity ?? null;
-  }),
+  getIdentity: protectedProcedure
+    .input(z.object({ id: z.number(), organizationId: z.number() }))
+    .handler(async ({ input, context }) => {
+      const canRead = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.USERS, PERMISSION_ACTIONS.READ),
+      );
 
-  linkIdentity: publicProcedure
+      if (!canRead) {
+        throw new Error("Unauthorized: Auth read permission required");
+      }
+
+      const [identity] = await db
+        .select()
+        .from(customerSocialIdentities)
+        .where(eq(customerSocialIdentities.id, input.id));
+      return identity ?? null;
+    }),
+
+  linkIdentity: protectedProcedure
     .input(
       z.object({
+        organizationId: z.number(),
         contactId: z.number(),
         provider: z.enum(["google", "facebook", "apple"]),
         providerUserId: z.string(),
@@ -145,19 +242,57 @@ export const customerAuthRouter = {
         displayName: z.string().optional(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.USERS, PERMISSION_ACTIONS.WRITE),
+      );
+
+      if (!canWrite) {
+        throw new Error("Unauthorized: Auth write permission required");
+      }
+
       const [identity] = await db.insert(customerSocialIdentities).values(input).returning();
       return identity;
     }),
 
-  unlinkIdentity: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
-    await db.delete(customerSocialIdentities).where(eq(customerSocialIdentities.id, input.id));
-    return { success: true };
-  }),
+  unlinkIdentity: protectedProcedure
+    .input(z.object({ id: z.number(), organizationId: z.number() }))
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.USERS, PERMISSION_ACTIONS.WRITE),
+      );
 
-  listSessions: publicProcedure
-    .input(z.object({ contactId: z.number() }))
-    .handler(async ({ input }) => {
+      if (!canWrite) {
+        throw new Error("Unauthorized: Auth write permission required");
+      }
+
+      await db.delete(customerSocialIdentities).where(eq(customerSocialIdentities.id, input.id));
+      return { success: true };
+    }),
+
+  listSessions: protectedProcedure
+    .input(z.object({ organizationId: z.number(), contactId: z.number() }))
+    .handler(async ({ input, context }) => {
+      const canRead = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.USERS, PERMISSION_ACTIONS.READ),
+      );
+
+      if (!canRead) {
+        throw new Error("Unauthorized: Auth read permission required");
+      }
+
       return await db
         .select()
         .from(customerSessions)
@@ -165,24 +300,51 @@ export const customerAuthRouter = {
         .orderBy(desc(customerSessions.createdAt));
     }),
 
-  getSession: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
-    const [session] = await db
-      .select()
-      .from(customerSessions)
-      .where(eq(customerSessions.id, input.id));
-    return session ?? null;
-  }),
+  getSession: protectedProcedure
+    .input(z.object({ id: z.number(), organizationId: z.number() }))
+    .handler(async ({ input, context }) => {
+      const canRead = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.USERS, PERMISSION_ACTIONS.READ),
+      );
 
-  createSession: publicProcedure
+      if (!canRead) {
+        throw new Error("Unauthorized: Auth read permission required");
+      }
+
+      const [session] = await db
+        .select()
+        .from(customerSessions)
+        .where(eq(customerSessions.id, input.id));
+      return session ?? null;
+    }),
+
+  createSession: protectedProcedure
     .input(
       z.object({
+        organizationId: z.number(),
         contactId: z.number(),
         customerSocialIdentityId: z.number().optional(),
         ipAddress: z.string().optional(),
         userAgent: z.string().optional(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.USERS, PERMISSION_ACTIONS.WRITE),
+      );
+
+      if (!canWrite) {
+        throw new Error("Unauthorized: Auth write permission required");
+      }
+
       const [session] = await db
         .insert(customerSessions)
         .values({
@@ -195,14 +357,40 @@ export const customerAuthRouter = {
       return session;
     }),
 
-  deleteSession: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
-    await db.delete(customerSessions).where(eq(customerSessions.id, input.id));
-    return { success: true };
-  }),
+  deleteSession: protectedProcedure
+    .input(z.object({ id: z.number(), organizationId: z.number() }))
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.USERS, PERMISSION_ACTIONS.WRITE),
+      );
 
-  deleteAllSessions: publicProcedure
-    .input(z.object({ contactId: z.number() }))
-    .handler(async ({ input }) => {
+      if (!canWrite) {
+        throw new Error("Unauthorized: Auth write permission required");
+      }
+
+      await db.delete(customerSessions).where(eq(customerSessions.id, input.id));
+      return { success: true };
+    }),
+
+  deleteAllSessions: protectedProcedure
+    .input(z.object({ organizationId: z.number(), contactId: z.number() }))
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.USERS, PERMISSION_ACTIONS.WRITE),
+      );
+
+      if (!canWrite) {
+        throw new Error("Unauthorized: Auth write permission required");
+      }
+
       await db.delete(customerSessions).where(eq(customerSessions.contactId, input.contactId));
       return { success: true };
     }),

@@ -112,6 +112,31 @@ CREATE TABLE "themes" (
 	CONSTRAINT "themes_user_id_unique" UNIQUE("user_id")
 );
 --> statement-breakpoint
+CREATE TABLE "translation_cache" (
+	"id" bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "translation_cache_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START WITH 1 CACHE 1),
+	"source_hash" varchar(64) NOT NULL,
+	"source_language" varchar(10),
+	"target_language" varchar(10) NOT NULL,
+	"translated_text" text NOT NULL,
+	"provider" varchar(30) NOT NULL,
+	"expires_at" timestamp with time zone NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "translation_cache_source_hash_unique" UNIQUE("source_hash")
+);
+--> statement-breakpoint
+CREATE TABLE "translation_configs" (
+	"id" bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "translation_configs_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START WITH 1 CACHE 1),
+	"organization_id" bigint NOT NULL,
+	"provider" varchar(30) DEFAULT 'google' NOT NULL,
+	"api_key_enc" text,
+	"is_enabled" boolean DEFAULT false NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"created_by" bigint,
+	"updated_by" bigint,
+	CONSTRAINT "translation_configs_organization_id_unique" UNIQUE("organization_id")
+);
+--> statement-breakpoint
 CREATE TABLE "api_keys" (
 	"id" bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "api_keys_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START WITH 1 CACHE 1),
 	"uuid" uuid DEFAULT gen_random_uuid() NOT NULL,
@@ -194,6 +219,7 @@ CREATE TABLE "teams" (
 	"id" bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "teams_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START WITH 1 CACHE 1),
 	"uuid" uuid DEFAULT gen_random_uuid() NOT NULL,
 	"organization_id" bigint NOT NULL,
+	"group_id" bigint,
 	"name" varchar(150) NOT NULL,
 	"description" text,
 	"auto_assign_method" varchar(30) DEFAULT 'round_robin' NOT NULL,
@@ -273,6 +299,14 @@ CREATE TABLE "users" (
 	CONSTRAINT "users_organization_id_email_unique" UNIQUE("organization_id","email")
 );
 --> statement-breakpoint
+CREATE TABLE "contact_merges" (
+	"id" bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "contact_merges_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START WITH 1 CACHE 1),
+	"source_contact_id" bigint NOT NULL,
+	"target_contact_id" bigint NOT NULL,
+	"merged_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"merged_by" bigint
+);
+--> statement-breakpoint
 CREATE TABLE "contact_notes" (
 	"id" bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "contact_notes_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START WITH 1 CACHE 1),
 	"uuid" uuid DEFAULT gen_random_uuid() NOT NULL,
@@ -285,6 +319,32 @@ CREATE TABLE "contact_notes" (
 	"updated_by" bigint,
 	"deleted_by" bigint,
 	CONSTRAINT "contact_notes_uuid_unique" UNIQUE("uuid")
+);
+--> statement-breakpoint
+CREATE TABLE "contact_tags" (
+	"id" bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "contact_tags_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START WITH 1 CACHE 1),
+	"contact_id" bigint NOT NULL,
+	"tag_id" bigint NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"created_by" bigint,
+	CONSTRAINT "contact_tags_contact_id_tag_id_unique" UNIQUE("contact_id","tag_id")
+);
+--> statement-breakpoint
+CREATE TABLE "contact_views" (
+	"id" bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "contact_views_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START WITH 1 CACHE 1),
+	"uuid" uuid DEFAULT gen_random_uuid() NOT NULL,
+	"organization_id" bigint NOT NULL,
+	"user_id" bigint,
+	"name" varchar(150) NOT NULL,
+	"filters" jsonb NOT NULL,
+	"sort_by" varchar(50) DEFAULT 'created_at' NOT NULL,
+	"sort_dir" varchar(4) DEFAULT 'desc' NOT NULL,
+	"is_default" boolean DEFAULT false NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"created_by" bigint,
+	"updated_by" bigint,
+	CONSTRAINT "contact_views_uuid_unique" UNIQUE("uuid")
 );
 --> statement-breakpoint
 CREATE TABLE "contacts" (
@@ -311,6 +371,21 @@ CREATE TABLE "contacts" (
 	"deleted_by" bigint,
 	CONSTRAINT "contacts_uuid_unique" UNIQUE("uuid"),
 	CONSTRAINT "contacts_organization_id_email_unique" UNIQUE("organization_id","email")
+);
+--> statement-breakpoint
+CREATE TABLE "tag_categories" (
+	"id" bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "tag_categories_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START WITH 1 CACHE 1),
+	"uuid" uuid DEFAULT gen_random_uuid() NOT NULL,
+	"organization_id" bigint NOT NULL,
+	"name" varchar(100) NOT NULL,
+	"name_ar" varchar(100),
+	"color" varchar(7),
+	"order_by" integer DEFAULT 0 NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"created_by" bigint,
+	CONSTRAINT "tag_categories_uuid_unique" UNIQUE("uuid"),
+	CONSTRAINT "tag_categories_organization_id_name_unique" UNIQUE("organization_id","name")
 );
 --> statement-breakpoint
 CREATE TABLE "email_attachments" (
@@ -399,6 +474,25 @@ CREATE TABLE "mailbox_imap_configs" (
 	CONSTRAINT "mailbox_imap_configs_mailbox_id_unique" UNIQUE("mailbox_id")
 );
 --> statement-breakpoint
+CREATE TABLE "mailbox_routing_rules" (
+	"id" bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "mailbox_routing_rules_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START WITH 1 CACHE 1),
+	"uuid" uuid DEFAULT gen_random_uuid() NOT NULL,
+	"mailbox_id" bigint NOT NULL,
+	"name" varchar(150) NOT NULL,
+	"conditions" jsonb NOT NULL,
+	"condition_operator" varchar(10) DEFAULT 'and' NOT NULL,
+	"actions" jsonb NOT NULL,
+	"priority" integer DEFAULT 0 NOT NULL,
+	"is_active" boolean DEFAULT true NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"deleted_at" timestamp with time zone,
+	"created_by" bigint,
+	"updated_by" bigint,
+	"deleted_by" bigint,
+	CONSTRAINT "mailbox_routing_rules_uuid_unique" UNIQUE("uuid")
+);
+--> statement-breakpoint
 CREATE TABLE "mailbox_smtp_configs" (
 	"id" bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "mailbox_smtp_configs_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START WITH 1 CACHE 1),
 	"mailbox_id" bigint NOT NULL,
@@ -456,12 +550,20 @@ CREATE TABLE "tags" (
 CREATE TABLE "ticket_attachments" (
 	"id" bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "ticket_attachments_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START WITH 1 CACHE 1),
 	"uuid" uuid DEFAULT gen_random_uuid() NOT NULL,
-	"ticket_id" bigint NOT NULL,
+	"organization_id" bigint NOT NULL,
+	"ticket_id" bigint,
 	"ticket_message_id" bigint,
+	"kb_article_id" bigint,
+	"contact_id" bigint,
 	"filename" varchar(500) NOT NULL,
 	"mime_type" varchar(150) NOT NULL,
 	"size_bytes" bigint NOT NULL,
 	"storage_key" text NOT NULL,
+	"thumbnail_key" text,
+	"image_width" integer,
+	"image_height" integer,
+	"is_inline_image" boolean DEFAULT false,
+	"gallery_order" integer,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"created_by" bigint,
 	CONSTRAINT "ticket_attachments_uuid_unique" UNIQUE("uuid")
@@ -576,6 +678,8 @@ CREATE TABLE "tickets" (
 	"social_message_id" bigint,
 	"chat_session_id" bigint,
 	"parent_ticket_id" bigint,
+	"category_id" bigint,
+	"assigned_group_id" bigint,
 	"is_merged" boolean DEFAULT false NOT NULL,
 	"is_spam" boolean DEFAULT false NOT NULL,
 	"is_locked" boolean DEFAULT false NOT NULL,
@@ -663,6 +767,23 @@ CREATE TABLE "ticket_custom_fields" (
 	CONSTRAINT "ticket_custom_fields_uuid_unique" UNIQUE("uuid")
 );
 --> statement-breakpoint
+CREATE TABLE "ticket_escalations" (
+	"id" bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "ticket_escalations_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START WITH 1 CACHE 1),
+	"uuid" uuid DEFAULT gen_random_uuid() NOT NULL,
+	"ticket_id" bigint NOT NULL,
+	"sla_policy_target_id" bigint,
+	"escalation_level" integer DEFAULT 1 NOT NULL,
+	"escalate_to_agent_id" bigint,
+	"escalate_to_team_id" bigint,
+	"escalation_type" varchar(50) NOT NULL,
+	"breached_at" timestamp with time zone NOT NULL,
+	"reason" varchar(255),
+	"previous_assignee_agent_id" bigint,
+	"previous_assignee_team_id" bigint,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "ticket_escalations_uuid_unique" UNIQUE("uuid")
+);
+--> statement-breakpoint
 CREATE TABLE "ticket_sla" (
 	"id" bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "ticket_sla_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START WITH 1 CACHE 1),
 	"ticket_id" bigint NOT NULL,
@@ -692,6 +813,8 @@ CREATE TABLE "saved_replies" (
 	"body_text" text,
 	"shortcuts" varchar(100),
 	"scope" varchar(20) DEFAULT 'personal' NOT NULL,
+	"usage_count" integer DEFAULT 0 NOT NULL,
+	"last_used_at" timestamp with time zone,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"deleted_at" timestamp with time zone,
@@ -765,6 +888,8 @@ CREATE TABLE "form_fields" (
 	"is_required" boolean DEFAULT false NOT NULL,
 	"order_by" integer DEFAULT 0 NOT NULL,
 	"is_active" boolean DEFAULT true NOT NULL,
+	"show_when" jsonb,
+	"hide_when" jsonb,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
 );
@@ -841,6 +966,25 @@ CREATE TABLE "workflows" (
 	"updated_by" bigint,
 	"deleted_by" bigint,
 	CONSTRAINT "workflows_uuid_unique" UNIQUE("uuid")
+);
+--> statement-breakpoint
+CREATE TABLE "disqus_accounts" (
+	"id" bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "disqus_accounts_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START WITH 1 CACHE 1),
+	"uuid" uuid DEFAULT gen_random_uuid() NOT NULL,
+	"organization_id" bigint NOT NULL,
+	"forum_shortname" varchar(150) NOT NULL,
+	"api_key_enc" text NOT NULL,
+	"api_secret_enc" text NOT NULL,
+	"access_token_enc" text,
+	"default_team_id" bigint,
+	"status" varchar(30) DEFAULT 'active' NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"deleted_at" timestamp with time zone,
+	"created_by" bigint,
+	"updated_by" bigint,
+	"deleted_by" bigint,
+	CONSTRAINT "disqus_accounts_uuid_unique" UNIQUE("uuid")
 );
 --> statement-breakpoint
 CREATE TABLE "social_accounts" (
@@ -977,6 +1121,15 @@ CREATE TABLE "kb_categories" (
 	CONSTRAINT "kb_categories_organization_id_slug_unique" UNIQUE("organization_id","slug")
 );
 --> statement-breakpoint
+CREATE TABLE "chat_message_reactions" (
+	"id" bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "chat_message_reactions_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START WITH 1 CACHE 1),
+	"message_id" bigint NOT NULL,
+	"user_id" bigint,
+	"contact_id" bigint,
+	"reaction" varchar(50) NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE "chat_messages" (
 	"id" bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "chat_messages_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START WITH 1 CACHE 1),
 	"uuid" uuid DEFAULT gen_random_uuid() NOT NULL,
@@ -1110,6 +1263,44 @@ CREATE TABLE "ecommerce_stores" (
 	CONSTRAINT "ecommerce_stores_organization_id_platform_shop_domain_unique" UNIQUE("organization_id","platform","shop_domain")
 );
 --> statement-breakpoint
+CREATE TABLE "marketplace_accounts" (
+	"id" bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "marketplace_accounts_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START WITH 1 CACHE 1),
+	"uuid" uuid DEFAULT gen_random_uuid() NOT NULL,
+	"organization_id" bigint NOT NULL,
+	"platform" varchar(50) NOT NULL,
+	"account_name" varchar(255) NOT NULL,
+	"seller_id" varchar(255),
+	"marketplace_id" varchar(50),
+	"sp_api_client_id_enc" text,
+	"sp_api_client_secret_enc" text,
+	"sp_api_refresh_token_enc" text,
+	"default_team_id" bigint,
+	"status" varchar(30) DEFAULT 'active' NOT NULL,
+	"last_synced_at" timestamp with time zone,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"deleted_at" timestamp with time zone,
+	"created_by" bigint,
+	"updated_by" bigint,
+	"deleted_by" bigint
+);
+--> statement-breakpoint
+CREATE TABLE "marketplace_messages" (
+	"id" bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "marketplace_messages_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START WITH 1 CACHE 1),
+	"uuid" uuid DEFAULT gen_random_uuid() NOT NULL,
+	"marketplace_account_id" bigint NOT NULL,
+	"ticket_id" bigint,
+	"platform_message_id" varchar(500) NOT NULL,
+	"amazon_order_id" varchar(100),
+	"buyer_email" varchar(255),
+	"buyer_name" varchar(255),
+	"subject" text,
+	"body" text,
+	"direction" varchar(10) NOT NULL,
+	"received_at" timestamp with time zone,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE "addons" (
 	"id" bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "addons_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START WITH 1 CACHE 1),
 	"uuid" uuid DEFAULT gen_random_uuid() NOT NULL,
@@ -1173,6 +1364,8 @@ CREATE TABLE "subscription_plans" (
 	"max_agents" integer NOT NULL,
 	"max_contacts" integer NOT NULL,
 	"is_active" boolean DEFAULT true NOT NULL,
+	"stripe_price_id_monthly" varchar(255),
+	"stripe_price_id_yearly" varchar(255),
 	"metadata" jsonb,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
@@ -1492,6 +1685,146 @@ CREATE TABLE "notifications" (
 	CONSTRAINT "notifications_uuid_unique" UNIQUE("uuid")
 );
 --> statement-breakpoint
+CREATE TABLE "groups" (
+	"id" bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "groups_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START WITH 1 CACHE 1),
+	"uuid" uuid DEFAULT gen_random_uuid() NOT NULL,
+	"organization_id" bigint NOT NULL,
+	"name" varchar(150) NOT NULL,
+	"description" text,
+	"default_team_id" bigint,
+	"is_active" boolean DEFAULT true NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"deleted_at" timestamp with time zone,
+	"created_by" bigint,
+	"updated_by" bigint,
+	"deleted_by" bigint,
+	CONSTRAINT "groups_uuid_unique" UNIQUE("uuid")
+);
+--> statement-breakpoint
+CREATE TABLE "ticket_categories" (
+	"id" bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "ticket_categories_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START WITH 1 CACHE 1),
+	"uuid" uuid DEFAULT gen_random_uuid() NOT NULL,
+	"organization_id" bigint NOT NULL,
+	"name" varchar(150) NOT NULL,
+	"slug" varchar(100) NOT NULL,
+	"description" text,
+	"icon" varchar(100),
+	"color" varchar(7),
+	"default_priority_id" bigint,
+	"default_team_id" bigint,
+	"default_sla_policy_id" bigint,
+	"is_active" boolean DEFAULT true NOT NULL,
+	"order_by" integer DEFAULT 0 NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"deleted_at" timestamp with time zone,
+	"created_by" bigint,
+	"updated_by" bigint,
+	"deleted_by" bigint
+);
+--> statement-breakpoint
+CREATE TABLE "ticket_forwards" (
+	"id" bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "ticket_forwards_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START WITH 1 CACHE 1),
+	"uuid" uuid DEFAULT gen_random_uuid() NOT NULL,
+	"ticket_id" bigint NOT NULL,
+	"ticket_message_id" bigint,
+	"forwarded_to" jsonb NOT NULL,
+	"cc_emails" jsonb,
+	"bcc_emails" jsonb,
+	"subject" text,
+	"body_html" text,
+	"forwarded_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"forwarded_by" bigint NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "gdpr_requests" (
+	"id" bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "gdpr_requests_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START WITH 1 CACHE 1),
+	"uuid" uuid DEFAULT gen_random_uuid() NOT NULL,
+	"organization_id" bigint NOT NULL,
+	"contact_id" bigint NOT NULL,
+	"type" varchar(20) NOT NULL,
+	"status" varchar(20) DEFAULT 'pending' NOT NULL,
+	"reason" text,
+	"notes" text,
+	"data_json" text,
+	"requested_by" bigint NOT NULL,
+	"processed_by" bigint,
+	"completed_at" timestamp with time zone,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "gdpr_requests_uuid_unique" UNIQUE("uuid")
+);
+--> statement-breakpoint
+CREATE TABLE "agent_calendar_connections" (
+	"id" bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "agent_calendar_connections_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START WITH 1 CACHE 1),
+	"uuid" uuid DEFAULT gen_random_uuid() NOT NULL,
+	"user_id" bigint NOT NULL,
+	"provider" varchar(50) DEFAULT 'google' NOT NULL,
+	"access_token_enc" text NOT NULL,
+	"refresh_token_enc" text,
+	"token_expires_at" timestamp with time zone,
+	"calendar_id" varchar(255),
+	"calendar_name" varchar(255),
+	"is_active" boolean DEFAULT true NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"deleted_at" timestamp with time zone,
+	CONSTRAINT "agent_calendar_connections_uuid_unique" UNIQUE("uuid")
+);
+--> statement-breakpoint
+CREATE TABLE "ticket_calendar_events" (
+	"id" bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "ticket_calendar_events_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START WITH 1 CACHE 1),
+	"uuid" uuid DEFAULT gen_random_uuid() NOT NULL,
+	"ticket_id" bigint NOT NULL,
+	"agent_calendar_connection_id" bigint NOT NULL,
+	"provider" varchar(50) NOT NULL,
+	"provider_event_id" varchar(255) NOT NULL,
+	"title" varchar(255) NOT NULL,
+	"description" text,
+	"start_at" timestamp with time zone NOT NULL,
+	"end_at" timestamp with time zone NOT NULL,
+	"location" varchar(255),
+	"attendees" text,
+	"is_reminder_sent" boolean DEFAULT false NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"created_by" bigint,
+	"updated_by" bigint,
+	CONSTRAINT "ticket_calendar_events_uuid_unique" UNIQUE("uuid")
+);
+--> statement-breakpoint
+CREATE TABLE "customer_sessions" (
+	"id" bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "customer_sessions_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START WITH 1 CACHE 1),
+	"uuid" uuid DEFAULT gen_random_uuid() NOT NULL,
+	"contact_id" bigint NOT NULL,
+	"customer_social_identity_id" bigint,
+	"session_token" varchar(500) NOT NULL,
+	"user_agent" text,
+	"ip_address" varchar(50),
+	"expires_at" timestamp with time zone NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "customer_sessions_uuid_unique" UNIQUE("uuid"),
+	CONSTRAINT "customer_sessions_session_token_unique" UNIQUE("session_token")
+);
+--> statement-breakpoint
+CREATE TABLE "customer_social_identities" (
+	"id" bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "customer_social_identities_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START WITH 1 CACHE 1),
+	"uuid" uuid DEFAULT gen_random_uuid() NOT NULL,
+	"contact_id" bigint NOT NULL,
+	"provider" varchar(50) NOT NULL,
+	"provider_user_id" varchar(255) NOT NULL,
+	"provider_email" varchar(255),
+	"provider_username" varchar(150),
+	"access_token_enc" text,
+	"refresh_token_enc" text,
+	"token_expires_at" timestamp with time zone,
+	"is_active" boolean DEFAULT true NOT NULL,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "customer_social_identities_uuid_unique" UNIQUE("uuid")
+);
+--> statement-breakpoint
 CREATE TABLE "contact_push_tokens" (
 	"id" bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "contact_push_tokens_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START WITH 1 CACHE 1),
 	"contact_id" bigint NOT NULL,
@@ -1571,6 +1904,7 @@ CREATE TABLE "on_premise_licenses" (
 	"id" bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "on_premise_licenses_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START WITH 1 CACHE 1),
 	"organization_id" bigint NOT NULL,
 	"license_key" varchar(500) NOT NULL,
+	"domain" varchar(255),
 	"product_edition" varchar(100) NOT NULL,
 	"seat_limit" bigint NOT NULL,
 	"valid_until" timestamp with time zone NOT NULL,
@@ -1582,114 +1916,48 @@ CREATE TABLE "on_premise_licenses" (
 	CONSTRAINT "on_premise_licenses_license_key_unique" UNIQUE("license_key")
 );
 --> statement-breakpoint
+CREATE TABLE "excel_export_jobs" (
+	"id" bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "excel_export_jobs_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START WITH 1 CACHE 1),
+	"uuid" uuid DEFAULT gen_random_uuid() NOT NULL,
+	"organization_id" bigint NOT NULL,
+	"user_id" bigint NOT NULL,
+	"entity_type" varchar(50) NOT NULL,
+	"filters" jsonb,
+	"status" varchar(20) DEFAULT 'pending' NOT NULL,
+	"file_url" text,
+	"record_count" integer,
+	"error_message" text,
+	"completed_at" timestamp with time zone,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "excel_export_jobs_uuid_unique" UNIQUE("uuid")
+);
+--> statement-breakpoint
+CREATE TABLE "excel_import_jobs" (
+	"id" bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "excel_import_jobs_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START WITH 1 CACHE 1),
+	"uuid" uuid DEFAULT gen_random_uuid() NOT NULL,
+	"organization_id" bigint NOT NULL,
+	"user_id" bigint NOT NULL,
+	"entity_type" varchar(50) NOT NULL,
+	"file_url" text NOT NULL,
+	"status" varchar(20) DEFAULT 'pending' NOT NULL,
+	"mode" varchar(20) DEFAULT 'create' NOT NULL,
+	"match_field" varchar(50),
+	"total_rows" integer,
+	"processed_rows" integer DEFAULT 0,
+	"success_count" integer DEFAULT 0,
+	"error_count" integer DEFAULT 0,
+	"errors" jsonb,
+	"completed_at" timestamp with time zone,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	CONSTRAINT "excel_import_jobs_uuid_unique" UNIQUE("uuid")
+);
+--> statement-breakpoint
 CREATE TABLE "todo" (
 	"id" serial PRIMARY KEY NOT NULL,
 	"text" text NOT NULL,
 	"completed" boolean DEFAULT false NOT NULL
-);
---> statement-breakpoint
-CREATE TABLE "agent_calendar_connections" (
-	"id" bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "agent_calendar_connections_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START WITH 1 CACHE 1),
-	"uuid" uuid DEFAULT gen_random_uuid() NOT NULL,
-	"user_id" bigint NOT NULL,
-	"provider" varchar(50) DEFAULT 'google' NOT NULL,
-	"access_token_enc" text NOT NULL,
-	"refresh_token_enc" text,
-	"token_expires_at" timestamp with time zone,
-	"calendar_id" varchar(255),
-	"calendar_name" varchar(255),
-	"is_active" boolean DEFAULT true NOT NULL,
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"deleted_at" timestamp with time zone,
-	CONSTRAINT "agent_calendar_connections_uuid_unique" UNIQUE("uuid")
-);
---> statement-breakpoint
-CREATE TABLE "ticket_calendar_events" (
-	"id" bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "ticket_calendar_events_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START WITH 1 CACHE 1),
-	"uuid" uuid DEFAULT gen_random_uuid() NOT NULL,
-	"ticket_id" bigint NOT NULL,
-	"agent_calendar_connection_id" bigint NOT NULL,
-	"provider" varchar(50) NOT NULL,
-	"provider_event_id" varchar(255) NOT NULL,
-	"title" varchar(255) NOT NULL,
-	"description" text,
-	"start_at" timestamp with time zone NOT NULL,
-	"end_at" timestamp with time zone NOT NULL,
-	"location" varchar(255),
-	"attendees" text,
-	"is_reminder_sent" boolean DEFAULT false NOT NULL,
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"created_by" bigint,
-	"updated_by" bigint,
-	CONSTRAINT "ticket_calendar_events_uuid_unique" UNIQUE("uuid")
-);
---> statement-breakpoint
-CREATE TABLE "customer_sessions" (
-	"id" bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "customer_sessions_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START WITH 1 CACHE 1),
-	"uuid" uuid DEFAULT gen_random_uuid() NOT NULL,
-	"contact_id" bigint NOT NULL,
-	"customer_social_identity_id" bigint,
-	"session_token" varchar(500) NOT NULL,
-	"user_agent" text,
-	"ip_address" varchar(50),
-	"expires_at" timestamp with time zone NOT NULL,
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	CONSTRAINT "customer_sessions_uuid_unique" UNIQUE("uuid"),
-	CONSTRAINT "customer_sessions_session_token_unique" UNIQUE("session_token")
-);
---> statement-breakpoint
-CREATE TABLE "customer_social_identities" (
-	"id" bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "customer_social_identities_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START WITH 1 CACHE 1),
-	"uuid" uuid DEFAULT gen_random_uuid() NOT NULL,
-	"contact_id" bigint NOT NULL,
-	"provider" varchar(50) NOT NULL,
-	"provider_user_id" varchar(255) NOT NULL,
-	"provider_email" varchar(255),
-	"provider_username" varchar(150),
-	"access_token_enc" text,
-	"refresh_token_enc" text,
-	"token_expires_at" timestamp with time zone,
-	"is_active" boolean DEFAULT true NOT NULL,
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
-	CONSTRAINT "customer_social_identities_uuid_unique" UNIQUE("uuid")
-);
---> statement-breakpoint
-CREATE TABLE "gdpr_requests" (
-	"id" bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "gdpr_requests_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START WITH 1 CACHE 1),
-	"uuid" uuid DEFAULT gen_random_uuid() NOT NULL,
-	"organization_id" bigint NOT NULL,
-	"contact_id" bigint NOT NULL,
-	"type" varchar(20) NOT NULL,
-	"status" varchar(20) DEFAULT 'pending' NOT NULL,
-	"reason" text,
-	"notes" text,
-	"data_json" text,
-	"requested_by" bigint NOT NULL,
-	"processed_by" bigint,
-	"completed_at" timestamp with time zone,
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
-	CONSTRAINT "gdpr_requests_uuid_unique" UNIQUE("uuid")
-);
---> statement-breakpoint
-CREATE TABLE "groups" (
-	"id" bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "groups_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START WITH 1 CACHE 1),
-	"uuid" uuid DEFAULT gen_random_uuid() NOT NULL,
-	"organization_id" bigint NOT NULL,
-	"name" varchar(150) NOT NULL,
-	"description" text,
-	"default_team_id" bigint,
-	"is_active" boolean DEFAULT true NOT NULL,
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"deleted_at" timestamp with time zone,
-	"created_by" bigint,
-	"updated_by" bigint,
-	"deleted_by" bigint,
-	CONSTRAINT "groups_uuid_unique" UNIQUE("uuid")
 );
 --> statement-breakpoint
 CREATE TABLE "presence" (
@@ -1698,35 +1966,6 @@ CREATE TABLE "presence" (
 	"user_id" bigint NOT NULL,
 	"last_seen_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"is_active" boolean DEFAULT true NOT NULL
-);
---> statement-breakpoint
-CREATE TABLE "ticket_categories" (
-	"id" bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "ticket_categories_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START WITH 1 CACHE 1),
-	"organization_id" bigint NOT NULL,
-	"name" varchar(150) NOT NULL,
-	"description" text,
-	"sla_policy_id" bigint,
-	"team_id" bigint,
-	"priority_id" bigint,
-	"parent_category_id" bigint,
-	"is_active" boolean DEFAULT true NOT NULL,
-	"sort_order" integer DEFAULT 0 NOT NULL,
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"created_by" bigint
-);
---> statement-breakpoint
-CREATE TABLE "ticket_forwards" (
-	"id" bigint PRIMARY KEY GENERATED ALWAYS AS IDENTITY (sequence name "ticket_forwards_id_seq" INCREMENT BY 1 MINVALUE 1 MAXVALUE 9223372036854775807 START WITH 1 CACHE 1),
-	"ticket_id" bigint NOT NULL,
-	"ticket_message_id" bigint,
-	"to" jsonb NOT NULL,
-	"cc" jsonb DEFAULT '[]'::jsonb NOT NULL,
-	"bcc" jsonb DEFAULT '[]'::jsonb NOT NULL,
-	"subject" varchar(500),
-	"body" text NOT NULL,
-	"created_by" bigint NOT NULL,
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 ALTER TABLE "lookups" ADD CONSTRAINT "lookups_lookup_type_id_lookup_types_id_fk" FOREIGN KEY ("lookup_type_id") REFERENCES "public"."lookup_types"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
@@ -1745,6 +1984,9 @@ ALTER TABLE "organizations" ADD CONSTRAINT "organizations_created_by_users_id_fk
 ALTER TABLE "organizations" ADD CONSTRAINT "organizations_updated_by_users_id_fk" FOREIGN KEY ("updated_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "organizations" ADD CONSTRAINT "organizations_deleted_by_users_id_fk" FOREIGN KEY ("deleted_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "themes" ADD CONSTRAINT "themes_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "translation_configs" ADD CONSTRAINT "translation_configs_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "translation_configs" ADD CONSTRAINT "translation_configs_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "translation_configs" ADD CONSTRAINT "translation_configs_updated_by_users_id_fk" FOREIGN KEY ("updated_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "api_keys" ADD CONSTRAINT "api_keys_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "api_keys" ADD CONSTRAINT "api_keys_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "api_keys" ADD CONSTRAINT "api_keys_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
@@ -1761,6 +2003,7 @@ ALTER TABLE "team_members" ADD CONSTRAINT "team_members_team_id_teams_id_fk" FOR
 ALTER TABLE "team_members" ADD CONSTRAINT "team_members_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "team_members" ADD CONSTRAINT "team_members_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "teams" ADD CONSTRAINT "teams_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "teams" ADD CONSTRAINT "teams_group_id_groups_id_fk" FOREIGN KEY ("group_id") REFERENCES "public"."groups"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "teams" ADD CONSTRAINT "teams_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "teams" ADD CONSTRAINT "teams_updated_by_users_id_fk" FOREIGN KEY ("updated_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "teams" ADD CONSTRAINT "teams_deleted_by_users_id_fk" FOREIGN KEY ("deleted_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
@@ -1773,15 +2016,27 @@ ALTER TABLE "users" ADD CONSTRAINT "users_organization_id_organizations_id_fk" F
 ALTER TABLE "users" ADD CONSTRAINT "users_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "users" ADD CONSTRAINT "users_updated_by_users_id_fk" FOREIGN KEY ("updated_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "users" ADD CONSTRAINT "users_deleted_by_users_id_fk" FOREIGN KEY ("deleted_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "contact_merges" ADD CONSTRAINT "contact_merges_source_contact_id_contacts_id_fk" FOREIGN KEY ("source_contact_id") REFERENCES "public"."contacts"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "contact_merges" ADD CONSTRAINT "contact_merges_target_contact_id_contacts_id_fk" FOREIGN KEY ("target_contact_id") REFERENCES "public"."contacts"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "contact_merges" ADD CONSTRAINT "contact_merges_merged_by_users_id_fk" FOREIGN KEY ("merged_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "contact_notes" ADD CONSTRAINT "contact_notes_contact_id_contacts_id_fk" FOREIGN KEY ("contact_id") REFERENCES "public"."contacts"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "contact_notes" ADD CONSTRAINT "contact_notes_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "contact_notes" ADD CONSTRAINT "contact_notes_updated_by_users_id_fk" FOREIGN KEY ("updated_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "contact_notes" ADD CONSTRAINT "contact_notes_deleted_by_users_id_fk" FOREIGN KEY ("deleted_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "contact_tags" ADD CONSTRAINT "contact_tags_contact_id_contacts_id_fk" FOREIGN KEY ("contact_id") REFERENCES "public"."contacts"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "contact_tags" ADD CONSTRAINT "contact_tags_tag_id_tags_id_fk" FOREIGN KEY ("tag_id") REFERENCES "public"."tags"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "contact_tags" ADD CONSTRAINT "contact_tags_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "contact_views" ADD CONSTRAINT "contact_views_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "contact_views" ADD CONSTRAINT "contact_views_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "contact_views" ADD CONSTRAINT "contact_views_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "contact_views" ADD CONSTRAINT "contact_views_updated_by_users_id_fk" FOREIGN KEY ("updated_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "contacts" ADD CONSTRAINT "contacts_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "contacts" ADD CONSTRAINT "contacts_contact_type_id_lookups_id_fk" FOREIGN KEY ("contact_type_id") REFERENCES "public"."lookups"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "contacts" ADD CONSTRAINT "contacts_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "contacts" ADD CONSTRAINT "contacts_updated_by_users_id_fk" FOREIGN KEY ("updated_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "contacts" ADD CONSTRAINT "contacts_deleted_by_users_id_fk" FOREIGN KEY ("deleted_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "tag_categories" ADD CONSTRAINT "tag_categories_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "tag_categories" ADD CONSTRAINT "tag_categories_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "email_attachments" ADD CONSTRAINT "email_attachments_email_message_id_email_messages_id_fk" FOREIGN KEY ("email_message_id") REFERENCES "public"."email_messages"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "email_messages" ADD CONSTRAINT "email_messages_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "email_messages" ADD CONSTRAINT "email_messages_mailbox_id_mailboxes_id_fk" FOREIGN KEY ("mailbox_id") REFERENCES "public"."mailboxes"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
@@ -1796,6 +2051,10 @@ ALTER TABLE "email_routing_rules" ADD CONSTRAINT "email_routing_rules_deleted_by
 ALTER TABLE "mailbox_aliases" ADD CONSTRAINT "mailbox_aliases_mailbox_id_mailboxes_id_fk" FOREIGN KEY ("mailbox_id") REFERENCES "public"."mailboxes"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "mailbox_aliases" ADD CONSTRAINT "mailbox_aliases_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "mailbox_imap_configs" ADD CONSTRAINT "mailbox_imap_configs_mailbox_id_mailboxes_id_fk" FOREIGN KEY ("mailbox_id") REFERENCES "public"."mailboxes"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "mailbox_routing_rules" ADD CONSTRAINT "mailbox_routing_rules_mailbox_id_mailboxes_id_fk" FOREIGN KEY ("mailbox_id") REFERENCES "public"."mailboxes"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "mailbox_routing_rules" ADD CONSTRAINT "mailbox_routing_rules_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "mailbox_routing_rules" ADD CONSTRAINT "mailbox_routing_rules_updated_by_users_id_fk" FOREIGN KEY ("updated_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "mailbox_routing_rules" ADD CONSTRAINT "mailbox_routing_rules_deleted_by_users_id_fk" FOREIGN KEY ("deleted_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "mailbox_smtp_configs" ADD CONSTRAINT "mailbox_smtp_configs_mailbox_id_mailboxes_id_fk" FOREIGN KEY ("mailbox_id") REFERENCES "public"."mailboxes"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "mailboxes" ADD CONSTRAINT "mailboxes_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "mailboxes" ADD CONSTRAINT "mailboxes_default_team_id_teams_id_fk" FOREIGN KEY ("default_team_id") REFERENCES "public"."teams"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
@@ -1804,6 +2063,7 @@ ALTER TABLE "mailboxes" ADD CONSTRAINT "mailboxes_updated_by_users_id_fk" FOREIG
 ALTER TABLE "mailboxes" ADD CONSTRAINT "mailboxes_deleted_by_users_id_fk" FOREIGN KEY ("deleted_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "tags" ADD CONSTRAINT "tags_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "tags" ADD CONSTRAINT "tags_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "ticket_attachments" ADD CONSTRAINT "ticket_attachments_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "ticket_attachments" ADD CONSTRAINT "ticket_attachments_ticket_id_tickets_id_fk" FOREIGN KEY ("ticket_id") REFERENCES "public"."tickets"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "ticket_attachments" ADD CONSTRAINT "ticket_attachments_ticket_message_id_ticket_messages_id_fk" FOREIGN KEY ("ticket_message_id") REFERENCES "public"."ticket_messages"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "ticket_attachments" ADD CONSTRAINT "ticket_attachments_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
@@ -1845,6 +2105,8 @@ ALTER TABLE "tickets" ADD CONSTRAINT "tickets_form_submission_id_form_submission
 ALTER TABLE "tickets" ADD CONSTRAINT "tickets_social_message_id_social_messages_id_fk" FOREIGN KEY ("social_message_id") REFERENCES "public"."social_messages"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "tickets" ADD CONSTRAINT "tickets_chat_session_id_chat_sessions_id_fk" FOREIGN KEY ("chat_session_id") REFERENCES "public"."chat_sessions"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "tickets" ADD CONSTRAINT "tickets_parent_ticket_id_tickets_id_fk" FOREIGN KEY ("parent_ticket_id") REFERENCES "public"."tickets"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "tickets" ADD CONSTRAINT "tickets_category_id_ticket_categories_id_fk" FOREIGN KEY ("category_id") REFERENCES "public"."ticket_categories"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "tickets" ADD CONSTRAINT "tickets_assigned_group_id_groups_id_fk" FOREIGN KEY ("assigned_group_id") REFERENCES "public"."groups"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "tickets" ADD CONSTRAINT "tickets_locked_by_users_id_fk" FOREIGN KEY ("locked_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "tickets" ADD CONSTRAINT "tickets_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "tickets" ADD CONSTRAINT "tickets_updated_by_users_id_fk" FOREIGN KEY ("updated_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
@@ -1862,6 +2124,12 @@ ALTER TABLE "ticket_custom_fields" ADD CONSTRAINT "ticket_custom_fields_organiza
 ALTER TABLE "ticket_custom_fields" ADD CONSTRAINT "ticket_custom_fields_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "ticket_custom_fields" ADD CONSTRAINT "ticket_custom_fields_updated_by_users_id_fk" FOREIGN KEY ("updated_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "ticket_custom_fields" ADD CONSTRAINT "ticket_custom_fields_deleted_by_users_id_fk" FOREIGN KEY ("deleted_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "ticket_escalations" ADD CONSTRAINT "ticket_escalations_ticket_id_tickets_id_fk" FOREIGN KEY ("ticket_id") REFERENCES "public"."tickets"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "ticket_escalations" ADD CONSTRAINT "ticket_escalations_sla_policy_target_id_sla_policy_targets_id_fk" FOREIGN KEY ("sla_policy_target_id") REFERENCES "public"."sla_policy_targets"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "ticket_escalations" ADD CONSTRAINT "ticket_escalations_escalate_to_agent_id_users_id_fk" FOREIGN KEY ("escalate_to_agent_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "ticket_escalations" ADD CONSTRAINT "ticket_escalations_escalate_to_team_id_teams_id_fk" FOREIGN KEY ("escalate_to_team_id") REFERENCES "public"."teams"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "ticket_escalations" ADD CONSTRAINT "ticket_escalations_previous_assignee_agent_id_users_id_fk" FOREIGN KEY ("previous_assignee_agent_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "ticket_escalations" ADD CONSTRAINT "ticket_escalations_previous_assignee_team_id_teams_id_fk" FOREIGN KEY ("previous_assignee_team_id") REFERENCES "public"."teams"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "ticket_sla" ADD CONSTRAINT "ticket_sla_ticket_id_tickets_id_fk" FOREIGN KEY ("ticket_id") REFERENCES "public"."tickets"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "ticket_sla" ADD CONSTRAINT "ticket_sla_sla_policy_id_sla_policies_id_fk" FOREIGN KEY ("sla_policy_id") REFERENCES "public"."sla_policies"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "saved_replies" ADD CONSTRAINT "saved_replies_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
@@ -1900,6 +2168,11 @@ ALTER TABLE "workflows" ADD CONSTRAINT "workflows_organization_id_organizations_
 ALTER TABLE "workflows" ADD CONSTRAINT "workflows_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "workflows" ADD CONSTRAINT "workflows_updated_by_users_id_fk" FOREIGN KEY ("updated_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "workflows" ADD CONSTRAINT "workflows_deleted_by_users_id_fk" FOREIGN KEY ("deleted_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "disqus_accounts" ADD CONSTRAINT "disqus_accounts_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "disqus_accounts" ADD CONSTRAINT "disqus_accounts_default_team_id_teams_id_fk" FOREIGN KEY ("default_team_id") REFERENCES "public"."teams"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "disqus_accounts" ADD CONSTRAINT "disqus_accounts_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "disqus_accounts" ADD CONSTRAINT "disqus_accounts_updated_by_users_id_fk" FOREIGN KEY ("updated_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "disqus_accounts" ADD CONSTRAINT "disqus_accounts_deleted_by_users_id_fk" FOREIGN KEY ("deleted_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "social_accounts" ADD CONSTRAINT "social_accounts_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "social_accounts" ADD CONSTRAINT "social_accounts_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "social_accounts" ADD CONSTRAINT "social_accounts_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
@@ -1925,6 +2198,9 @@ ALTER TABLE "kb_categories" ADD CONSTRAINT "kb_categories_parent_id_kb_categorie
 ALTER TABLE "kb_categories" ADD CONSTRAINT "kb_categories_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "kb_categories" ADD CONSTRAINT "kb_categories_updated_by_users_id_fk" FOREIGN KEY ("updated_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "kb_categories" ADD CONSTRAINT "kb_categories_deleted_by_users_id_fk" FOREIGN KEY ("deleted_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "chat_message_reactions" ADD CONSTRAINT "chat_message_reactions_message_id_chat_messages_id_fk" FOREIGN KEY ("message_id") REFERENCES "public"."chat_messages"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "chat_message_reactions" ADD CONSTRAINT "chat_message_reactions_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "chat_message_reactions" ADD CONSTRAINT "chat_message_reactions_contact_id_contacts_id_fk" FOREIGN KEY ("contact_id") REFERENCES "public"."contacts"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "chat_messages" ADD CONSTRAINT "chat_messages_session_id_chat_sessions_id_fk" FOREIGN KEY ("session_id") REFERENCES "public"."chat_sessions"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "chat_messages" ADD CONSTRAINT "chat_messages_author_user_id_users_id_fk" FOREIGN KEY ("author_user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "chat_messages" ADD CONSTRAINT "chat_messages_author_contact_id_contacts_id_fk" FOREIGN KEY ("author_contact_id") REFERENCES "public"."contacts"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
@@ -1946,6 +2222,13 @@ ALTER TABLE "ecommerce_stores" ADD CONSTRAINT "ecommerce_stores_user_id_users_id
 ALTER TABLE "ecommerce_stores" ADD CONSTRAINT "ecommerce_stores_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "ecommerce_stores" ADD CONSTRAINT "ecommerce_stores_updated_by_users_id_fk" FOREIGN KEY ("updated_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "ecommerce_stores" ADD CONSTRAINT "ecommerce_stores_deleted_by_users_id_fk" FOREIGN KEY ("deleted_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "marketplace_accounts" ADD CONSTRAINT "marketplace_accounts_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "marketplace_accounts" ADD CONSTRAINT "marketplace_accounts_default_team_id_teams_id_fk" FOREIGN KEY ("default_team_id") REFERENCES "public"."teams"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "marketplace_accounts" ADD CONSTRAINT "marketplace_accounts_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "marketplace_accounts" ADD CONSTRAINT "marketplace_accounts_updated_by_users_id_fk" FOREIGN KEY ("updated_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "marketplace_accounts" ADD CONSTRAINT "marketplace_accounts_deleted_by_users_id_fk" FOREIGN KEY ("deleted_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "marketplace_messages" ADD CONSTRAINT "marketplace_messages_marketplace_account_id_marketplace_accounts_id_fk" FOREIGN KEY ("marketplace_account_id") REFERENCES "public"."marketplace_accounts"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "marketplace_messages" ADD CONSTRAINT "marketplace_messages_ticket_id_tickets_id_fk" FOREIGN KEY ("ticket_id") REFERENCES "public"."tickets"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "plan_features" ADD CONSTRAINT "plan_features_plan_id_subscription_plans_id_fk" FOREIGN KEY ("plan_id") REFERENCES "public"."subscription_plans"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "plan_limits" ADD CONSTRAINT "plan_limits_plan_id_subscription_plans_id_fk" FOREIGN KEY ("plan_id") REFERENCES "public"."subscription_plans"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "seats" ADD CONSTRAINT "seats_subscription_id_subscriptions_id_fk" FOREIGN KEY ("subscription_id") REFERENCES "public"."subscriptions"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
@@ -1981,6 +2264,33 @@ ALTER TABLE "audit_logs" ADD CONSTRAINT "audit_logs_organization_id_organization
 ALTER TABLE "notification_channels" ADD CONSTRAINT "notification_channels_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "notifications" ADD CONSTRAINT "notifications_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "notifications" ADD CONSTRAINT "notifications_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "groups" ADD CONSTRAINT "groups_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "groups" ADD CONSTRAINT "groups_default_team_id_teams_id_fk" FOREIGN KEY ("default_team_id") REFERENCES "public"."teams"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "groups" ADD CONSTRAINT "groups_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "groups" ADD CONSTRAINT "groups_updated_by_users_id_fk" FOREIGN KEY ("updated_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "groups" ADD CONSTRAINT "groups_deleted_by_users_id_fk" FOREIGN KEY ("deleted_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "ticket_categories" ADD CONSTRAINT "ticket_categories_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "ticket_categories" ADD CONSTRAINT "ticket_categories_default_priority_id_lookups_id_fk" FOREIGN KEY ("default_priority_id") REFERENCES "public"."lookups"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "ticket_categories" ADD CONSTRAINT "ticket_categories_default_team_id_teams_id_fk" FOREIGN KEY ("default_team_id") REFERENCES "public"."teams"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "ticket_categories" ADD CONSTRAINT "ticket_categories_default_sla_policy_id_sla_policies_id_fk" FOREIGN KEY ("default_sla_policy_id") REFERENCES "public"."sla_policies"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "ticket_categories" ADD CONSTRAINT "ticket_categories_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "ticket_categories" ADD CONSTRAINT "ticket_categories_updated_by_users_id_fk" FOREIGN KEY ("updated_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "ticket_categories" ADD CONSTRAINT "ticket_categories_deleted_by_users_id_fk" FOREIGN KEY ("deleted_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "ticket_forwards" ADD CONSTRAINT "ticket_forwards_ticket_id_tickets_id_fk" FOREIGN KEY ("ticket_id") REFERENCES "public"."tickets"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "ticket_forwards" ADD CONSTRAINT "ticket_forwards_ticket_message_id_ticket_messages_id_fk" FOREIGN KEY ("ticket_message_id") REFERENCES "public"."ticket_messages"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "ticket_forwards" ADD CONSTRAINT "ticket_forwards_forwarded_by_users_id_fk" FOREIGN KEY ("forwarded_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "gdpr_requests" ADD CONSTRAINT "gdpr_requests_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "gdpr_requests" ADD CONSTRAINT "gdpr_requests_contact_id_contacts_id_fk" FOREIGN KEY ("contact_id") REFERENCES "public"."contacts"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "gdpr_requests" ADD CONSTRAINT "gdpr_requests_requested_by_users_id_fk" FOREIGN KEY ("requested_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "gdpr_requests" ADD CONSTRAINT "gdpr_requests_processed_by_users_id_fk" FOREIGN KEY ("processed_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "agent_calendar_connections" ADD CONSTRAINT "agent_calendar_connections_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "ticket_calendar_events" ADD CONSTRAINT "ticket_calendar_events_ticket_id_tickets_id_fk" FOREIGN KEY ("ticket_id") REFERENCES "public"."tickets"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "ticket_calendar_events" ADD CONSTRAINT "ticket_calendar_events_agent_calendar_connection_id_agent_calendar_connections_id_fk" FOREIGN KEY ("agent_calendar_connection_id") REFERENCES "public"."agent_calendar_connections"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "ticket_calendar_events" ADD CONSTRAINT "ticket_calendar_events_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "ticket_calendar_events" ADD CONSTRAINT "ticket_calendar_events_updated_by_users_id_fk" FOREIGN KEY ("updated_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "customer_sessions" ADD CONSTRAINT "customer_sessions_contact_id_contacts_id_fk" FOREIGN KEY ("contact_id") REFERENCES "public"."contacts"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "customer_sessions" ADD CONSTRAINT "customer_sessions_customer_social_identity_id_customer_social_identities_id_fk" FOREIGN KEY ("customer_social_identity_id") REFERENCES "public"."customer_social_identities"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "customer_social_identities" ADD CONSTRAINT "customer_social_identities_contact_id_contacts_id_fk" FOREIGN KEY ("contact_id") REFERENCES "public"."contacts"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "contact_push_tokens" ADD CONSTRAINT "contact_push_tokens_contact_id_contacts_id_fk" FOREIGN KEY ("contact_id") REFERENCES "public"."contacts"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "mobile_sdk_configs" ADD CONSTRAINT "mobile_sdk_configs_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "push_notification_logs" ADD CONSTRAINT "push_notification_logs_contact_id_contacts_id_fk" FOREIGN KEY ("contact_id") REFERENCES "public"."contacts"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
@@ -1992,46 +2302,31 @@ ALTER TABLE "chatbot_messages" ADD CONSTRAINT "chatbot_messages_kb_article_id_kb
 ALTER TABLE "chatbot_sessions" ADD CONSTRAINT "chatbot_sessions_contact_id_contacts_id_fk" FOREIGN KEY ("contact_id") REFERENCES "public"."contacts"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "chatbot_sessions" ADD CONSTRAINT "chatbot_sessions_ticket_id_tickets_id_fk" FOREIGN KEY ("ticket_id") REFERENCES "public"."tickets"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "on_premise_licenses" ADD CONSTRAINT "on_premise_licenses_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "agent_calendar_connections" ADD CONSTRAINT "agent_calendar_connections_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "ticket_calendar_events" ADD CONSTRAINT "ticket_calendar_events_ticket_id_tickets_id_fk" FOREIGN KEY ("ticket_id") REFERENCES "public"."tickets"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "ticket_calendar_events" ADD CONSTRAINT "ticket_calendar_events_agent_calendar_connection_id_agent_calendar_connections_id_fk" FOREIGN KEY ("agent_calendar_connection_id") REFERENCES "public"."agent_calendar_connections"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "ticket_calendar_events" ADD CONSTRAINT "ticket_calendar_events_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "ticket_calendar_events" ADD CONSTRAINT "ticket_calendar_events_updated_by_users_id_fk" FOREIGN KEY ("updated_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "customer_sessions" ADD CONSTRAINT "customer_sessions_contact_id_contacts_id_fk" FOREIGN KEY ("contact_id") REFERENCES "public"."contacts"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "customer_sessions" ADD CONSTRAINT "customer_sessions_customer_social_identity_id_customer_social_identities_id_fk" FOREIGN KEY ("customer_social_identity_id") REFERENCES "public"."customer_social_identities"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "customer_social_identities" ADD CONSTRAINT "customer_social_identities_contact_id_contacts_id_fk" FOREIGN KEY ("contact_id") REFERENCES "public"."contacts"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "gdpr_requests" ADD CONSTRAINT "gdpr_requests_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "gdpr_requests" ADD CONSTRAINT "gdpr_requests_contact_id_contacts_id_fk" FOREIGN KEY ("contact_id") REFERENCES "public"."contacts"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "gdpr_requests" ADD CONSTRAINT "gdpr_requests_requested_by_users_id_fk" FOREIGN KEY ("requested_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "gdpr_requests" ADD CONSTRAINT "gdpr_requests_processed_by_users_id_fk" FOREIGN KEY ("processed_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "groups" ADD CONSTRAINT "groups_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "groups" ADD CONSTRAINT "groups_default_team_id_teams_id_fk" FOREIGN KEY ("default_team_id") REFERENCES "public"."teams"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "groups" ADD CONSTRAINT "groups_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "groups" ADD CONSTRAINT "groups_updated_by_users_id_fk" FOREIGN KEY ("updated_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "groups" ADD CONSTRAINT "groups_deleted_by_users_id_fk" FOREIGN KEY ("deleted_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "excel_export_jobs" ADD CONSTRAINT "excel_export_jobs_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "excel_export_jobs" ADD CONSTRAINT "excel_export_jobs_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "excel_import_jobs" ADD CONSTRAINT "excel_import_jobs_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "excel_import_jobs" ADD CONSTRAINT "excel_import_jobs_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "presence" ADD CONSTRAINT "presence_ticket_id_tickets_id_fk" FOREIGN KEY ("ticket_id") REFERENCES "public"."tickets"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "presence" ADD CONSTRAINT "presence_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "ticket_categories" ADD CONSTRAINT "ticket_categories_organization_id_organizations_id_fk" FOREIGN KEY ("organization_id") REFERENCES "public"."organizations"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "ticket_categories" ADD CONSTRAINT "ticket_categories_sla_policy_id_sla_policies_id_fk" FOREIGN KEY ("sla_policy_id") REFERENCES "public"."sla_policies"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "ticket_categories" ADD CONSTRAINT "ticket_categories_team_id_teams_id_fk" FOREIGN KEY ("team_id") REFERENCES "public"."teams"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "ticket_categories" ADD CONSTRAINT "ticket_categories_priority_id_lookups_id_fk" FOREIGN KEY ("priority_id") REFERENCES "public"."lookups"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "ticket_categories" ADD CONSTRAINT "ticket_categories_parent_category_id_ticket_categories_id_fk" FOREIGN KEY ("parent_category_id") REFERENCES "public"."ticket_categories"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "ticket_categories" ADD CONSTRAINT "ticket_categories_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "ticket_forwards" ADD CONSTRAINT "ticket_forwards_ticket_id_tickets_id_fk" FOREIGN KEY ("ticket_id") REFERENCES "public"."tickets"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "ticket_forwards" ADD CONSTRAINT "ticket_forwards_ticket_message_id_ticket_messages_id_fk" FOREIGN KEY ("ticket_message_id") REFERENCES "public"."ticket_messages"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "ticket_forwards" ADD CONSTRAINT "ticket_forwards_created_by_users_id_fk" FOREIGN KEY ("created_by") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "lookups_lookup_type_org_idx" ON "lookups" USING btree ("lookup_type_id","organization_id");--> statement-breakpoint
 CREATE INDEX "lookups_parent_idx" ON "lookups" USING btree ("parent_id");--> statement-breakpoint
 CREATE INDEX "api_keys_org_idx" ON "api_keys" USING btree ("organization_id");--> statement-breakpoint
 CREATE INDEX "teams_org_idx" ON "teams" USING btree ("organization_id");--> statement-breakpoint
 CREATE INDEX "user_sessions_user_idx" ON "user_sessions" USING btree ("user_id");--> statement-breakpoint
 CREATE INDEX "user_sessions_expires_idx" ON "user_sessions" USING btree ("expires_at");--> statement-breakpoint
+CREATE INDEX "contact_merges_source_idx" ON "contact_merges" USING btree ("source_contact_id");--> statement-breakpoint
+CREATE INDEX "contact_merges_target_idx" ON "contact_merges" USING btree ("target_contact_id");--> statement-breakpoint
 CREATE INDEX "contact_notes_contact_idx" ON "contact_notes" USING btree ("contact_id");--> statement-breakpoint
+CREATE INDEX "contact_tags_contact_idx" ON "contact_tags" USING btree ("contact_id");--> statement-breakpoint
+CREATE INDEX "contact_tags_tag_idx" ON "contact_tags" USING btree ("tag_id");--> statement-breakpoint
+CREATE INDEX "contact_views_org_idx" ON "contact_views" USING btree ("organization_id");--> statement-breakpoint
+CREATE INDEX "contact_views_user_idx" ON "contact_views" USING btree ("user_id");--> statement-breakpoint
 CREATE INDEX "contacts_org_email_idx" ON "contacts" USING btree ("organization_id","email");--> statement-breakpoint
 CREATE INDEX "contacts_org_idx" ON "contacts" USING btree ("organization_id");--> statement-breakpoint
 CREATE INDEX "contacts_email_idx" ON "contacts" USING btree ("email");--> statement-breakpoint
 CREATE INDEX "contacts_phone_idx" ON "contacts" USING btree ("phone");--> statement-breakpoint
 CREATE INDEX "contacts_external_id_idx" ON "contacts" USING btree ("external_id");--> statement-breakpoint
+CREATE INDEX "tag_categories_org_idx" ON "tag_categories" USING btree ("organization_id");--> statement-breakpoint
 CREATE INDEX "email_messages_org_idx" ON "email_messages" USING btree ("organization_id");--> statement-breakpoint
 CREATE INDEX "email_messages_mailbox_idx" ON "email_messages" USING btree ("mailbox_id");--> statement-breakpoint
 CREATE INDEX "email_messages_ticket_idx" ON "email_messages" USING btree ("ticket_id");--> statement-breakpoint
@@ -2040,6 +2335,8 @@ CREATE INDEX "email_messages_in_reply_to_idx" ON "email_messages" USING btree ("
 CREATE INDEX "email_messages_received_at_idx" ON "email_messages" USING btree ("received_at");--> statement-breakpoint
 CREATE INDEX "email_routing_rules_org_idx" ON "email_routing_rules" USING btree ("organization_id");--> statement-breakpoint
 CREATE INDEX "mailbox_aliases_mailbox_idx" ON "mailbox_aliases" USING btree ("mailbox_id");--> statement-breakpoint
+CREATE INDEX "mailbox_routing_rules_mailbox_idx" ON "mailbox_routing_rules" USING btree ("mailbox_id");--> statement-breakpoint
+CREATE INDEX "mailbox_routing_rules_org_idx" ON "mailbox_routing_rules" USING btree ("mailbox_id");--> statement-breakpoint
 CREATE INDEX "mailboxes_org_idx" ON "mailboxes" USING btree ("organization_id");--> statement-breakpoint
 CREATE INDEX "mailboxes_email_idx" ON "mailboxes" USING btree ("email");--> statement-breakpoint
 CREATE INDEX "mailboxes_default_idx" ON "mailboxes" USING btree ("is_default");--> statement-breakpoint
@@ -2054,6 +2351,8 @@ CREATE INDEX "csat_surveys_ticket_idx" ON "csat_surveys" USING btree ("ticket_id
 CREATE INDEX "csat_surveys_expires_idx" ON "csat_surveys" USING btree ("expires_at");--> statement-breakpoint
 CREATE INDEX "sla_policies_org_idx" ON "sla_policies" USING btree ("organization_id");--> statement-breakpoint
 CREATE INDEX "ticket_custom_fields_org_idx" ON "ticket_custom_fields" USING btree ("organization_id");--> statement-breakpoint
+CREATE INDEX "ticket_escalations_ticket_idx" ON "ticket_escalations" USING btree ("ticket_id");--> statement-breakpoint
+CREATE INDEX "ticket_escalations_breached_idx" ON "ticket_escalations" USING btree ("breached_at");--> statement-breakpoint
 CREATE INDEX "ticket_sla_ticket_idx" ON "ticket_sla" USING btree ("ticket_id");--> statement-breakpoint
 CREATE INDEX "ticket_sla_first_response_due_idx" ON "ticket_sla" USING btree ("first_response_due_at");--> statement-breakpoint
 CREATE INDEX "ticket_sla_resolution_due_idx" ON "ticket_sla" USING btree ("resolution_due_at");--> statement-breakpoint
@@ -2070,10 +2369,12 @@ CREATE INDEX "forms_org_idx" ON "forms" USING btree ("organization_id");--> stat
 CREATE INDEX "workflow_execution_logs_workflow_executed_at_idx" ON "workflow_execution_logs" USING btree ("workflow_id","executed_at");--> statement-breakpoint
 CREATE INDEX "workflow_execution_logs_ticket_idx" ON "workflow_execution_logs" USING btree ("ticket_id");--> statement-breakpoint
 CREATE INDEX "workflows_org_idx" ON "workflows" USING btree ("organization_id");--> statement-breakpoint
+CREATE INDEX "disqus_accounts_org_idx" ON "disqus_accounts" USING btree ("organization_id");--> statement-breakpoint
 CREATE INDEX "social_messages_ticket_idx" ON "social_messages" USING btree ("ticket_id");--> statement-breakpoint
 CREATE INDEX "kb_article_feedback_article_idx" ON "kb_article_feedback" USING btree ("article_id");--> statement-breakpoint
 CREATE INDEX "kb_articles_category_idx" ON "kb_articles" USING btree ("category_id");--> statement-breakpoint
 CREATE INDEX "kb_categories_parent_idx" ON "kb_categories" USING btree ("parent_id");--> statement-breakpoint
+CREATE INDEX "chat_message_reactions_message_idx" ON "chat_message_reactions" USING btree ("message_id");--> statement-breakpoint
 CREATE INDEX "chat_messages_session_idx" ON "chat_messages" USING btree ("session_id");--> statement-breakpoint
 CREATE INDEX "chat_messages_created_at_idx" ON "chat_messages" USING btree ("created_at");--> statement-breakpoint
 CREATE INDEX "chat_sessions_widget_idx" ON "chat_sessions" USING btree ("widget_id");--> statement-breakpoint
@@ -2086,6 +2387,9 @@ CREATE INDEX "ecommerce_orders_contact_idx" ON "ecommerce_orders" USING btree ("
 CREATE INDEX "ecommerce_orders_customer_email_idx" ON "ecommerce_orders" USING btree ("customer_email");--> statement-breakpoint
 CREATE INDEX "ecommerce_orders_order_number_idx" ON "ecommerce_orders" USING btree ("order_number");--> statement-breakpoint
 CREATE INDEX "ecommerce_stores_org_idx" ON "ecommerce_stores" USING btree ("organization_id");--> statement-breakpoint
+CREATE INDEX "marketplace_accounts_org_idx" ON "marketplace_accounts" USING btree ("organization_id");--> statement-breakpoint
+CREATE INDEX "marketplace_messages_account_idx" ON "marketplace_messages" USING btree ("marketplace_account_id");--> statement-breakpoint
+CREATE INDEX "marketplace_messages_ticket_idx" ON "marketplace_messages" USING btree ("ticket_id");--> statement-breakpoint
 CREATE INDEX "plan_features_plan_idx" ON "plan_features" USING btree ("plan_id");--> statement-breakpoint
 CREATE INDEX "seats_subscription_idx" ON "seats" USING btree ("subscription_id");--> statement-breakpoint
 CREATE INDEX "seats_user_idx" ON "seats" USING btree ("user_id");--> statement-breakpoint
@@ -2127,14 +2431,17 @@ CREATE INDEX "audit_logs_action_idx" ON "audit_logs" USING btree ("action");--> 
 CREATE INDEX "notifications_user_idx" ON "notifications" USING btree ("user_id");--> statement-breakpoint
 CREATE INDEX "notifications_org_idx" ON "notifications" USING btree ("organization_id");--> statement-breakpoint
 CREATE INDEX "notifications_created_at_idx" ON "notifications" USING btree ("created_at");--> statement-breakpoint
-CREATE INDEX "chatbot_messages_session_idx" ON "chatbot_messages" USING btree ("chatbot_session_id");--> statement-breakpoint
-CREATE INDEX "chatbot_sessions_contact_idx" ON "chatbot_sessions" USING btree ("contact_id");--> statement-breakpoint
-CREATE INDEX "chatbot_sessions_ticket_idx" ON "chatbot_sessions" USING btree ("ticket_id");--> statement-breakpoint
+CREATE INDEX "groups_org_idx" ON "groups" USING btree ("organization_id");--> statement-breakpoint
+CREATE INDEX "ticket_categories_org_idx" ON "ticket_categories" USING btree ("organization_id");--> statement-breakpoint
 CREATE INDEX "agent_calendar_connections_user_idx" ON "agent_calendar_connections" USING btree ("user_id");--> statement-breakpoint
 CREATE INDEX "ticket_calendar_events_ticket_idx" ON "ticket_calendar_events" USING btree ("ticket_id");--> statement-breakpoint
 CREATE INDEX "ticket_calendar_events_provider_idx" ON "ticket_calendar_events" USING btree ("agent_calendar_connection_id","provider_event_id");--> statement-breakpoint
 CREATE INDEX "customer_sessions_contact_idx" ON "customer_sessions" USING btree ("contact_id");--> statement-breakpoint
 CREATE INDEX "customer_social_contact_provider_idx" ON "customer_social_identities" USING btree ("contact_id","provider");--> statement-breakpoint
-CREATE INDEX "groups_org_idx" ON "groups" USING btree ("organization_id");--> statement-breakpoint
-CREATE INDEX "ticket_categories_org_idx" ON "ticket_categories" USING btree ("organization_id");--> statement-breakpoint
-CREATE INDEX "ticket_categories_parent_idx" ON "ticket_categories" USING btree ("parent_category_id");
+CREATE INDEX "chatbot_messages_session_idx" ON "chatbot_messages" USING btree ("chatbot_session_id");--> statement-breakpoint
+CREATE INDEX "chatbot_sessions_contact_idx" ON "chatbot_sessions" USING btree ("contact_id");--> statement-breakpoint
+CREATE INDEX "chatbot_sessions_ticket_idx" ON "chatbot_sessions" USING btree ("ticket_id");--> statement-breakpoint
+CREATE INDEX "excel_export_jobs_org_status_idx" ON "excel_export_jobs" USING btree ("organization_id","status");--> statement-breakpoint
+CREATE INDEX "excel_export_jobs_user_id_idx" ON "excel_export_jobs" USING btree ("user_id");--> statement-breakpoint
+CREATE INDEX "excel_import_jobs_org_status_idx" ON "excel_import_jobs" USING btree ("organization_id","status");--> statement-breakpoint
+CREATE INDEX "excel_import_jobs_user_id_idx" ON "excel_import_jobs" USING btree ("user_id");

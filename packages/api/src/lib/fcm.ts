@@ -1,5 +1,5 @@
 import { db } from "@ticket-app/db";
-import { mobileSdkConfigs, contactPushTokens, pushNotificationLogs } from "@ticket-app/db/schema";
+import { mobileSdkConfigs, pushNotificationLogs } from "@ticket-app/db/schema";
 import { eq } from "drizzle-orm";
 
 const FCM_API_URL = "https://fcm.googleapis.com/fcm/send";
@@ -37,7 +37,7 @@ export async function sendFCMNotification(
   token: string,
   title: string,
   body: string,
-  data?: Record<string, unknown>
+  data?: Record<string, unknown>,
 ): Promise<FCMSendResult> {
   const config = await getFCMConfig(organizationId);
 
@@ -66,7 +66,11 @@ export async function sendFCMNotification(
       return { success: false, error: `FCM API error: ${response.status} - ${errorText}` };
     }
 
-    const result = await response.json() as { success: number; failure: number; results?: Array<{ error?: string }> };
+    const result = (await response.json()) as {
+      success: number;
+      failure: number;
+      results?: Array<{ error?: string }>;
+    };
 
     if (result.success === 1) {
       return { success: true, messageId: result.results?.[0] ? "message_sent" : undefined };
@@ -84,7 +88,7 @@ export async function sendFCMBatch(
   tokens: string[],
   title: string,
   body: string,
-  data?: Record<string, unknown>
+  data?: Record<string, unknown>,
 ): Promise<{ successCount: number; failureCount: number; errors: string[] }> {
   const results = { successCount: 0, failureCount: 0, errors: [] as string[] };
 
@@ -108,7 +112,7 @@ export async function logPushNotification(
   title: string,
   body: string,
   status: "sent" | "delivered" | "failed" | "opened",
-  errorMessage?: string
+  errorMessage?: string,
 ): Promise<void> {
   await db.insert(pushNotificationLogs).values({
     contactId,

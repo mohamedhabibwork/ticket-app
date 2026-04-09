@@ -1,8 +1,5 @@
-import type { Context } from "@ticket-app/api/src/context";
 import { db } from "@ticket-app/db";
 import { auditLogs } from "@ticket-app/db/schema";
-
-import { logger } from "../lib/logger";
 
 export type AuditAction =
   | "CREATE"
@@ -57,48 +54,14 @@ export async function createAuditLog(context: AuditContext, entry: AuditEntry): 
       })
       .returning();
 
-    logger.info("Audit log created", {
+    console.info("Audit log created", {
       auditId: auditLog?.id,
       action: entry.action,
       resourceType: entry.resourceType,
     });
   } catch (error) {
-    logger.error("Failed to create audit log", { error, entry });
+    console.error("Failed to create audit log", { error, entry });
   }
-}
-
-export function auditMiddleware() {
-  return async function auditHandler(
-    context: Context,
-    operation: { name?: string },
-    handler: () => Promise<unknown>,
-  ): Promise<unknown> {
-    const startTime = Date.now();
-    const operationName = operation.name || "unknown";
-
-    try {
-      const result = await handler();
-
-      const duration = Date.now() - startTime;
-      logger.info("Operation completed", {
-        operation: operationName,
-        duration,
-        status: "success",
-      });
-
-      return result;
-    } catch (error) {
-      const duration = Date.now() - startTime;
-      logger.error("Operation failed", {
-        operation: operationName,
-        duration,
-        status: "error",
-        error: error instanceof Error ? error.message : String(error),
-      });
-
-      throw error;
-    }
-  };
 }
 
 export function trackChanges<T extends Record<string, unknown>>(

@@ -379,6 +379,8 @@ export async function addExcelExportJob(
   return excelExportQueue.add("excel-export", data);
 }
 
+// Alias for backwards compatibility
+export const createExcelExportWorker = createExcelExportQueueWorker;
 export async function closeExcelExportQueue(): Promise<void> {
   const { excelExportQueue } = await import("../queue");
   await excelExportQueue.close();

@@ -3,10 +3,16 @@ import { gdprRequests } from "@ticket-app/db/schema";
 import { eq, desc, and } from "drizzle-orm";
 import * as z from "zod";
 
-import { publicProcedure } from "../index";
+import { protectedProcedure } from "../index";
+import {
+  hasPermission,
+  PERMISSION_GROUPS,
+  PERMISSION_ACTIONS,
+  buildPermissionKey,
+} from "../services/rbac";
 
 export const gdprRouter = {
-  create: publicProcedure
+  create: protectedProcedure
     .input(
       z.object({
         organizationId: z.number(),
@@ -16,7 +22,19 @@ export const gdprRouter = {
         reason: z.string().optional(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.GDPR, PERMISSION_ACTIONS.WRITE),
+      );
+
+      if (!canWrite) {
+        throw new Error("Unauthorized: GDPR write permission required");
+      }
+
       const [request] = await db
         .insert(gdprRequests)
         .values({
@@ -31,7 +49,7 @@ export const gdprRouter = {
       return request;
     }),
 
-  list: publicProcedure
+  list: protectedProcedure
     .input(
       z.object({
         organizationId: z.number(),
@@ -41,7 +59,19 @@ export const gdprRouter = {
         offset: z.number().min(0).default(0),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canRead = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.GDPR, PERMISSION_ACTIONS.READ),
+      );
+
+      if (!canRead) {
+        throw new Error("Unauthorized: GDPR read permission required");
+      }
+
       const conditions = [eq(gdprRequests.organizationId, input.organizationId)];
 
       if (input.status) conditions.push(eq(gdprRequests.status, input.status));
@@ -55,22 +85,49 @@ export const gdprRouter = {
       });
     }),
 
-  get: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
-    return await db.query.gdprRequests.findFirst({
-      where: eq(gdprRequests.id, input.id),
-    });
-  }),
+  get: protectedProcedure
+    .input(z.object({ id: z.number(), organizationId: z.number() }))
+    .handler(async ({ input, context }) => {
+      const canRead = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.GDPR, PERMISSION_ACTIONS.READ),
+      );
 
-  update: publicProcedure
+      if (!canRead) {
+        throw new Error("Unauthorized: GDPR read permission required");
+      }
+
+      return await db.query.gdprRequests.findFirst({
+        where: eq(gdprRequests.id, input.id),
+      });
+    }),
+
+  update: protectedProcedure
     .input(
       z.object({
         id: z.number(),
+        organizationId: z.number(),
         status: z.enum(["pending", "in_progress", "completed", "cancelled"]).optional(),
         notes: z.string().optional(),
         processedBy: z.number().optional(),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.GDPR, PERMISSION_ACTIONS.WRITE),
+      );
+
+      if (!canWrite) {
+        throw new Error("Unauthorized: GDPR write permission required");
+      }
+
       const updates: Record<string, unknown> = {};
 
       if (input.status) updates.status = input.status;
@@ -90,9 +147,21 @@ export const gdprRouter = {
       return updated;
     }),
 
-  processAccessRequest: publicProcedure
-    .input(z.object({ id: z.number() }))
-    .handler(async ({ input }) => {
+  processAccessRequest: protectedProcedure
+    .input(z.object({ id: z.number(), organizationId: z.number() }))
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.GDPR, PERMISSION_ACTIONS.WRITE),
+      );
+
+      if (!canWrite) {
+        throw new Error("Unauthorized: GDPR write permission required");
+      }
+
       const request = await db.query.gdprRequests.findFirst({
         where: eq(gdprRequests.id, input.id),
         with: { contact: true },
@@ -125,14 +194,27 @@ export const gdprRouter = {
       return { dataJson };
     }),
 
-  processErasureRequest: publicProcedure
+  processErasureRequest: protectedProcedure
     .input(
       z.object({
         id: z.number(),
+        organizationId: z.number(),
         anonymizeData: z.boolean().default(true),
       }),
     )
-    .handler(async ({ input }) => {
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.GDPR, PERMISSION_ACTIONS.WRITE),
+      );
+
+      if (!canWrite) {
+        throw new Error("Unauthorized: GDPR write permission required");
+      }
+
       const request = await db.query.gdprRequests.findFirst({
         where: eq(gdprRequests.id, input.id),
         with: { contact: true },
@@ -166,9 +248,21 @@ export const gdprRouter = {
       return { success: true };
     }),
 
-  processPortabilityRequest: publicProcedure
-    .input(z.object({ id: z.number() }))
-    .handler(async ({ input }) => {
+  processPortabilityRequest: protectedProcedure
+    .input(z.object({ id: z.number(), organizationId: z.number() }))
+    .handler(async ({ input, context }) => {
+      const canWrite = await hasPermission(
+        {
+          userId: Number(context.auth.userId),
+          organizationId: input.organizationId,
+        },
+        buildPermissionKey(PERMISSION_GROUPS.GDPR, PERMISSION_ACTIONS.WRITE),
+      );
+
+      if (!canWrite) {
+        throw new Error("Unauthorized: GDPR write permission required");
+      }
+
       const request = await db.query.gdprRequests.findFirst({
         where: eq(gdprRequests.id, input.id),
         with: { contact: true },

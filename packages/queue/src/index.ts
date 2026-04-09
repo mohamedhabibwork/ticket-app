@@ -70,6 +70,13 @@ export {
   type ExcelImportJobData,
 } from "./workers/excel-import.worker";
 export {
+  addLicenseVerificationJob,
+  scheduleLicenseVerification,
+  createLicenseVerificationWorker,
+  closeLicenseVerificationQueue,
+  type LicenseVerificationJobData,
+} from "./workers/license-verification.worker";
+export {
   excelExportQueue,
   excelImportQueue,
   addExcelExportJob as addExcelExportJobToQueue,
