@@ -7,6 +7,7 @@ import { syncShopifyStoreOrders } from "../services/ecommerce/shopify";
 import { syncWooCommerceStoreOrders } from "../services/ecommerce/woocommerce";
 import { syncSallaStoreOrders } from "../services/ecommerce/salla";
 import { syncZidStoreOrders } from "../services/ecommerce/zid";
+import { getRedis } from "@ticket-app/queue";
 
 export const ECOMMERCE_SYNC_QUEUE = "ecommerce-sync";
 

@@ -2,6 +2,7 @@ import { Queue, Worker, Job } from "bullmq";
 import { eq, and, lte, desc } from "drizzle-orm";
 
 import { db } from "@ticket-app/db";
+import { getRedis } from "@ticket-app/queue";
 import { notifications, users } from "@ticket-app/db/schema";
 import type { NotificationJobData } from "@ticket-app/db/lib/queues";
 import {

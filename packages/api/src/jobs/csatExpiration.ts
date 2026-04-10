@@ -5,6 +5,7 @@ import { env } from "@ticket-app/env/server";
 import { db } from "@ticket-app/db";
 import { csatSurveys } from "@ticket-app/db/schema/_sla";
 import { addNotificationJob } from "@ticket-app/db/lib/queues";
+import { getRedis } from "@ticket-app/queue";
 
 export const CSAT_EXPIRATION_QUEUE = "csat-expiration";
 

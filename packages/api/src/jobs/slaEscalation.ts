@@ -111,7 +111,7 @@ export function createSlaEscalationWorker() {
       });
     },
     {
-      connection: getRedis(),
+      connection,
       concurrency: 5,
     },
   );

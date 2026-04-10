@@ -262,7 +262,7 @@ export function createUsageCheckWorker() {
       }
     },
     {
-      connection: getRedis(),
+      connection,
       concurrency: 3,
     },
   );

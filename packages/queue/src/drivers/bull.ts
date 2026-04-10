@@ -1,4 +1,4 @@
-import Bull from "bull";
+import { Queue, Worker, Job, type JobsOptions } from "bullmq";
 import type {
   QueueDriver,
   QueueJob,
@@ -11,18 +11,18 @@ import type {
 } from "../driver";
 import { env } from "@ticket-app/env/server";
 
-function toQueueJob<T>(job: Bull.Job<T>): QueueJob<T> {
+function toQueueJob<T>(job: Job<T>): QueueJob<T> {
   return {
     id: String(job.id),
     name: job.name,
     data: job.data,
-    progress: job.progress() as number,
+    progress: job.progress as number,
     attemptsMade: job.attemptsMade,
     createdAt: new Date(job.timestamp),
     processedOn: job.processedOn ? new Date(job.processedOn) : undefined,
     finishedOn: job.finishedOn ? new Date(job.finishedOn) : undefined,
     failedReason: job.failedReason || undefined,
-    updateProgress: async (progress: number) => job.progress(progress),
+    updateProgress: async (progress: number) => job.updateProgress(progress),
     log: (message: string) => job.log(message),
     failed: async (error?: Error) => {
       if (error) {
@@ -33,20 +33,23 @@ function toQueueJob<T>(job: Bull.Job<T>): QueueJob<T> {
 }
 
 class BullQueue implements QueueInterface {
-  private queue: Bull.Queue;
+  private queue: Queue;
 
   constructor(name: string) {
     const fullName = `${env.QUEUE_PREFIX}-${name}`;
-    const redisUrl = env.REDIS_URL;
 
-    this.queue = new Bull(fullName, redisUrl, {
+    this.queue = new Queue(fullName, {
+      connection: {
+        host: env.REDIS_URL.replace("redis://", "").split(":")[0] || "localhost",
+        port: parseInt(env.REDIS_URL.split(":")[2] || "6379"),
+      },
       defaultJobOptions: {
         attempts: 3,
         backoff: {
           type: "exponential",
           delay: 1000,
         },
-      },
+      } as JobsOptions,
     });
   }
 
@@ -77,7 +80,11 @@ class BullQueue implements QueueInterface {
     const jobs: QueueJob[] = [];
 
     for (const state of states) {
-      const stateJobs = await this.queue.getJobs(state as Bull.JobStatus, 0, limit);
+      const stateJobs = await this.queue.getJobs({
+        type: state as any,
+        start: 0,
+        end: limit - 1,
+      });
       jobs.push(...stateJobs.map(toQueueJob));
     }
 
@@ -98,21 +105,23 @@ class BullQueue implements QueueInterface {
 }
 
 class BullWorker implements WorkerInterface {
-  private worker: Bull.Worker;
+  private worker: Worker;
   queueName: string;
 
   constructor(queueName: string, processor: Processor, options?: WorkerOptions) {
     const fullName = `${env.QUEUE_PREFIX}-${queueName}`;
-    const redisUrl = env.REDIS_URL;
     this.queueName = fullName;
 
-    this.worker = new Bull.Worker(
+    this.worker = new Worker(
       fullName,
-      async (job: Bull.Job) => {
+      async (job) => {
         await processor(toQueueJob(job.data));
       },
       {
-        connection: redisUrl,
+        connection: {
+          host: env.REDIS_URL.replace("redis://", "").split(":")[0] || "localhost",
+          port: parseInt(env.REDIS_URL.split(":")[2] || "6379"),
+        },
         concurrency: options?.concurrency,
         limiter: options?.limiter,
       },

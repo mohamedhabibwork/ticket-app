@@ -100,7 +100,7 @@ export function createSlaBreachWorker() {
       }
     },
     {
-      connection: getRedis(),
+      connection,
       concurrency: 5,
     },
   );

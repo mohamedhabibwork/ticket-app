@@ -312,7 +312,7 @@ export function createDunningWorker() {
       await processDunningAction(job);
     },
     {
-      connection: getRedis(),
+      connection,
       concurrency: 5,
     },
   );

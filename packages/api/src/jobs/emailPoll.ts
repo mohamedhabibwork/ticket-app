@@ -73,22 +73,13 @@ export function createEmailPollWorker() {
         return { polled: 0, success: true, skipped: true };
       }
 
-      const {
-        host,
-        port,
-        username,
-        passwordEnc,
-        useSsl,
-        oauthTokenEnc,
-        oauthRefreshTokenEnc,
-        _oauthExpiresAt,
-      } = mailbox.imapConfig;
+      const { host, port, username, passwordEnc, useSsl, oauthTokenEnc, oauthRefreshTokenEnc } =
+        mailbox.imapConfig;
 
       let accessToken: string | undefined;
       let useOAuth = false;
 
       if (oauthTokenEnc && oauthRefreshTokenEnc) {
-        const { _decryptToken } = await import("../lib/crypto");
         const { refreshGmailAccessToken } = await import("../services/email");
 
         const tokenResult = await refreshGmailAccessToken(mailboxId);
@@ -143,7 +134,7 @@ export function createEmailPollWorker() {
       }
     },
     {
-      connection: getRedis(),
+      connection,
       concurrency: 2,
     },
   );

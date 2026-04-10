@@ -6,6 +6,7 @@ import { workflowEngine } from "../services/workflowEngine";
 import { workflowActions } from "../services/workflowActions";
 import { eq, and } from "drizzle-orm";
 import { addWorkflowJob, type WorkflowJobData } from "@ticket-app/db/lib/queues";
+import { getRedis } from "@ticket-app/queue";
 
 export async function executeWorkflow(job: Job<WorkflowJobData>): Promise<void> {
   const { workflowId, triggerType, entityType, entityId, payload } = job.data;

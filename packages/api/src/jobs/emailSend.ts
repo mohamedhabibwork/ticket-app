@@ -99,7 +99,7 @@ export function createEmailSendWorker() {
       return { sent: true, messageId };
     },
     {
-      connection: getRedis(),
+      connection,
       concurrency: 5,
     },
   );
