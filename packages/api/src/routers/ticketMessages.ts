@@ -11,7 +11,7 @@ const authorTypeEnum = z.enum(["agent", "contact", "system", "bot"]);
 
 export const ticketMessagesRouter = {
   listByTicket: publicProcedure
-    .input(z.object({ ticketId: z.number() }))
+    .input(z.object({ ticketId: z.coerce.number() }))
     .handler(async ({ input }) => {
       return await db
         .select({
@@ -33,7 +33,7 @@ export const ticketMessagesRouter = {
         .orderBy(desc(ticketMessages.createdAt));
     }),
 
-  get: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
+  get: publicProcedure.input(z.object({ id: z.coerce.number() })).handler(async ({ input }) => {
     const [message] = await db.select().from(ticketMessages).where(eq(ticketMessages.id, input.id));
     return message ?? null;
   }),
@@ -41,20 +41,20 @@ export const ticketMessagesRouter = {
   create: publicProcedure
     .input(
       z.object({
-        ticketId: z.number(),
+        ticketId: z.coerce.number(),
         authorType: authorTypeEnum,
-        authorUserId: z.number().optional(),
-        authorContactId: z.number().optional(),
+        authorUserId: z.coerce.number().optional(),
+        authorContactId: z.coerce.number().optional(),
         messageType: messageTypeEnum,
         bodyHtml: z.string().optional(),
         bodyText: z.string().optional(),
-        isPrivate: z.boolean().default(false),
+        isPrivate: z.coerce.boolean().default(false),
         attachments: z
           .array(
             z.object({
               filename: z.string(),
               mimeType: z.string(),
-              sizeBytes: z.number(),
+              sizeBytes: z.coerce.number(),
               storageKey: z.string(),
             }),
           )
@@ -104,7 +104,7 @@ export const ticketMessagesRouter = {
   update: publicProcedure
     .input(
       z.object({
-        id: z.number(),
+        id: z.coerce.number(),
         bodyHtml: z.string().optional(),
         bodyText: z.string().optional(),
       }),
@@ -122,7 +122,7 @@ export const ticketMessagesRouter = {
       return updated;
     }),
 
-  delete: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
+  delete: publicProcedure.input(z.object({ id: z.coerce.number() })).handler(async ({ input }) => {
     await db.delete(ticketAttachments).where(eq(ticketAttachments.ticketMessageId, input.id));
     await db.delete(ticketMessages).where(eq(ticketMessages.id, input.id));
     return { success: true };
@@ -131,8 +131,8 @@ export const ticketMessagesRouter = {
   lockThread: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        lockedBy: z.number(),
+        id: z.coerce.number(),
+        lockedBy: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -148,25 +148,27 @@ export const ticketMessagesRouter = {
       return updated;
     }),
 
-  unlockThread: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
-    const [updated] = await db
-      .update(ticketMessages)
-      .set({
-        isLocked: false,
-        lockedBy: null,
-        lockedAt: null,
-      })
-      .where(eq(ticketMessages.id, input.id))
-      .returning();
-    return updated;
-  }),
+  unlockThread: publicProcedure
+    .input(z.object({ id: z.coerce.number() }))
+    .handler(async ({ input }) => {
+      const [updated] = await db
+        .update(ticketMessages)
+        .set({
+          isLocked: false,
+          lockedBy: null,
+          lockedAt: null,
+        })
+        .where(eq(ticketMessages.id, input.id))
+        .returning();
+      return updated;
+    }),
 
   omitThread: publicProcedure
     .input(
       z.object({
-        id: z.number(),
+        id: z.coerce.number(),
         reason: z.string().min(1),
-        omittedBy: z.number(),
+        omittedBy: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {

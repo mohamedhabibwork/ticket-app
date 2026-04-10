@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
 import { Spinner, Surface, Text, useThemeColor } from "heroui-native";
-import { Link, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { View, Pressable, FlatList } from "react-native";
 
 import { Container } from "@/components/container";
@@ -17,9 +17,7 @@ export default function TeamManagementScreen() {
     <Container>
       <View className="px-4 py-4">
         <View className="flex-row items-center justify-between mb-4">
-          <Text className="text-2xl font-semibold text-foreground tracking-tight">
-            Teams
-          </Text>
+          <Text className="text-2xl font-semibold text-foreground tracking-tight">Teams</Text>
           <Pressable>
             <Ionicons name="add-circle-outline" size={28} color={mutedColor} />
           </Pressable>
@@ -60,9 +58,7 @@ export default function TeamManagementScreen() {
                   </View>
                   <View className="flex-1">
                     <Text className="text-foreground font-medium">{item.name}</Text>
-                    <Text className="text-muted text-sm">
-                      {item.members?.length || 0} members
-                    </Text>
+                    <Text className="text-muted text-sm">{item.members?.length || 0} members</Text>
                   </View>
                   <Ionicons name="chevron-forward" size={20} color={mutedColor} />
                 </View>

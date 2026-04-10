@@ -23,10 +23,8 @@ export function TouchableItem({
       android_ripple={{ color: "rgba(0,0,0,0.1)" }}
       {...props}
     >
-      {({ pressed }) => (
-        <View style={minTouchTarget ? styles.wrapper : undefined}>
-          {children}
-        </View>
+      {({ pressed: _pressed }) => (
+        <View style={minTouchTarget ? styles.wrapper : undefined}>{children}</View>
       )}
     </Pressable>
   );

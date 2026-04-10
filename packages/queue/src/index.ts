@@ -61,13 +61,11 @@ export {
   createExcelExportWorker,
   addExcelExportJob,
   closeExcelExportQueue,
-  type ExcelExportJobData,
 } from "./workers/excel-export.worker";
 export {
   createExcelImportWorker,
   addExcelImportJob,
   closeExcelImportQueue,
-  type ExcelImportJobData,
 } from "./workers/excel-import.worker";
 export {
   addLicenseVerificationJob,
@@ -89,3 +87,54 @@ export {
 } from "./queue";
 export type { Job } from "bullmq";
 export type { Transporter } from "nodemailer";
+export {
+  publishSocketEvent,
+  publishTicketCreated,
+  publishTicketUpdated,
+  publishTicketAssigned,
+  publishUserNotification,
+  publishOrgNotification,
+  type SocketEventMessage,
+} from "./socket-publish";
+
+export {
+  getQueueDriver,
+  resetQueueDriver,
+  type QueueDriver,
+  type QueueProvider,
+  type JobOptions,
+  type WorkerOptions,
+  type Processor,
+  type QueueJob,
+  type QueueInterface,
+  type WorkerInterface,
+  type JobType,
+  type RepeatOptions,
+} from "./driver";
+
+export {
+  QUEUE_NAMES,
+  type QueueName,
+  type EmailJobData as EmailJobDataType,
+  type WorkflowJobData as WorkflowJobDataType,
+  type NotificationJobData as NotificationJobDataType,
+  type DunningJobData as DunningJobDataType,
+  type UsageCheckJobData as UsageCheckJobDataType,
+  type CsatExpirationJobData as CsatExpirationJobDataType,
+  type SpamCheckJobData as SpamCheckJobDataType,
+  type AutoAssignJobData as AutoAssignJobDataType,
+  type SlaCheckJobData as SlaCheckJobDataType,
+  type ExcelExportJobData as ExcelExportJobDataType,
+  type ExcelImportJobData as ExcelImportJobDataType,
+  type EmailSendJobData as EmailSendJobDataType,
+  type EmailFetchJobData as EmailFetchJobDataType,
+  type LicenseVerificationJobData as LicenseVerificationJobDataType,
+  type ChatbotEscalationJobData as ChatbotEscalationJobDataType,
+  type GdprSlackCheckJobData as GdprSlackCheckJobDataType,
+  type SocialSyncJobData as SocialSyncJobDataType,
+  type EcommerceSyncJobData as EcommerceSyncJobDataType,
+  type AmazonSyncJobData as AmazonSyncJobDataType,
+  type DisqusSyncJobData as DisqusSyncJobDataType,
+  type PushNotificationJobData as PushNotificationJobDataType,
+  type TicketJobData as TicketJobDataType,
+} from "./definitions";

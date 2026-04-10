@@ -42,12 +42,12 @@ export const usersRouter = {
   list: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        roleId: z.number().optional(),
+        organizationId: z.coerce.number(),
+        roleId: z.coerce.number().optional(),
         search: z.string().optional(),
-        isActive: z.boolean().optional(),
-        limit: z.number().min(1).max(100).default(50),
-        offset: z.number().min(0).default(0),
+        isActive: z.coerce.boolean().optional(),
+        limit: z.coerce.number().min(1).max(100).default(50),
+        offset: z.coerce.number().min(0).default(0),
       }),
     )
     .handler(async ({ input }) => {
@@ -95,8 +95,8 @@ export const usersRouter = {
   get: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        id: z.number(),
+        organizationId: z.coerce.number(),
+        id: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -121,7 +121,7 @@ export const usersRouter = {
   getByEmail: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         email: z.string().email(),
       }),
     )
@@ -145,7 +145,7 @@ export const usersRouter = {
   create: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         email: z.string().email(),
         firstName: z.string().min(1).max(100),
         lastName: z.string().min(1).max(100),
@@ -153,9 +153,9 @@ export const usersRouter = {
         phone: z.string().optional(),
         locale: z.string().optional(),
         timezone: z.string().optional(),
-        roleIds: z.array(z.number()).optional(),
-        isActive: z.boolean().default(true),
-        sendWelcomeEmail: z.boolean().default(true),
+        roleIds: z.array(z.coerce.number()).optional(),
+        isActive: z.coerce.boolean().default(true),
+        sendWelcomeEmail: z.coerce.boolean().default(true),
       }),
     )
     .handler(async ({ input }) => {
@@ -228,17 +228,17 @@ export const usersRouter = {
   update: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
         email: z.string().email().optional(),
         firstName: z.string().min(1).max(100).optional(),
         lastName: z.string().min(1).max(100).optional(),
         phone: z.string().optional(),
         locale: z.string().optional(),
         timezone: z.string().optional(),
-        isActive: z.boolean().optional(),
+        isActive: z.coerce.boolean().optional(),
         availabilityStatus: z.enum(["online", "away", "busy", "offline"]).optional(),
-        roleIds: z.array(z.number()).optional(),
+        roleIds: z.array(z.coerce.number()).optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -289,8 +289,8 @@ export const usersRouter = {
   delete: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -326,7 +326,7 @@ export const usersRouter = {
   updateProfile: publicProcedure
     .input(
       z.object({
-        id: z.number(),
+        id: z.coerce.number(),
         firstName: z.string().min(1).max(100).optional(),
         lastName: z.string().min(1).max(100).optional(),
         phone: z.string().optional(),
@@ -334,7 +334,7 @@ export const usersRouter = {
         timezone: z.string().optional(),
         bio: z.string().optional(),
         signatureHtml: z.string().optional(),
-        avatarUrl: z.string().url().optional(),
+        avatarUrl: z.url().optional(),
         displayName: z.string().optional(),
       }),
     )
@@ -362,7 +362,7 @@ export const usersRouter = {
   changePassword: publicProcedure
     .input(
       z.object({
-        id: z.number(),
+        id: z.coerce.number(),
         oldPassword: z.string(),
         newPassword: z.string().min(8),
       }),
@@ -404,7 +404,7 @@ export const usersRouter = {
   setup2FA: publicProcedure
     .input(
       z.object({
-        userId: z.number(),
+        userId: z.coerce.number(),
         method: z.enum(["totp"]),
       }),
     )
@@ -447,7 +447,7 @@ export const usersRouter = {
   verify2FA: publicProcedure
     .input(
       z.object({
-        userId: z.number(),
+        userId: z.coerce.number(),
         code: z.string().length(6),
       }),
     )
@@ -484,7 +484,7 @@ export const usersRouter = {
   disable2FA: publicProcedure
     .input(
       z.object({
-        userId: z.number(),
+        userId: z.coerce.number(),
         password: z.string(),
       }),
     )
@@ -512,7 +512,7 @@ export const usersRouter = {
   get2FAStatus: publicProcedure
     .input(
       z.object({
-        userId: z.number(),
+        userId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -530,7 +530,7 @@ export const usersRouter = {
   listSessions: publicProcedure
     .input(
       z.object({
-        userId: z.number(),
+        userId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -547,8 +547,8 @@ export const usersRouter = {
   revokeSession: publicProcedure
     .input(
       z.object({
-        sessionId: z.number(),
-        userId: z.number(),
+        sessionId: z.coerce.number(),
+        userId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -571,9 +571,9 @@ export const usersRouter = {
   revokeAllSessions: publicProcedure
     .input(
       z.object({
-        userId: z.number(),
-        exceptCurrent: z.boolean().default(false),
-        currentSessionId: z.number().optional(),
+        userId: z.coerce.number(),
+        exceptCurrent: z.coerce.boolean().default(false),
+        currentSessionId: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -598,7 +598,7 @@ export const usersRouter = {
   listRoles: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -611,7 +611,7 @@ export const usersRouter = {
   getRole: publicProcedure
     .input(
       z.object({
-        id: z.number(),
+        id: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -630,11 +630,11 @@ export const usersRouter = {
   updateRole: publicProcedure
     .input(
       z.object({
-        id: z.number(),
+        id: z.coerce.number(),
         name: z.string().min(1).max(100).optional(),
         description: z.string().optional(),
         ticketViewScope: z.enum(["all", "group", "self"]).optional(),
-        isActive: z.boolean().optional(),
+        isActive: z.coerce.boolean().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -655,10 +655,10 @@ export const usersRouter = {
   invite: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         email: z.string().email(),
-        roleIds: z.array(z.number()),
-        invitedBy: z.number(),
+        roleIds: z.array(z.coerce.number()),
+        invitedBy: z.coerce.number(),
         firstName: z.string().optional(),
         lastName: z.string().optional(),
       }),
@@ -697,9 +697,9 @@ export const usersRouter = {
   passwordReset: publicProcedure
     .input(
       z.object({
-        userId: z.number(),
-        organizationId: z.number(),
-        resetBy: z.number().optional(),
+        userId: z.coerce.number(),
+        organizationId: z.coerce.number(),
+        resetBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -735,7 +735,7 @@ export const usersRouter = {
   getPermissions: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async () => {
@@ -745,7 +745,7 @@ export const usersRouter = {
   getRoleWithPermissions: publicProcedure
     .input(
       z.object({
-        id: z.number(),
+        id: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -755,13 +755,13 @@ export const usersRouter = {
   createRole: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         name: z.string().min(1).max(100),
         slug: z.string().min(1).max(100),
         description: z.string().optional(),
         ticketViewScope: z.enum(["all", "group", "self"]).default("all"),
-        permissionIds: z.array(z.number()).optional(),
-        createdBy: z.number(),
+        permissionIds: z.array(z.coerce.number()).optional(),
+        createdBy: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -787,11 +787,11 @@ export const usersRouter = {
   updateRolePermissions: publicProcedure
     .input(
       z.object({
-        roleId: z.number(),
-        permissionIds: z.array(z.number()),
-        updatedBy: z.number(),
-        userId: z.number().optional(),
-        organizationId: z.number().optional(),
+        roleId: z.coerce.number(),
+        permissionIds: z.array(z.coerce.number()),
+        updatedBy: z.coerce.number(),
+        userId: z.coerce.number().optional(),
+        organizationId: z.coerce.number().optional(),
         ipAddress: z.string().optional(),
         userAgent: z.string().optional(),
       }),
@@ -815,9 +815,9 @@ export const usersRouter = {
   deleteRole: publicProcedure
     .input(
       z.object({
-        roleId: z.number(),
-        userId: z.number().optional(),
-        organizationId: z.number().optional(),
+        roleId: z.coerce.number(),
+        userId: z.coerce.number().optional(),
+        organizationId: z.coerce.number().optional(),
         ipAddress: z.string().optional(),
         userAgent: z.string().optional(),
       }),
@@ -839,9 +839,9 @@ export const usersRouter = {
   getUserPermissions: publicProcedure
     .input(
       z.object({
-        userId: z.number(),
-        organizationId: z.number(),
-        isPlatformAdmin: z.boolean().optional(),
+        userId: z.coerce.number(),
+        organizationId: z.coerce.number(),
+        isPlatformAdmin: z.coerce.boolean().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -855,10 +855,10 @@ export const usersRouter = {
   checkPermission: publicProcedure
     .input(
       z.object({
-        userId: z.number(),
-        organizationId: z.number(),
+        userId: z.coerce.number(),
+        organizationId: z.coerce.number(),
         permission: z.string(),
-        isPlatformAdmin: z.boolean().optional(),
+        isPlatformAdmin: z.coerce.boolean().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -875,7 +875,7 @@ export const usersRouter = {
   listGroups: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -885,11 +885,11 @@ export const usersRouter = {
   createGroup: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         name: z.string().min(1).max(150),
         description: z.string().optional(),
-        defaultTeamId: z.number().optional(),
-        createdBy: z.number(),
+        defaultTeamId: z.coerce.number().optional(),
+        createdBy: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -905,12 +905,12 @@ export const usersRouter = {
   updateGroup: publicProcedure
     .input(
       z.object({
-        groupId: z.number(),
+        groupId: z.coerce.number(),
         name: z.string().optional(),
         description: z.string().optional(),
-        defaultTeamId: z.number().optional(),
-        isActive: z.boolean().optional(),
-        updatedBy: z.number(),
+        defaultTeamId: z.coerce.number().optional(),
+        isActive: z.coerce.boolean().optional(),
+        updatedBy: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -927,8 +927,8 @@ export const usersRouter = {
   deleteGroup: publicProcedure
     .input(
       z.object({
-        groupId: z.number(),
-        force: z.boolean().optional(),
+        groupId: z.coerce.number(),
+        force: z.coerce.boolean().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -941,8 +941,8 @@ export const usersRouter = {
   listTeams: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        groupId: z.number().optional(),
+        organizationId: z.coerce.number(),
+        groupId: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -952,12 +952,12 @@ export const usersRouter = {
   createTeam: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         name: z.string().min(1).max(150),
         description: z.string().optional(),
-        groupId: z.number().optional(),
+        groupId: z.coerce.number().optional(),
         autoAssignMethod: z.enum(["round_robin", "least_load", "random"]).default("round_robin"),
-        createdBy: z.number(),
+        createdBy: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -974,13 +974,13 @@ export const usersRouter = {
   updateTeam: publicProcedure
     .input(
       z.object({
-        teamId: z.number(),
+        teamId: z.coerce.number(),
         name: z.string().optional(),
         description: z.string().optional(),
-        groupId: z.number().optional(),
+        groupId: z.coerce.number().optional(),
         autoAssignMethod: z.enum(["round_robin", "least_load", "random"]).optional(),
-        isActive: z.boolean().optional(),
-        updatedBy: z.number(),
+        isActive: z.coerce.boolean().optional(),
+        updatedBy: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -998,7 +998,7 @@ export const usersRouter = {
   deleteTeam: publicProcedure
     .input(
       z.object({
-        teamId: z.number(),
+        teamId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -1008,10 +1008,10 @@ export const usersRouter = {
   assignUserToTeam: publicProcedure
     .input(
       z.object({
-        userId: z.number(),
-        teamId: z.number(),
-        isLead: z.boolean().optional(),
-        assignedBy: z.number(),
+        userId: z.coerce.number(),
+        teamId: z.coerce.number(),
+        isLead: z.coerce.boolean().optional(),
+        assignedBy: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -1026,8 +1026,8 @@ export const usersRouter = {
   removeUserFromTeam: publicProcedure
     .input(
       z.object({
-        userId: z.number(),
-        teamId: z.number(),
+        userId: z.coerce.number(),
+        teamId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -1040,7 +1040,7 @@ export const usersRouter = {
   seedSystemRoles: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -1052,7 +1052,7 @@ export const usersRouter = {
   getUsersByPermission: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         permission: z.string(),
       }),
     )
@@ -1063,12 +1063,12 @@ export const usersRouter = {
   createApiKey: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        userId: z.number().optional(),
+        organizationId: z.coerce.number(),
+        userId: z.coerce.number().optional(),
         name: z.string().min(1).max(150),
         scopes: z.array(z.string()),
         expiresAt: z.date().optional(),
-        createdBy: z.number(),
+        createdBy: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -1118,8 +1118,8 @@ export const usersRouter = {
   listApiKeys: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        userId: z.number().optional(),
+        organizationId: z.coerce.number(),
+        userId: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -1141,9 +1141,9 @@ export const usersRouter = {
   revokeApiKey: publicProcedure
     .input(
       z.object({
-        keyId: z.number(),
-        revokedBy: z.number(),
-        organizationId: z.number(),
+        keyId: z.coerce.number(),
+        revokedBy: z.coerce.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -1181,10 +1181,10 @@ export const usersRouter = {
   updateUserRoles: publicProcedure
     .input(
       z.object({
-        userId: z.number(),
-        roleIds: z.array(z.number()),
-        updatedBy: z.number(),
-        organizationId: z.number(),
+        userId: z.coerce.number(),
+        roleIds: z.array(z.coerce.number()),
+        updatedBy: z.coerce.number(),
+        organizationId: z.coerce.number(),
         ipAddress: z.string().optional(),
         userAgent: z.string().optional(),
       }),

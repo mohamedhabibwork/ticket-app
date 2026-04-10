@@ -1,16 +1,27 @@
-import { Mail, MessageSquare, Globe, Facebook, Twitter, MessageCircle, Instagram, Phone, Users, ShoppingCart } from "lucide-react";
+import {
+  Mail,
+  MessageSquare,
+  Globe,
+  Facebook,
+  Twitter,
+  MessageCircle,
+  Instagram,
+  Phone,
+  Users,
+  ShoppingCart,
+} from "lucide-react";
 
-export type ChannelType = 
-  | "email" 
-  | "chat" 
-  | "form" 
-  | "social" 
-  | "api" 
-  | "facebook" 
-  | "instagram" 
-  | "twitter" 
-  | "whatsapp" 
-  | "phone" 
+export type ChannelType =
+  | "email"
+  | "chat"
+  | "form"
+  | "social"
+  | "api"
+  | "facebook"
+  | "instagram"
+  | "twitter"
+  | "whatsapp"
+  | "phone"
   | "ecommerce";
 
 interface ChannelBadgeProps {
@@ -93,7 +104,12 @@ const sizeClasses = {
   },
 };
 
-export function ChannelBadge({ channel, size = "md", showLabel = true, className = "" }: ChannelBadgeProps) {
+export function ChannelBadge({
+  channel,
+  size = "md",
+  showLabel = true,
+  className = "",
+}: ChannelBadgeProps) {
   const config = channelConfig[channel.toLowerCase()] || {
     icon: Globe,
     color: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400",
@@ -193,7 +209,9 @@ export function SocialPlatformBadge({
       style={{ background: config.gradient }}
       title={`${config.label}${username ? `: @${username}` : ""}`}
     >
-      {showIcon && <Icon className={size === "sm" ? "w-3 h-3" : size === "lg" ? "w-5 h-5" : "w-4 h-4"} />}
+      {showIcon && (
+        <Icon className={size === "sm" ? "w-3 h-3" : size === "lg" ? "w-5 h-5" : "w-4 h-4"} />
+      )}
       {username && <span>@{username}</span>}
     </span>
   );
@@ -201,11 +219,11 @@ export function SocialPlatformBadge({
 
 interface ConnectionStatusProps {
   isActive: boolean;
-  lastSyncAt?: string | Date | null;
+  _lastSyncAt?: string | Date | null;
   className?: string;
 }
 
-export function ConnectionStatus({ isActive, lastSyncAt, className = "" }: ConnectionStatusProps) {
+export function ConnectionStatus({ isActive, _lastSyncAt, className = "" }: ConnectionStatusProps) {
   if (isActive) {
     return (
       <span className={`inline-flex items-center gap-1 text-green-600 ${className}`}>
@@ -229,14 +247,26 @@ interface MessageDirectionProps {
   className?: string;
 }
 
-export function MessageDirection({ isIncoming, size = "md", className = "" }: MessageDirectionProps) {
+export function MessageDirection({
+  isIncoming,
+  size = "md",
+  className = "",
+}: MessageDirectionProps) {
   const iconSize = size === "sm" ? "w-3 h-3" : "w-4 h-4";
-  
+
   if (isIncoming) {
     return (
-      <span className={`inline-flex items-center gap-1 text-blue-600 ${className}`} title="Received">
+      <span
+        className={`inline-flex items-center gap-1 text-blue-600 ${className}`}
+        title="Received"
+      >
         <svg className={iconSize} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10l9-9m0 0l9 9m-9-9v18" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M3 10l9-9m0 0l9 9m-9-9v18"
+          />
         </svg>
         {size === "md" && <span className="text-xs">In</span>}
       </span>
@@ -246,7 +276,12 @@ export function MessageDirection({ isIncoming, size = "md", className = "" }: Me
   return (
     <span className={`inline-flex items-center gap-1 text-green-600 ${className}`} title="Sent">
       <svg className={iconSize} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 10l-9-9m0 0l9-9m-9 9v18" />
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          strokeWidth={2}
+          d="M21 10l-9-9m0 0l9-9m-9 9v18"
+        />
       </svg>
       {size === "md" && <span className="text-xs">Out</span>}
     </span>

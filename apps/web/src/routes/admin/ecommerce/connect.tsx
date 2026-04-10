@@ -12,7 +12,7 @@ import { Button } from "@ticket-app/ui/components/button";
 import { Input } from "@ticket-app/ui/components/input";
 import { Label } from "@ticket-app/ui/components/label";
 import { Checkbox } from "@ticket-app/ui/components/checkbox";
-import { Loader2, ArrowLeft, ShoppingBag, ExternalLink, CheckCircle, XCircle } from "lucide-react";
+import { Loader2, ArrowLeft, ShoppingBag, CheckCircle, XCircle } from "lucide-react";
 import { orpc } from "@/utils/orpc";
 
 type Platform = "shopify" | "woocommerce" | "salla" | "zid";
@@ -91,8 +91,18 @@ function ConnectStoreRoute() {
           title: "Shopify Store",
           description: "Connect your Shopify store using your Admin API access token",
           fields: [
-            { id: "storeUrl", label: "Store URL", placeholder: "myshopify.com", help: "Enter your Shopify store domain without https://" },
-            { id: "apiKey", label: "Admin API Access Token", placeholder: "shpat_xxxxx", help: "Create an app in Shopify Admin > Apps > Develop apps" },
+            {
+              id: "storeUrl",
+              label: "Store URL",
+              placeholder: "myshopify.com",
+              help: "Enter your Shopify store domain without https://",
+            },
+            {
+              id: "apiKey",
+              label: "Admin API Access Token",
+              placeholder: "shpat_xxxxx",
+              help: "Create an app in Shopify Admin > Apps > Develop apps",
+            },
           ],
           authType: "access_token",
         };
@@ -101,9 +111,24 @@ function ConnectStoreRoute() {
           title: "WooCommerce Store",
           description: "Connect your WooCommerce store using REST API keys",
           fields: [
-            { id: "storeUrl", label: "Store URL", placeholder: "https://mysite.com", help: "Enter your WooCommerce store URL" },
-            { id: "apiKey", label: "Consumer Key", placeholder: "ck_xxxxx", help: "Generate keys in WooCommerce > Settings > Advanced > REST API" },
-            { id: "apiSecret", label: "Consumer Secret", placeholder: "cs_xxxxx", help: "Your consumer secret" },
+            {
+              id: "storeUrl",
+              label: "Store URL",
+              placeholder: "https://mysite.com",
+              help: "Enter your WooCommerce store URL",
+            },
+            {
+              id: "apiKey",
+              label: "Consumer Key",
+              placeholder: "ck_xxxxx",
+              help: "Generate keys in WooCommerce > Settings > Advanced > REST API",
+            },
+            {
+              id: "apiSecret",
+              label: "Consumer Secret",
+              placeholder: "cs_xxxxx",
+              help: "Your consumer secret",
+            },
           ],
           authType: "api_keys",
         };
@@ -112,8 +137,18 @@ function ConnectStoreRoute() {
           title: "Salla Store",
           description: "Connect your Salla store using OAuth or API token",
           fields: [
-            { id: "storeUrl", label: "Store URL", placeholder: "myshop.salla.sa", help: "Enter your Salla store domain" },
-            { id: "apiKey", label: "Access Token", placeholder: "Your Salla access token", help: "Get from Salla Partner Portal" },
+            {
+              id: "storeUrl",
+              label: "Store URL",
+              placeholder: "myshop.salla.sa",
+              help: "Enter your Salla store domain",
+            },
+            {
+              id: "apiKey",
+              label: "Access Token",
+              placeholder: "Your Salla access token",
+              help: "Get from Salla Partner Portal",
+            },
           ],
           authType: "access_token",
         };
@@ -122,8 +157,18 @@ function ConnectStoreRoute() {
           title: "Zid Store",
           description: "Connect your Zid store using OAuth or API token",
           fields: [
-            { id: "storeUrl", label: "Store URL", placeholder: "myshop.zid.sa", help: "Enter your Zid store domain" },
-            { id: "apiKey", label: "Access Token", placeholder: "Your Zid access token", help: "Get from Zid Developer Portal" },
+            {
+              id: "storeUrl",
+              label: "Store URL",
+              placeholder: "myshop.zid.sa",
+              help: "Enter your Zid store domain",
+            },
+            {
+              id: "apiKey",
+              label: "Access Token",
+              placeholder: "Your Zid access token",
+              help: "Get from Zid Developer Portal",
+            },
           ],
           authType: "access_token",
         };
@@ -182,7 +227,9 @@ function ConnectStoreRoute() {
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle>{getPlatformConfig(selectedPlatform).title}</CardTitle>
-                  <CardDescription>{getPlatformConfig(selectedPlatform).description}</CardDescription>
+                  <CardDescription>
+                    {getPlatformConfig(selectedPlatform).description}
+                  </CardDescription>
                 </div>
                 <Button variant="ghost" onClick={() => setSelectedPlatform(null)}>
                   Change Platform
@@ -197,7 +244,13 @@ function ConnectStoreRoute() {
                     id={field.id}
                     type={field.id === "apiSecret" || field.id === "apiKey" ? "password" : "text"}
                     placeholder={field.placeholder}
-                    value={field.id === "storeUrl" ? storeUrl : field.id === "apiKey" ? apiKey : apiSecret}
+                    value={
+                      field.id === "storeUrl"
+                        ? storeUrl
+                        : field.id === "apiKey"
+                          ? apiKey
+                          : apiSecret
+                    }
                     onChange={(e) => {
                       if (field.id === "storeUrl") setStoreUrl(e.target.value);
                       else if (field.id === "apiKey") setApiKey(e.target.value);
@@ -219,23 +272,38 @@ function ConnectStoreRoute() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium text-sm">Orders</p>
-                  <p className="text-xs text-muted-foreground">Sync order data and status updates</p>
+                  <p className="text-xs text-muted-foreground">
+                    Sync order data and status updates
+                  </p>
                 </div>
-                <Checkbox checked={syncOrders} onCheckedChange={(checked) => setSyncOrders(checked as boolean)} />
+                <Checkbox
+                  checked={syncOrders}
+                  onCheckedChange={(checked) => setSyncOrders(checked as boolean)}
+                />
               </div>
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium text-sm">Products</p>
-                  <p className="text-xs text-muted-foreground">Sync product catalog and inventory</p>
+                  <p className="text-xs text-muted-foreground">
+                    Sync product catalog and inventory
+                  </p>
                 </div>
-                <Checkbox checked={syncProducts} onCheckedChange={(checked) => setSyncProducts(checked as boolean)} />
+                <Checkbox
+                  checked={syncProducts}
+                  onCheckedChange={(checked) => setSyncProducts(checked as boolean)}
+                />
               </div>
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium text-sm">Customers</p>
-                  <p className="text-xs text-muted-foreground">Sync customer profiles and purchase history</p>
+                  <p className="text-xs text-muted-foreground">
+                    Sync customer profiles and purchase history
+                  </p>
                 </div>
-                <Checkbox checked={syncCustomers} onCheckedChange={(checked) => setSyncCustomers(checked as boolean)} />
+                <Checkbox
+                  checked={syncCustomers}
+                  onCheckedChange={(checked) => setSyncCustomers(checked as boolean)}
+                />
               </div>
             </CardContent>
           </Card>

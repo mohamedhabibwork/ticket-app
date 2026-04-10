@@ -14,7 +14,7 @@ import {
 
 export const csatSurveysRouter = {
   list: publicProcedure
-    .input(z.object({ organizationId: z.number() }))
+    .input(z.object({ organizationId: z.coerce.number() }))
     .handler(async ({ input }) => {
       const allSurveys = await db.query.csatSurveys.findMany({
         with: {
@@ -25,7 +25,7 @@ export const csatSurveysRouter = {
       return allSurveys.filter((s) => s.ticket?.organizationId === input.organizationId);
     }),
 
-  get: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
+  get: publicProcedure.input(z.object({ id: z.coerce.number() })).handler(async ({ input }) => {
     return await db.query.csatSurveys.findFirst({
       where: eq(csatSurveys.id, input.id),
       with: {
@@ -48,7 +48,7 @@ export const csatSurveysRouter = {
   }),
 
   create: publicProcedure
-    .input(z.object({ ticketId: z.number(), contactEmail: z.string() }))
+    .input(z.object({ ticketId: z.coerce.number(), contactEmail: z.string() }))
     .handler(async ({ input }) => {
       const ticket = await db.query.tickets.findFirst({
         where: eq(tickets.id, input.ticketId),
@@ -71,7 +71,7 @@ export const csatSurveysRouter = {
     .input(
       z.object({
         uuid: z.string(),
-        rating: z.number().min(1).max(5),
+        rating: z.coerce.number().min(1).max(5),
         comment: z.string().optional(),
       }),
     )
@@ -80,12 +80,12 @@ export const csatSurveysRouter = {
     }),
 
   getStats: publicProcedure
-    .input(z.object({ organizationId: z.number() }))
+    .input(z.object({ organizationId: z.coerce.number() }))
     .handler(async ({ input }) => {
       return await getCsatStats(input.organizationId);
     }),
 
-  resend: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
+  resend: publicProcedure.input(z.object({ id: z.coerce.number() })).handler(async ({ input }) => {
     const survey = await db.query.csatSurveys.findFirst({
       where: eq(csatSurveys.id, input.id),
       with: {

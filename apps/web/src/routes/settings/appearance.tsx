@@ -3,12 +3,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Button } from "@ticket-app/ui/components/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@ticket-app/ui/components/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
 import { ArrowLeft, Sun, Moon, Monitor, ChevronRight } from "lucide-react";
 
 type Theme = "light" | "dark" | "system";
@@ -19,14 +14,14 @@ export const Route = createFileRoute("/settings/appearance")({
 });
 
 function AppearanceSettingsRoute() {
-  const queryClient = useQueryClient();
+  const _queryClient = useQueryClient();
 
   const [theme, setTheme] = useState<Theme>("system");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [density, setDensity] = useState<Density>("comfortable");
 
   const updateMutation = useMutation({
-    mutationFn: async (data: { theme: Theme; sidebarCollapsed: boolean; density: Density }) => {
+    mutationFn: async (_data: { theme: Theme; sidebarCollapsed: boolean; density: Density }) => {
       return true;
     },
     onSuccess: () => {
@@ -109,16 +104,12 @@ function AppearanceSettingsRoute() {
                     type="button"
                     onClick={() => setTheme(t.value)}
                     className={`p-4 border rounded-lg text-center transition-colors ${
-                      theme === t.value
-                        ? "border-primary bg-primary/5"
-                        : "hover:bg-muted"
+                      theme === t.value ? "border-primary bg-primary/5" : "hover:bg-muted"
                     }`}
                   >
                     <t.icon className="h-6 w-6 mx-auto mb-2" />
                     <div className="font-medium">{t.label}</div>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      {t.description}
-                    </div>
+                    <div className="text-xs text-muted-foreground mt-1">{t.description}</div>
                   </button>
                 ))}
               </div>
@@ -168,20 +159,14 @@ function AppearanceSettingsRoute() {
                     type="button"
                     onClick={() => setDensity(d.value)}
                     className={`w-full flex items-center justify-between p-4 border rounded-lg transition-colors ${
-                      density === d.value
-                        ? "border-primary bg-primary/5"
-                        : "hover:bg-muted"
+                      density === d.value ? "border-primary bg-primary/5" : "hover:bg-muted"
                     }`}
                   >
                     <div className="text-left">
                       <div className="font-medium">{d.label}</div>
-                      <div className="text-sm text-muted-foreground">
-                        {d.description}
-                      </div>
+                      <div className="text-sm text-muted-foreground">{d.description}</div>
                     </div>
-                    {density === d.value && (
-                      <ChevronRight className="h-5 w-5 text-primary" />
-                    )}
+                    {density === d.value && <ChevronRight className="h-5 w-5 text-primary" />}
                   </button>
                 ))}
               </div>

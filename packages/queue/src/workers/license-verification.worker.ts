@@ -7,7 +7,7 @@ import { getRedis } from "../redis";
 import { env } from "@ticket-app/env/server";
 import { verifyLicenseKey } from "@ticket-app/shared/license";
 
-const LICENSE_VERIFICATION_QUEUE = `${env.QUEUE_PREFIX}:license-verification`;
+const LICENSE_VERIFICATION_QUEUE = `${env.QUEUE_PREFIX}-license-verification`;
 
 export interface LicenseVerificationJobData {
   type: "verify-license" | "verify-all";

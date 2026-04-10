@@ -18,7 +18,6 @@ import {
   Trash2,
   CheckCircle,
   TrendingUp,
-  Users,
   MessageSquare,
   ArrowUpRight,
 } from "lucide-react";
@@ -34,19 +33,23 @@ function ChatbotSettingsRoute() {
   const [isEnabled, setIsEnabled] = useState(false);
   const [escalationThreshold, setEscalationThreshold] = useState(3);
   const [responseDelaySeconds, setResponseDelaySeconds] = useState(5);
-  const [analyticsDays, setAnalyticsDays] = useState(30);
+  const [analyticsDays, _setAnalyticsDays] = useState(30);
 
-  const { data: configs, isLoading, refetch } = useQuery(
+  const {
+    data: configs,
+    isLoading,
+    refetch,
+  } = useQuery(
     orpc.chatbot.listConfigs.queryOptions({
       organizationId: 1,
-    })
+    }),
   );
 
-  const { data: analytics, isLoading: analyticsLoading } = useQuery(
+  const { data: analytics, isLoading: _analyticsLoading } = useQuery(
     orpc.chatbot.getAnalytics.queryOptions({
       organizationId: 1,
       days: analyticsDays,
-    })
+    }),
   );
 
   const createMutation = useMutation(
@@ -56,19 +59,19 @@ function ChatbotSettingsRoute() {
         setShowAddForm(false);
         resetForm();
       },
-    })
+    }),
   );
 
   const updateMutation = useMutation(
     orpc.chatbot.updateConfig.mutationOptions({
       onSuccess: () => refetch(),
-    })
+    }),
   );
 
   const deleteMutation = useMutation(
     orpc.chatbot.deleteConfig.mutationOptions({
       onSuccess: () => refetch(),
-    })
+    }),
   );
 
   const resetForm = () => {
@@ -319,9 +322,9 @@ function ChatbotSettingsRoute() {
         <CardContent>
           <div className="p-4 rounded bg-muted">
             <p className="text-sm">
-              The chatbot automatically searches through your published knowledge base
-              articles to find relevant answers. Articles with higher relevance scores are
-              preferred. Configure your knowledge base in the KB section.
+              The chatbot automatically searches through your published knowledge base articles to
+              find relevant answers. Articles with higher relevance scores are preferred. Configure
+              your knowledge base in the KB section.
             </p>
           </div>
         </CardContent>
@@ -375,10 +378,7 @@ function ChatbotSettingsRoute() {
             </div>
 
             <div className="flex gap-2 pt-4">
-              <Button
-                onClick={handleSubmit}
-                disabled={!name || createMutation.isPending}
-              >
+              <Button onClick={handleSubmit} disabled={!name || createMutation.isPending}>
                 {createMutation.isPending ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />

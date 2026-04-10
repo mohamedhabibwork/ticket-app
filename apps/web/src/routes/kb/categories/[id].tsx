@@ -12,7 +12,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@ticket-app/ui/components/dropdown-menu";
-import { Loader2, ArrowLeft, Edit, Trash2, Plus, FileText, GripVertical, FolderOpen } from "lucide-react";
+import {
+  Loader2,
+  ArrowLeft,
+  Edit,
+  Trash2,
+  Plus,
+  FileText,
+  GripVertical,
+  FolderOpen,
+} from "lucide-react";
 
 import { orpc } from "@/utils/orpc";
 
@@ -37,27 +46,27 @@ function KbCategoryDetailRoute() {
   const { data: category, isLoading } = useQuery(
     orpc.kbCategories.get.queryOptions(
       { organizationId, id: categoryId },
-      { enabled: !isNaN(categoryId) }
-    )
+      { enabled: !isNaN(categoryId) },
+    ),
   );
 
   const { data: articles } = useQuery(
     orpc.kbArticles.list.queryOptions({
       organizationId,
       categoryId,
-    })
+    }),
   );
 
   const { data: allArticles } = useQuery(
     orpc.kbArticles.list.queryOptions({
       organizationId,
-    })
+    }),
   );
 
-  const { data: categories } = useQuery(
+  const { data: _categories } = useQuery(
     orpc.kbCategories.list.queryOptions({
       organizationId,
-    })
+    }),
   );
 
   const updateMutation = useMutation(
@@ -65,21 +74,27 @@ function KbCategoryDetailRoute() {
       onSuccess: () => {
         toast.success("Category updated successfully");
         setIsEditing(false);
-        queryClient.invalidateQueries(orpc.kbCategories.get.queryOptions({ organizationId, id: categoryId }));
+        queryClient.invalidateQueries(
+          orpc.kbCategories.get.queryOptions({ organizationId, id: categoryId }),
+        );
       },
       onError: (error) => {
         toast.error(`Failed to update category: ${error.message}`);
       },
-    })
+    }),
   );
 
   const updateArticleMutation = useMutation(
     orpc.kbArticles.update.mutationOptions({
       onSuccess: () => {
-        queryClient.invalidateQueries(orpc.kbArticles.list.queryOptions({ organizationId, categoryId }));
-        queryClient.invalidateQueries(orpc.kbCategories.get.queryOptions({ organizationId, id: categoryId }));
+        queryClient.invalidateQueries(
+          orpc.kbArticles.list.queryOptions({ organizationId, categoryId }),
+        );
+        queryClient.invalidateQueries(
+          orpc.kbCategories.get.queryOptions({ organizationId, id: categoryId }),
+        );
       },
-    })
+    }),
   );
 
   const deleteMutation = useMutation(
@@ -91,7 +106,7 @@ function KbCategoryDetailRoute() {
       onError: (error) => {
         toast.error(`Failed to delete category: ${error.message}`);
       },
-    })
+    }),
   );
 
   const handleSave = () => {
@@ -154,9 +169,7 @@ function KbCategoryDetailRoute() {
     );
   }
 
-  const availableArticles = allArticles?.filter(
-    (a) => !articles?.some((ca) => ca.id === a.id)
-  );
+  const availableArticles = allArticles?.filter((a) => !articles?.some((ca) => ca.id === a.id));
 
   return (
     <div className="container mx-auto max-w-4xl px-4 py-6">
@@ -220,9 +233,7 @@ function KbCategoryDetailRoute() {
               />
             </div>
             <Button onClick={handleSave} disabled={updateMutation.isPending}>
-              {updateMutation.isPending && (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              )}
+              {updateMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               Save Changes
             </Button>
           </CardContent>
@@ -246,10 +257,7 @@ function KbCategoryDetailRoute() {
               <DropdownMenuContent align="end" className="w-64">
                 {availableArticles && availableArticles.length > 0 ? (
                   availableArticles.map((article) => (
-                    <DropdownMenuItem
-                      key={article.id}
-                      onClick={() => handleAddArticle(article.id)}
-                    >
+                    <DropdownMenuItem key={article.id} onClick={() => handleAddArticle(article.id)}>
                       {article.title}
                     </DropdownMenuItem>
                   ))
@@ -293,9 +301,7 @@ function KbCategoryDetailRoute() {
               ))}
             </div>
           ) : (
-            <p className="text-muted-foreground text-center py-8">
-              No articles in this category
-            </p>
+            <p className="text-muted-foreground text-center py-8">No articles in this category</p>
           )}
         </CardContent>
       </Card>

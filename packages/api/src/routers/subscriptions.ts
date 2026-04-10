@@ -20,7 +20,7 @@ export const subscriptionsRouter = {
   get: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -66,10 +66,10 @@ export const subscriptionsRouter = {
   create: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        planId: z.number(),
+        organizationId: z.coerce.number(),
+        planId: z.coerce.number(),
         billingCycle: z.enum(["monthly", "annual"]),
-        seatCount: z.number().min(1),
+        seatCount: z.coerce.number().min(1),
         couponCode: z.string().optional(),
       }),
     )
@@ -114,10 +114,10 @@ export const subscriptionsRouter = {
   update: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        planId: z.number().optional(),
+        organizationId: z.coerce.number(),
+        planId: z.coerce.number().optional(),
         billingCycle: z.enum(["monthly", "annual"]).optional(),
-        seatCount: z.number().min(1).optional(),
+        seatCount: z.coerce.number().min(1).optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -164,8 +164,8 @@ export const subscriptionsRouter = {
   cancel: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        immediate: z.boolean().default(false),
+        organizationId: z.coerce.number(),
+        immediate: z.coerce.boolean().default(false),
       }),
     )
     .handler(async ({ input }) => {
@@ -201,7 +201,7 @@ export const subscriptionsRouter = {
   getSeatCount: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -233,8 +233,8 @@ export const subscriptionsRouter = {
   addSeat: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        userId: z.number(),
+        organizationId: z.coerce.number(),
+        userId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -281,8 +281,8 @@ export const subscriptionsRouter = {
   removeSeat: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        userId: z.number(),
+        organizationId: z.coerce.number(),
+        userId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -326,8 +326,8 @@ export const subscriptionsRouter = {
   createBillingPortalSession: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        returnUrl: z.string().url(),
+        organizationId: z.coerce.number(),
+        returnUrl: z.url(),
       }),
     )
     .handler(async ({ input }) => {
@@ -347,12 +347,12 @@ export const subscriptionsRouter = {
   createCheckout: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        planId: z.number(),
-        seatCount: z.number().min(1),
+        organizationId: z.coerce.number(),
+        planId: z.coerce.number(),
+        seatCount: z.coerce.number().min(1),
         billingCycle: z.enum(["monthly", "annual"]),
-        successUrl: z.string().url(),
-        cancelUrl: z.string().url(),
+        successUrl: z.url(),
+        cancelUrl: z.url(),
       }),
     )
     .handler(async ({ input }) => {

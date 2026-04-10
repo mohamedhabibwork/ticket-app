@@ -9,11 +9,11 @@ export const sessionsRouter = {
   list: publicProcedure
     .input(
       z.object({
-        userId: z.number(),
-        organizationId: z.number(),
-        includeRevoked: z.boolean().default(false),
-        limit: z.number().min(1).max(100).default(50),
-        offset: z.number().min(0).default(0),
+        userId: z.coerce.number(),
+        organizationId: z.coerce.number(),
+        includeRevoked: z.coerce.boolean().default(false),
+        limit: z.coerce.number().min(1).max(100).default(50),
+        offset: z.coerce.number().min(0).default(0),
       }),
     )
     .handler(async ({ input }) => {
@@ -44,8 +44,8 @@ export const sessionsRouter = {
   revoke: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        userId: z.number(),
+        id: z.coerce.number(),
+        userId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -63,8 +63,8 @@ export const sessionsRouter = {
   revokeAll: publicProcedure
     .input(
       z.object({
-        userId: z.number(),
-        exceptSessionId: z.number().optional(),
+        userId: z.coerce.number(),
+        exceptSessionId: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -87,7 +87,7 @@ export const sessionsRouter = {
   getActive: publicProcedure
     .input(
       z.object({
-        userId: z.number(),
+        userId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -114,9 +114,9 @@ export const sessionsRouter = {
   extend: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        userId: z.number(),
-        extendByHours: z.number().min(1).max(168).default(24),
+        id: z.coerce.number(),
+        userId: z.coerce.number(),
+        extendByHours: z.coerce.number().min(1).max(168).default(24),
       }),
     )
     .handler(async ({ input }) => {

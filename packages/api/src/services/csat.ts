@@ -1,5 +1,6 @@
 import { eq } from "drizzle-orm";
 
+import { env } from "@ticket-app/env/server";
 import { db } from "@ticket-app/db";
 import { csatSurveys } from "@ticket-app/db/schema/_sla";
 import { tickets } from "@ticket-app/db/schema/_tickets";
@@ -7,7 +8,7 @@ import { addEmailJob } from "@ticket-app/db/lib/queues";
 
 export async function createCsatSurvey(
   ticketId: number,
-  contactEmail: string
+  contactEmail: string,
 ): Promise<typeof csatSurveys.$inferSelect | null> {
   const ticket = await db.query.tickets.findFirst({
     where: eq(tickets.id, ticketId),
@@ -39,9 +40,9 @@ export async function createCsatSurvey(
 
 export async function sendCsatSurveyEmail(
   survey: typeof csatSurveys.$inferSelect,
-  ticket: typeof tickets.$inferSelect
+  ticket: typeof tickets.$inferSelect,
 ): Promise<void> {
-  const surveyUrl = `${process.env.APP_URL}/survey/${survey.uuid}`;
+  const surveyUrl = `${env.APP_URL}/survey/${survey.uuid}`;
 
   await addEmailJob({
     to: survey.sentTo,
@@ -66,7 +67,7 @@ export async function sendCsatSurveyEmail(
 export async function submitCsatResponse(
   surveyUuid: string,
   rating: number,
-  comment?: string
+  comment?: string,
 ): Promise<typeof csatSurveys.$inferSelect | null> {
   const survey = await db.query.csatSurveys.findFirst({
     where: eq(csatSurveys.uuid, surveyUuid),
@@ -104,9 +105,7 @@ export async function getCsatStats(organizationId: number): Promise<{
     },
   });
 
-  const orgSurveys = allSurveys.filter(
-    (s) => s.ticket?.organizationId === organizationId
-  );
+  const orgSurveys = allSurveys.filter((s) => s.ticket?.organizationId === organizationId);
 
   const responded = orgSurveys.filter((s) => s.respondedAt);
   const totalResponses = responded.length;

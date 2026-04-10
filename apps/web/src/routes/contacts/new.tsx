@@ -1,17 +1,12 @@
 import { useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Button } from "@ticket-app/ui/components/button";
 import { Input } from "@ticket-app/ui/components/input";
 import { Label } from "@ticket-app/ui/components/label";
 import { Textarea } from "@ticket-app/ui/components/textarea";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@ticket-app/ui/components/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
 import { Checkbox } from "@ticket-app/ui/components/checkbox";
 import { Loader2 } from "lucide-react";
 
@@ -52,7 +47,7 @@ function NewContactRoute() {
       onError: (error) => {
         toast.error(`Failed to create contact: ${error.message}`);
       },
-    })
+    }),
   );
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -167,17 +162,11 @@ function NewContactRoute() {
           </Card>
 
           <div className="flex justify-end gap-3">
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => navigate({ to: "/contacts" })}
-            >
+            <Button type="button" variant="ghost" onClick={() => navigate({ to: "/contacts" })}>
               Cancel
             </Button>
             <Button type="submit" disabled={createMutation.isPending}>
-              {createMutation.isPending && (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              )}
+              {createMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               Create Contact
             </Button>
           </div>

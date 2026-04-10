@@ -1,213 +1,266 @@
-# Data Model: Import/Export Excel Sheets
+# Data Model: Real-time Socket System
 
-**Date**: 2026-04-09 | **Source**: Implementation plan for 002-import-export-excel
-**ORM**: Drizzle ORM 0.45.x | **Database**: PostgreSQL 16+
-
----
-
-## Schema Conventions
-
-Same as existing 001-support-platform:
-
-- Primary Key (internal): `BIGSERIAL`
-- Primary Key (public-facing): `UUID` via `gen_random_uuid()`
-- Timestamps: `TIMESTAMPTZ`, always UTC
-- Naming: `snake_case`
+**Date**: 2026-04-09 | **Source**: Implementation plan for socket system
+**Storage**: Redis (presence, pub/sub) | **No new database tables required**
 
 ---
 
-## New Tables
+## Socket Event Types
 
-### 1. Excel Export Jobs
+### Presence Events
+
+| Event Name      | Direction       | Payload                | Description                    |
+| --------------- | --------------- | ---------------------- | ------------------------------ |
+| `join_ticket`   | Client → Server | `{ ticketId: number }` | Request to join ticket room    |
+| `leave_ticket`  | Client → Server | `{ ticketId: number }` | Request to leave ticket room   |
+| `heartbeat`     | Client → Server | `{ ticketId: number }` | Presence heartbeat (every 15s) |
+| `get_viewers`   | Client → Server | `{ ticketId: number }` | Request current viewer list    |
+| `viewer_joined` | Server → Client | `ViewerPresence`       | Broadcast when viewer joins    |
+| `viewer_left`   | Server → Client | `{ userId: number }`   | Broadcast when viewer leaves   |
+| `viewers_list`  | Server → Client | `ViewerPresence[]`     | Response to get_viewers        |
+| `heartbeat_ack` | Server → Client | `{}`                   | Acknowledgment to heartbeat    |
+
+### Notification Events
+
+| Event Name          | Direction       | Payload                      | Description               |
+| ------------------- | --------------- | ---------------------------- | ------------------------- |
+| `notification`      | Server → Client | `NotificationPayload`        | Push notification to user |
+| `mark_read`         | Client → Server | `{ notificationId: number }` | Mark notification as read |
+| `notification_read` | Server → Client | `{ notificationId: number }` | Broadcast read status     |
+
+### Chat Events
+
+| Event Name         | Direction       | Payload                                    | Description                |
+| ------------------ | --------------- | ------------------------------------------ | -------------------------- |
+| `join_session`     | Client → Server | `{ sessionId: number }`                    | Join chat session room     |
+| `leave_session`    | Client → Server | `{ sessionId: number }`                    | Leave chat session room    |
+| `send_message`     | Client → Server | `ChatMessageInput`                         | Send chat message          |
+| `message_received` | Server → Client | `ChatMessage`                              | Broadcast new message      |
+| `typing_start`     | Client → Server | `{ sessionId: number }`                    | User started typing        |
+| `typing_stop`      | Client → Server | `{ sessionId: number }`                    | User stopped typing        |
+| `user_typing`      | Server → Client | `{ userId: number, userName: string }`     | Broadcast typing indicator |
+| `mark_read`        | Client → Server | `{ sessionId: number, messageId: number }` | Mark message as read       |
+| `messages_read`    | Server → Client | `{ userId: number, messageId: number }`    | Broadcast read status      |
+
+### Domain Events (Server-initiated)
+
+| Event Name              | Direction       | Payload                 | Description              |
+| ----------------------- | --------------- | ----------------------- | ------------------------ |
+| `ticket_updated`        | Server → Client | `TicketUpdatePayload`   | Ticket was modified      |
+| `ticket_created`        | Server → Client | `TicketCreatePayload`   | New ticket created       |
+| `ticket_assigned`       | Server → Client | `TicketAssignedPayload` | Ticket was assigned      |
+| `ticket_status_changed` | Server → Client | `TicketStatusPayload`   | Ticket status changed    |
+| `message_added`         | Server → Client | `MessageAddedPayload`   | New reply/note on ticket |
+
+---
+
+## TypeScript Interfaces
 
 ```typescript
-// packages/db/src/schema/_excel-jobs.ts
+// packages/socket-client/src/types.ts
 
-import {
-  pgTable,
-  bigint,
-  boolean,
-  integer,
-  text,
-  timestamp,
-  uuid,
-  jsonb,
-  varchar,
-} from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm";
-import { organizations } from "./_organizations";
-import { users } from "./_users";
+export interface ViewerPresence {
+  ticketId: number;
+  userId: number;
+  userName: string;
+  avatarUrl?: string;
+  joinedAt: string;
+}
 
-export const excelExportJobs = pgTable(
-  "excel_export_jobs",
-  {
-    id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
-    uuid: uuid("uuid").defaultRandom().notNull().unique(),
-    organizationId: bigint("organization_id", { mode: "number" })
-      .references(() => organizations.id)
-      .notNull(),
-    userId: bigint("user_id", { mode: "number" })
-      .references(() => users.id)
-      .notNull(),
-    entityType: varchar("entity_type", { length: 50 }).notNull(),
-    filters: jsonb("filters"),
-    status: varchar("status", { length: 20 }).default("pending").notNull(),
-    fileUrl: text("file_url"),
-    recordCount: integer("record_count"),
-    errorMessage: text("error_message"),
-    completedAt: timestamp("completed_at", { withTimezone: true }),
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
-  },
-  (table) => ({
-    orgStatusIdx: index("excel_export_jobs_org_status_idx").on(table.organizationId, table.status),
-    userIdIdx: index("excel_export_jobs_user_id_idx").on(table.userId),
-  }),
-);
+export interface NotificationPayload {
+  id: number;
+  type: "ticket_assigned" | "ticket_updated" | "mention" | "system";
+  title: string;
+  body: string;
+  ticketId?: number;
+  createdAt: string;
+  read: boolean;
+}
 
-export const excelExportJobRelations = relations(excelExportJobs, ({ one }) => ({
-  organization: one(organizations, {
-    fields: [excelExportJobs.organizationId],
-    references: [organizations.id],
-  }),
-  user: one(users, {
-    fields: [excelExportJobs.userId],
-    references: [users.id],
-  }),
-}));
+export interface ChatMessage {
+  id: number;
+  sessionId: number;
+  authorId: number;
+  authorName: string;
+  authorAvatarUrl?: string;
+  body: string;
+  createdAt: string;
+  read: boolean;
+}
+
+export interface ChatMessageInput {
+  sessionId: number;
+  body: string;
+}
+
+export interface TicketUpdatePayload {
+  ticketId: number;
+  organizationId: number;
+  updatedBy: number;
+  changes: Record<string, { old: unknown; new: unknown }>;
+  updatedAt: string;
+}
+
+export interface TicketCreatePayload {
+  ticket: {
+    id: number;
+    referenceNumber: string;
+    subject: string;
+    status: string;
+    priority: string;
+    createdAt: string;
+  };
+  organizationId: number;
+}
+
+export interface TicketAssignedPayload {
+  ticketId: number;
+  assignedTo: number;
+  assignedBy: number;
+  organizationId: number;
+}
+
+export interface TicketStatusPayload {
+  ticketId: number;
+  oldStatus: string;
+  newStatus: string;
+  organizationId: number;
+}
+
+export interface MessageAddedPayload {
+  ticketId: number;
+  message: {
+    id: number;
+    authorName: string;
+    messageType: "reply" | "note";
+    bodyPreview: string;
+    createdAt: string;
+  };
+  organizationId: number;
+}
 ```
 
-### 2. Excel Import Jobs
+---
+
+## Room Structure
+
+### Room Naming Convention
+
+| Room Pattern        | Example      | Purpose                 | Access Control             |
+| ------------------- | ------------ | ----------------------- | -------------------------- |
+| `org:{orgId}`       | `org:123`    | Org-wide broadcasts     | Authenticated users in org |
+| `ticket:{ticketId}` | `ticket:456` | Ticket presence/updates | Authenticated users in org |
+| `user:{userId}`     | `user:789`   | Private notifications   | Specific user only         |
+| `chat:{sessionId}`  | `chat:101`   | Chat session messages   | Session participants       |
+
+### Room Join Flow
+
+```
+Client                          Server
+  |                                |
+  |-------- join_ticket ---------->|
+  |    { ticketId: 123 }          |
+  |                                |-- Validate user in org
+  |                                |-- Add socket to room
+  |                                |-- Broadcast viewer_joined
+  |<------- viewer_joined ---------|   to room members
+  |    { ticketId, userId, ... }  |
+  |                                |
+```
+
+---
+
+## Redis Key Patterns
+
+### Presence (existing, reused)
+
+| Key Pattern                           | Type   | TTL | Purpose                        |
+| ------------------------------------- | ------ | --- | ------------------------------ |
+| `presence:ticket:{ticketId}`          | SET    | -   | Set of user IDs viewing ticket |
+| `presence:viewer:{ticketId}:{userId}` | STRING | 30s | Presence data with TTL         |
+
+### Socket.io Adapter (new)
+
+| Key Pattern                     | Type    | Purpose                   |
+| ------------------------------- | ------- | ------------------------- |
+| `socket.io/#-org:{orgId}`       | Channel | Org room broadcasts       |
+| `socket.io/#-ticket:{ticketId}` | Channel | Ticket room broadcasts    |
+| `socket.io/#-user:{userId}`     | Channel | User notification channel |
+| `socket.io/#-chat:{sessionId}`  | Channel | Chat session broadcasts   |
+
+### Socket Events Pub/Sub (new)
+
+| Channel         | Purpose                             |
+| --------------- | ----------------------------------- |
+| `socket:events` | Server-initiated event distribution |
+
+---
+
+## Authentication Flow
+
+```
+Client                          Server
+  |                                |
+  |  Socket connection handshake    |
+  |  with token in query:          |
+  |  ?token=<jwt>                 |
+  |                                |-- Extract token
+  |                                |-- Validate JWT
+  |                                |-- Extract userId, orgId
+  |                                |-- Attach to socket.data
+  |                                |
+  |  Connection accepted/rejected   |
+```
+
+### Socket.io Auth Middleware
 
 ```typescript
-export const excelImportJobs = pgTable(
-  "excel_import_jobs",
-  {
-    id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
-    uuid: uuid("uuid").defaultRandom().notNull().unique(),
-    organizationId: bigint("organization_id", { mode: "number" })
-      .references(() => organizations.id)
-      .notNull(),
-    userId: bigint("user_id", { mode: "number" })
-      .references(() => users.id)
-      .notNull(),
-    entityType: varchar("entity_type", { length: 50 }).notNull(),
-    fileUrl: text("file_url").notNull(),
-    status: varchar("status", { length: 20 }).default("pending").notNull(),
-    mode: varchar("mode", { length: 20 }).default("create").notNull(),
-    matchField: varchar("match_field", { length: 50 }),
-    totalRows: integer("total_rows"),
-    processedRows: integer("processed_rows").default(0),
-    successCount: integer("success_count").default(0),
-    errorCount: integer("error_count").default(0),
-    errors: jsonb("errors"),
-    completedAt: timestamp("completed_at", { withTimezone: true }),
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
-  },
-  (table) => ({
-    orgStatusIdx: index("excel_import_jobs_org_status_idx").on(table.organizationId, table.status),
-    userIdIdx: index("excel_import_jobs_user_id_idx").on(table.userId),
-  }),
-);
+// apps/server/src/socket/auth.ts
 
-export const excelImportJobRelations = relations(excelImportJobs, ({ one }) => ({
-  organization: one(organizations, {
-    fields: [excelImportJobs.organizationId],
-    references: [organizations.id],
-  }),
-  user: one(users, {
-    fields: [excelImportJobs.userId],
-    references: [users.id],
-  }),
-}));
+interface AuthData {
+  userId: number;
+  organizationId: number;
+  email: string;
+}
+
+socket.use((socket, next) => {
+  const token = socket.handshake.auth.token || socket.handshake.query.token;
+
+  if (!token) {
+    return next(new Error("Authentication required"));
+  }
+
+  try {
+    const payload = verifyJWT(token);
+    socket.data.auth = {
+      userId: payload.userId,
+      organizationId: payload.organizationId,
+      email: payload.email,
+    } as AuthData;
+    next();
+  } catch (err) {
+    next(new Error("Invalid token"));
+  }
+});
 ```
 
 ---
 
-## Entity Import Field Mappings
+## Event Authorization Rules
 
-### Tickets
-
-| Excel Column   | Database Field    | Required | Type            |
-| -------------- | ----------------- | -------- | --------------- |
-| subject        | subject           | Yes      | text            |
-| description    | description_html  | No       | text            |
-| status         | status_id         | Yes      | lookup (name)   |
-| priority       | priority_id       | Yes      | lookup (name)   |
-| contact_email  | contact_id        | No       | fk (by email)   |
-| assignee_email | assigned_agent_id | No       | fk (by email)   |
-| team_name      | assigned_team_id  | No       | fk (by name)    |
-| tags           | tags              | No       | comma-separated |
-
-### Contacts
-
-| Excel Column | Database Field  | Required | Type          |
-| ------------ | --------------- | -------- | ------------- |
-| email        | email           | Yes      | text (unique) |
-| first_name   | first_name      | No       | text          |
-| last_name    | last_name       | No       | text          |
-| phone        | phone           | No       | text          |
-| company      | company         | No       | text          |
-| type         | contact_type_id | No       | lookup (name) |
-
-### Users
-
-| Excel Column | Database Field | Required | Type          |
-| ------------ | -------------- | -------- | ------------- |
-| email        | email          | Yes      | text (unique) |
-| first_name   | first_name     | Yes      | text          |
-| last_name    | last_name      | Yes      | text          |
-| role         | role_slug      | Yes      | text          |
-| team         | team_name      | No       | text          |
-
-### KB Articles
-
-| Excel Column | Database Field | Required | Type          |
-| ------------ | -------------- | -------- | ------------- |
-| title        | title          | Yes      | text          |
-| content      | body           | Yes      | text (HTML)   |
-| category     | category_id    | Yes      | fk (by name)  |
-| status       | status         | Yes      | lookup (name) |
-| locale       | locale         | No       | text          |
-
-### Saved Replies
-
-| Excel Column | Database Field | Required | Type |
-| ------------ | -------------- | -------- | ---- |
-| title        | title          | Yes      | text |
-| content      | content        | Yes      | text |
-| folder       | folder_name    | No       | text |
-| scope        | scope          | No       | enum |
+| Event          | Required Permission                 |
+| -------------- | ----------------------------------- |
+| `join_ticket`  | User in same organization as ticket |
+| `leave_ticket` | User already in room                |
+| `heartbeat`    | User in room                        |
+| `send_message` | User is chat session participant    |
+| `join_session` | User is chat session participant    |
 
 ---
 
-## Indexes Summary
+## Dependencies
 
-| Table               | Indexes                                  |
-| ------------------- | ---------------------------------------- |
-| `excel_export_jobs` | `(organization_id, status)`, `(user_id)` |
-| `excel_import_jobs` | `(organization_id, status)`, `(user_id)` |
-
----
-
-## Relationships Summary
-
-```
-organizations
-  └── excel_export_jobs (1:N)
-  └── excel_import_jobs (1:N)
-
-users
-  └── excel_export_jobs (1:N)
-  └── excel_import_jobs (1:N)
-```
-
----
-
-## Migration Commands
-
-```bash
-bun db:generate
-bun db:migrate
-```
+- `socket.io` 4.x - WebSocket server
+- `@socket.io/redis-adapter` - Redis adapter for scaling
+- `socket.io-client` 4.x - Client libraries
+- `ioredis` - Already in use for presence

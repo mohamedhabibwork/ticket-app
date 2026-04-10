@@ -11,15 +11,7 @@ import {
 import { Button } from "@ticket-app/ui/components/button";
 import { Input } from "@ticket-app/ui/components/input";
 import { Label } from "@ticket-app/ui/components/label";
-import {
-  Loader2,
-  Key,
-  Shield,
-  CheckCircle,
-  XCircle,
-  AlertTriangle,
-  Server,
-} from "lucide-react";
+import { Loader2, Key, Shield, CheckCircle, XCircle, AlertTriangle, Server } from "lucide-react";
 import { orpc } from "@/utils/orpc";
 
 export const Route = createFileRoute("/admin/settings/license")({
@@ -34,16 +26,20 @@ function LicenseSettingsRoute() {
   const [seatLimit, setSeatLimit] = useState(10);
   const [validUntil, setValidUntil] = useState("");
 
-  const { data: licenseStatus, isLoading, refetch } = useQuery(
+  const {
+    data: licenseStatus,
+    isLoading,
+    refetch,
+  } = useQuery(
     orpc.onPremise.getLicenseStatus.queryOptions({
       organizationId: 1,
-    })
+    }),
   );
 
-  const { data: seatInfo, isLoading: seatLoading } = useQuery(
+  const { data: seatInfo, isLoading: _seatLoading } = useQuery(
     orpc.onPremise.checkSeatLimit.queryOptions({
       organizationId: 1,
-    })
+    }),
   );
 
   const verifyMutation = useMutation(
@@ -54,7 +50,7 @@ function LicenseSettingsRoute() {
         setDomain("");
         setSignature("");
       },
-    })
+    }),
   );
 
   const handleVerify = () => {
@@ -67,7 +63,9 @@ function LicenseSettingsRoute() {
       signature,
       productEdition,
       seatLimit,
-      validUntil: validUntil ? new Date(validUntil) : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
+      validUntil: validUntil
+        ? new Date(validUntil)
+        : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000),
     });
   };
 
@@ -109,9 +107,7 @@ function LicenseSettingsRoute() {
           </div>
           <div>
             <h1 className="text-2xl font-bold">License Settings</h1>
-            <p className="text-muted-foreground">
-              Manage your on-premise license and seat limits
-            </p>
+            <p className="text-muted-foreground">Manage your on-premise license and seat limits</p>
           </div>
         </div>
       </div>
@@ -135,8 +131,8 @@ function LicenseSettingsRoute() {
                       licenseStatus?.isActive
                         ? "bg-green-100"
                         : licenseStatus?.mode === "unlicensed"
-                        ? "bg-gray-100"
-                        : "bg-red-100"
+                          ? "bg-gray-100"
+                          : "bg-red-100"
                     }`}
                   >
                     <Key
@@ -144,8 +140,8 @@ function LicenseSettingsRoute() {
                         licenseStatus?.isActive
                           ? "text-green-600"
                           : licenseStatus?.mode === "unlicensed"
-                          ? "text-gray-500"
-                          : "text-red-600"
+                            ? "text-gray-500"
+                            : "text-red-600"
                       }`}
                     />
                   </div>
@@ -197,9 +193,7 @@ function LicenseSettingsRoute() {
                     <span className="text-sm">Multi-Tenant Mode</span>
                     <span
                       className={`text-sm font-medium ${
-                        licenseStatus?.features?.multiTenant
-                          ? "text-green-600"
-                          : "text-red-600"
+                        licenseStatus?.features?.multiTenant ? "text-green-600" : "text-red-600"
                       }`}
                     >
                       {licenseStatus?.features?.multiTenant ? "Enabled" : "Disabled"}
@@ -209,9 +203,7 @@ function LicenseSettingsRoute() {
                     <span className="text-sm">Billing Features</span>
                     <span
                       className={`text-sm font-medium ${
-                        licenseStatus?.features?.billing
-                          ? "text-green-600"
-                          : "text-red-600"
+                        licenseStatus?.features?.billing ? "text-green-600" : "text-red-600"
                       }`}
                     >
                       {licenseStatus?.features?.billing ? "Enabled" : "Disabled"}
@@ -249,11 +241,11 @@ function LicenseSettingsRoute() {
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div
                 className={`h-2 rounded-full ${
-                  (seatInfo.currentCount / seatInfo.seatLimit) > 0.9
+                  seatInfo.currentCount / seatInfo.seatLimit > 0.9
                     ? "bg-red-500"
-                    : (seatInfo.currentCount / seatInfo.seatLimit) > 0.7
-                    ? "bg-yellow-500"
-                    : "bg-green-500"
+                    : seatInfo.currentCount / seatInfo.seatLimit > 0.7
+                      ? "bg-yellow-500"
+                      : "bg-green-500"
                 }`}
                 style={{
                   width: `${Math.min((seatInfo.currentCount / seatInfo.seatLimit) * 100, 100)}%`,
@@ -278,9 +270,9 @@ function LicenseSettingsRoute() {
               <div className="text-sm text-blue-800 dark:text-blue-200">
                 <p className="font-medium mb-2">On-Premise Installation</p>
                 <p>
-                  Your license key was provided during purchase. It includes an RSA signature
-                  for verification. Enter the license key exactly as provided, including the
-                  signature block.
+                  Your license key was provided during purchase. It includes an RSA signature for
+                  verification. Enter the license key exactly as provided, including the signature
+                  block.
                 </p>
               </div>
             </div>

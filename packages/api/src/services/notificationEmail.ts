@@ -1,4 +1,5 @@
 import { eq, and } from "drizzle-orm";
+import { env } from "@ticket-app/env/server";
 import { db } from "@ticket-app/db";
 import { users, organizations } from "@ticket-app/db/schema";
 import { mailboxes, emailMessages } from "@ticket-app/db/schema/_mailboxes";
@@ -19,7 +20,7 @@ const IMPORTANT_NOTIFICATION_TYPES = [
 ] as const;
 
 function generateUnsubscribeToken(userId: number, type: string): string {
-  const secret = process.env.APP_SECRET || "default-secret-change-me";
+  const secret = env.APP_SECRET || "default-secret-change-me";
   return crypto
     .createHmac("sha256", secret)
     .update(`${userId}-${type}`)

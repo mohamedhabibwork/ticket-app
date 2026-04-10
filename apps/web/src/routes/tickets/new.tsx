@@ -5,23 +5,18 @@ import { toast } from "sonner";
 import { Button } from "@ticket-app/ui/components/button";
 import { Input } from "@ticket-app/ui/components/input";
 import { Label } from "@ticket-app/ui/components/label";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@ticket-app/ui/components/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@ticket-app/ui/components/dropdown-menu";
-import { Loader2, ChevronDown, Paperclip, X, Plus } from "lucide-react";
+import { Loader2, ChevronDown, Paperclip, X } from "lucide-react";
 
 import { orpc } from "@/utils/orpc";
 
-function formatRelativeTime(date: Date | string): string {
+function _formatRelativeTime(date: Date | string): string {
   const now = new Date();
   const then = new Date(date);
   const diffMs = now.getTime() - then.getTime();
@@ -65,7 +60,7 @@ function NewTicketRoute() {
     orpc.channels.list.queryOptions({
       organizationId,
       isActive: true,
-    })
+    }),
   );
 
   const { data: agents } = useQuery(
@@ -73,25 +68,25 @@ function NewTicketRoute() {
       organizationId,
       isActive: true,
       limit: 100,
-    })
+    }),
   );
 
   const { data: teams } = useQuery(
     orpc.teams.list.queryOptions({
       organizationId,
-    })
+    }),
   );
 
   const { data: categories } = useQuery(
     orpc.ticketCategories.list.queryOptions({
       organizationId,
-    })
+    }),
   );
 
   const { data: tags } = useQuery(
     orpc.tags.list.queryOptions({
       organizationId,
-    })
+    }),
   );
 
   const createMutation = useMutation(
@@ -104,7 +99,7 @@ function NewTicketRoute() {
       onError: (error) => {
         toast.error(`Failed to create ticket: ${error.message}`);
       },
-    })
+    }),
   );
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -140,7 +135,7 @@ function NewTicketRoute() {
 
   const toggleTag = (tagId: number) => {
     setSelectedTags((prev) =>
-      prev.includes(tagId) ? prev.filter((id) => id !== tagId) : [...prev, tagId]
+      prev.includes(tagId) ? prev.filter((id) => id !== tagId) : [...prev, tagId],
     );
   };
 
@@ -253,9 +248,7 @@ function NewTicketRoute() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start" className="w-full">
-                      <DropdownMenuItem
-                        onClick={() => setSelectedPriorityId(1)}
-                      >
+                      <DropdownMenuItem onClick={() => setSelectedPriorityId(1)}>
                         <span
                           className="inline-flex items-center rounded border px-2 py-0.5 text-xs font-medium mr-2"
                           style={{ borderColor: "#ef4444", color: "#ef4444" }}
@@ -263,9 +256,7 @@ function NewTicketRoute() {
                           High
                         </span>
                       </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => setSelectedPriorityId(2)}
-                      >
+                      <DropdownMenuItem onClick={() => setSelectedPriorityId(2)}>
                         <span
                           className="inline-flex items-center rounded border px-2 py-0.5 text-xs font-medium mr-2"
                           style={{ borderColor: "#f97316", color: "#f97316" }}
@@ -273,9 +264,7 @@ function NewTicketRoute() {
                           Medium
                         </span>
                       </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => setSelectedPriorityId(3)}
-                      >
+                      <DropdownMenuItem onClick={() => setSelectedPriorityId(3)}>
                         <span
                           className="inline-flex items-center rounded border px-2 py-0.5 text-xs font-medium mr-2"
                           style={{ borderColor: "#22c55e", color: "#22c55e" }}
@@ -299,7 +288,12 @@ function NewTicketRoute() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start" className="w-full max-h-60 overflow-y-auto">
-                      <DropdownMenuItem onClick={() => { setSelectedCategoryId(null); setShowCategoryDropdown(false); }}>
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setSelectedCategoryId(null);
+                          setShowCategoryDropdown(false);
+                        }}
+                      >
                         None
                       </DropdownMenuItem>
                       {categories?.map((category) => (
@@ -338,7 +332,12 @@ function NewTicketRoute() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start" className="w-full max-h-60 overflow-y-auto">
-                      <DropdownMenuItem onClick={() => { setSelectedAgentId(null); setShowAgentDropdown(false); }}>
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setSelectedAgentId(null);
+                          setShowAgentDropdown(false);
+                        }}
+                      >
                         Unassigned
                       </DropdownMenuItem>
                       {agents?.users?.map((agent) => (
@@ -366,7 +365,12 @@ function NewTicketRoute() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start" className="w-full max-h-60 overflow-y-auto">
-                      <DropdownMenuItem onClick={() => { setSelectedTeamId(null); setShowTeamDropdown(false); }}>
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setSelectedTeamId(null);
+                          setShowTeamDropdown(false);
+                        }}
+                      >
                         Unassigned
                       </DropdownMenuItem>
                       {teams?.map((team) => (
@@ -399,9 +403,7 @@ function NewTicketRoute() {
                     type="button"
                     onClick={() => toggleTag(tag.id)}
                     className={`inline-flex items-center rounded border px-2 py-0.5 text-xs font-medium transition-colors ${
-                      selectedTags.includes(tag.id)
-                        ? "bg-primary text-primary-foreground"
-                        : ""
+                      selectedTags.includes(tag.id) ? "bg-primary text-primary-foreground" : ""
                     }`}
                     style={{
                       borderColor: selectedTags.includes(tag.id) ? undefined : tag.color,
@@ -465,11 +467,7 @@ function NewTicketRoute() {
           </Card>
 
           <div className="flex justify-end gap-3">
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => navigate({ to: "/tickets" })}
-            >
+            <Button type="button" variant="ghost" onClick={() => navigate({ to: "/tickets" })}>
               Cancel
             </Button>
             <Button type="submit" disabled={createMutation.isPending}>

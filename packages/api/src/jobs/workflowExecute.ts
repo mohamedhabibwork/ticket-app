@@ -7,11 +7,6 @@ import { workflowActions } from "../services/workflowActions";
 import { eq, and } from "drizzle-orm";
 import { addWorkflowJob, type WorkflowJobData } from "@ticket-app/db/lib/queues";
 
-const connection = {
-  host: process.env.REDIS_URL?.replace("redis://", "").split(":")[0] || "localhost",
-  port: parseInt(process.env.REDIS_URL?.split(":")[2] || "6379"),
-};
-
 export async function executeWorkflow(job: Job<WorkflowJobData>): Promise<void> {
   const { workflowId, triggerType, entityType, entityId, payload } = job.data;
   const startTime = Date.now();
@@ -118,7 +113,7 @@ export async function executeWorkflow(job: Job<WorkflowJobData>): Promise<void> 
 
 export function createWorkflowWorker() {
   return new Worker<WorkflowJobData>("workflow", executeWorkflow, {
-    connection,
+    connection: getRedis(),
     concurrency: 5,
     removeOnComplete: { count: 500 },
     removeOnFail: { count: 1000 },

@@ -9,9 +9,20 @@ import {
   CardDescription,
 } from "@ticket-app/ui/components/card";
 import { Button } from "@ticket-app/ui/components/button";
-import { Input } from "@ticket-app/ui/components/input";
-import { Label } from "@ticket-app/ui/components/label";
-import { Loader2, ArrowLeft, RefreshCw, Settings, Trash2, CheckCircle, XCircle, AlertCircle, ShoppingBag, Package, Users, Receipt, ExternalLink } from "lucide-react";
+import {
+  Loader2,
+  ArrowLeft,
+  RefreshCw,
+  Trash2,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  ShoppingBag,
+  Package,
+  Users,
+  Receipt,
+  ExternalLink,
+} from "lucide-react";
 import { orpc } from "@/utils/orpc";
 
 function formatRelativeTime(date: Date | string | null): string {
@@ -49,11 +60,15 @@ function StoreDetailRoute() {
   const [syncProducts, setSyncProducts] = useState(true);
   const [syncCustomers, setSyncCustomers] = useState(true);
 
-  const { data: store, isLoading, refetch } = useQuery(
+  const {
+    data: store,
+    isLoading,
+    refetch,
+  } = useQuery(
     orpc.ecommerceStores.get.queryOptions({
       id: storeId,
       organizationId: 1,
-    })
+    }),
   );
 
   const { data: ordersData, isLoading: ordersLoading } = useQuery({
@@ -70,7 +85,7 @@ function StoreDetailRoute() {
   const syncMutation = useMutation(
     orpc.ecommerceStores.syncNow.mutationOptions({
       onSuccess: () => refetch(),
-    })
+    }),
   );
 
   const disconnectMutation = useMutation(
@@ -78,7 +93,7 @@ function StoreDetailRoute() {
       onSuccess: () => {
         window.location.href = "/admin/ecommerce";
       },
-    })
+    }),
   );
 
   const getStatusBadge = (status: string | null) => {
@@ -118,18 +133,38 @@ function StoreDetailRoute() {
     switch (status.toLowerCase()) {
       case "completed":
       case "delivered":
-        return <span className="inline-flex items-center gap-1 rounded bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">Completed</span>;
+        return (
+          <span className="inline-flex items-center gap-1 rounded bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
+            Completed
+          </span>
+        );
       case "processing":
       case "shipped":
-        return <span className="inline-flex items-center gap-1 rounded bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800">Processing</span>;
+        return (
+          <span className="inline-flex items-center gap-1 rounded bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800">
+            Processing
+          </span>
+        );
       case "cancelled":
       case "refunded":
-        return <span className="inline-flex items-center gap-1 rounded bg-red-100 px-2 py-0.5 text-xs font-medium text-red-800">Cancelled</span>;
+        return (
+          <span className="inline-flex items-center gap-1 rounded bg-red-100 px-2 py-0.5 text-xs font-medium text-red-800">
+            Cancelled
+          </span>
+        );
       case "pending":
       case "awaiting":
-        return <span className="inline-flex items-center gap-1 rounded bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-800">Pending</span>;
+        return (
+          <span className="inline-flex items-center gap-1 rounded bg-yellow-100 px-2 py-0.5 text-xs font-medium text-yellow-800">
+            Pending
+          </span>
+        );
       default:
-        return <span className="inline-flex items-center gap-1 rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-800">{status}</span>;
+        return (
+          <span className="inline-flex items-center gap-1 rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-800">
+            {status}
+          </span>
+        );
     }
   };
 
@@ -181,7 +216,8 @@ function StoreDetailRoute() {
               </div>
               <p className="text-muted-foreground font-mono">{store.shopDomain || store.domain}</p>
               <p className="text-xs text-muted-foreground mt-1">
-                Platform: {platformNames[store.platform] || store.platform} • Connected {formatRelativeTime(store.createdAt)}
+                Platform: {platformNames[store.platform] || store.platform} • Connected{" "}
+                {formatRelativeTime(store.createdAt)}
               </p>
             </div>
           </div>
@@ -222,7 +258,9 @@ function StoreDetailRoute() {
           <CardContent className="space-y-4">
             <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground">Last Sync</span>
-              <span className="font-medium">{store.lastSyncAt ? formatRelativeTime(store.lastSyncAt) : "Never"}</span>
+              <span className="font-medium">
+                {store.lastSyncAt ? formatRelativeTime(store.lastSyncAt) : "Never"}
+              </span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground">Sync Status</span>
@@ -290,7 +328,10 @@ function StoreDetailRoute() {
           ) : ordersData && ordersData.length > 0 ? (
             <div className="space-y-4">
               {ordersData.map((order: any) => (
-                <div key={order.id} className="flex items-center justify-between p-3 border rounded">
+                <div
+                  key={order.id}
+                  className="flex items-center justify-between p-3 border rounded"
+                >
                   <div className="flex items-center gap-4">
                     <div className="rounded-full bg-muted p-2">
                       <Receipt className="h-4 w-4 text-muted-foreground" />
@@ -298,7 +339,8 @@ function StoreDetailRoute() {
                     <div>
                       <p className="font-medium">#{order.externalOrderId || order.id}</p>
                       <p className="text-xs text-muted-foreground">
-                        {order.customerName || "Guest"} • {new Date(order.createdAt).toLocaleDateString()}
+                        {order.customerName || "Guest"} •{" "}
+                        {new Date(order.createdAt).toLocaleDateString()}
                       </p>
                     </div>
                   </div>

@@ -5,12 +5,7 @@ import { toast } from "sonner";
 import { Button } from "@ticket-app/ui/components/button";
 import { Input } from "@ticket-app/ui/components/input";
 import { Label } from "@ticket-app/ui/components/label";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@ticket-app/ui/components/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,7 +23,7 @@ export const Route = createFileRoute("/teams/id")({
 
 function TeamDetailRoute() {
   const { id } = Route.useParams();
-  const navigate = useNavigate();
+  const _navigate = useNavigate();
   const queryClient = useQueryClient();
   const organizationId = 1;
   const teamId = Number(id);
@@ -43,17 +38,11 @@ function TeamDetailRoute() {
   const [showMemberDropdown, setShowMemberDropdown] = useState(false);
 
   const { data: team, isLoading } = useQuery(
-    orpc.teams.get.queryOptions(
-      { id: teamId },
-      { enabled: !isNaN(teamId) }
-    )
+    orpc.teams.get.queryOptions({ id: teamId }, { enabled: !isNaN(teamId) }),
   );
 
   const { data: members } = useQuery(
-    orpc.teams.listMembers.queryOptions(
-      { teamId },
-      { enabled: !isNaN(teamId) }
-    )
+    orpc.teams.listMembers.queryOptions({ teamId }, { enabled: !isNaN(teamId) }),
   );
 
   const { data: agents } = useQuery(
@@ -61,7 +50,7 @@ function TeamDetailRoute() {
       organizationId,
       isActive: true,
       limit: 100,
-    })
+    }),
   );
 
   const { data: teamTickets } = useQuery(
@@ -69,7 +58,7 @@ function TeamDetailRoute() {
       organizationId,
       assignedTeamId: teamId,
       limit: 10,
-    })
+    }),
   );
 
   const updateMutation = useMutation(
@@ -82,7 +71,7 @@ function TeamDetailRoute() {
       onError: (error) => {
         toast.error(`Failed to update team: ${error.message}`);
       },
-    })
+    }),
   );
 
   const addMemberMutation = useMutation(
@@ -95,7 +84,7 @@ function TeamDetailRoute() {
       onError: (error) => {
         toast.error(`Failed to add member: ${error.message}`);
       },
-    })
+    }),
   );
 
   const removeMemberMutation = useMutation(
@@ -107,7 +96,7 @@ function TeamDetailRoute() {
       onError: (error) => {
         toast.error(`Failed to remove member: ${error.message}`);
       },
-    })
+    }),
   );
 
   const handleSave = () => {
@@ -161,7 +150,7 @@ function TeamDetailRoute() {
   }
 
   const availableAgents = agents?.users?.filter(
-    (agent) => !members?.some((m) => m.userId === agent.id)
+    (agent) => !members?.some((m) => m.userId === agent.id),
   );
 
   return (
@@ -228,9 +217,7 @@ function TeamDetailRoute() {
                     </select>
                   </div>
                   <Button onClick={handleSave} disabled={updateMutation.isPending}>
-                    {updateMutation.isPending && (
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    )}
+                    {updateMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                     Save Changes
                   </Button>
                 </>
@@ -311,9 +298,7 @@ function TeamDetailRoute() {
                           <div className="font-medium">
                             {member.userFirstName} {member.userLastName}
                           </div>
-                          <div className="text-sm text-muted-foreground">
-                            {member.userEmail}
-                          </div>
+                          <div className="text-sm text-muted-foreground">{member.userEmail}</div>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
@@ -369,7 +354,9 @@ function TeamDetailRoute() {
                   ))}
                 </div>
               ) : (
-                <p className="text-muted-foreground text-center py-8">No tickets assigned to this team</p>
+                <p className="text-muted-foreground text-center py-8">
+                  No tickets assigned to this team
+                </p>
               )}
             </CardContent>
           </Card>

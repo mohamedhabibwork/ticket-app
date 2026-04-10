@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { env } from "@ticket-app/env/server";
 
 export interface LicenseVerificationResult {
   valid: boolean;
@@ -21,7 +22,7 @@ export interface JWTPayload {
   features: string[];
 }
 
-const PUBLIC_KEY_PATH = process.env.LICENSE_PUBLIC_KEY_PATH || "./keys/license-public.pem";
+const PUBLIC_KEY_PATH = env.LICENSE_PUBLIC_KEY_PATH;
 
 let cachedPublicKey: string | null = null;
 
@@ -35,7 +36,7 @@ async function getPublicKey(): Promise<string> {
     cachedPublicKey = fs.readFileSync(PUBLIC_KEY_PATH, "utf8");
     return cachedPublicKey;
   } catch {
-    cachedPublicKey = process.env.LICENSE_PUBLIC_KEY || "";
+    cachedPublicKey = env.LICENSE_PUBLIC_KEY || "";
     return cachedPublicKey;
   }
 }
@@ -156,7 +157,7 @@ export async function verifyLicenseKey(
 }
 
 export function isOnPremiseMode(): boolean {
-  return process.env.LICENSE_MODE === "on_premise" || process.env.ON_PREMISE === "true";
+  return env.LICENSE_MODE === "on_premise" || env.ON_PREMISE === true;
 }
 
 export function isMultiTenantBillingDisabled(): boolean {

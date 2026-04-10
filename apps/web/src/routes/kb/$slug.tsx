@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@ticket-app/ui/components/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
+import { Card, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
 import { Loader2 } from "lucide-react";
 import { ArrowLeft } from "lucide-react";
 
@@ -19,7 +19,7 @@ function KbArticleRoute() {
     orpc.kbArticles.getBySlug.queryOptions({
       organizationId: 1,
       slug,
-    })
+    }),
   );
 
   if (article.isLoading) {
@@ -51,7 +51,10 @@ function KbArticleRoute() {
 
   return (
     <div className="container mx-auto max-w-4xl px-4 py-8">
-      <Link to="/kb" className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6">
+      <Link
+        to="/kb"
+        className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-6"
+      >
         <ArrowLeft className="mr-1 h-4 w-4" />
         Back to Knowledge Base
       </Link>
@@ -59,25 +62,20 @@ function KbArticleRoute() {
       <article className="prose prose-sm sm:prose lg:prose-lg dark:prose-invert max-w-none">
         {article.data.category && (
           <div className="mb-2 text-sm text-muted-foreground">
-            {article.data.category.icon && <span className="mr-1">{article.data.category.icon}</span>}
+            {article.data.category.icon && (
+              <span className="mr-1">{article.data.category.icon}</span>
+            )}
             {article.data.category.name}
           </div>
         )}
 
-        <h1 className="mb-4 text-3xl font-bold">
-          {article.data.title}
-        </h1>
+        <h1 className="mb-4 text-3xl font-bold">{article.data.title}</h1>
 
         {article.data.metaDescription && (
-          <p className="text-lg text-muted-foreground mb-6">
-            {article.data.metaDescription}
-          </p>
+          <p className="text-lg text-muted-foreground mb-6">{article.data.metaDescription}</p>
         )}
 
-        <div
-          className="html-content"
-          dangerouslySetInnerHTML={{ __html: article.data.bodyHtml }}
-        />
+        <div className="html-content" dangerouslySetInnerHTML={{ __html: article.data.bodyHtml }} />
       </article>
 
       <div className="mt-12 border-t pt-8">

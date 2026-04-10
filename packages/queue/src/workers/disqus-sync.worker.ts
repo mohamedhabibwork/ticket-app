@@ -8,7 +8,7 @@ import { env } from "@ticket-app/env/server";
 import { createDisqusClient } from "@ticket-app/shared/disqus";
 import { decryptToken } from "@ticket-app/shared/crypto";
 
-const DISQUS_SYNC_QUEUE = `${env.QUEUE_PREFIX}:disqus-sync`;
+const DISQUS_SYNC_QUEUE = `${env.QUEUE_PREFIX}-disqus-sync`;
 
 export interface DisqusSyncJobData {
   type: "sync-comments" | "sync-threads";

@@ -1,10 +1,16 @@
-import { Queue, Worker, type Job } from "bullmq";
-import { getRedis } from "./redis";
+import type { Job } from "bullmq";
+import { getQueueDriver } from "./driver";
 import { env } from "@ticket-app/env/server";
 
-export const emailQueueName = `${env.QUEUE_PREFIX}:email`;
+export const emailQueueName = `${env.QUEUE_PREFIX}-email`;
+export const ticketQueueName = `${env.QUEUE_PREFIX}-ticket`;
+export const excelExportQueueName = `${env.QUEUE_PREFIX}-excel-export`;
+export const excelImportQueueName = `${env.QUEUE_PREFIX}-excel-import`;
 
-export const emailQueue = new Queue(emailQueueName, { connection: getRedis() });
+export const emailQueue = getQueueDriver().getQueue("email") as any;
+export const ticketQueue = getQueueDriver().getQueue("ticket") as any;
+export const excelExportQueue = getQueueDriver().getQueue("excel-export") as any;
+export const excelImportQueue = getQueueDriver().getQueue("excel-import") as any;
 
 export type EmailJobData = {
   to: string;
@@ -14,22 +20,20 @@ export type EmailJobData = {
 };
 
 export async function addEmailJob(data: EmailJobData): Promise<Job> {
-  return emailQueue.add("send-email", data, {
+  const driver = getQueueDriver();
+  return driver.addJob("email", "send-email", data, {
     attempts: 3,
     backoff: {
       type: "exponential",
       delay: 1000,
     },
-  });
+  }) as any;
 }
 
-export function createEmailWorker(processor: (job: Job<EmailJobData>) => Promise<void>): Worker {
-  return new Worker(emailQueueName, processor, { connection: getRedis() });
+export function createEmailWorker(processor: (job: Job<EmailJobData>) => Promise<void>) {
+  const driver = getQueueDriver();
+  return driver.createWorker("email", processor as any) as any;
 }
-
-export const ticketQueueName = `${env.QUEUE_PREFIX}:ticket`;
-
-export const ticketQueue = new Queue(ticketQueueName, { connection: getRedis() });
 
 export type TicketJobData = {
   ticketId: string;
@@ -38,31 +42,25 @@ export type TicketJobData = {
 };
 
 export async function addTicketJob(data: TicketJobData): Promise<Job> {
-  return ticketQueue.add("ticket-event", data, {
+  const driver = getQueueDriver();
+  return driver.addJob("ticket", "ticket-event", data, {
     attempts: 3,
     backoff: {
       type: "exponential",
       delay: 1000,
     },
-  });
+  }) as any;
 }
 
-export function createTicketWorker(processor: (job: Job<TicketJobData>) => Promise<void>): Worker {
-  return new Worker(ticketQueueName, processor, { connection: getRedis() });
+export function createTicketWorker(processor: (job: Job<TicketJobData>) => Promise<void>) {
+  const driver = getQueueDriver();
+  return driver.createWorker("ticket", processor as any) as any;
 }
 
 export async function closeQueues(): Promise<void> {
-  await emailQueue.close();
-  await ticketQueue.close();
-  await excelExportQueue.close();
-  await excelImportQueue.close();
+  const driver = getQueueDriver();
+  await driver.closeAll();
 }
-
-export const excelExportQueueName = `${env.QUEUE_PREFIX}:excel:export`;
-
-export const excelExportQueue = new Queue(excelExportQueueName, {
-  connection: getRedis(),
-});
 
 export type ExcelExportJobData = {
   jobId: string;
@@ -73,28 +71,24 @@ export type ExcelExportJobData = {
 };
 
 export async function addExcelExportJob(data: ExcelExportJobData): Promise<Job> {
-  return excelExportQueue.add("excel-export", data, {
+  const driver = getQueueDriver();
+  return driver.addJob("excel-export", "excel-export", data, {
     attempts: 3,
     backoff: {
       type: "exponential",
       delay: 2000,
     },
-    removeOnComplete: { count: 50 },
-    removeOnFail: { count: 100 },
-  });
+    removeOnComplete: 50,
+    removeOnFail: 100,
+  }) as any;
 }
 
 export function createExcelExportWorker(
   processor: (job: Job<ExcelExportJobData>) => Promise<void>,
-): Worker {
-  return new Worker(excelExportQueueName, processor, { connection: getRedis() });
+) {
+  const driver = getQueueDriver();
+  return driver.createWorker("excel-export", processor as any) as any;
 }
-
-export const excelImportQueueName = `${env.QUEUE_PREFIX}:excel:import`;
-
-export const excelImportQueue = new Queue(excelImportQueueName, {
-  connection: getRedis(),
-});
 
 export type ExcelImportJobData = {
   jobId: string;
@@ -107,19 +101,21 @@ export type ExcelImportJobData = {
 };
 
 export async function addExcelImportJob(data: ExcelImportJobData): Promise<Job> {
-  return excelImportQueue.add("excel-import", data, {
+  const driver = getQueueDriver();
+  return driver.addJob("excel-import", "excel-import", data, {
     attempts: 3,
     backoff: {
       type: "exponential",
       delay: 2000,
     },
-    removeOnComplete: { count: 50 },
-    removeOnFail: { count: 100 },
-  });
+    removeOnComplete: 50,
+    removeOnFail: 100,
+  }) as any;
 }
 
 export function createExcelImportWorker(
   processor: (job: Job<ExcelImportJobData>) => Promise<void>,
-): Worker {
-  return new Worker(excelImportQueueName, processor, { connection: getRedis() });
+) {
+  const driver = getQueueDriver();
+  return driver.createWorker("excel-import", processor as any) as any;
 }

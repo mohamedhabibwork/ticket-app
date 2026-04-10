@@ -15,7 +15,7 @@ import {
 import { Loader2, ArrowLeft, Languages, CheckCircle, AlertCircle } from "lucide-react";
 import { orpc } from "@/utils/orpc";
 
-function formatRelativeTime(date: Date | string): string {
+function _formatRelativeTime(date: Date | string): string {
   const now = new Date();
   const then = new Date(date);
   const diffMs = now.getTime() - then.getTime();
@@ -43,16 +43,20 @@ function TranslationSettingsRoute() {
   const [targetLanguage, setTargetLanguage] = useState("en");
   const [isEnabled, setIsEnabled] = useState(true);
 
-  const { data: config, isLoading, refetch } = useQuery(
+  const {
+    data: config,
+    isLoading,
+    refetch,
+  } = useQuery(
     orpc.translation.getConfig.queryOptions({
       organizationId,
-    })
+    }),
   );
 
   const { data: usageStats } = useQuery(
     orpc.translation.getUsageStats.queryOptions({
       organizationId,
-    })
+    }),
   );
 
   const createMutation = useMutation(
@@ -65,7 +69,7 @@ function TranslationSettingsRoute() {
       onError: (error) => {
         toast.error(`Failed to save: ${error.message}`);
       },
-    })
+    }),
   );
 
   const updateMutation = useMutation(
@@ -78,7 +82,7 @@ function TranslationSettingsRoute() {
       onError: (error) => {
         toast.error(`Failed to update: ${error.message}`);
       },
-    })
+    }),
   );
 
   const deleteMutation = useMutation(
@@ -90,7 +94,7 @@ function TranslationSettingsRoute() {
       onError: (error) => {
         toast.error(`Failed to delete: ${error.message}`);
       },
-    })
+    }),
   );
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -119,7 +123,7 @@ function TranslationSettingsRoute() {
     }
   };
 
-  const handleToggleEnabled = () => {
+  const _handleToggleEnabled = () => {
     if (!config) return;
     updateMutation.mutate({
       organizationId,
@@ -152,7 +156,9 @@ function TranslationSettingsRoute() {
           </div>
           <div>
             <h1 className="text-2xl font-bold">Translation Settings</h1>
-            <p className="text-muted-foreground">Configure machine translation for ticket messages</p>
+            <p className="text-muted-foreground">
+              Configure machine translation for ticket messages
+            </p>
           </div>
         </div>
       </div>
@@ -173,24 +179,26 @@ function TranslationSettingsRoute() {
                   <div>
                     <p className="font-medium">Translation Active</p>
                     <p className="text-sm text-muted-foreground">
-                      Provider: {usageStats?.provider || config.provider} • 
-                      Target: {config.targetLanguage?.toUpperCase() || "EN"}
+                      Provider: {usageStats?.provider || config.provider} • Target:{" "}
+                      {config.targetLanguage?.toUpperCase() || "EN"}
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className={`inline-flex items-center rounded px-2 py-0.5 text-xs font-medium ${
-                    config.isEnabled
-                      ? "bg-green-100 text-green-800"
-                      : "bg-gray-100 text-gray-800"
-                  }`}>
+                  <span
+                    className={`inline-flex items-center rounded px-2 py-0.5 text-xs font-medium ${
+                      config.isEnabled ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"
+                    }`}
+                  >
                     {config.isEnabled ? "Enabled" : "Disabled"}
                   </span>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => {
-                      if (confirm("Are you sure you want to delete the translation configuration?")) {
+                      if (
+                        confirm("Are you sure you want to delete the translation configuration?")
+                      ) {
                         deleteMutation.mutate({ organizationId });
                       }
                     }}
@@ -260,7 +268,13 @@ function TranslationSettingsRoute() {
                   type="password"
                   value={apiKey}
                   onChange={(e) => setApiKey(e.target.value)}
-                  placeholder={config ? "Leave empty to keep current key" : provider === "google" ? "Enter your Google Translate API key" : "Enter your DeepL API key"}
+                  placeholder={
+                    config
+                      ? "Leave empty to keep current key"
+                      : provider === "google"
+                        ? "Enter your Google Translate API key"
+                        : "Enter your DeepL API key"
+                  }
                 />
                 {provider === "google" ? (
                   <p className="text-xs text-muted-foreground">
@@ -343,20 +357,24 @@ function TranslationSettingsRoute() {
           <CardContent className="space-y-2">
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">Provider</span>
-              <span className="text-sm font-medium">{usageStats?.provider || "Not configured"}</span>
+              <span className="text-sm font-medium">
+                {usageStats?.provider || "Not configured"}
+              </span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">Status</span>
-              <span className={`text-sm font-medium ${
-                usageStats?.isEnabled ? "text-green-600" : "text-gray-500"
-              }`}>
+              <span
+                className={`text-sm font-medium ${
+                  usageStats?.isEnabled ? "text-green-600" : "text-gray-500"
+                }`}
+              >
                 {usageStats?.isEnabled ? "Enabled" : "Disabled"}
               </span>
             </div>
             <p className="text-xs text-muted-foreground pt-2">
-              Translation usage is tracked per organization for billing purposes. 
-              Costs vary by provider - Google Translate charges per character, 
-              DeepL charges per character based on your plan.
+              Translation usage is tracked per organization for billing purposes. Costs vary by
+              provider - Google Translate charges per character, DeepL charges per character based
+              on your plan.
             </p>
           </CardContent>
         </Card>

@@ -1,12 +1,7 @@
 import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute, useParams } from "@tanstack/react-router";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@ticket-app/ui/components/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
 import { Button } from "@ticket-app/ui/components/button";
 import { Input } from "@ticket-app/ui/components/input";
 import { Label } from "@ticket-app/ui/components/label";
@@ -26,16 +21,6 @@ interface FormField {
   orderBy: number;
 }
 
-interface FormData {
-  id: number;
-  name: string;
-  description: string | null;
-  submitButtonText: string;
-  successMessage: string | null;
-  redirectUrl: string | null;
-  fields: FormField[];
-}
-
 export const Route = createFileRoute("/forms/id")({
   component: PublicFormRoute,
 });
@@ -44,11 +29,15 @@ function PublicFormRoute() {
   const { id } = useParams({ from: "/forms/id" });
   const formId = Number(id);
 
-  const { data: form, isLoading, error } = useQuery(
+  const {
+    data: form,
+    isLoading,
+    error,
+  } = useQuery(
     orpc.forms.get.queryOptions({
       id: formId,
       organizationId: 1,
-    })
+    }),
   );
 
   const submitMutation = useMutation(
@@ -57,7 +46,7 @@ function PublicFormRoute() {
         setSubmitted(true);
         setSubmittedRef(data.referenceNumber);
       },
-    })
+    }),
   );
 
   const [formValues, setFormValues] = useState<Record<string, string>>({});
@@ -67,10 +56,10 @@ function PublicFormRoute() {
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-    
+
     form?.fields?.forEach((field) => {
       const value = formValues[field.id.toString()] || "";
-      
+
       if (field.isRequired && !value.trim()) {
         newErrors[field.id.toString()] = `${field.label} is required`;
         return;
@@ -134,8 +123,9 @@ function PublicFormRoute() {
     const commonProps = {
       id: fieldId,
       value,
-      onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
-        handleFieldChange(fieldId, e.target.value),
+      onChange: (
+        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+      ) => handleFieldChange(fieldId, e.target.value),
       placeholder: field.placeholder || "",
       className: fieldError ? "border-destructive" : "",
     };
@@ -164,15 +154,22 @@ function PublicFormRoute() {
               checked={value === "true"}
               onCheckedChange={(checked) => handleFieldChange(fieldId, String(checked))}
             />
-            <Label htmlFor={fieldId} className="font-normal">{field.label}</Label>
+            <Label htmlFor={fieldId} className="font-normal">
+              {field.label}
+            </Label>
           </div>
         )}
 
         {field.fieldType === "select" && (
-          <select {...commonProps} className="flex h-10 w-full rounded-none border border-input bg-transparent px-3 py-2 text-sm">
+          <select
+            {...commonProps}
+            className="flex h-10 w-full rounded-none border border-input bg-transparent px-3 py-2 text-sm"
+          >
             <option value="">{field.placeholder || "Select an option"}</option>
             {(field.options as string[] | undefined)?.map((opt, i) => (
-              <option key={i} value={opt}>{opt}</option>
+              <option key={i} value={opt}>
+                {opt}
+              </option>
             ))}
           </select>
         )}
@@ -186,13 +183,13 @@ function PublicFormRoute() {
                   checked={value.split(",").includes(opt)}
                   onCheckedChange={(checked) => {
                     const current = value ? value.split(",") : [];
-                    const updated = checked
-                      ? [...current, opt]
-                      : current.filter((v) => v !== opt);
+                    const updated = checked ? [...current, opt] : current.filter((v) => v !== opt);
                     handleFieldChange(fieldId, updated.join(","));
                   }}
                 />
-                <Label htmlFor={`${fieldId}_${i}`} className="font-normal">{opt}</Label>
+                <Label htmlFor={`${fieldId}_${i}`} className="font-normal">
+                  {opt}
+                </Label>
               </div>
             ))}
           </div>
@@ -210,7 +207,9 @@ function PublicFormRoute() {
                   checked={value === opt}
                   onChange={(e) => handleFieldChange(fieldId, e.target.value)}
                 />
-                <Label htmlFor={`${fieldId}_${i}`} className="font-normal">{opt}</Label>
+                <Label htmlFor={`${fieldId}_${i}`} className="font-normal">
+                  {opt}
+                </Label>
               </div>
             ))}
           </div>
@@ -305,19 +304,13 @@ function PublicFormRoute() {
         <Card>
           <CardHeader>
             <CardTitle>{form.name}</CardTitle>
-            {form.description && (
-              <p className="text-muted-foreground mt-2">{form.description}</p>
-            )}
+            {form.description && <p className="text-muted-foreground mt-2">{form.description}</p>}
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
               {form.fields?.sort((a, b) => a.orderBy - b.orderBy).map(renderField)}
 
-              <Button
-                type="submit"
-                className="w-full"
-                disabled={submitMutation.isPending}
-              >
+              <Button type="submit" className="w-full" disabled={submitMutation.isPending}>
                 {submitMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {form.submitButtonText || "Submit"}
               </Button>

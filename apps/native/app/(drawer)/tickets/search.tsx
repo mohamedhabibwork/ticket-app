@@ -1,16 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
-import {
-  Button,
-  Chip,
-  Spinner,
-  Surface,
-  Text,
-  TextField,
-  Input,
-  useThemeColor,
-} from "heroui-native";
-import { Link, useSearchParams } from "expo-router";
+import { Chip, Spinner, Surface, Text, TextField, Input, useThemeColor } from "heroui-native";
+import { Link } from "expo-router";
 import { useState } from "react";
 import { View, Pressable } from "react-native";
 
@@ -22,10 +13,9 @@ export default function TicketSearchScreen() {
   const [searchQuery, setSearchQuery] = useState("");
   const mutedColor = useThemeColor("muted");
 
-  const searchResults = useQuery(
-    orpc.tickets.search.queryOptions({ query: searchQuery }),
-    { enabled: searchQuery.trim().length > 0 },
-  );
+  const searchResults = useQuery(orpc.tickets.search.queryOptions({ query: searchQuery }), {
+    enabled: searchQuery.trim().length > 0,
+  });
 
   const handleSearchChange = (text: string) => {
     setSearchQuery(text);

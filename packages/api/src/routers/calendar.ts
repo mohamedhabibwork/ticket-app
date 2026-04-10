@@ -3,6 +3,7 @@ import { agentCalendarConnections, ticketCalendarEvents } from "@ticket-app/db/s
 import { eq, and, desc, isNull } from "drizzle-orm";
 import * as z from "zod";
 
+import { env } from "@ticket-app/env/server";
 import { protectedProcedure } from "../index";
 import {
   hasPermission,
@@ -12,17 +13,17 @@ import {
 } from "../services/rbac";
 import { encryptToken, decryptToken } from "../lib/crypto";
 
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID || "";
-const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET || "";
+const GOOGLE_CLIENT_ID = env.GOOGLE_CLIENT_ID || "";
+const GOOGLE_CLIENT_SECRET = env.GOOGLE_CLIENT_SECRET || "";
 const GOOGLE_REDIRECT_URI =
-  process.env.GOOGLE_REDIRECT_URI || "http://localhost:3000/oauth/google/callback";
+  env.GOOGLE_REDIRECT_URI || "http://localhost:3000/oauth/google/callback";
 
 export const calendarRouter = {
   listConnections: protectedProcedure
     .input(
       z.object({
-        userId: z.number(),
-        organizationId: z.number(),
+        userId: z.coerce.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async ({ input, context }) => {
@@ -56,9 +57,9 @@ export const calendarRouter = {
   getConnection: protectedProcedure
     .input(
       z.object({
-        userId: z.number(),
-        id: z.number(),
-        organizationId: z.number(),
+        userId: z.coerce.number(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async ({ input, context }) => {
@@ -94,8 +95,8 @@ export const calendarRouter = {
   getGoogleAuthUrl: protectedProcedure
     .input(
       z.object({
-        userId: z.number(),
-        organizationId: z.number(),
+        userId: z.coerce.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async ({ input, context }) => {
@@ -133,8 +134,8 @@ export const calendarRouter = {
   connectGoogle: protectedProcedure
     .input(
       z.object({
-        userId: z.number(),
-        organizationId: z.number(),
+        userId: z.coerce.number(),
+        organizationId: z.coerce.number(),
         code: z.string(),
       }),
     )
@@ -248,9 +249,9 @@ export const calendarRouter = {
   disconnect: protectedProcedure
     .input(
       z.object({
-        userId: z.number(),
-        id: z.number(),
-        organizationId: z.number(),
+        userId: z.coerce.number(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async ({ input, context }) => {
@@ -286,16 +287,16 @@ export const calendarRouter = {
   createCalendarEvent: protectedProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        ticketId: z.number(),
-        agentCalendarConnectionId: z.number(),
+        organizationId: z.coerce.number(),
+        ticketId: z.coerce.number(),
+        agentCalendarConnectionId: z.coerce.number(),
         title: z.string(),
         description: z.string().optional(),
         startAt: z.string().datetime(),
         endAt: z.string().datetime(),
         location: z.string().optional(),
         attendees: z.array(z.string()).optional(),
-        createdBy: z.number().optional(),
+        createdBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input, context }) => {
@@ -419,8 +420,8 @@ export const calendarRouter = {
   listCalendarEvents: protectedProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        ticketId: z.number(),
+        organizationId: z.coerce.number(),
+        ticketId: z.coerce.number(),
       }),
     )
     .handler(async ({ input, context }) => {
@@ -447,8 +448,8 @@ export const calendarRouter = {
   listAgentEvents: protectedProcedure
     .input(
       z.object({
-        userId: z.number(),
-        organizationId: z.number(),
+        userId: z.coerce.number(),
+        organizationId: z.coerce.number(),
         startDate: z.string().datetime().optional(),
         endDate: z.string().datetime().optional(),
       }),
@@ -527,9 +528,9 @@ export const calendarRouter = {
   deleteCalendarEvent: protectedProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        id: z.number(),
-        ticketId: z.number(),
+        organizationId: z.coerce.number(),
+        id: z.coerce.number(),
+        ticketId: z.coerce.number(),
       }),
     )
     .handler(async ({ input, context }) => {

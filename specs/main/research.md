@@ -1,171 +1,210 @@
-# Research: Import/Export Excel with Queue
+# Research: Real-time Socket System
 
-**Date**: 2026-04-09 | **Status**: Complete
-
----
-
-## 1. Excel Library Selection
-
-### Decision
-
-**xlsx** (SheetJS) - Community edition with CFBF support
-
-### Rationale
-
-- Best maintained TypeScript types
-- Supports both .xls and .xlsx formats
-- Works in Node.js and browser environments
-- No native dependencies (pure JS)
-- WASM version available for edge runtimes
-- Widest adoption (millions of weekly downloads)
-
-### Alternatives Considered
-
-| Alternative | Rejected Because                       |
-| ----------- | -------------------------------------- |
-| exceljs     | Larger bundle, poor TypeScript support |
-| officegen   | Limited formatting options             |
-| xlsx-style  | Deprecated, no maintenance             |
+**Date**: 2026-04-09 | **Feature**: Socket System
 
 ---
 
-## 2. File Upload Strategy
+## Decision 1: Socket.io vs Raw WebSocket
 
-### Decision
+**Chosen**: Socket.io 4.x
 
-**S3 presigned URLs** for exports; **multipart/form-data** direct upload for imports with subsequent validation
+**Rationale**:
 
-### Rationale
+- Built-in reconnection handling with exponential backoff
+- Automatic room/namespace management
+- Redis adapter for horizontal scaling (official adapter available)
+- Fallback to long-polling if WebSocket fails
+- Client libraries for web, React Native, and Node.js
+- TypeScript support out of the box
 
-- Exports can be large (50k+ rows) - direct server memory issue
-- Presigned URLs allow direct browser-to-S3 transfer
-- Imports need server-side validation before processing
-- Direct upload allows virus scanning and format validation
+**Alternatives Considered**:
 
-### Export Flow
-
-1. Client requests export → API creates job record
-2. API returns presigned PUT URL for upload location
-3. Worker generates Excel, uploads directly to S3
-4. Worker updates job with file URL
-5. Client downloads via presigned GET URL
-
-### Import Flow
-
-1. Client uploads file → API validates and stores in temp location
-2. API creates import job, queues worker
-3. Worker validates file structure, reports errors if invalid
-4. Worker processes rows in batches, updates progress
-5. On completion, worker cleans up temp file
+- Raw `ws` library: Lower level, would need to implement reconnection, rooms, and Redis adapter manually
+- Server-Sent Events (SSE): One-directional only (server→client), not suitable for chat
+- GraphQL Subscriptions: Overkill for this use case, more complexity than needed
 
 ---
 
-## 3. Import Strategy: Create vs Upsert
+## Decision 2: Redis Adapter Configuration
 
-### Decision
+**Chosen**: `@socket.io/redis-adapter` with existing `REDIS_URL`
 
-Support both **create-only** and **upsert** modes
+**Rationale**:
 
-### Create Mode
+- Enables horizontal scaling (multiple server instances share connection state)
+- Uses existing Redis infrastructure (already used for presence)
+- Pub/sub pattern for broadcasting events across servers
+- Minimal additional infrastructure
 
-- Insert new records only
-- Skip rows where unique constraint fails (configurable: skip or abort)
+**Configuration**:
 
-### Upsert Mode
-
-- Match existing records by configurable unique field (email, external_id, etc.)
-- Update matched records with new values
-- Create new records when no match found
-
-### Rationale
-
-- Different use cases require different strategies
-- Bulk import often used for data migration (upsert)
-- Fresh imports from external systems (create)
-- Clear UI separation between modes
+```typescript
+const pubClient = new Redis(REDIS_URL);
+const subClient = pubClient.duplicate();
+const adapter = createAdapter(pubClient, subClient);
+io.adapter(adapter);
+```
 
 ---
 
-## 4. Row Processing Strategy
+## Decision 3: Room Structure
 
-### Decision
+**Chosen**: Hierarchical room naming with organization isolation
 
-**Batch processing** with 100-row chunks, database transactions per batch
+**Room Types**:
 
-### Rationale
+1. `org:{orgId}` - Organization-wide broadcasts
+2. `ticket:{ticketId}` - Ticket-specific presence and updates
+3. `user:{userId}` - User's private notification channel
+4. `chat:{sessionId}` - Live chat session room
 
-- Memory efficiency: don't load entire file into memory
-- Transaction per batch: partial failure is recoverable
-- Concurrency control: only 1 import worker per organization to prevent locks
-- Progress tracking: update job record every 50 rows
+**Rationale**:
 
-### Error Handling
-
-- Collect errors per row with field-level detail
-- Continue processing on non-critical errors (missing optional field)
-- Abort on critical errors (invalid foreign key, constraint violation)
-- Return detailed error report with row numbers
+- Organization isolation prevents cross-tenant data leakage
+- Ticket rooms allow targeted updates
+- User rooms for private notifications (new assignments, mentions)
+- Chat rooms separate from ticket presence
 
 ---
 
-## 5. Entity Coverage
+## Decision 4: Authentication Strategy
 
-### Decision
+**Chosen**: JWT token in Socket.io handshake query/headers
 
-Support export/import for all major entities
+**Flow**:
 
-### Entities Covered
+1. Client obtains JWT from existing auth system (via ORPC `/auth/login`)
+2. Client passes token in Socket.io connection handshake
+3. Server validates token and extracts `userId` and `organizationId`
+4. Server attaches auth data to `socket.data`
 
-| Entity        | Import Support   | Export Support |
-| ------------- | ---------------- | -------------- |
-| Tickets       | Yes              | Yes            |
-| Contacts      | Yes              | Yes            |
-| Users         | Yes (admin only) | Yes            |
-| KB Articles   | Yes              | Yes            |
-| Saved Replies | Yes              | Yes            |
-| Tags          | Yes              | Yes            |
+**Rationale**:
 
-### Excluded (complex relations)
-
-- Ticket messages (timeline too complex)
-- Workflows (JSON rule structure)
-- Billing data (security concerns)
+- Works with existing JWT-based auth infrastructure
+- Token validation on every connection (no stale sessions)
+- Can extract org context for room validation
 
 ---
 
-## 6. Queue Architecture
+## Decision 5: Presence Heartbeat Strategy
 
-### Decision
+**Chosen**: Client-driven heartbeat with Redis TTL
 
-Separate queues: `excel:export` and `excel:import`
+**Implementation**:
 
-### Queue Configuration
+- Client sends `heartbeat` event every 15 seconds
+- Server refreshes Redis key TTL to 30 seconds
+- Background job (or lazy cleanup) removes stale entries on read
+- Server broadcasts viewer list updates on join/leave/TTL expiry
 
-| Queue        | Concurrency | Retries | Priority |
-| ------------ | ----------- | ------- | -------- |
-| excel:export | 2           | 3       | 5        |
-| excel:import | 1           | 3       | 10       |
+**Rationale**:
 
-### Rationale
-
-- Import has higher priority (user waiting)
-- Import lower concurrency (DB write locks)
-- Export can run in parallel (read-only)
-- Separate queues allow independent scaling
+- 15s heartbeat interval balances between responsiveness and server load
+- 30s TTL provides 2-heartbeat grace period for network hiccups
+- Redis TTL ensures automatic cleanup of stale presence data
 
 ---
 
-## 7. File Size Limits
+## Decision 6: Event Naming Convention
 
-### Decision
+**Chosen**: `snake_case` event names with verb_noun pattern
 
-- Max file size: 50MB
-- Max rows: 50,000 per import
-- Max concurrent exports: 3 per organization
+**Examples**:
 
-### Rationale
+- `join_ticket` / `leave_ticket` - presence actions
+- `viewer_joined` / `viewer_left` - presence broadcasts
+- `ticket_updated` / `message_added` - domain events
+- `notification` - envelope event containing notification payload
 
-- Memory constraints in edge workers
-- Typical spreadsheet limits
-- Prevent resource exhaustion attacks
-- Queue fairness between organizations
+**Rationale**:
+
+- Consistent with existing REST API conventions
+- Clear distinction between client requests (`join_ticket`) and server broadcasts (`viewer_joined`)
+- Namespaced feel with underscores
+
+---
+
+## Decision 7: Client Reconnection Strategy
+
+**Chosen**: Socket.io built-in reconnection with React Query integration
+
+**Implementation**:
+
+- Socket.io handles automatic reconnection with exponential backoff
+- On reconnect, re-join all rooms the client was in (store in React state/context)
+- React Query invalidates relevant queries on reconnect to refetch fresh data
+- Presence hooks re-join rooms on connection restored
+
+**Rationale**:
+
+- Socket.io reconnection is battle-tested
+- Combining with React Query ensures UI stays in sync with server state
+- Room state restoration ensures no missed events after reconnect
+
+---
+
+## Decision 8: Mobile Background Handling
+
+**Chosen**: Pause socket on app background, resume on foreground
+
+**Implementation**:
+
+- Use `AppState` from React Native to detect background/foreground
+- On `background`, disconnect socket gracefully
+- On `foreground`, reconnect socket and re-join necessary rooms
+- Use `expo-secure-store` for persisting auth token
+
+**Rationale**:
+
+- Battery life - continuous WebSocket drains battery
+- iOS may kill long-running connections in background
+- Server already handles stale presence via TTL
+- Reconnection on resume ensures fresh state
+
+---
+
+## Decision 9: Server-initiated Emissions
+
+**Chosen**: Emit from queue workers via Redis pub/sub, not direct Socket.io
+
+**Implementation**:
+
+1. Queue worker finishes job (e.g., ticket assigned)
+2. Worker publishes event to Redis channel `socket:events`
+3. Socket server subscribes to `socket:events`
+4. Socket server emits to appropriate room based on event
+
+**Rationale**:
+
+- Decouples queue workers from Socket.io (workers don't need io instance)
+- Works regardless of which server instance handles the request
+- Easier to add new event types without modifying main socket server
+
+---
+
+## Decision 10: Chat Message Persistence
+
+**Chosen**: Chat messages saved to DB via API, real-time delivery via Socket.io
+
+**Flow**:
+
+1. Client sends message via Socket.io `send_message` event
+2. Server validates, saves to DB via existing chat API
+3. Server broadcasts saved message to session room
+4. Client receives and renders message
+
+**Rationale**:
+
+- Messages persist beyond socket session
+- Works with existing chat tables in schema
+- Socket.io just handles real-time delivery
+- Can replay history by fetching via REST API
+
+---
+
+## References
+
+- [Socket.io Documentation](https://socket.io/docs/v4/)
+- [Socket.io Redis Adapter](https://socket.io/docs/v4/redis-adapter/)
+- [Socket.io Client React](https://socket.io/docs/v4/react/)
+- [Hono WebSocket Middleware](https://hono.dev/docs/helpers/websocket)

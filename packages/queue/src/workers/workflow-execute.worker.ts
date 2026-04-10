@@ -1,5 +1,5 @@
 import { Worker, Job, Queue } from "bullmq";
-import { eq, and, isNull, sql, desc } from "drizzle-orm";
+import { eq, and, isNull, desc } from "drizzle-orm";
 import { db } from "@ticket-app/db";
 import {
   workflows,
@@ -8,14 +8,13 @@ import {
   ticketTags,
   tags,
   ticketMessages,
-  users,
-  teams,
 } from "@ticket-app/db/schema";
 import { getRedis } from "../redis";
 import { env } from "@ticket-app/env/server";
 import { addEmailSendJob, type EmailSendJobData } from "./email-send.worker";
+import { publishTicketUpdated, publishTicketAssigned } from "../socket-publish";
 
-const WORKFLOW_EXECUTE_QUEUE = `${env.QUEUE_PREFIX}:workflow-execute`;
+const WORKFLOW_EXECUTE_QUEUE = `${env.QUEUE_PREFIX}-workflow-execute`;
 
 export interface WorkflowExecuteJobData {
   type: "execute-workflow" | "execute-ticket-trigger";
@@ -27,7 +26,15 @@ export interface WorkflowExecuteJobData {
 
 export interface WorkflowCondition {
   field: string;
-  operator: "equals" | "not_equals" | "contains" | "not_contains" | "greater_than" | "less_than" | "is_empty" | "is_not_empty";
+  operator:
+    | "equals"
+    | "not_equals"
+    | "contains"
+    | "not_contains"
+    | "greater_than"
+    | "less_than"
+    | "is_empty"
+    | "is_not_empty";
   value: string | number | boolean;
 }
 
@@ -37,7 +44,18 @@ export interface WorkflowConditions {
 }
 
 export interface WorkflowAction {
-  type: "assign_agent" | "assign_team" | "set_priority" | "set_status" | "add_tag" | "remove_tag" | "send_email" | "webhook" | "create_task" | "add_note" | "apply_saved_reply";
+  type:
+    | "assign_agent"
+    | "assign_team"
+    | "set_priority"
+    | "set_status"
+    | "add_tag"
+    | "remove_tag"
+    | "send_email"
+    | "webhook"
+    | "create_task"
+    | "add_note"
+    | "apply_saved_reply";
   config: Record<string, unknown>;
 }
 
@@ -91,7 +109,7 @@ const processedWorkflowTickets = new Map<string, number>();
 
 export async function addWorkflowExecuteJob(
   data: WorkflowExecuteJobData,
-  options?: { delay?: number }
+  options?: { delay?: number },
 ): Promise<Job<WorkflowExecuteJobData>> {
   return workflowExecuteQueue.add("workflow-execute", data, {
     ...options,
@@ -122,14 +140,14 @@ export function createWorkflowExecuteWorker(): Worker {
     {
       connection: getRedis(),
       concurrency: 5,
-    }
+    },
   );
 }
 
 export async function executeTicketTriggers(
   ticketId: number,
   trigger: string,
-  metadata?: Record<string, unknown>
+  metadata?: Record<string, unknown>,
 ): Promise<void> {
   console.log(`[Workflow] Executing triggers for ticket ${ticketId}, trigger: ${trigger}`);
 
@@ -156,7 +174,7 @@ export async function executeTicketTriggers(
     where: and(
       eq(workflows.isActive, true),
       eq(workflows.trigger, trigger),
-      isNull(workflows.deletedAt)
+      isNull(workflows.deletedAt),
     ),
     orderBy: [desc(workflows.createdAt)],
   });
@@ -185,7 +203,7 @@ async function executeWorkflow(
   workflowId: number,
   ticketId: number,
   trigger: string,
-  metadata?: Record<string, unknown>
+  _metadata?: Record<string, unknown>,
 ): Promise<{ success: boolean; stopProcessing?: boolean }> {
   const startTime = Date.now();
 
@@ -226,7 +244,7 @@ async function executeWorkflow(
 
   if (currentRetriggers >= MAX_RETRIGGER_DEPTH) {
     console.log(
-      `[Workflow] Circular loop prevented for workflow ${workflowId}, ticket ${ticketId}`
+      `[Workflow] Circular loop prevented for workflow ${workflowId}, ticket ${ticketId}`,
     );
     await logWorkflowExecution({
       workflowId,
@@ -246,9 +264,7 @@ async function executeWorkflow(
   const conditionsResult = evaluateConditions(conditions, ticket);
 
   if (!conditionsResult.passed) {
-    console.log(
-      `[Workflow] Conditions not met for workflow ${workflowId}, ticket ${ticketId}`
-    );
+    console.log(`[Workflow] Conditions not met for workflow ${workflowId}, ticket ${ticketId}`);
     await logWorkflowExecution({
       workflowId,
       ticketId,
@@ -264,9 +280,7 @@ async function executeWorkflow(
   const actions = workflow.actions as WorkflowAction[];
   const actionsResult = await executeActions(actions, ticket, workflowId);
 
-  const stopProcessing = actionsResult.some(
-    (a) => a.type === "stop_processing"
-  );
+  const stopProcessing = actionsResult.some((a) => a.type === "stop_processing");
 
   await logWorkflowExecution({
     workflowId,
@@ -279,7 +293,7 @@ async function executeWorkflow(
   });
 
   console.log(
-    `[Workflow] Workflow ${workflowId} executed for ticket ${ticketId}, duration: ${Date.now() - startTime}ms`
+    `[Workflow] Workflow ${workflowId} executed for ticket ${ticketId}, duration: ${Date.now() - startTime}ms`,
   );
 
   return { success: true, stopProcessing };
@@ -287,7 +301,7 @@ async function executeWorkflow(
 
 function evaluateConditions(
   conditions: WorkflowConditions,
-  ticket: TicketData
+  ticket: TicketData,
 ): { passed: boolean; results: Record<string, boolean> } {
   const results: Record<string, boolean> = {};
 
@@ -332,10 +346,7 @@ function getFieldValue(ticket: TicketData, field: string): unknown {
   return (ticket as Record<string, unknown>)[mappedField];
 }
 
-function evaluateCondition(
-  fieldValue: unknown,
-  condition: WorkflowCondition
-): boolean {
+function evaluateCondition(fieldValue: unknown, condition: WorkflowCondition): boolean {
   const { operator, value } = condition;
 
   switch (operator) {
@@ -363,7 +374,7 @@ function evaluateCondition(
 async function executeActions(
   actions: WorkflowAction[],
   ticket: TicketData,
-  workflowId: number
+  workflowId: number,
 ): Promise<{ type: string; success: boolean; error?: string }[]> {
   const results: { type: string; success: boolean; error?: string }[] = [];
 
@@ -446,40 +457,52 @@ async function executeActions(
   return results;
 }
 
-async function executeAssignAgent(
-  action: WorkflowAction,
-  ticket: TicketData
-): Promise<void> {
+async function executeAssignAgent(action: WorkflowAction, ticket: TicketData): Promise<void> {
   const agentId = action.config.agentId as number;
   console.log(`[Workflow] Assigning agent ${agentId} to ticket ${ticket.id}`);
 
   await db.update(tickets).set({ assignedAgentId: agentId }).where(eq(tickets.id, ticket.id));
+
+  publishTicketAssigned(ticket.id, ticket.organizationId, agentId, ticket.assignedTeamId, {
+    previousAgentId: ticket.assignedAgentId,
+    newAgentId: agentId,
+    assignedBy: "workflow",
+  }).catch((err) => {
+    console.error("[Workflow] Failed to publish ticket assigned event:", err);
+  });
 }
 
-async function executeAssignTeam(
-  action: WorkflowAction,
-  ticket: TicketData
-): Promise<void> {
+async function executeAssignTeam(action: WorkflowAction, ticket: TicketData): Promise<void> {
   const teamId = action.config.teamId as number;
   console.log(`[Workflow] Assigning team ${teamId} to ticket ${ticket.id}`);
 
   await db.update(tickets).set({ assignedTeamId: teamId }).where(eq(tickets.id, ticket.id));
+
+  publishTicketAssigned(ticket.id, ticket.organizationId, ticket.assignedAgentId, teamId, {
+    previousTeamId: ticket.assignedTeamId,
+    newTeamId: teamId,
+    assignedBy: "workflow",
+  }).catch((err) => {
+    console.error("[Workflow] Failed to publish ticket assigned event:", err);
+  });
 }
 
-async function executeSetPriority(
-  action: WorkflowAction,
-  ticket: TicketData
-): Promise<void> {
+async function executeSetPriority(action: WorkflowAction, ticket: TicketData): Promise<void> {
   const priorityId = action.config.priorityId as number;
   console.log(`[Workflow] Setting priority ${priorityId} for ticket ${ticket.id}`);
 
   await db.update(tickets).set({ priorityId }).where(eq(tickets.id, ticket.id));
+
+  publishTicketUpdated(ticket.id, ticket.organizationId, {
+    previousPriorityId: ticket.priorityId,
+    newPriorityId: priorityId,
+    updatedBy: "workflow",
+  }).catch((err) => {
+    console.error("[Workflow] Failed to publish ticket updated event:", err);
+  });
 }
 
-async function executeSetStatus(
-  action: WorkflowAction,
-  ticket: TicketData
-): Promise<void> {
+async function executeSetStatus(action: WorkflowAction, ticket: TicketData): Promise<void> {
   const statusId = action.config.statusId as number;
   console.log(`[Workflow] Setting status ${statusId} for ticket ${ticket.id}`);
 
@@ -493,12 +516,17 @@ async function executeSetStatus(
   }
 
   await db.update(tickets).set(updates).where(eq(tickets.id, ticket.id));
+
+  publishTicketUpdated(ticket.id, ticket.organizationId, {
+    previousStatusId: ticket.statusId,
+    newStatusId: statusId,
+    updatedBy: "workflow",
+  }).catch((err) => {
+    console.error("[Workflow] Failed to publish ticket updated event:", err);
+  });
 }
 
-async function executeAddTag(
-  action: WorkflowAction,
-  ticket: TicketData
-): Promise<void> {
+async function executeAddTag(action: WorkflowAction, ticket: TicketData): Promise<void> {
   const tagName = action.config.tagName as string;
   console.log(`[Workflow] Adding tag "${tagName}" to ticket ${ticket.id}`);
 
@@ -522,10 +550,7 @@ async function executeAddTag(
   }
 }
 
-async function executeRemoveTag(
-  action: WorkflowAction,
-  ticket: TicketData
-): Promise<void> {
+async function executeRemoveTag(action: WorkflowAction, ticket: TicketData): Promise<void> {
   const tagName = action.config.tagName as string;
   console.log(`[Workflow] Removing tag "${tagName}" from ticket ${ticket.id}`);
 
@@ -540,10 +565,7 @@ async function executeRemoveTag(
   }
 }
 
-async function executeSendEmail(
-  action: WorkflowAction,
-  ticket: TicketData
-): Promise<void> {
+async function executeSendEmail(action: WorkflowAction, ticket: TicketData): Promise<void> {
   const { to, subject, body } = action.config as {
     to: string;
     subject: string;
@@ -572,7 +594,7 @@ async function executeSendEmail(
 async function executeWebhook(
   action: WorkflowAction,
   ticket: TicketData,
-  workflowId: number
+  workflowId: number,
 ): Promise<void> {
   const { url, method, headers, bodyTemplate } = action.config as {
     url: string;
@@ -584,7 +606,9 @@ async function executeWebhook(
   console.log(`[Workflow] Sending webhook to ${url} for ticket ${ticket.id}`);
 
   const body = bodyTemplate
-    ? bodyTemplate.replace(/\{\{(\w+)\}\}/g, (_, key) => String((ticket as Record<string, unknown>)[key] || ""))
+    ? bodyTemplate.replace(/\{\{(\w+)\}\}/g, (_, key) =>
+        String((ticket as Record<string, unknown>)[key] || ""),
+      )
     : JSON.stringify({ ticketId: ticket.id, workflowId, timestamp: new Date().toISOString() });
 
   try {
@@ -606,14 +630,9 @@ async function executeWebhook(
   }
 }
 
-async function executeCreateTask(
-  action: WorkflowAction,
-  ticket: TicketData
-): Promise<void> {
-  const { title, description, assignedTo } = action.config as {
+async function executeCreateTask(action: WorkflowAction, ticket: TicketData): Promise<void> {
+  const { title } = action.config as {
     title: string;
-    description?: string;
-    assignedTo?: number;
   };
 
   console.log(`[Workflow] Creating task for ticket ${ticket.id}`);
@@ -621,10 +640,7 @@ async function executeCreateTask(
   console.log(`[Workflow] Task creation would create: ${title}`);
 }
 
-async function executeAddNote(
-  action: WorkflowAction,
-  ticket: TicketData
-): Promise<void> {
+async function executeAddNote(action: WorkflowAction, ticket: TicketData): Promise<void> {
   const { content, isPrivate } = action.config as {
     content: string;
     isPrivate?: boolean;
@@ -642,10 +658,7 @@ async function executeAddNote(
   });
 }
 
-async function executeApplySavedReply(
-  action: WorkflowAction,
-  ticket: TicketData
-): Promise<void> {
+async function executeApplySavedReply(action: WorkflowAction, ticket: TicketData): Promise<void> {
   const { savedReplyId } = action.config as { savedReplyId: number };
 
   console.log(`[Workflow] Applying saved reply ${savedReplyId} to ticket ${ticket.id}`);
@@ -673,8 +686,8 @@ async function logWorkflowExecution(params: {
 
 export async function getWorkflowExecutionLogs(
   workflowId: number,
-  limit: number = 50
-): Promise<typeof workflowExecutionLogs.$inferSelect[]> {
+  limit: number = 50,
+): Promise<(typeof workflowExecutionLogs.$inferSelect)[]> {
   const logs = await db.query.workflowExecutionLogs.findMany({
     where: eq(workflowExecutionLogs.workflowId, workflowId),
     orderBy: [desc(workflowExecutionLogs.executedAt)],

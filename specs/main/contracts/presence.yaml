@@ -1,0 +1,174 @@
+openapi: 3.1.0
+info:
+  title: Presence Socket Events
+  version: 1.0.0
+  description: WebSocket events for real-time ticket presence tracking using Bun WebSocket
+
+channels:
+  ticket/{ticketId}:
+    subscribe:
+      operationId: joinTicketRoom
+      summary: Join ticket presence room
+      parameters:
+        - name: ticketId
+          in: path
+          required: true
+          schema:
+            type: number
+      messages:
+        - name: viewer_joined
+          payload:
+            $ref: "#/components/schemas/viewerPresence"
+        - name: viewer_left
+          payload:
+            $ref: "#/components/schemas/viewerLeft"
+        - name: viewers_list
+          payload:
+            $ref: "#/components/schemas/viewersList"
+        - name: heartbeat_ack
+          payload:
+            $ref: "#/components/schemas/heartbeatAck"
+        - name: join_ticket_ack
+          payload:
+            $ref: "#/components/schemas/joinTicketAck"
+        - name: leave_ticket_ack
+          payload:
+            $ref: "#/components/schemas/leaveTicketAck"
+
+components:
+  schemas:
+    viewerPresence:
+      type: object
+      required: [ticketId, userId, userName, joinedAt]
+      properties:
+        ticketId:
+          type: number
+          description: ID of the ticket being viewed
+        userId:
+          type: number
+          description: ID of the user viewing the ticket
+        userName:
+          type: string
+          description: Display name of the user
+        avatarUrl:
+          type: string
+          description: Optional avatar URL of the user
+          nullable: true
+        joinedAt:
+          type: string
+          format: date-time
+          description: Timestamp when user joined the ticket
+
+    viewerLeft:
+      type: object
+      required: [ticketId, userId]
+      properties:
+        ticketId:
+          type: number
+          description: ID of the ticket
+        userId:
+          type: number
+          description: ID of the user who left
+
+    viewersList:
+      type: object
+      required: [ticketId, viewers]
+      properties:
+        ticketId:
+          type: number
+          description: ID of the ticket
+        viewers:
+          type: array
+          items:
+            $ref: "#/components/schemas/viewerPresence"
+          description: List of all users currently viewing the ticket
+
+    heartbeatAck:
+      type: object
+      required: [ticketId, acknowledged]
+      properties:
+        ticketId:
+          type: number
+          description: ID of the ticket
+        acknowledged:
+          type: boolean
+          default: true
+          description: Whether heartbeat was acknowledged
+
+    joinTicketAck:
+      type: object
+      required: [ticketId, success]
+      properties:
+        ticketId:
+          type: number
+          description: ID of the ticket joined
+        success:
+          type: boolean
+          description: Whether join was successful
+
+    leaveTicketAck:
+      type: object
+      required: [ticketId, success]
+      properties:
+        ticketId:
+          type: number
+          description: ID of the ticket left
+        success:
+          type: boolean
+          description: Whether leave was successful
+
+socketio:
+  clientEvents:
+    join_ticket:
+      payload:
+        type: object
+        required: [ticketId, userName]
+        properties:
+          ticketId:
+            type: number
+          userName:
+            type: string
+          avatarUrl:
+            type: string
+            nullable: true
+    leave_ticket:
+      payload:
+        type: object
+        required: [ticketId]
+        properties:
+          ticketId:
+            type: number
+    heartbeat:
+      payload:
+        type: object
+        required: [ticketId]
+        properties:
+          ticketId:
+            type: number
+    get_viewers:
+      payload:
+        type: object
+        required: [ticketId]
+        properties:
+          ticketId:
+            type: number
+
+  serverEvents:
+    viewer_joined:
+      payload:
+        $ref: "#/components/schemas/viewerPresence"
+    viewer_left:
+      payload:
+        $ref: "#/components/schemas/viewerLeft"
+    viewers_list:
+      payload:
+        $ref: "#/components/schemas/viewersList"
+    heartbeat_ack:
+      payload:
+        $ref: "#/components/schemas/heartbeatAck"
+    join_ticket_ack:
+      payload:
+        $ref: "#/components/schemas/joinTicketAck"
+    leave_ticket_ack:
+      payload:
+        $ref: "#/components/schemas/leaveTicketAck"

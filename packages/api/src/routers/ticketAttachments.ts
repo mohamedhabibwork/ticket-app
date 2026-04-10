@@ -7,7 +7,7 @@ import { publicProcedure } from "../index";
 
 export const ticketAttachmentsRouter = {
   listByTicket: publicProcedure
-    .input(z.object({ ticketId: z.number() }))
+    .input(z.object({ ticketId: z.coerce.number() }))
     .handler(async ({ input }) => {
       return await db
         .select()
@@ -17,7 +17,7 @@ export const ticketAttachmentsRouter = {
     }),
 
   listByMessage: publicProcedure
-    .input(z.object({ messageId: z.number() }))
+    .input(z.object({ messageId: z.coerce.number() }))
     .handler(async ({ input }) => {
       return await db
         .select()
@@ -26,7 +26,7 @@ export const ticketAttachmentsRouter = {
         .orderBy(desc(ticketAttachments.createdAt));
     }),
 
-  get: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
+  get: publicProcedure.input(z.object({ id: z.coerce.number() })).handler(async ({ input }) => {
     const [attachment] = await db
       .select()
       .from(ticketAttachments)
@@ -37,13 +37,13 @@ export const ticketAttachmentsRouter = {
   create: publicProcedure
     .input(
       z.object({
-        ticketId: z.number(),
-        ticketMessageId: z.number().optional(),
+        ticketId: z.coerce.number(),
+        ticketMessageId: z.coerce.number().optional(),
         filename: z.string(),
         mimeType: z.string(),
-        sizeBytes: z.number(),
+        sizeBytes: z.coerce.number(),
         storageKey: z.string(),
-        createdBy: z.number().optional(),
+        createdBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -62,7 +62,7 @@ export const ticketAttachmentsRouter = {
       return attachment;
     }),
 
-  delete: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
+  delete: publicProcedure.input(z.object({ id: z.coerce.number() })).handler(async ({ input }) => {
     await db.delete(ticketAttachments).where(eq(ticketAttachments.id, input.id));
     return { success: true };
   }),

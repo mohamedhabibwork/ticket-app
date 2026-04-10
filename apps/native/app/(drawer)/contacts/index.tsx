@@ -7,7 +7,7 @@ import { View, Pressable, FlatList, Alert } from "react-native";
 
 import { Container } from "@/components/container";
 import { SwipeableRow } from "@/components/swipeable-row";
-import { hapticImpact, hapticNotification } from "@/utils/haptics";
+import { hapticImpact } from "@/utils/haptics";
 import { orpc } from "@/utils/orpc";
 
 export default function ContactListScreen() {
@@ -37,17 +37,16 @@ export default function ContactListScreen() {
     ]);
   };
 
-  const filteredContacts = contacts.data?.filter((contact) =>
-    contact.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    contact.email?.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredContacts = contacts.data?.filter(
+    (contact) =>
+      contact.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      contact.email?.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   return (
     <Container onRefresh={handleRefresh} refreshing={contacts.isFetching && !contacts.isLoading}>
       <View className="px-4 py-4">
-        <Text className="text-2xl font-semibold text-foreground tracking-tight mb-4">
-          Contacts
-        </Text>
+        <Text className="text-2xl font-semibold text-foreground tracking-tight mb-4">Contacts</Text>
 
         <TextField>
           <Input
@@ -105,16 +104,14 @@ export default function ContactListScreen() {
               ]}
               onLongPress={() => {
                 hapticImpact("heavy");
-                Alert.alert(
-                  item.name,
-                  `Contact options`,
-                  [
-                    { text: "Cancel", style: "cancel" },
-                    { text: "View Details", onPress: () => {} },
-                    ...(item.phone ? [{ text: "Call", onPress: () => handleCallContact(item.phone!) }] : []),
-                    { text: "Email", onPress: () => handleEmailContact(item.email) },
-                  ],
-                );
+                Alert.alert(item.name, `Contact options`, [
+                  { text: "Cancel", style: "cancel" },
+                  { text: "View Details", onPress: () => {} },
+                  ...(item.phone
+                    ? [{ text: "Call", onPress: () => handleCallContact(item.phone!) }]
+                    : []),
+                  { text: "Email", onPress: () => handleEmailContact(item.email) },
+                ]);
               }}
             >
               <Link href={`/contacts/${item.id}`} asChild>
@@ -129,9 +126,7 @@ export default function ContactListScreen() {
                       <View className="flex-1">
                         <Text className="text-foreground font-medium">{item.name}</Text>
                         <Text className="text-muted text-sm">{item.email}</Text>
-                        {item.phone && (
-                          <Text className="text-muted text-xs">{item.phone}</Text>
-                        )}
+                        {item.phone && <Text className="text-muted text-xs">{item.phone}</Text>}
                       </View>
                       <Ionicons name="chevron-forward" size={20} color={mutedColor} />
                     </View>

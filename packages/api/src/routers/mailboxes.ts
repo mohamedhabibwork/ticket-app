@@ -25,8 +25,8 @@ export const mailboxesRouter = {
   list: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        isActive: z.boolean().optional(),
+        organizationId: z.coerce.number(),
+        isActive: z.coerce.boolean().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -52,8 +52,8 @@ export const mailboxesRouter = {
   get: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        id: z.number(),
+        organizationId: z.coerce.number(),
+        id: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -74,7 +74,7 @@ export const mailboxesRouter = {
   getDefault: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -91,17 +91,17 @@ export const mailboxesRouter = {
   create: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         name: z.string().min(1).max(150),
         email: z.string().email(),
         replyTo: z.string().email().optional(),
         connectionType: z.string(),
-        isActive: z.boolean().default(true),
-        isDefault: z.boolean().default(false),
-        autoReplyEnabled: z.boolean().default(false),
+        isActive: z.coerce.boolean().default(true),
+        isDefault: z.coerce.boolean().default(false),
+        autoReplyEnabled: z.coerce.boolean().default(false),
         autoReplySubject: z.string().optional(),
         autoReplyBodyHtml: z.string().optional(),
-        defaultTeamId: z.number().optional(),
+        defaultTeamId: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -128,16 +128,16 @@ export const mailboxesRouter = {
   update: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
         name: z.string().min(1).max(150).optional(),
         replyTo: z.string().email().optional(),
-        isActive: z.boolean().optional(),
-        isDefault: z.boolean().optional(),
-        autoReplyEnabled: z.boolean().optional(),
+        isActive: z.coerce.boolean().optional(),
+        isDefault: z.coerce.boolean().optional(),
+        autoReplyEnabled: z.coerce.boolean().optional(),
         autoReplySubject: z.string().optional(),
         autoReplyBodyHtml: z.string().optional(),
-        defaultTeamId: z.number().optional(),
+        defaultTeamId: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -163,9 +163,9 @@ export const mailboxesRouter = {
   delete: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
-        deletedBy: z.number().optional(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
+        deletedBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -184,8 +184,8 @@ export const mailboxesRouter = {
   testConnection: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -238,14 +238,14 @@ export const mailboxesRouter = {
   configureImap: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
         host: z.string(),
-        port: z.number(),
+        port: z.coerce.number(),
         username: z.string(),
         password: z.string(),
-        useSsl: z.boolean().default(true),
-        useTls: z.boolean().default(false),
+        useSsl: z.coerce.boolean().default(true),
+        useTls: z.coerce.boolean().default(false),
         folderMapping: z.record(z.string()).optional(),
       }),
     )
@@ -289,14 +289,14 @@ export const mailboxesRouter = {
   configureSmtp: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
         host: z.string(),
-        port: z.number(),
+        port: z.coerce.number(),
         username: z.string(),
         password: z.string(),
-        useSsl: z.boolean().default(true),
-        useTls: z.boolean().default(false),
+        useSsl: z.coerce.boolean().default(true),
+        useTls: z.coerce.boolean().default(false),
         fromName: z.string().optional(),
       }),
     )
@@ -344,8 +344,8 @@ export const mailboxesRouter = {
   syncNow: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -372,8 +372,8 @@ export const mailboxesRouter = {
   getStatistics: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
         startDate: z.string().optional(),
         endDate: z.string().optional(),
       }),
@@ -398,11 +398,11 @@ export const mailboxesRouter = {
   addAlias: publicProcedure
     .input(
       z.object({
-        mailboxId: z.number(),
-        organizationId: z.number(),
+        mailboxId: z.coerce.number(),
+        organizationId: z.coerce.number(),
         email: z.string().email(),
         name: z.string().optional(),
-        isDefault: z.boolean().default(false),
+        isDefault: z.coerce.boolean().default(false),
       }),
     )
     .handler(async ({ input }) => {
@@ -422,7 +422,7 @@ export const mailboxesRouter = {
   removeAlias: publicProcedure
     .input(
       z.object({
-        aliasId: z.number(),
+        aliasId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -434,8 +434,8 @@ export const mailboxesRouter = {
   createRoutingRule: publicProcedure
     .input(
       z.object({
-        mailboxId: z.number(),
-        organizationId: z.number(),
+        mailboxId: z.coerce.number(),
+        organizationId: z.coerce.number(),
         name: z.string().min(1).max(150),
         conditions: z
           .object({
@@ -451,8 +451,8 @@ export const mailboxesRouter = {
             params: z.record(z.string(), z.unknown()),
           }),
         ),
-        priority: z.number().default(0),
-        isActive: z.boolean().default(true),
+        priority: z.coerce.number().default(0),
+        isActive: z.coerce.boolean().default(true),
       }),
     )
     .handler(async ({ input }) => {
@@ -475,7 +475,7 @@ export const mailboxesRouter = {
   updateRoutingRule: publicProcedure
     .input(
       z.object({
-        ruleId: z.number(),
+        ruleId: z.coerce.number(),
         name: z.string().min(1).max(150).optional(),
         conditions: z
           .object({
@@ -494,8 +494,8 @@ export const mailboxesRouter = {
             }),
           )
           .optional(),
-        priority: z.number().optional(),
-        isActive: z.boolean().optional(),
+        priority: z.coerce.number().optional(),
+        isActive: z.coerce.boolean().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -519,7 +519,7 @@ export const mailboxesRouter = {
   deleteRoutingRule: publicProcedure
     .input(
       z.object({
-        ruleId: z.number(),
+        ruleId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -531,8 +531,8 @@ export const mailboxesRouter = {
   getGmailOAuthUrl: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -670,14 +670,14 @@ export const mailboxesRouter = {
   configureImapOAuth: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
         host: z.string().default("imap.gmail.com"),
-        port: z.number().default(993),
+        port: z.coerce.number().default(993),
         username: z.string(),
         accessToken: z.string(),
         refreshToken: z.string(),
-        expiresIn: z.number(),
+        expiresIn: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -732,8 +732,8 @@ export const mailboxesRouter = {
   refreshGmailToken: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {

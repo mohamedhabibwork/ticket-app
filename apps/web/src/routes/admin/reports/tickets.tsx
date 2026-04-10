@@ -31,7 +31,7 @@ function TicketReportsPage() {
   const [channel, setChannel] = useState<Channel>("all");
   const organizationId = 1;
 
-  const { data: ticketVolume, isLoading } = useQuery({
+  const { data: ticketVolume, isLoading: _isLoading } = useQuery({
     queryKey: ["reports", "ticketVolume", organizationId, dateRange, status, priority, channel],
     queryFn: () =>
       orpc.reports.getTicketVolume.query({
@@ -64,7 +64,7 @@ function TicketReportsPage() {
   ];
 
   const maxTimeSeriesValue = Math.max(
-    ...mockTimeSeriesData.map((d) => Math.max(d.created, d.resolved))
+    ...mockTimeSeriesData.map((d) => Math.max(d.created, d.resolved)),
   );
 
   const mockTopTags = [
@@ -171,7 +171,8 @@ function TicketReportsPage() {
               </div>
               <div>
                 <div className="text-2xl font-bold">
-                  {ticketVolume?.byStatus?.find((s: any) => s.statusName === "Resolved")?.count || 0}
+                  {ticketVolume?.byStatus?.find((s: any) => s.statusName === "Resolved")?.count ||
+                    0}
                 </div>
                 <div className="text-sm text-muted-foreground">Resolved</div>
               </div>
@@ -249,19 +250,26 @@ function TicketReportsPage() {
             <div className="space-y-4">
               {ticketVolume?.byChannel?.map((channel: any, index: number) => {
                 const Icon = channelIcons[channel.channelName || ""] || Ticket;
-                const percentage = ticketVolume.total > 0 ? (channel.count / ticketVolume.total) * 100 : 0;
+                const percentage =
+                  ticketVolume.total > 0 ? (channel.count / ticketVolume.total) * 100 : 0;
                 return (
                   <div key={channel.channelId}>
                     <div className="flex items-center justify-between mb-1">
                       <div className="flex items-center gap-2">
                         <Icon className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm font-medium">{channel.channelName || "Unknown"}</span>
+                        <span className="text-sm font-medium">
+                          {channel.channelName || "Unknown"}
+                        </span>
                       </div>
                       <span className="text-sm text-muted-foreground">{channel.count}</span>
                     </div>
                     <div className="w-full bg-gray-100 rounded-full h-2">
                       <div
-                        className={["bg-blue-500", "bg-purple-500", "bg-amber-500", "bg-green-500"][index % 4] + " h-2 rounded-full transition-all"}
+                        className={
+                          ["bg-blue-500", "bg-purple-500", "bg-amber-500", "bg-green-500"][
+                            index % 4
+                          ] + " h-2 rounded-full transition-all"
+                        }
                         style={{ width: `${percentage}%` }}
                       />
                     </div>
@@ -292,7 +300,10 @@ function TicketReportsPage() {
                     </div>
                     <div className="w-full bg-gray-100 rounded-full h-2">
                       <div
-                        className={["bg-red-500", "bg-amber-500", "bg-blue-500"][index] + " h-2 rounded-full transition-all"}
+                        className={
+                          ["bg-red-500", "bg-amber-500", "bg-blue-500"][index] +
+                          " h-2 rounded-full transition-all"
+                        }
                         style={{ width: `${percentage}%` }}
                       />
                     </div>

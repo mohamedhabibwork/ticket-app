@@ -2,14 +2,9 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { toast } from "sonner";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@ticket-app/ui/components/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
 import { Button } from "@ticket-app/ui/components/button";
-import { Input } from "@ticket-app/ui/components/input";
+
 import { Label } from "@ticket-app/ui/components/label";
 import {
   DropdownMenu,
@@ -17,14 +12,7 @@ import {
   DropdownMenuCheckboxItem,
   DropdownMenuTrigger,
 } from "@ticket-app/ui/components/dropdown-menu";
-import {
-  Filter,
-  Loader2,
-  ChevronDown,
-  GripVertical,
-  X,
-  Eye,
-} from "lucide-react";
+import { Filter, Loader2, ChevronDown, GripVertical, X, Eye } from "lucide-react";
 
 import { orpc } from "@/utils/orpc";
 
@@ -91,7 +79,7 @@ function KanbanBoardRoute() {
     orpc.tickets.list.queryOptions({
       organizationId,
       limit: 100,
-    })
+    }),
   );
 
   const { data: agents } = useQuery(
@@ -99,19 +87,19 @@ function KanbanBoardRoute() {
       organizationId,
       isActive: true,
       limit: 100,
-    })
+    }),
   );
 
   const { data: teams } = useQuery(
     orpc.teams.list.queryOptions({
       organizationId,
-    })
+    }),
   );
 
-  const { data: tags } = useQuery(
+  const { data: _tags } = useQuery(
     orpc.tags.list.queryOptions({
       organizationId,
-    })
+    }),
   );
 
   const updateStatusMutation = useMutation(
@@ -123,25 +111,38 @@ function KanbanBoardRoute() {
       onError: (error) => {
         toast.error(`Failed to update status: ${error.message}`);
       },
-    })
+    }),
   );
 
-  const filteredTickets = allTickets?.filter((ticket) => {
-    if (filters.priorityIds.length > 0 && ticket.priority && !filters.priorityIds.includes(ticket.priority.id)) {
-      return false;
-    }
-    if (filters.agentIds.length > 0 && ticket.assignedAgent && !filters.agentIds.includes(ticket.assignedAgent.id)) {
-      return false;
-    }
-    if (filters.teamIds.length > 0 && ticket.assignedTeam && !filters.teamIds.includes(ticket.assignedTeam.id)) {
-      return false;
-    }
-    return true;
-  }) || [];
+  const filteredTickets =
+    allTickets?.filter((ticket) => {
+      if (
+        filters.priorityIds.length > 0 &&
+        ticket.priority &&
+        !filters.priorityIds.includes(ticket.priority.id)
+      ) {
+        return false;
+      }
+      if (
+        filters.agentIds.length > 0 &&
+        ticket.assignedAgent &&
+        !filters.agentIds.includes(ticket.assignedAgent.id)
+      ) {
+        return false;
+      }
+      if (
+        filters.teamIds.length > 0 &&
+        ticket.assignedTeam &&
+        !filters.teamIds.includes(ticket.assignedTeam.id)
+      ) {
+        return false;
+      }
+      return true;
+    }) || [];
 
   const columns: TicketColumn[] = KANBAN_STATUSES.map((status) => {
     const statusLookup = allTickets?.find(
-      (t) => t.status?.label?.toLowerCase() === status.toLowerCase()
+      (t) => t.status?.label?.toLowerCase() === status.toLowerCase(),
     );
     const statusId = statusLookup?.status?.id;
 
@@ -149,7 +150,7 @@ function KanbanBoardRoute() {
       id: statusId || KANBAN_STATUSES.indexOf(status),
       label: status,
       tickets: filteredTickets.filter(
-        (t) => t.status?.label?.toLowerCase() === status.toLowerCase()
+        (t) => t.status?.label?.toLowerCase() === status.toLowerCase(),
       ),
     };
   });
@@ -244,16 +245,10 @@ function KanbanBoardRoute() {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Ticket Kanban Board</h1>
-          <p className="text-muted-foreground">
-            Drag tickets between columns to change status
-          </p>
+          <p className="text-muted-foreground">Drag tickets between columns to change status</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowFilters(!showFilters)}
-          >
+          <Button variant="outline" size="sm" onClick={() => setShowFilters(!showFilters)}>
             <Filter className="h-4 w-4 mr-2" />
             Filters
             {hasActiveFilters && (
@@ -277,11 +272,7 @@ function KanbanBoardRoute() {
             <div className="flex items-center justify-between">
               <CardTitle className="text-base">Filters</CardTitle>
               {hasActiveFilters && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={clearFilters}
-                >
+                <Button variant="ghost" size="sm" onClick={clearFilters}>
                   <X className="h-4 w-4 mr-1" />
                   Clear
                 </Button>
@@ -398,9 +389,7 @@ function KanbanBoardRoute() {
           <div
             key={column.label}
             className={`flex-shrink-0 w-80 rounded-lg border-2 transition-colors ${
-              dragOverColumn === column.label
-                ? "border-primary bg-primary/5"
-                : "border-transparent"
+              dragOverColumn === column.label ? "border-primary bg-primary/5" : "border-transparent"
             }`}
             onDragOver={(e) => handleDragOver(e, column.label)}
             onDragLeave={handleDragLeave}
@@ -487,11 +476,7 @@ function KanbanBoardRoute() {
           <Card className="w-full max-w-lg mx-4 max-h-[80vh] overflow-y-auto">
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Ticket Details</CardTitle>
-              <Button
-                variant="ghost"
-                size="icon-xs"
-                onClick={() => setSelectedTicket(null)}
-              >
+              <Button variant="ghost" size="icon-xs" onClick={() => setSelectedTicket(null)}>
                 <X className="h-4 w-4" />
               </Button>
             </CardHeader>
@@ -527,9 +512,7 @@ function KanbanBoardRoute() {
                   <p className="text-sm">
                     {selectedTicket.contact.firstName} {selectedTicket.contact.lastName}
                   </p>
-                  <p className="text-sm text-muted-foreground">
-                    {selectedTicket.contact.email}
-                  </p>
+                  <p className="text-sm text-muted-foreground">{selectedTicket.contact.email}</p>
                 </div>
               )}
 
@@ -537,8 +520,7 @@ function KanbanBoardRoute() {
                 <div>
                   <p className="text-sm text-muted-foreground">Assigned Agent</p>
                   <p className="text-sm">
-                    {selectedTicket.assignedAgent.firstName}{" "}
-                    {selectedTicket.assignedAgent.lastName}
+                    {selectedTicket.assignedAgent.firstName} {selectedTicket.assignedAgent.lastName}
                   </p>
                 </div>
               )}

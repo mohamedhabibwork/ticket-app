@@ -2,15 +2,16 @@ import { eq, and, desc, gte, lte, sql } from "drizzle-orm";
 import * as z from "zod";
 import { db } from "@ticket-app/db";
 import { workflowExecutionLogs, workflows } from "@ticket-app/db/schema/_workflows";
+import { publicProcedure } from "..";
 
 const listLogsSchema = z.object({
-  organizationId: z.number(),
-  workflowId: z.number().optional(),
-  ticketId: z.number().optional(),
+  organizationId: z.coerce.number(),
+  workflowId: z.coerce.number().optional(),
+  ticketId: z.coerce.number().optional(),
   startDate: z.date().optional(),
   endDate: z.date().optional(),
-  limit: z.number().min(1).max(100).default(50),
-  offset: z.number().min(0).default(0),
+  limit: z.coerce.number().min(1).max(100).default(50),
+  offset: z.coerce.number().min(0).default(0),
 });
 
 export const workflowLogsRouter = {
@@ -76,8 +77,8 @@ export const workflowLogsRouter = {
   get: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -112,9 +113,9 @@ export const workflowLogsRouter = {
   getByTicket: publicProcedure
     .input(
       z.object({
-        ticketId: z.number(),
-        organizationId: z.number(),
-        limit: z.number().min(1).max(100).default(50),
+        ticketId: z.coerce.number(),
+        organizationId: z.coerce.number(),
+        limit: z.coerce.number().min(1).max(100).default(50),
       }),
     )
     .handler(async ({ input }) => {
@@ -149,8 +150,8 @@ export const workflowLogsRouter = {
   getStats: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        workflowId: z.number().optional(),
+        organizationId: z.coerce.number(),
+        workflowId: z.coerce.number().optional(),
         startDate: z.date().optional(),
         endDate: z.date().optional(),
       }),
@@ -194,8 +195,8 @@ export const workflowLogsRouter = {
   delete: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -222,8 +223,8 @@ export const workflowLogsRouter = {
   deleteOld: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        olderThanDays: z.number().min(1).max(365),
+        organizationId: z.coerce.number(),
+        olderThanDays: z.coerce.number().min(1).max(365),
       }),
     )
     .handler(async ({ input }) => {

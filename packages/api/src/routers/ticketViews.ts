@@ -6,14 +6,14 @@ import * as z from "zod";
 import { publicProcedure } from "../index";
 
 const ticketViewFiltersSchema = z.object({
-  status: z.array(z.number()).optional(),
-  priority: z.array(z.number()).optional(),
-  assignedAgentId: z.array(z.number()).optional(),
-  assignedTeamId: z.array(z.number()).optional(),
-  tags: z.array(z.number()).optional(),
-  channelId: z.array(z.number()).optional(),
-  isSpam: z.boolean().optional(),
-  isLocked: z.boolean().optional(),
+  status: z.array(z.coerce.number()).optional(),
+  priority: z.array(z.coerce.number()).optional(),
+  assignedAgentId: z.array(z.coerce.number()).optional(),
+  assignedTeamId: z.array(z.coerce.number()).optional(),
+  tags: z.array(z.coerce.number()).optional(),
+  channelId: z.array(z.coerce.number()).optional(),
+  isSpam: z.coerce.boolean().optional(),
+  isLocked: z.coerce.boolean().optional(),
   search: z.string().optional(),
   dateFrom: z.string().optional(),
   dateTo: z.string().optional(),
@@ -21,7 +21,7 @@ const ticketViewFiltersSchema = z.object({
 
 export const ticketViewsRouter = {
   list: publicProcedure
-    .input(z.object({ organizationId: z.number(), userId: z.number().optional() }))
+    .input(z.object({ organizationId: z.coerce.number(), userId: z.coerce.number().optional() }))
     .handler(async ({ input }) => {
       return await db
         .select()
@@ -30,7 +30,7 @@ export const ticketViewsRouter = {
         .orderBy(desc(ticketViews.createdAt));
     }),
 
-  get: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
+  get: publicProcedure.input(z.object({ id: z.coerce.number() })).handler(async ({ input }) => {
     const [view] = await db.select().from(ticketViews).where(eq(ticketViews.id, input.id));
     return view ?? null;
   }),
@@ -38,14 +38,14 @@ export const ticketViewsRouter = {
   create: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        userId: z.number().optional(),
+        organizationId: z.coerce.number(),
+        userId: z.coerce.number().optional(),
         name: z.string().min(1).max(150),
         filters: ticketViewFiltersSchema,
         sortBy: z.string().max(50).default("created_at"),
         sortDir: z.enum(["asc", "desc"]).default("desc"),
-        isDefault: z.boolean().default(false),
-        createdBy: z.number().optional(),
+        isDefault: z.coerce.boolean().default(false),
+        createdBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -75,12 +75,12 @@ export const ticketViewsRouter = {
   update: publicProcedure
     .input(
       z.object({
-        id: z.number(),
+        id: z.coerce.number(),
         name: z.string().min(1).max(150).optional(),
         filters: ticketViewFiltersSchema.optional(),
         sortBy: z.string().max(50).optional(),
         sortDir: z.enum(["asc", "desc"]).optional(),
-        isDefault: z.boolean().optional(),
+        isDefault: z.coerce.boolean().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -107,26 +107,28 @@ export const ticketViewsRouter = {
       return updated;
     }),
 
-  delete: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
+  delete: publicProcedure.input(z.object({ id: z.coerce.number() })).handler(async ({ input }) => {
     await db.delete(ticketViews).where(eq(ticketViews.id, input.id));
     return { success: true };
   }),
 
-  setDefault: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
-    const [view] = await db.select().from(ticketViews).where(eq(ticketViews.id, input.id));
+  setDefault: publicProcedure
+    .input(z.object({ id: z.coerce.number() }))
+    .handler(async ({ input }) => {
+      const [view] = await db.select().from(ticketViews).where(eq(ticketViews.id, input.id));
 
-    if (view) {
-      await db
+      if (view) {
+        await db
+          .update(ticketViews)
+          .set({ isDefault: false })
+          .where(eq(ticketViews.organizationId, view.organizationId));
+      }
+
+      const [updated] = await db
         .update(ticketViews)
-        .set({ isDefault: false })
-        .where(eq(ticketViews.organizationId, view.organizationId));
-    }
-
-    const [updated] = await db
-      .update(ticketViews)
-      .set({ isDefault: true })
-      .where(eq(ticketViews.id, input.id))
-      .returning();
-    return updated;
-  }),
+        .set({ isDefault: true })
+        .where(eq(ticketViews.id, input.id))
+        .returning();
+      return updated;
+    }),
 };

@@ -34,7 +34,7 @@ export const authRouter = {
   register: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         email: z.string().email(),
         password: z.string().min(8),
         firstName: z.string().min(1).max(100),
@@ -111,7 +111,7 @@ export const authRouter = {
   revokeAllSessions: publicProcedure
     .input(
       z.object({
-        userId: z.number(),
+        userId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {

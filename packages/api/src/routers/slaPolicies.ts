@@ -10,11 +10,11 @@ const businessHoursConfigSchema = z.object({
   timezone: z.string().default("UTC"),
   schedule: z.array(
     z.object({
-      day: z.number().min(0).max(6),
-      startHour: z.number().min(0).max(23),
-      startMinute: z.number().min(0).max(59),
-      endHour: z.number().min(0).max(23),
-      endMinute: z.number().min(0).max(59),
+      day: z.coerce.number().min(0).max(6),
+      startHour: z.coerce.number().min(0).max(23),
+      startMinute: z.coerce.number().min(0).max(59),
+      endHour: z.coerce.number().min(0).max(23),
+      endMinute: z.coerce.number().min(0).max(59),
     }),
   ),
 });
@@ -40,7 +40,7 @@ export const slaPoliciesRouter = {
     });
   }),
 
-  get: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
+  get: publicProcedure.input(z.object({ id: z.coerce.number() })).handler(async ({ input }) => {
     return await db.query.slaPolicies.findFirst({
       where: and(eq(slaPolicies.id, input.id), isNull(slaPolicies.deletedAt)),
       with: {
@@ -60,8 +60,8 @@ export const slaPoliciesRouter = {
       z.object({
         name: z.string().min(1).max(150),
         description: z.string().optional(),
-        isDefault: z.boolean().default(false),
-        businessHoursOnly: z.boolean().default(true),
+        isDefault: z.coerce.boolean().default(false),
+        businessHoursOnly: z.coerce.boolean().default(true),
         businessHoursConfig: businessHoursConfigSchema.optional(),
         holidays: holidaySchema.optional(),
       }),
@@ -83,11 +83,11 @@ export const slaPoliciesRouter = {
   update: publicProcedure
     .input(
       z.object({
-        id: z.number(),
+        id: z.coerce.number(),
         name: z.string().min(1).max(150).optional(),
         description: z.string().optional(),
-        isDefault: z.boolean().optional(),
-        businessHoursOnly: z.boolean().optional(),
+        isDefault: z.coerce.boolean().optional(),
+        businessHoursOnly: z.coerce.boolean().optional(),
         businessHoursConfig: businessHoursConfigSchema.optional(),
         holidays: holidaySchema.optional(),
       }),
@@ -104,7 +104,7 @@ export const slaPoliciesRouter = {
         .returning();
     }),
 
-  delete: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
+  delete: publicProcedure.input(z.object({ id: z.coerce.number() })).handler(async ({ input }) => {
     return await db
       .update(slaPolicies)
       .set({
@@ -116,7 +116,7 @@ export const slaPoliciesRouter = {
   }),
 
   listTargets: publicProcedure
-    .input(z.object({ policyId: z.number() }))
+    .input(z.object({ policyId: z.coerce.number() }))
     .handler(async ({ input }) => {
       return await db.query.slaPolicyTargets.findMany({
         where: eq(slaPolicyTargets.slaPolicyId, input.policyId),
@@ -131,12 +131,12 @@ export const slaPoliciesRouter = {
   createTarget: publicProcedure
     .input(
       z.object({
-        slaPolicyId: z.number(),
-        priorityId: z.number(),
-        firstResponseMinutes: z.number().min(1),
-        resolutionMinutes: z.number().min(1),
-        escalateAgentId: z.number().optional(),
-        escalateTeamId: z.number().optional(),
+        slaPolicyId: z.coerce.number(),
+        priorityId: z.coerce.number(),
+        firstResponseMinutes: z.coerce.number().min(1),
+        resolutionMinutes: z.coerce.number().min(1),
+        escalateAgentId: z.coerce.number().optional(),
+        escalateTeamId: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -146,11 +146,11 @@ export const slaPoliciesRouter = {
   updateTarget: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        firstResponseMinutes: z.number().min(1).optional(),
-        resolutionMinutes: z.number().min(1).optional(),
-        escalateAgentId: z.number().optional(),
-        escalateTeamId: z.number().optional(),
+        id: z.coerce.number(),
+        firstResponseMinutes: z.coerce.number().min(1).optional(),
+        resolutionMinutes: z.coerce.number().min(1).optional(),
+        escalateAgentId: z.coerce.number().optional(),
+        escalateTeamId: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -165,9 +165,11 @@ export const slaPoliciesRouter = {
         .returning();
     }),
 
-  deleteTarget: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
-    return await db.delete(slaPolicyTargets).where(eq(slaPolicyTargets.id, input.id)).returning();
-  }),
+  deleteTarget: publicProcedure
+    .input(z.object({ id: z.coerce.number() }))
+    .handler(async ({ input }) => {
+      return await db.delete(slaPolicyTargets).where(eq(slaPolicyTargets.id, input.id)).returning();
+    }),
 
   getPriorities: publicProcedure.handler(async () => {
     const priorityType = await db.query.lookupTypes.findFirst({

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { FileText, Trash2, Download, Check, Clock, X } from "lucide-react";
+import { FileText, Trash2, Download } from "lucide-react";
 
 interface GdprRequest {
   id: number;
@@ -51,13 +51,21 @@ export default function GdprAdminPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "pending":
-        return <span className="rounded bg-yellow-100 px-2 py-1 text-xs text-yellow-800">Pending</span>;
+        return (
+          <span className="rounded bg-yellow-100 px-2 py-1 text-xs text-yellow-800">Pending</span>
+        );
       case "in_progress":
-        return <span className="rounded bg-blue-100 px-2 py-1 text-xs text-blue-800">In Progress</span>;
+        return (
+          <span className="rounded bg-blue-100 px-2 py-1 text-xs text-blue-800">In Progress</span>
+        );
       case "completed":
-        return <span className="rounded bg-green-100 px-2 py-1 text-xs text-green-800">Completed</span>;
+        return (
+          <span className="rounded bg-green-100 px-2 py-1 text-xs text-green-800">Completed</span>
+        );
       case "cancelled":
-        return <span className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-800">Cancelled</span>;
+        return (
+          <span className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-800">Cancelled</span>
+        );
       default:
         return null;
     }
@@ -66,11 +74,15 @@ export default function GdprAdminPage() {
   const getTypeBadge = (type: string) => {
     switch (type) {
       case "access":
-        return <span className="rounded bg-purple-100 px-2 py-1 text-xs text-purple-800">Access</span>;
+        return (
+          <span className="rounded bg-purple-100 px-2 py-1 text-xs text-purple-800">Access</span>
+        );
       case "erasure":
         return <span className="rounded bg-red-100 px-2 py-1 text-xs text-red-800">Erasure</span>;
       case "portability":
-        return <span className="rounded bg-blue-100 px-2 py-1 text-xs text-blue-800">Portability</span>;
+        return (
+          <span className="rounded bg-blue-100 px-2 py-1 text-xs text-blue-800">Portability</span>
+        );
       default:
         return null;
     }
@@ -81,7 +93,9 @@ export default function GdprAdminPage() {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">GDPR Requests</h1>
-          <p className="text-gray-500">Manage data subject access, erasure, and portability requests</p>
+          <p className="text-gray-500">
+            Manage data subject access, erasure, and portability requests
+          </p>
         </div>
       </div>
 

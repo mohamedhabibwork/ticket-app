@@ -2,7 +2,13 @@ import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@ticket-app/ui/components/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@ticket-app/ui/components/card";
 import { Input } from "@ticket-app/ui/components/input";
 import { Label } from "@ticket-app/ui/components/label";
 import {
@@ -21,7 +27,7 @@ export const Route = createFileRoute("/admin/roles/id/")({
 
 function EditRoleRoute() {
   const { id } = Route.useParams();
-  const navigate = useNavigate();
+  const _navigate = useNavigate();
   const queryClient = useQueryClient();
   const roleId = Number(id);
 
@@ -33,7 +39,11 @@ function EditRoleRoute() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showScopeDropdown, setShowScopeDropdown] = useState(false);
 
-  const { data: role, isLoading, refetch } = useQuery({
+  const {
+    data: role,
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ["role", roleId],
     queryFn: () => orpc.users.getRole.query({ id: roleId }),
     enabled: !isNaN(roleId),
@@ -48,7 +58,7 @@ function EditRoleRoute() {
       onError: (error) => {
         setErrors({ submit: error.message });
       },
-    })
+    }),
   );
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -107,8 +117,8 @@ function EditRoleRoute() {
           </CardHeader>
           <CardContent>
             <p className="text-muted-foreground">
-              <strong>{role.name}</strong> is a system role and cannot be edited.
-              System roles are predefined roles that are essential to the operation of the platform.
+              <strong>{role.name}</strong> is a system role and cannot be edited. System roles are
+              predefined roles that are essential to the operation of the platform.
             </p>
             <div className="mt-6 flex justify-end">
               <Button asChild>
@@ -134,11 +144,21 @@ function EditRoleRoute() {
 
   const scopeOptions = [
     { value: "all", label: "All Tickets", description: "Can view all tickets in the organization" },
-    { value: "group", label: "Group Tickets", description: "Can view tickets assigned to teams in their group" },
-    { value: "self", label: "Self Tickets", description: "Can only view tickets assigned to themselves" },
+    {
+      value: "group",
+      label: "Group Tickets",
+      description: "Can view tickets assigned to teams in their group",
+    },
+    {
+      value: "self",
+      label: "Self Tickets",
+      description: "Can only view tickets assigned to themselves",
+    },
   ];
 
-  const selectedScope = scopeOptions.find((s) => s.value === (formData.ticketViewScope || role.ticketViewScope)) || scopeOptions[0];
+  const selectedScope =
+    scopeOptions.find((s) => s.value === (formData.ticketViewScope || role.ticketViewScope)) ||
+    scopeOptions[0];
 
   return (
     <div className="container mx-auto py-8 max-w-2xl">
@@ -150,9 +170,7 @@ function EditRoleRoute() {
           </Link>
         </Button>
         <h1 className="text-3xl font-bold">Edit Role</h1>
-        <p className="text-muted-foreground mt-1">
-          Update role details
-        </p>
+        <p className="text-muted-foreground mt-1">Update role details</p>
       </div>
 
       <Card>
@@ -161,9 +179,7 @@ function EditRoleRoute() {
             <Shield className="h-5 w-5" />
             {role.name}
           </CardTitle>
-          <CardDescription>
-            {role.description || "No description provided"}
-          </CardDescription>
+          <CardDescription>{role.description || "No description provided"}</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -176,16 +192,16 @@ function EditRoleRoute() {
                 placeholder="Role name"
                 hasError={!!errors.name}
               />
-              {errors.name && (
-                <p className="text-xs text-destructive">{errors.name}</p>
-              )}
+              {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="description">Description</Label>
               <textarea
                 id="description"
-                value={formData.description !== undefined ? formData.description : role.description || ""}
+                value={
+                  formData.description !== undefined ? formData.description : role.description || ""
+                }
                 onChange={(e) => handleChange("description", e.target.value)}
                 placeholder="Describe what this role is for..."
                 className="h-24 w-full rounded-none border border-input bg-transparent px-2.5 py-1 text-xs transition-colors outline-none focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50"
@@ -230,13 +246,8 @@ function EditRoleRoute() {
             )}
 
             <div className="flex justify-between pt-4 border-t">
-              <Button
-                variant="outline"
-                asChild
-              >
-                <Link to={`/admin/roles/${roleId}/permissions`}>
-                  Manage Permissions
-                </Link>
+              <Button variant="outline" asChild>
+                <Link to={`/admin/roles/${roleId}/permissions`}>Manage Permissions</Link>
               </Button>
               <div className="flex gap-3">
                 <Button variant="outline" asChild>

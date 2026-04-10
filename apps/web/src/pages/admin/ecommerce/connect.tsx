@@ -1,14 +1,7 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { orpc } from "../../../utils/orpc";
-import {
-  ShoppingBag,
-  CheckCircle,
-  XCircle,
-  RefreshCw,
-  ExternalLink,
-  Trash2,
-} from "lucide-react";
+import { ShoppingBag, CheckCircle, XCircle, RefreshCw, ExternalLink, Trash2 } from "lucide-react";
 
 interface EcommerceStore {
   id: number;
@@ -46,8 +39,18 @@ const platformConfig: Record<
     docsUrl: "https://shopify.dev/docs/api",
     description: "Connect your Shopify store to sync orders and customers",
     fields: [
-      { key: "shopDomain", label: "Shop Domain", type: "text", placeholder: "your-store.myshopify.com" },
-      { key: "accessToken", label: "Admin API Access Token", type: "password", placeholder: "shpat_xxxxx" },
+      {
+        key: "shopDomain",
+        label: "Shop Domain",
+        type: "text",
+        placeholder: "your-store.myshopify.com",
+      },
+      {
+        key: "accessToken",
+        label: "Admin API Access Token",
+        type: "password",
+        placeholder: "shpat_xxxxx",
+      },
     ],
   },
   woocommerce: {
@@ -56,7 +59,12 @@ const platformConfig: Record<
     docsUrl: "https://woocommerce.github.io/woocommerce-rest-api-docs/",
     description: "Connect your WooCommerce store via REST API",
     fields: [
-      { key: "shopDomain", label: "Store URL", type: "text", placeholder: "https://your-store.com" },
+      {
+        key: "shopDomain",
+        label: "Store URL",
+        type: "text",
+        placeholder: "https://your-store.com",
+      },
       { key: "accessToken", label: "Consumer Key", type: "password", placeholder: "ck_xxxxx" },
       { key: "refreshToken", label: "Consumer Secret", type: "password", placeholder: "cs_xxxxx" },
     ],
@@ -68,7 +76,12 @@ const platformConfig: Record<
     description: "Connect your Salla store (Saudi eCommerce platform)",
     fields: [
       { key: "shopDomain", label: "Store URL", type: "text", placeholder: "your-store.salla.site" },
-      { key: "accessToken", label: "API Token", type: "password", placeholder: "Your Salla API token" },
+      {
+        key: "accessToken",
+        label: "API Token",
+        type: "password",
+        placeholder: "Your Salla API token",
+      },
     ],
   },
   zid: {
@@ -78,7 +91,12 @@ const platformConfig: Record<
     description: "Connect your Zid store (Saudi eCommerce platform)",
     fields: [
       { key: "shopDomain", label: "Store URL", type: "text", placeholder: "your-store.zid.me" },
-      { key: "accessToken", label: "API Token", type: "password", placeholder: "Your Zid API token" },
+      {
+        key: "accessToken",
+        label: "API Token",
+        type: "password",
+        placeholder: "Your Zid API token",
+      },
     ],
   },
 };
@@ -89,7 +107,11 @@ export function EcommerceConnectPage({ organizationId }: EcommerceConnectPagePro
   const [error, setError] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
-  const { data: stores = [], isLoading, refetch } = useQuery({
+  const {
+    data: stores = [],
+    isLoading: _isLoading,
+    refetch: _refetch,
+  } = useQuery({
     queryKey: ["ecommerce-stores", organizationId],
     queryFn: () =>
       orpc.ecommerceStores.list.query({
@@ -149,7 +171,10 @@ export function EcommerceConnectPage({ organizationId }: EcommerceConnectPagePro
   const handleSubmit = (platform: Platform) => {
     const config = platformConfig[platform];
     const name = formData.name || `${config.name} Store`;
-    const accessToken = formData.accessToken || formData[platform === "woocommerce" ? "accessToken" : "accessToken"] || "";
+    const accessToken =
+      formData.accessToken ||
+      formData[platform === "woocommerce" ? "accessToken" : "accessToken"] ||
+      "";
 
     if (!accessToken || !formData.shopDomain) {
       setError("Please fill in all required fields");
@@ -232,9 +257,7 @@ export function EcommerceConnectPage({ organizationId }: EcommerceConnectPagePro
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {(Object.keys(platformConfig) as Platform[]).map((platform) => {
             const config = platformConfig[platform];
-            const existingStore = stores.find(
-              (s: EcommerceStore) => s.platform === platform
-            );
+            const existingStore = stores.find((s: EcommerceStore) => s.platform === platform);
 
             return (
               <div
@@ -249,12 +272,8 @@ export function EcommerceConnectPage({ organizationId }: EcommerceConnectPagePro
                       {platform[0].toUpperCase()}
                     </div>
                     <div>
-                      <h3 className="font-medium text-gray-900 dark:text-white">
-                        {config.name}
-                      </h3>
-                      {existingStore && (
-                        <span className="text-xs text-green-600">Connected</span>
-                      )}
+                      <h3 className="font-medium text-gray-900 dark:text-white">{config.name}</h3>
+                      {existingStore && <span className="text-xs text-green-600">Connected</span>}
                     </div>
                   </div>
                   <a
@@ -287,11 +306,7 @@ export function EcommerceConnectPage({ organizationId }: EcommerceConnectPagePro
                     </button>
                     <button
                       onClick={() => {
-                        if (
-                          window.confirm(
-                            "Are you sure you want to disconnect this store?"
-                          )
-                        ) {
+                        if (window.confirm("Are you sure you want to disconnect this store?")) {
                           deleteMutation.mutate(existingStore.id);
                         }
                       }}
@@ -347,9 +362,7 @@ export function EcommerceConnectPage({ organizationId }: EcommerceConnectPagePro
                       <div className="flex items-center gap-3">
                         <ShoppingBag className="w-5 h-5 text-gray-400" />
                         <div>
-                          <p className="font-medium text-gray-900 dark:text-white">
-                            {store.name}
-                          </p>
+                          <p className="font-medium text-gray-900 dark:text-white">{store.name}</p>
                           <p className="text-sm text-gray-500">
                             {store.shopDomain || store.domain || "—"}
                           </p>
@@ -365,13 +378,9 @@ export function EcommerceConnectPage({ organizationId }: EcommerceConnectPagePro
                         {store.platform}
                       </span>
                     </td>
-                    <td className="px-4 py-3">
-                      {getSyncStatusBadge(store)}
-                    </td>
+                    <td className="px-4 py-3">{getSyncStatusBadge(store)}</td>
                     <td className="px-4 py-3 text-gray-500 text-sm">
-                      {store.lastSyncAt
-                        ? new Date(store.lastSyncAt).toLocaleString()
-                        : "Never"}
+                      {store.lastSyncAt ? new Date(store.lastSyncAt).toLocaleString() : "Never"}
                     </td>
                     <td className="px-4 py-3 text-right">
                       <button
@@ -380,9 +389,7 @@ export function EcommerceConnectPage({ organizationId }: EcommerceConnectPagePro
                         className="text-sm text-blue-600 hover:text-blue-700 disabled:opacity-50"
                       >
                         <RefreshCw
-                          className={`w-4 h-4 ${
-                            refreshMutation.isPending ? "animate-spin" : ""
-                          }`}
+                          className={`w-4 h-4 ${refreshMutation.isPending ? "animate-spin" : ""}`}
                         />
                       </button>
                     </td>
@@ -436,9 +443,7 @@ export function EcommerceConnectPage({ organizationId }: EcommerceConnectPagePro
                     type={field.type}
                     placeholder={field.placeholder}
                     value={formData[field.key] || ""}
-                    onChange={(e) =>
-                      setFormData({ ...formData, [field.key]: e.target.value })
-                    }
+                    onChange={(e) => setFormData({ ...formData, [field.key]: e.target.value })}
                     className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
@@ -451,9 +456,7 @@ export function EcommerceConnectPage({ organizationId }: EcommerceConnectPagePro
                   </label>
                   <select
                     value={formData.region || ""}
-                    onChange={(e) =>
-                      setFormData({ ...formData, region: e.target.value })
-                    }
+                    onChange={(e) => setFormData({ ...formData, region: e.target.value })}
                     className="w-full px-3 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="">Select region</option>

@@ -2,10 +2,15 @@ import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { orpc } from "@/utils/orpc";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@ticket-app/ui/components/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@ticket-app/ui/components/card";
 import { Button } from "@ticket-app/ui/components/button";
 import { Badge } from "@ticket-app/ui/components/badge";
-import { Checkbox } from "@ticket-app/ui/components/checkbox";
 import { ArrowLeft, Sparkles, Zap, Crown, Building2, HelpCircle } from "lucide-react";
 
 const PLANS = [
@@ -28,13 +33,7 @@ const PLANS = [
       sla: false,
       support: "community",
     },
-    featureList: [
-      "3 agents",
-      "1 mailbox",
-      "1 form",
-      "Basic reports",
-      "Community support",
-    ],
+    featureList: ["3 agents", "1 mailbox", "1 form", "Basic reports", "Community support"],
   },
   {
     slug: "starter",
@@ -55,13 +54,7 @@ const PLANS = [
       sla: false,
       support: "priority",
     },
-    featureList: [
-      "10 agents",
-      "3 mailboxes",
-      "5 forms",
-      "1 eCommerce store",
-      "Priority support",
-    ],
+    featureList: ["10 agents", "3 mailboxes", "5 forms", "1 eCommerce store", "Priority support"],
   },
   {
     slug: "professional",
@@ -129,11 +122,13 @@ const PLANS = [
 const FAQ_ITEMS = [
   {
     question: "Can I change my plan at any time?",
-    answer: "Yes, you can upgrade or downgrade your plan at any time. Changes take effect immediately, and we'll prorate the difference.",
+    answer:
+      "Yes, you can upgrade or downgrade your plan at any time. Changes take effect immediately, and we'll prorate the difference.",
   },
   {
     question: "What happens when I exceed my seat limit?",
-    answer: "You'll receive a notification when approaching your seat limit. You can upgrade your plan or remove users to free up seats.",
+    answer:
+      "You'll receive a notification when approaching your seat limit. You can upgrade your plan or remove users to free up seats.",
   },
   {
     question: "Is there a free trial for paid plans?",
@@ -141,11 +136,13 @@ const FAQ_ITEMS = [
   },
   {
     question: "What payment methods do you accept?",
-    answer: "We accept all major credit cards (Visa, Mastercard, American Express) through our secure Stripe integration.",
+    answer:
+      "We accept all major credit cards (Visa, Mastercard, American Express) through our secure Stripe integration.",
   },
   {
     question: "Can I get a refund?",
-    answer: "We offer a 30-day money-back guarantee for all new subscriptions. Contact support for assistance.",
+    answer:
+      "We offer a 30-day money-back guarantee for all new subscriptions. Contact support for assistance.",
   },
 ];
 
@@ -193,7 +190,7 @@ export default function PlanUpgradePage() {
 
   const handlePlanAction = (planSlug: string, index: number) => {
     if (planSlug === currentPlanSlug) return;
-    
+
     if (currentPlanSlug === "free" || !subscription) {
       upgradeMutation.mutate({ planSlug });
     } else if (index < currentPlanIndex) {
@@ -208,8 +205,8 @@ export default function PlanUpgradePage() {
       <div>
         <Button variant="ghost" size="sm" asChild className="mb-4">
           <Link to="/billing">
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Billing
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Billing
           </Link>
         </Button>
         <h1 className="text-3xl font-bold">Choose Your Plan</h1>
@@ -255,9 +252,7 @@ export default function PlanUpgradePage() {
           return (
             <Card
               key={plan.slug}
-              className={`relative ${
-                isCurrentPlan ? "ring-2 ring-primary" : ""
-              }`}
+              className={`relative ${isCurrentPlan ? "ring-2 ring-primary" : ""}`}
             >
               {isCurrentPlan && (
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
@@ -272,20 +267,18 @@ export default function PlanUpgradePage() {
                   </div>
                   <div>
                     <CardTitle>{plan.name}</CardTitle>
-                    <CardDescription className="line-clamp-1">
-                      {plan.description}
-                    </CardDescription>
+                    <CardDescription className="line-clamp-1">{plan.description}</CardDescription>
                   </div>
                 </div>
               </CardHeader>
 
               <CardContent className="space-y-4">
                 <div>
-                  <span className="text-3xl font-bold">
-                    {price === 0 ? "Free" : `$${price}`}
-                  </span>
+                  <span className="text-3xl font-bold">{price === 0 ? "Free" : `$${price}`}</span>
                   {price > 0 && (
-                    <span className="text-muted-foreground">/{billingCycle === "annual" ? "mo" : "month"}</span>
+                    <span className="text-muted-foreground">
+                      /{billingCycle === "annual" ? "mo" : "month"}
+                    </span>
                   )}
                 </div>
 
@@ -307,10 +300,10 @@ export default function PlanUpgradePage() {
                   {isCurrentPlan
                     ? "Current Plan"
                     : isDowngrade
-                    ? "Downgrade"
-                    : isUpgrade
-                    ? "Upgrade"
-                    : "Select"}
+                      ? "Downgrade"
+                      : isUpgrade
+                        ? "Upgrade"
+                        : "Select"}
                 </Button>
               </CardContent>
             </Card>

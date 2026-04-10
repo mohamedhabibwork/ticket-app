@@ -1,5 +1,5 @@
 import { db } from "@ticket-app/db";
-import { mobileSdkConfigs, contactPushTokens, pushNotificationLogs } from "@ticket-app/db/schema";
+import { mobileSdkConfigs } from "@ticket-app/db/schema";
 import { eq } from "drizzle-orm";
 import crypto from "crypto";
 
@@ -45,7 +45,13 @@ async function getAPNsConfig(organizationId: number): Promise<{
     where: eq(mobileSdkConfigs.organizationId, organizationId),
   });
 
-  if (!config || !config.apnsKeyId || !config.apnsTeamId || !config.apnsKey || !config.apnsBundleId) {
+  if (
+    !config ||
+    !config.apnsKeyId ||
+    !config.apnsTeamId ||
+    !config.apnsKey ||
+    !config.apnsBundleId
+  ) {
     return null;
   }
 
@@ -60,7 +66,7 @@ async function getAPNsConfig(organizationId: number): Promise<{
 async function generateAPNsToken(
   keyId: string,
   teamId: string,
-  privateKeyBase64: string
+  privateKeyBase64: string,
 ): Promise<string> {
   const privateKeyBytes = base64ToArrayBuffer(privateKeyBase64);
   const privateKey = crypto.createPrivateKey({
@@ -74,7 +80,7 @@ async function generateAPNsToken(
       alg: "ES256",
       kid: keyId,
       typ: "JWT",
-    })
+    }),
   ).toString("base64url");
 
   const now = Math.floor(Date.now() / 1000);
@@ -83,7 +89,7 @@ async function generateAPNsToken(
       iss: teamId,
       iat: now,
       exp: now + 3600,
-    })
+    }),
   ).toString("base64url");
 
   const signatureInput = `${header}.${payload}`;
@@ -100,7 +106,7 @@ export async function sendAPNsNotification(
   title: string,
   body: string,
   data?: Record<string, unknown>,
-  badge?: number
+  badge?: number,
 ): Promise<APNsSendResult> {
   const config = await getAPNsConfig(organizationId);
 
@@ -129,7 +135,7 @@ export async function sendAPNsNotification(
         "Content-Type": "application/json",
         "apns-topic": config.bundleId,
         "apns-push-type": "alert",
-        "authorization": `bearer ${authToken}`,
+        authorization: `bearer ${authToken}`,
       },
       body: JSON.stringify(payload),
     });
@@ -152,7 +158,7 @@ export async function sendAPNsBatch(
   tokens: string[],
   title: string,
   body: string,
-  data?: Record<string, unknown>
+  data?: Record<string, unknown>,
 ): Promise<{ successCount: number; failureCount: number; errors: string[] }> {
   const results = { successCount: 0, failureCount: 0, errors: [] as string[] };
 

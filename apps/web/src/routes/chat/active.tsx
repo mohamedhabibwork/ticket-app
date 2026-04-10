@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -38,7 +37,7 @@ function ActiveChatSessionsRoute() {
   const { data: sessions, isLoading } = useQuery(
     orpc.chatSessions.getActiveSessions.queryOptions({
       organizationId,
-    })
+    }),
   );
 
   const { data: agents } = useQuery(
@@ -46,19 +45,21 @@ function ActiveChatSessionsRoute() {
       organizationId,
       isActive: true,
       limit: 100,
-    })
+    }),
   );
 
   const assignMutation = useMutation(
     orpc.chatSessions.assignAgent.mutationOptions({
       onSuccess: () => {
         toast.success("Chat assigned successfully");
-        queryClient.invalidateQueries(orpc.chatSessions.getActiveSessions.queryOptions({ organizationId }));
+        queryClient.invalidateQueries(
+          orpc.chatSessions.getActiveSessions.queryOptions({ organizationId }),
+        );
       },
       onError: (error) => {
         toast.error(`Failed to assign chat: ${error.message}`);
       },
-    })
+    }),
   );
 
   const handleAssign = (sessionId: number, agentId: number) => {
@@ -111,9 +112,7 @@ function ActiveChatSessionsRoute() {
                                 <Clock className="h-3 w-3" />
                                 Waiting {formatWaitTime(session.startedAt)}
                               </span>
-                              {session.contact?.email && (
-                                <span>{session.contact.email}</span>
-                              )}
+                              {session.contact?.email && <span>{session.contact.email}</span>}
                             </div>
                             {session.preChatData && Object.keys(session.preChatData).length > 0 && (
                               <div className="mt-2 text-sm">
@@ -185,7 +184,10 @@ function ActiveChatSessionsRoute() {
                             </div>
                             <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
                               <span>
-                                Agent: {session.agent ? `${session.agent.firstName} ${session.agent.lastName}` : "Unassigned"}
+                                Agent:{" "}
+                                {session.agent
+                                  ? `${session.agent.firstName} ${session.agent.lastName}`
+                                  : "Unassigned"}
                               </span>
                               <span className="flex items-center gap-1">
                                 <Clock className="h-3 w-3" />

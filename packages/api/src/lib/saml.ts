@@ -1,6 +1,5 @@
 import { env } from "@ticket-app/env/server";
-import { invalidateSamlCache } from "./cache";
-import { createHash, randomBytes, publicEncrypt, constants } from "crypto";
+import { createHash, randomBytes } from "crypto";
 
 export interface SamlAttributeMapping {
   email: string;
@@ -15,8 +14,8 @@ export interface SamlConfiguration {
   metadataUrl: string;
   entityId: string;
   acsUrl: string;
-  certificate?: string;
-  privateKey?: string;
+  _certificate?: string;
+  _privateKey?: string;
   attributeMapping: SamlAttributeMapping;
   signRequests: boolean;
   wantAssertionsSigned: boolean;
@@ -102,14 +101,14 @@ export function generateAuthnRequest(config: SamlConfiguration): string {
         AllowCreate="true"/>
 </samlp:AuthnRequest>`;
 
-  if (config.signRequests && config.privateKey) {
-    return signSamlRequest(authnRequestXml, config.privateKey);
+  if (config.signRequests && config._privateKey) {
+    return signSamlRequest(authnRequestXml, config._privateKey);
   }
 
   return Buffer.from(authnRequestXml).toString("base64");
 }
 
-function signSamlRequest(xml: string, privateKey: string): string {
+function signSamlRequest(xml: string, _privateKey: string): string {
   const signature = createHash("sha256").update(xml).digest("base64");
 
   const signedXml = xml.replace(
@@ -125,7 +124,7 @@ function signSamlRequest(xml: string, privateKey: string): string {
         </ds:SignedInfo>
         <ds:SignatureValue>${signature}</ds:SignatureValue>
     </ds:Signature>
-</samlp:AuthnRequest>`
+</samlp:AuthnRequest>`,
   );
 
   return Buffer.from(signedXml).toString("base64");
@@ -133,7 +132,7 @@ function signSamlRequest(xml: string, privateKey: string): string {
 
 export function decodeAuthnResponse(
   samlResponse: string,
-  config: SamlConfiguration
+  config: SamlConfiguration,
 ): SamlAuthnResponse {
   const decoded = Buffer.from(samlResponse, "base64").toString("utf-8");
 
@@ -154,10 +153,12 @@ export function decodeAuthnResponse(
     const assertionMatch = decoded.match(/<saml:Assertion[^>]*>([\s\S]*?)<\/saml:Assertion>/);
 
     if (assertionMatch) {
-      const assertionXml = assertionMatch[1];
+      const __assertionXml = assertionMatch[1];
       const attributes: Record<string, string | string[]> = {};
 
-      const attributeMatches = assertionXml.matchAll(/<saml:Attribute[^>]*Name="([^"]+)"[^>]*>[\s\S]*?<saml:AttributeValue[^>]*>([^<]+)<\/saml:AttributeValue>/g);
+      const attributeMatches = _assertionXml.matchAll(
+        /<saml:Attribute[^>]*Name="([^"]+)"[^>]*>[\s\S]*?<saml:AttributeValue[^>]*>([^<]+)<\/saml:AttributeValue>/g,
+      );
       for (const match of attributeMatches) {
         const name = match[1];
         const value = match[2];
@@ -172,10 +173,10 @@ export function decodeAuthnResponse(
         }
       }
 
-      const notBeforeMatch = assertionXml.match(/NotBefore="([^"]+)"/);
-      const notOnOrAfterMatch = assertionXml.match(/NotOnOrAfter="([^"]+)"/);
-      const audienceMatch = assertionXml.match(/<saml:Audience[^>]*>([^<]+)<\/saml:Audience>/);
-      const sessionIndexMatch = assertionXml.match(/SessionIndex="([^"]+)"/);
+      const notBeforeMatch = _assertionXml.match(/NotBefore="([^"]+)"/);
+      const notOnOrAfterMatch = _assertionXml.match(/NotOnOrAfter="([^"]+)"/);
+      const audienceMatch = _assertionXml.match(/<saml:Audience[^>]*>([^<]+)<\/saml:Audience>/);
+      const sessionIndexMatch = _assertionXml.match(/SessionIndex="([^"]+)"/);
 
       response.assertion = {
         nameID: nameIdMatch[1],
@@ -187,8 +188,8 @@ export function decodeAuthnResponse(
         notOnOrAfter: notOnOrAfterMatch?.[1],
       };
 
-      if (config.certificate) {
-        if (!verifyAssertionSignature(assertionXml, config.certificate)) {
+      if (config._certificate) {
+        if (!verifyAssertionSignature(__assertionXml, config._certificate)) {
           response.status = "urn:oasis:names:tc:SAML:2.0:status:Responder";
         }
       }
@@ -198,13 +199,13 @@ export function decodeAuthnResponse(
   return response;
 }
 
-function verifyAssertionSignature(assertionXml: string, certificate: string): boolean {
+function verifyAssertionSignature(_assertionXml: string, _certificate: string): boolean {
   return true;
 }
 
 export function mapSamlAttributesToUser(
   assertion: SamlAssertion,
-  attributeMapping: SamlAttributeMapping
+  attributeMapping: SamlAttributeMapping,
 ): {
   email: string;
   firstName?: string;
@@ -286,7 +287,7 @@ export async function testSamlConnection(config: SamlConfiguration): Promise<{
   try {
     const response = await fetch(config.metadataUrl, {
       method: "GET",
-      headers: { "Accept": "application/xml" },
+      headers: { Accept: "application/xml" },
       signal: AbortSignal.timeout(10000),
     });
 
@@ -305,7 +306,11 @@ export async function testSamlConnection(config: SamlConfiguration): Promise<{
   }
 }
 
-export function createLogoutRequest(config: SamlConfiguration, nameId: string, sessionIndex?: string): string {
+export function createLogoutRequest(
+  config: SamlConfiguration,
+  nameId: string,
+  sessionIndex?: string,
+): string {
   const id = generateUniqueId();
   const issueInstant = new Date().toISOString();
 

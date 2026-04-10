@@ -6,13 +6,8 @@ import { Button } from "@ticket-app/ui/components/button";
 import { Input } from "@ticket-app/ui/components/input";
 import { Label } from "@ticket-app/ui/components/label";
 import { Textarea } from "@ticket-app/ui/components/textarea";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@ticket-app/ui/components/card";
-import { Loader2, ArrowLeft, Calendar, CheckCircle, RefreshCw } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
+import { Loader2, ArrowLeft, Calendar, CheckCircle } from "lucide-react";
 
 import { orpc } from "@/utils/orpc";
 
@@ -34,14 +29,12 @@ function ProfileSettingsRoute() {
   const [timezone, setTimezone] = useState("UTC");
   const [locale, setLocale] = useState("en");
 
-  const { data: user, isLoading } = useQuery(
-    orpc.users.me.queryOptions()
-  );
+  const { data: user, isLoading } = useQuery(orpc.users.me.queryOptions());
 
   const { data: calendarConnections, refetch: refetchCalendar } = useQuery(
     orpc.calendar.listConnections.queryOptions({
       userId: currentUserId,
-    })
+    }),
   );
 
   const connectCalendarMutation = useMutation(
@@ -52,7 +45,7 @@ function ProfileSettingsRoute() {
       onError: (error) => {
         toast.error(`Failed to get calendar auth URL: ${error.message}`);
       },
-    })
+    }),
   );
 
   const disconnectCalendarMutation = useMutation(
@@ -64,7 +57,7 @@ function ProfileSettingsRoute() {
       onError: (error) => {
         toast.error(`Failed to disconnect calendar: ${error.message}`);
       },
-    })
+    }),
   );
 
   const updateMutation = useMutation(
@@ -75,10 +68,10 @@ function ProfileSettingsRoute() {
       onError: (error) => {
         toast.error(`Failed to update profile: ${error.message}`);
       },
-    })
+    }),
   );
 
-  const activeCalendarConnection = calendarConnections?.find(c => c.isActive);
+  const activeCalendarConnection = calendarConnections?.find((c) => c.isActive);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -165,9 +158,7 @@ function ProfileSettingsRoute() {
                   placeholder={user?.email || "john.doe@example.com"}
                   disabled
                 />
-                <p className="text-xs text-muted-foreground">
-                  Email cannot be changed
-                </p>
+                <p className="text-xs text-muted-foreground">Email cannot be changed</p>
               </div>
 
               <div className="space-y-2">
@@ -315,9 +306,7 @@ function ProfileSettingsRoute() {
 
           <div className="flex justify-end">
             <Button type="submit" disabled={updateMutation.isPending}>
-              {updateMutation.isPending && (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              )}
+              {updateMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               Save Changes
             </Button>
           </div>

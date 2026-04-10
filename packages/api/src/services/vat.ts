@@ -1,5 +1,3 @@
-import { env } from "@ticket-app/env/server";
-
 export interface VatConfig {
   rate: number;
   country: string;
@@ -30,7 +28,10 @@ export function calculateVat(amount: number, vatRate: number): number {
   return Math.round(amount * (vatRate / 100));
 }
 
-export function getAmountWithVat(amount: number, vatRate: number): {
+export function getAmountWithVat(
+  amount: number,
+  vatRate: number,
+): {
   subtotal: number;
   vatAmount: number;
   total: number;
@@ -43,11 +44,7 @@ export function getAmountWithVat(amount: number, vatRate: number): {
   };
 }
 
-export function formatCurrency(
-  amount: number,
-  currency: string,
-  locale: string = "en-US"
-): string {
+export function formatCurrency(amount: number, currency: string, locale: string = "en-US"): string {
   return new Intl.NumberFormat(locale, {
     style: "currency",
     currency,
@@ -55,7 +52,10 @@ export function formatCurrency(
   }).format(amount / 100);
 }
 
-export function parseCurrency(amount: number, currency: string): {
+export function parseCurrency(
+  amount: number,
+  currency: string,
+): {
   major: number;
   minor: number;
   formatted: string;
@@ -70,10 +70,7 @@ export function parseCurrency(amount: number, currency: string): {
   };
 }
 
-export function convertToSmallestUnit(
-  amount: number,
-  currency: string
-): number {
+export function convertToSmallestUnit(amount: number, currency: string): number {
   const zeroDecimalCurrencies = ["JPY", "KRW", "VND"];
 
   if (zeroDecimalCurrencies.includes(currency.toUpperCase())) {
@@ -83,10 +80,7 @@ export function convertToSmallestUnit(
   return Math.round(amount * 100);
 }
 
-export function convertFromSmallestUnit(
-  amount: number,
-  currency: string
-): number {
+export function convertFromSmallestUnit(amount: number, currency: string): number {
   const zeroDecimalCurrencies = ["JPY", "KRW", "VND"];
 
   if (zeroDecimalCurrencies.includes(currency.toUpperCase())) {
@@ -124,10 +118,7 @@ export function calculateVatForSubscription(params: {
   };
 }
 
-export function isVatExempt(
-  countryCode: string,
-  vatNumber?: string
-): boolean {
+export function isVatExempt(countryCode: string, vatNumber?: string): boolean {
   if (!vatNumber) return false;
 
   const gccCountries = ["SA", "AE", "EG", "OM", "KW", "QA", "BH"];

@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
-import { Button, Chip, Separator, Spinner, Surface, useThemeColor } from "heroui-native";
+import { Chip, Separator, Spinner, Surface, useThemeColor } from "heroui-native";
 import { Text, View } from "react-native";
 
 import { Container } from "@/components/container";

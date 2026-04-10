@@ -11,16 +11,11 @@ import { eq, and, isNull, sql } from "drizzle-orm";
 import { generateReferenceNumber } from "../lib/reference";
 
 import { decryptToken } from "../lib/crypto";
-import {
-  getFacebookConversationMessages,
-  sendFacebookMessage,
-  getFacebookUser,
-} from "./social/facebook";
+import { getFacebookConversationMessages, sendFacebookMessage } from "./social/facebook";
 import {
   getTwitterDmEvents,
   getTwitterConversationMessages,
   sendTwitterDm,
-  getTwitterUser,
 } from "./social/twitter";
 import {
   sendWhatsAppMessage,
@@ -54,16 +49,14 @@ export async function getAccountWithToken(accountId: number): Promise<{
     where: and(
       eq(socialAccounts.id, accountId),
       eq(socialAccounts.isActive, true),
-      isNull(socialAccounts.deletedAt)
+      isNull(socialAccounts.deletedAt),
     ),
   });
 
   if (!account) return null;
 
   const accessToken = decryptToken(account.accessTokenEnc);
-  const refreshToken = account.refreshTokenEnc
-    ? decryptToken(account.refreshTokenEnc)
-    : null;
+  const refreshToken = account.refreshTokenEnc ? decryptToken(account.refreshTokenEnc) : null;
 
   return { account, accessToken, refreshToken };
 }
@@ -73,7 +66,7 @@ export async function findOrCreateContact(
   platformUserId: string,
   username?: string,
   name?: string,
-  avatarUrl?: string
+  avatarUrl?: string,
 ): Promise<any> {
   const authorIdentifier = `${platformUserId}`;
 
@@ -81,7 +74,7 @@ export async function findOrCreateContact(
     where: and(
       sql`${contacts.metadata}->>'socialPlatformUserId' = ${authorIdentifier}`,
       eq(contacts.organizationId, organizationId),
-      isNull(contacts.deletedAt)
+      isNull(contacts.deletedAt),
     ),
   });
 
@@ -105,11 +98,11 @@ export async function findOrCreateContact(
   return contact;
 }
 
-export async function getSocialChannelLookup(organizationId: number): Promise<number | null> {
+export async function getSocialChannelLookup(_organizationId: number): Promise<number | null> {
   const channelLookup = await db.query.lookups.findFirst({
     where: and(
       eq(lookups.lookupTypeId, sql`(SELECT id FROM lookup_types WHERE name = 'channel')`),
-      sql`${lookups.metadata}->>'slug' = 'social'`
+      sql`${lookups.metadata}->>'slug' = 'social'`,
     ),
   });
 
@@ -119,7 +112,7 @@ export async function getSocialChannelLookup(organizationId: number): Promise<nu
 export async function createTicketFromSocialMessage(
   organizationId: number,
   socialMessageId: number,
-  contactId: number
+  contactId: number,
 ): Promise<any> {
   const message = await db.query.socialMessages.findFirst({
     where: eq(socialMessages.id, socialMessageId),
@@ -133,14 +126,14 @@ export async function createTicketFromSocialMessage(
   const defaultStatusLookup = await db.query.lookups.findFirst({
     where: and(
       eq(lookups.lookupTypeId, sql`(SELECT id FROM lookup_types WHERE name = 'ticket_status')`),
-      eq(lookups.isDefault, true)
+      eq(lookups.isDefault, true),
     ),
   });
 
   const defaultPriorityLookup = await db.query.lookups.findFirst({
     where: and(
       eq(lookups.lookupTypeId, sql`(SELECT id FROM lookup_types WHERE name = 'ticket_priority')`),
-      eq(lookups.isDefault, true)
+      eq(lookups.isDefault, true),
     ),
   });
 
@@ -171,7 +164,7 @@ export async function createTicketFromSocialMessage(
 export async function addSocialMessageAsReply(
   ticketId: number,
   socialMessageId: number,
-  authorType: "contact" | "agent" = "contact"
+  authorType: "contact" | "agent" = "contact",
 ): Promise<any> {
   const message = await db.query.socialMessages.findFirst({
     where: eq(socialMessages.id, socialMessageId),
@@ -197,13 +190,13 @@ export async function addSocialMessageAsReply(
 export async function processIncomingSocialMessage(
   organizationId: number,
   accountId: number,
-  messageInput: SocialMessageInput
+  messageInput: SocialMessageInput,
 ): Promise<{ message: any; ticket: any | null; isNewConversation: boolean }> {
   const existingMessage = await db.query.socialMessages.findFirst({
     where: and(
       eq(socialMessages.socialAccountId, accountId),
       eq(socialMessages.platformMessageId, messageInput.platformMessageId),
-      isNull(socialMessages.deletedAt)
+      isNull(socialMessages.deletedAt),
     ),
   });
 
@@ -245,7 +238,7 @@ export async function processIncomingSocialMessage(
       messageInput.authorPlatformUserId,
       messageInput.authorUsername,
       messageInput.authorName,
-      messageInput.authorAvatarUrl
+      messageInput.authorAvatarUrl,
     );
 
     ticket = await createTicketFromSocialMessage(organizationId, message.id, contact.id);
@@ -257,7 +250,7 @@ export async function processIncomingSocialMessage(
 export async function replyToSocialMessage(
   ticketId: number,
   replyText: string,
-  replyHtml?: string
+  replyHtml?: string,
 ): Promise<{ success: boolean; platformMessageId?: string; error?: string }> {
   const ticket = await db.query.tickets.findFirst({
     where: eq(tickets.id, ticketId),
@@ -334,26 +327,22 @@ export async function replyToSocialMessage(
 
 export async function pollFacebookMessages(
   accountId: number,
-  organizationId: number
+  _organizationId: number,
 ): Promise<void> {
   const accountData = await getAccountWithToken(accountId);
   if (!accountData) return;
 
-  const { account, accessToken } = accountData;
+  const { account, accessToken: _accessToken } = accountData;
 
   try {
     const conversations = await getFacebookConversationMessages(
       account.platformAccountId,
       accessToken,
-      25
+      25,
     );
 
     for (const conv of conversations) {
-      const messages = await getFacebookConversationMessages(
-        conv.id,
-        accessToken,
-        10
-      );
+      const messages = await getFacebookConversationMessages(conv.id, accessToken, 10);
 
       for (const msg of messages) {
         if (msg.from?.id === account.platformAccountId) continue;
@@ -379,12 +368,12 @@ export async function pollFacebookMessages(
 
 export async function pollTwitterMessages(
   accountId: number,
-  organizationId: number
+  _organizationId: number,
 ): Promise<void> {
   const accountData = await getAccountWithToken(accountId);
   if (!accountData) return;
 
-  const { account, accessToken } = accountData;
+  const { account, accessToken: _accessToken } = accountData;
 
   try {
     const events = await getTwitterDmEvents(accessToken, 25);
@@ -421,12 +410,12 @@ export async function pollTwitterMessages(
 
 export async function pollWhatsAppMessages(
   accountId: number,
-  organizationId: number
+  _organizationId: number,
 ): Promise<void> {
   const accountData = await getAccountWithToken(accountId);
   if (!accountData) return;
 
-  const { account, accessToken } = accountData;
+  const { account, accessToken: _accessToken } = accountData;
 
   try {
     const messages = await getWhatsAppIncomingMessages(account.platformAccountId, 25);
@@ -462,7 +451,7 @@ export async function pollAllSocialAccounts(organizationId: number): Promise<voi
     where: and(
       eq(socialAccounts.organizationId, organizationId),
       eq(socialAccounts.isActive, true),
-      isNull(socialAccounts.deletedAt)
+      isNull(socialAccounts.deletedAt),
     ),
   });
 
@@ -488,7 +477,7 @@ export async function checkAndRefreshExpiredTokens(): Promise<void> {
     where: and(
       eq(socialAccounts.isActive, true),
       isNull(socialAccounts.deletedAt),
-      sql`${socialAccounts.tokenExpiresAt} < ${now}`
+      sql`${socialAccounts.tokenExpiresAt} < ${now}`,
     ),
   });
 

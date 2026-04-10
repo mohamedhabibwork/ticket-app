@@ -27,7 +27,7 @@ export interface PaytabsCreateToken {
 
 export type PaytabsPaymentMethodType = "mada" | "sadad" | "applepay" | "creditcard";
 
-const PAYTABS_REGION_MAP: Record<string, string> = {
+const _PAYTABS_REGION_MAP: Record<string, string> = {
   SA: "SAU",
   AE: "ARE",
   EG: "EGY",
@@ -50,7 +50,7 @@ export class PaytabsService {
 
   async initializePayment(
     organizationId: number,
-    params: PaytabsPaymentInit
+    params: PaytabsPaymentInit,
   ): Promise<PaytabsPaymentResult> {
     const response = await fetch(`${this.baseUrl}/payment/request`, {
       method: "POST",
@@ -60,7 +60,7 @@ export class PaytabsService {
       },
       body: JSON.stringify({
         profile_id: env.PAYTABS_PROFILE_ID,
-       tran_type: "sale",
+        tran_type: "sale",
         tran_class: "ecom",
         amount: params.amount / 100,
         currency: params.currency,
@@ -139,7 +139,7 @@ export class PaytabsService {
 
   async createToken(
     organizationId: number,
-    params: PaytabsCreateToken
+    params: PaytabsCreateToken,
   ): Promise<PaytabsTokenResult> {
     const response = await fetch(`${this.baseUrl}/payment/token`, {
       method: "POST",
@@ -177,7 +177,7 @@ export class PaytabsService {
   async refundPayment(
     transactionId: string,
     amount: number,
-    reason?: string
+    reason?: string,
   ): Promise<PaytabsRefundResult> {
     const response = await fetch(`${this.baseUrl}/payment/refund`, {
       method: "POST",

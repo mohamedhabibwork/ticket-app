@@ -1,12 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@ticket-app/ui/components/card";
+import { Card, CardContent } from "@ticket-app/ui/components/card";
 import { Button } from "@ticket-app/ui/components/button";
 import {
   DropdownMenu,
@@ -50,16 +45,12 @@ function TicketsIndexRoute() {
     ...(selectedCategoryId && { categoryId: selectedCategoryId }),
   };
 
-  const { data: tickets, isLoading } = useQuery(
-    orpc.tickets.list.queryOptions(queryParams)
-  );
+  const { data: tickets, isLoading } = useQuery(orpc.tickets.list.queryOptions(queryParams));
 
-  const { data: groups } = useQuery(
-    orpc.groups.list.queryOptions({ organizationId })
-  );
+  const { data: groups } = useQuery(orpc.groups.list.queryOptions({ organizationId }));
 
   const { data: categories } = useQuery(
-    orpc.ticketCategories.list.queryOptions({ organizationId })
+    orpc.ticketCategories.list.queryOptions({ organizationId }),
   );
 
   const selectedGroup = groups?.find((g) => g.id === selectedGroupId);
@@ -94,10 +85,7 @@ function TicketsIndexRoute() {
                 All Groups
               </DropdownMenuItem>
               {groups?.map((group) => (
-                <DropdownMenuItem
-                  key={group.id}
-                  onClick={() => setSelectedGroupId(group.id)}
-                >
+                <DropdownMenuItem key={group.id} onClick={() => setSelectedGroupId(group.id)}>
                   {group.name}
                 </DropdownMenuItem>
               ))}
@@ -176,15 +164,11 @@ function TicketsIndexRoute() {
                             {ticket.contact.firstName} {ticket.contact.lastName}
                           </span>
                         )}
-                        <span>
-                          {formatRelativeTime(ticket.createdAt)}
-                        </span>
+                        <span>{formatRelativeTime(ticket.createdAt)}</span>
                         {ticket.assignedAgent && (
                           <span>Assigned to {ticket.assignedAgent.firstName}</span>
                         )}
-                        {ticket.assignedTeam && (
-                          <span>{ticket.assignedTeam.name}</span>
-                        )}
+                        {ticket.assignedTeam && <span>{ticket.assignedTeam.name}</span>}
                       </div>
                     </div>
                     {ticket.channel && (

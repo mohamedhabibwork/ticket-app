@@ -13,7 +13,13 @@ import { Input } from "@ticket-app/ui/components/input";
 import { Label } from "@ticket-app/ui/components/label";
 import { Textarea } from "@ticket-app/ui/components/textarea";
 import { Checkbox } from "@ticket-app/ui/components/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@ticket-app/ui/components/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@ticket-app/ui/components/select";
 import { ArrowLeft, Save, Copy, Check, Settings, Globe, Shield, Code, Zap } from "lucide-react";
 import { orpc } from "@/utils/orpc";
 
@@ -26,17 +32,21 @@ function FormSettingsRoute() {
   const { id } = useParams({ from: "/admin/forms/id/" });
   const formId = Number(id);
 
-  const { data: form, isLoading, refetch } = useQuery(
+  const {
+    data: form,
+    isLoading,
+    refetch,
+  } = useQuery(
     orpc.forms.get.queryOptions({
       id: formId,
       organizationId: 1,
-    })
+    }),
   );
 
   const updateMutation = useMutation(
     orpc.forms.update?.mutationOptions({
       onSuccess: () => refetch(),
-    })
+    }),
   );
 
   const [formSettings, setFormSettings] = useState({
@@ -57,7 +67,7 @@ function FormSettingsRoute() {
 
   const generateEmbedCode = () => {
     const iframeCode = `<iframe src="${window.location.origin}/forms/${formId}" width="100%" height="800" frameborder="0"></iframe>`;
-    const jsCode = `<script>!function(){var f=document.createElement('iframe');f.src='/forms/${formId}',f.width='100%',f.height='800',f.frameBorder=0,document.body.appendChild(f)}();</script>`;
+    const _jsCode = `<script>!function(){var f=document.createElement('iframe');f.src='/forms/${formId}',f.width='100%',f.height='800',f.frameBorder=0,document.body.appendChild(f)}();</script>`;
     setEmbedCode(iframeCode);
   };
 
@@ -81,7 +91,11 @@ function FormSettingsRoute() {
   };
 
   if (isLoading) {
-    return <div className="flex justify-center py-12"><div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" /></div>;
+    return (
+      <div className="flex justify-center py-12">
+        <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
+      </div>
+    );
   }
 
   if (!form) {
@@ -91,7 +105,9 @@ function FormSettingsRoute() {
           <CardContent className="py-12 text-center">
             <p className="text-muted-foreground">Form not found</p>
             <Link to="/admin/forms/">
-              <Button variant="outline" className="mt-4">Back to Forms</Button>
+              <Button variant="outline" className="mt-4">
+                Back to Forms
+              </Button>
             </Link>
           </CardContent>
         </Card>
@@ -117,9 +133,13 @@ function FormSettingsRoute() {
             <Checkbox
               id="isPublished"
               checked={formSettings.isPublished}
-              onCheckedChange={(checked) => setFormSettings({ ...formSettings, isPublished: checked as boolean })}
+              onCheckedChange={(checked) =>
+                setFormSettings({ ...formSettings, isPublished: checked as boolean })
+              }
             />
-            <Label htmlFor="isPublished" className="font-normal">Published</Label>
+            <Label htmlFor="isPublished" className="font-normal">
+              Published
+            </Label>
           </div>
         </div>
       </div>
@@ -156,7 +176,9 @@ function FormSettingsRoute() {
               <Input
                 id="submitButtonText"
                 value={formSettings.submitButtonText}
-                onChange={(e) => setFormSettings({ ...formSettings, submitButtonText: e.target.value })}
+                onChange={(e) =>
+                  setFormSettings({ ...formSettings, submitButtonText: e.target.value })
+                }
               />
             </div>
           </CardContent>
@@ -176,7 +198,9 @@ function FormSettingsRoute() {
               <Textarea
                 id="successMessage"
                 value={formSettings.successMessage}
-                onChange={(e) => setFormSettings({ ...formSettings, successMessage: e.target.value })}
+                onChange={(e) =>
+                  setFormSettings({ ...formSettings, successMessage: e.target.value })
+                }
                 rows={2}
               />
             </div>
@@ -189,18 +213,24 @@ function FormSettingsRoute() {
                 onChange={(e) => setFormSettings({ ...formSettings, redirectUrl: e.target.value })}
                 placeholder="https://example.com/thank-you"
               />
-              <p className="text-xs text-muted-foreground">Leave empty to show success message instead</p>
+              <p className="text-xs text-muted-foreground">
+                Leave empty to show success message instead
+              </p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="notificationEmails">Notification Emails</Label>
               <Textarea
                 id="notificationEmails"
                 value={formSettings.notificationEmails}
-                onChange={(e) => setFormSettings({ ...formSettings, notificationEmails: e.target.value })}
+                onChange={(e) =>
+                  setFormSettings({ ...formSettings, notificationEmails: e.target.value })
+                }
                 rows={2}
                 placeholder="email@example.com&#10;another@example.com"
               />
-              <p className="text-xs text-muted-foreground">Receive notifications for new submissions (one per line)</p>
+              <p className="text-xs text-muted-foreground">
+                Receive notifications for new submissions (one per line)
+              </p>
             </div>
           </CardContent>
         </Card>
@@ -218,9 +248,13 @@ function FormSettingsRoute() {
               <Checkbox
                 id="captchaEnabled"
                 checked={formSettings.captchaEnabled}
-                onCheckedChange={(checked) => setFormSettings({ ...formSettings, captchaEnabled: checked as boolean })}
+                onCheckedChange={(checked) =>
+                  setFormSettings({ ...formSettings, captchaEnabled: checked as boolean })
+                }
               />
-              <Label htmlFor="captchaEnabled" className="font-normal">Enable CAPTCHA</Label>
+              <Label htmlFor="captchaEnabled" className="font-normal">
+                Enable CAPTCHA
+              </Label>
             </div>
             {formSettings.captchaEnabled && (
               <>
@@ -228,7 +262,9 @@ function FormSettingsRoute() {
                   <Label>CAPTCHA Provider</Label>
                   <Select
                     value={formSettings.captchaType}
-                    onValueChange={(value: "recaptcha_v3" | "hcaptcha") => setFormSettings({ ...formSettings, captchaType: value })}
+                    onValueChange={(value: "recaptcha_v3" | "hcaptcha") =>
+                      setFormSettings({ ...formSettings, captchaType: value })
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -244,7 +280,9 @@ function FormSettingsRoute() {
                   <Input
                     id="captchaSiteKey"
                     value={formSettings.captchaSiteKey}
-                    onChange={(e) => setFormSettings({ ...formSettings, captchaSiteKey: e.target.value })}
+                    onChange={(e) =>
+                      setFormSettings({ ...formSettings, captchaSiteKey: e.target.value })
+                    }
                     placeholder="Enter your CAPTCHA site key"
                   />
                 </div>
@@ -264,13 +302,20 @@ function FormSettingsRoute() {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label>Embed Type</Label>
-              <Select defaultValue="iframe" onValueChange={(value) => {
-                if (value === "iframe") {
-                  setEmbedCode(`&lt;iframe src="${window.location.origin}/forms/${formId}" width="100%" height="800" frameborder="0"&gt;&lt;/iframe&gt;`);
-                } else {
-                  setEmbedCode(`&lt;script&gt;!function(){var f=document.createElement('iframe');f.src='/forms/${formId}',f.width='100%',f.height='800',f.frameBorder=0,document.body.appendChild(f)}();&lt;/script&gt;`);
-                }
-              }}>
+              <Select
+                defaultValue="iframe"
+                onValueChange={(value) => {
+                  if (value === "iframe") {
+                    setEmbedCode(
+                      `&lt;iframe src="${window.location.origin}/forms/${formId}" width="100%" height="800" frameborder="0"&gt;&lt;/iframe&gt;`,
+                    );
+                  } else {
+                    setEmbedCode(
+                      `&lt;script&gt;!function(){var f=document.createElement('iframe');f.src='/forms/${formId}',f.width='100%',f.height='800',f.frameBorder=0,document.body.appendChild(f)}();&lt;/script&gt;`,
+                    );
+                  }
+                }}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -287,12 +332,7 @@ function FormSettingsRoute() {
                   Generate
                 </Button>
               </div>
-              <Textarea
-                value={embedCode}
-                readOnly
-                rows={4}
-                className="font-mono text-xs"
-              />
+              <Textarea value={embedCode} readOnly rows={4} className="font-mono text-xs" />
             </div>
             {embedCode && (
               <Button onClick={copyToClipboard}>

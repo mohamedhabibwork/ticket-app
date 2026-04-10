@@ -1,6 +1,7 @@
 import { Queue, Worker, Job } from "bullmq";
 import { eq } from "drizzle-orm";
 
+import { env } from "@ticket-app/env/server";
 import { db } from "@ticket-app/db";
 import { ticketSla } from "@ticket-app/db/schema/_sla";
 import { addNotificationJob } from "@ticket-app/db/lib/queues";
@@ -14,8 +15,8 @@ export type SlaBreachJobData = {
 };
 
 const connection = {
-  host: process.env.REDIS_URL?.replace("redis://", "").split(":")[0] || "localhost",
-  port: parseInt(process.env.REDIS_URL?.split(":")[2] || "6379"),
+  host: env.REDIS_URL.replace("redis://", "").split(":")[0] || "localhost",
+  port: parseInt(env.REDIS_URL.split(":")[2] || "6379"),
 };
 
 export const slaBreachCheckQueue = new Queue<SlaBreachJobData>(SLA_BREACH_CHECK_QUEUE, {
@@ -99,7 +100,7 @@ export function createSlaBreachWorker() {
       }
     },
     {
-      connection,
+      connection: getRedis(),
       concurrency: 5,
     },
   );

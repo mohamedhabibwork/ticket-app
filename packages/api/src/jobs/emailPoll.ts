@@ -1,15 +1,16 @@
 import { Queue, Worker, Job } from "bullmq";
 import { eq, and, isNull } from "drizzle-orm";
 
+import { env } from "@ticket-app/env/server";
 import { db } from "@ticket-app/db";
 import { mailboxes } from "@ticket-app/db/schema/_mailboxes";
 import { processEmailToTicket, type EmailMessage } from "../services/email";
 
-export const EMAIL_POLL_QUEUE = "email:poll";
+export const EMAIL_POLL_QUEUE = "email-poll";
 
 const connection = {
-  host: process.env.REDIS_URL?.replace("redis://", "").split(":")[0] || "localhost",
-  port: parseInt(process.env.REDIS_URL?.split(":")[2] || "6379"),
+  host: env.REDIS_URL.replace("redis://", "").split(":")[0] || "localhost",
+  port: parseInt(env.REDIS_URL.split(":")[2] || "6379"),
 };
 
 export const emailPollQueue = new Queue(EMAIL_POLL_QUEUE, {
@@ -142,7 +143,7 @@ export function createEmailPollWorker() {
       }
     },
     {
-      connection,
+      connection: getRedis(),
       concurrency: 2,
     },
   );

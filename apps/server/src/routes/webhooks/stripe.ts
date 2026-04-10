@@ -1,4 +1,5 @@
 import { stripe } from "@ticket-app/api/services/stripe";
+import { env } from "@ticket-app/env/server";
 import { db } from "@ticket-app/db";
 import {
   stripeSubscriptions,
@@ -22,7 +23,7 @@ app.post("/stripe", async (c) => {
   let event;
 
   try {
-    event = stripe.webhooks.constructEvent(payload, sig, process.env.STRIPE_WEBHOOK_SECRET!);
+    event = stripe.webhooks.constructEvent(payload, sig, env.STRIPE_WEBHOOK_SECRET!);
   } catch (err: any) {
     console.error("Webhook signature verification failed:", err.message);
     return c.json({ error: `Webhook Error: ${err.message}` }, 400);

@@ -1,16 +1,11 @@
 import { Worker, Job, Queue, type RepeatedJob } from "bullmq";
 import { eq, and, isNull, lte, gte, or } from "drizzle-orm";
 import { db } from "@ticket-app/db";
-import {
-  slaPolicies,
-  slaPolicyTargets,
-  ticketSla,
-  tickets,
-} from "@ticket-app/db/schema";
+import { slaPolicyTargets, ticketSla, tickets } from "@ticket-app/db/schema";
 import { getRedis } from "../redis";
 import { env } from "@ticket-app/env/server";
 
-const SLA_CHECK_QUEUE = `${env.QUEUE_PREFIX}:sla-check`;
+const SLA_CHECK_QUEUE = `${env.QUEUE_PREFIX}-sla-check`;
 
 export interface SlaCheckJobData {
   type: "check-sla" | "check-breach";
@@ -50,7 +45,7 @@ const slaCheckQueue = new Queue(SlaCheckJobData, {
 
 export async function addSlaCheckJob(
   data: SlaCheckJobData,
-  options?: { delay?: number; repeat?: { pattern: string } }
+  options?: { delay?: number; repeat?: { pattern: string } },
 ): Promise<Job<SlaCheckJobData>> {
   return slaCheckQueue.add("sla-check", data, {
     ...options,
@@ -59,9 +54,7 @@ export async function addSlaCheckJob(
   });
 }
 
-export async function scheduleSlaCheck(
-  intervalMinutes: number = 1
-): Promise<RepeatedJob> {
+export async function scheduleSlaCheck(intervalMinutes: number = 1): Promise<RepeatedJob> {
   const existing = await slaCheckQueue.getRepeatedJobs();
   for (const job of existing) {
     if (job.name === "sla-check") {
@@ -69,10 +62,14 @@ export async function scheduleSlaCheck(
     }
   }
 
-  return slaCheckQueue.add("sla-check", { type: "check-sla" }, {
-    repeat: { pattern: `*/${intervalMinutes} * * * *` },
-    removeOnComplete: true,
-  });
+  return slaCheckQueue.add(
+    "sla-check",
+    { type: "check-sla" },
+    {
+      repeat: { pattern: `*/${intervalMinutes} * * * *` },
+      removeOnComplete: true,
+    },
+  );
 }
 
 export function createSlaCheckWorker(): Worker {
@@ -94,7 +91,7 @@ export function createSlaCheckWorker(): Worker {
     {
       connection: getRedis(),
       concurrency: 5,
-    }
+    },
   );
 }
 
@@ -107,10 +104,7 @@ async function checkAllSlaTimers(): Promise<void> {
     where: and(
       isNull(ticketSla.firstResponseBreached),
       isNull(ticketSla.pausedAt),
-      or(
-        lte(ticketSla.firstResponseDueAt, now),
-        lte(ticketSla.resolutionDueAt, now)
-      )
+      or(lte(ticketSla.firstResponseDueAt, now), lte(ticketSla.resolutionDueAt, now)),
     ),
     with: {
       ticket: {
@@ -127,10 +121,7 @@ async function checkAllSlaTimers(): Promise<void> {
     try {
       await processTicketSla(ticketSla, now);
     } catch (error) {
-      console.error(
-        `[SLA-Check] Error processing SLA ${ticketSla.id}:`,
-        error
-      );
+      console.error(`[SLA-Check] Error processing SLA ${ticketSla.id}:`, error);
     }
   }
 
@@ -140,27 +131,15 @@ async function checkAllSlaTimers(): Promise<void> {
       or(
         and(
           isNull(ticketSla.pausedAt),
-          gte(
-            ticketSla.firstResponseDueAt,
-            new Date(now.getTime() - 15 * 60 * 1000)
-          ),
-          lte(
-            ticketSla.firstResponseDueAt,
-            new Date(now.getTime() + 15 * 60 * 1000)
-          )
+          gte(ticketSla.firstResponseDueAt, new Date(now.getTime() - 15 * 60 * 1000)),
+          lte(ticketSla.firstResponseDueAt, new Date(now.getTime() + 15 * 60 * 1000)),
         ),
         and(
           isNull(ticketSla.pausedAt),
-          gte(
-            ticketSla.resolutionDueAt,
-            new Date(now.getTime() - 15 * 60 * 1000)
-          ),
-          lte(
-            ticketSla.resolutionDueAt,
-            new Date(now.getTime() + 15 * 60 * 1000)
-          )
-        )
-      )
+          gte(ticketSla.resolutionDueAt, new Date(now.getTime() - 15 * 60 * 1000)),
+          lte(ticketSla.resolutionDueAt, new Date(now.getTime() + 15 * 60 * 1000)),
+        ),
+      ),
     ),
     with: {
       ticket: {
@@ -191,7 +170,7 @@ async function processTicketSla(
       holidays: HolidayConfig[] | null;
     };
   },
-  now: Date
+  now: Date,
 ): Promise<void> {
   const { ticket, slaPolicy } = ticketSla;
 
@@ -208,13 +187,13 @@ async function processTicketSla(
       ticket.createdAt,
       getFirstResponseMinutes(ticketSla),
       slaPolicy.businessHoursConfig,
-      slaPolicy.holidays || []
+      slaPolicy.holidays || [],
     );
     const effectiveResolutionDue = calculateBusinessHoursEnd(
       ticket.createdAt,
       getResolutionMinutes(ticketSla),
       slaPolicy.businessHoursConfig,
-      slaPolicy.holidays || []
+      slaPolicy.holidays || [],
     );
     firstResponseDue = effectiveFirstResponseDue;
     resolutionDue = effectiveResolutionDue;
@@ -285,7 +264,7 @@ async function checkTicketSlaBreach(ticketId: number): Promise<void> {
 async function triggerEscalation(
   ticketId: number,
   ticketSla: { slaPolicyId: number },
-  breachInfo: { firstResponseBreached: boolean; resolutionBreached: boolean }
+  breachInfo: { firstResponseBreached: boolean; resolutionBreached: boolean },
 ): Promise<void> {
   const policyTargets = await db.query.slaPolicyTargets.findMany({
     where: eq(slaPolicyTargets.slaPolicyId, ticketSla.slaPolicyId),
@@ -296,26 +275,16 @@ async function triggerEscalation(
   });
 
   for (const target of policyTargets) {
-    if (
-      breachInfo.firstResponseBreached &&
-      target.escalateAgentId
-    ) {
-      console.log(
-        `[SLA-Check] Escalating ticket ${ticketId} to agent ${target.escalateAgentId}`
-      );
+    if (breachInfo.firstResponseBreached && target.escalateAgentId) {
+      console.log(`[SLA-Check] Escalating ticket ${ticketId} to agent ${target.escalateAgentId}`);
       await db
         .update(tickets)
         .set({ assignedAgentId: target.escalateAgentId })
         .where(eq(tickets.id, ticketId));
     }
 
-    if (
-      breachInfo.resolutionBreached &&
-      target.escalateTeamId
-    ) {
-      console.log(
-        `[SLA-Check] Escalating ticket ${ticketId} to team ${target.escalateTeamId}`
-      );
+    if (breachInfo.resolutionBreached && target.escalateTeamId) {
+      console.log(`[SLA-Check] Escalating ticket ${ticketId} to team ${target.escalateTeamId}`);
       await db
         .update(tickets)
         .set({ assignedTeamId: target.escalateTeamId })
@@ -323,10 +292,7 @@ async function triggerEscalation(
     }
   }
 
-  console.log(
-    `[SLA-Check] Escalation triggered for ticket ${ticketId}`,
-    breachInfo
-  );
+  console.log(`[SLA-Check] Escalation triggered for ticket ${ticketId}`, breachInfo);
 }
 
 async function sendSlaWarningNotification(
@@ -335,7 +301,7 @@ async function sendSlaWarningNotification(
       contact: { email: string; firstName: string } | null;
       assignedAgent: { email: string; firstName: string } | null;
     };
-  }
+  },
 ): Promise<void> {
   const now = new Date();
   const firstResponseWarning =
@@ -349,33 +315,27 @@ async function sendSlaWarningNotification(
     sla.resolutionDueAt.getTime() - now.getTime() <= 15 * 60 * 1000;
 
   if (firstResponseWarning || resolutionWarning) {
-    console.log(
-      `[SLA-Check] Sending warning notification for ticket ${sla.ticketId}`
-    );
+    console.log(`[SLA-Check] Sending warning notification for ticket ${sla.ticketId}`);
   }
 }
 
 function getFirstResponseMinutes(
-  sla: typeof import("@ticket-app/db/schema").ticketSla.$inferSelect
+  sla: typeof import("@ticket-app/db/schema").ticketSla.$inferSelect,
 ): number {
-  return Math.floor(
-    (sla.firstResponseDueAt.getTime() - sla.createdAt.getTime()) / 60000
-  );
+  return Math.floor((sla.firstResponseDueAt.getTime() - sla.createdAt.getTime()) / 60000);
 }
 
 function getResolutionMinutes(
-  sla: typeof import("@ticket-app/db/schema").ticketSla.$inferSelect
+  sla: typeof import("@ticket-app/db/schema").ticketSla.$inferSelect,
 ): number {
-  return Math.floor(
-    (sla.resolutionDueAt.getTime() - sla.createdAt.getTime()) / 60000
-  );
+  return Math.floor((sla.resolutionDueAt.getTime() - sla.createdAt.getTime()) / 60000);
 }
 
 function calculateBusinessHoursEnd(
   startDate: Date,
   minutesToAdd: number,
   businessHours: BusinessHoursConfig,
-  holidays: HolidayConfig[]
+  holidays: HolidayConfig[],
 ): Date {
   if (!businessHours.enabled) {
     return new Date(startDate.getTime() + minutesToAdd * 60000);
@@ -386,9 +346,7 @@ function calculateBusinessHoursEnd(
 
   while (remainingMinutes > 0) {
     const dayOfWeek = currentDate.getDay();
-    const schedule = businessHours.schedule.find(
-      (s) => s.dayOfWeek === dayOfWeek
-    );
+    const schedule = businessHours.schedule.find((s) => s.dayOfWeek === dayOfWeek);
 
     if (!schedule) {
       currentDate.setDate(currentDate.getDate() + 1);
@@ -403,8 +361,7 @@ function calculateBusinessHoursEnd(
       continue;
     }
 
-    const businessStartMinutes =
-      schedule.startHour * 60 + schedule.startMinute;
+    const businessStartMinutes = schedule.startHour * 60 + schedule.startMinute;
     const businessEndMinutes = schedule.endHour * 60 + schedule.endMinute;
     const currentMinutes = currentDate.getHours() * 60 + currentDate.getMinutes();
 

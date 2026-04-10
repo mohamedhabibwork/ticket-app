@@ -5,7 +5,6 @@ import {
   jsonb,
   text,
   timestamp,
-  uuid,
   varchar,
   index,
 } from "drizzle-orm/pg-core";
@@ -33,7 +32,7 @@ export const stripeCustomers = pgTable(
   (table) => ({
     orgIdx: index("stripe_customers_org_idx").on(table.organizationId),
     customerIdx: index("stripe_customers_customer_idx").on(table.customerId),
-  })
+  }),
 );
 
 export const stripeSubscriptions = pgTable(
@@ -59,7 +58,7 @@ export const stripeSubscriptions = pgTable(
   (table) => ({
     subscriptionIdx: index("stripe_subscriptions_sub_idx").on(table.subscriptionId),
     stripeSubIdx: index("stripe_subscriptions_stripe_idx").on(table.stripeSubscriptionId),
-  })
+  }),
 );
 
 export const stripePaymentMethods = pgTable(
@@ -82,7 +81,7 @@ export const stripePaymentMethods = pgTable(
   (table) => ({
     methodIdx: index("stripe_payment_methods_method_idx").on(table.paymentMethodId),
     stripeIdx: index("stripe_payment_methods_stripe_idx").on(table.stripePaymentMethodId),
-  })
+  }),
 );
 
 export const paytabsTransactions = pgTable(
@@ -92,10 +91,10 @@ export const paytabsTransactions = pgTable(
     organizationId: bigint("organization_id", { mode: "number" })
       .references(() => organizations.id)
       .notNull(),
-    paymentMethodId: bigint("payment_method_id", { mode: "number" })
-      .references(() => paymentMethods.id),
-    invoiceId: bigint("invoice_id", { mode: "number" })
-      .references(() => invoices.id),
+    paymentMethodId: bigint("payment_method_id", { mode: "number" }).references(
+      () => paymentMethods.id,
+    ),
+    invoiceId: bigint("invoice_id", { mode: "number" }).references(() => invoices.id),
     transactionId: varchar("transaction_id", { length: 255 }).notNull().unique(),
     referenceId: varchar("reference_id", { length: 255 }),
     amount: bigint("amount", { mode: "number" }).notNull(),
@@ -115,7 +114,7 @@ export const paytabsTransactions = pgTable(
     orgIdx: index("paytabs_transactions_org_idx").on(table.organizationId),
     transactionIdx: index("paytabs_transactions_transaction_idx").on(table.transactionId),
     invoiceIdx: index("paytabs_transactions_invoice_idx").on(table.invoiceId),
-  })
+  }),
 );
 
 export const stripeCustomersRelations = relations(stripeCustomers, ({ one }) => ({

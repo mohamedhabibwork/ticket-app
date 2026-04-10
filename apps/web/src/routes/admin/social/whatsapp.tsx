@@ -11,7 +11,7 @@ import {
 import { Button } from "@ticket-app/ui/components/button";
 import { Input } from "@ticket-app/ui/components/input";
 import { Label } from "@ticket-app/ui/components/label";
-import { Loader2, MessageCircle, ArrowLeft, RefreshCw, CheckCircle, ExternalLink, Phone } from "lucide-react";
+import { Loader2, MessageCircle, ArrowLeft, RefreshCw, CheckCircle, Phone } from "lucide-react";
 import { orpc } from "@/utils/orpc";
 
 function formatRelativeTime(date: Date | string): string {
@@ -40,11 +40,15 @@ function WhatsAppConnectionRoute() {
   const [businessAccountId, setBusinessAccountId] = useState("");
   const [showManualForm, setShowManualForm] = useState(false);
 
-  const { data: accounts, isLoading, refetch } = useQuery(
+  const {
+    data: accounts,
+    isLoading,
+    refetch,
+  } = useQuery(
     orpc.socialAccounts.list.queryOptions({
       organizationId: 1,
       platform: "whatsapp",
-    })
+    }),
   );
 
   const connectMutation = useMutation(
@@ -56,13 +60,13 @@ function WhatsAppConnectionRoute() {
         setBusinessAccountId("");
         setShowManualForm(false);
       },
-    })
+    }),
   );
 
   const disconnectMutation = useMutation(
     orpc.socialAccounts.disconnect.mutationOptions({
       onSuccess: () => refetch(),
-    })
+    }),
   );
 
   const handleManualConnect = () => {
@@ -75,7 +79,7 @@ function WhatsAppConnectionRoute() {
     });
   };
 
-  const connectedAccounts = accounts?.filter(a => a.isActive) || [];
+  const connectedAccounts = accounts?.filter((a) => a.isActive) || [];
 
   return (
     <div className="container mx-auto max-w-4xl px-4 py-6">
@@ -92,7 +96,9 @@ function WhatsAppConnectionRoute() {
           </div>
           <div>
             <h1 className="text-2xl font-bold">WhatsApp</h1>
-            <p className="text-muted-foreground">Connect WhatsApp Business API for customer messaging</p>
+            <p className="text-muted-foreground">
+              Connect WhatsApp Business API for customer messaging
+            </p>
           </div>
         </div>
       </div>
@@ -111,7 +117,10 @@ function WhatsAppConnectionRoute() {
             ) : connectedAccounts.length > 0 ? (
               <div className="space-y-3">
                 {connectedAccounts.map((account) => (
-                  <div key={account.id} className="flex items-center justify-between p-3 rounded bg-green-50 dark:bg-green-950/20">
+                  <div
+                    key={account.id}
+                    className="flex items-center justify-between p-3 rounded bg-green-50 dark:bg-green-950/20"
+                  >
                     <div className="flex items-center gap-3">
                       <CheckCircle className="h-5 w-5 text-green-600" />
                       <div>
@@ -119,13 +128,17 @@ function WhatsAppConnectionRoute() {
                           <Phone className="h-3 w-3" />
                           {account.platformUsername || "WhatsApp Number"}
                         </p>
-                        <p className="text-xs text-muted-foreground">Connected {formatRelativeTime(account.updatedAt)}</p>
+                        <p className="text-xs text-muted-foreground">
+                          Connected {formatRelativeTime(account.updatedAt)}
+                        </p>
                       </div>
                     </div>
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => disconnectMutation.mutate({ id: account.id, organizationId: 1 })}
+                      onClick={() =>
+                        disconnectMutation.mutate({ id: account.id, organizationId: 1 })
+                      }
                       disabled={disconnectMutation.isPending}
                     >
                       Disconnect
@@ -176,7 +189,8 @@ function WhatsAppConnectionRoute() {
               <code className="text-xs">Your verification token will appear here</code>
             </div>
             <p className="text-xs text-muted-foreground">
-              Configure this URL in your Meta Business App to receive incoming messages and status updates.
+              Configure this URL in your Meta Business App to receive incoming messages and status
+              updates.
             </p>
           </CardContent>
         </Card>
@@ -247,7 +261,10 @@ function WhatsAppConnectionRoute() {
           {connectedAccounts.length > 0 ? (
             <div className="space-y-4">
               {connectedAccounts.map((account) => (
-                <div key={account.id} className="flex items-center justify-between p-4 border rounded">
+                <div
+                  key={account.id}
+                  className="flex items-center justify-between p-4 border rounded"
+                >
                   <div className="flex items-center gap-4">
                     <div className="rounded-full bg-green-100 p-2">
                       <MessageCircle className="h-4 w-4 text-green-600" />
@@ -257,7 +274,9 @@ function WhatsAppConnectionRoute() {
                         <Phone className="h-3 w-3" />
                         {account.platformUsername || "WhatsApp Number"}
                       </p>
-                      <p className="text-xs text-muted-foreground font-mono">{account.platformAccountId}</p>
+                      <p className="text-xs text-muted-foreground font-mono">
+                        {account.platformAccountId}
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -268,10 +287,14 @@ function WhatsAppConnectionRoute() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => disconnectMutation.mutate({ id: account.id, organizationId: 1 })}
+                      onClick={() =>
+                        disconnectMutation.mutate({ id: account.id, organizationId: 1 })
+                      }
                       disabled={disconnectMutation.isPending}
                     >
-                      <RefreshCw className={`h-4 w-4 ${disconnectMutation.isPending ? "animate-spin" : ""}`} />
+                      <RefreshCw
+                        className={`h-4 w-4 ${disconnectMutation.isPending ? "animate-spin" : ""}`}
+                      />
                     </Button>
                   </div>
                 </div>

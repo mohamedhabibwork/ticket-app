@@ -18,29 +18,29 @@ const contactViewFiltersSchema = z.object({
   email: z.string().optional(),
   phone: z.string().optional(),
   company: z.string().optional(),
-  tags: z.array(z.number()).optional(),
-  isBlocked: z.boolean().optional(),
-  contactTypeId: z.number().optional(),
+  tags: z.array(z.coerce.number()).optional(),
+  isBlocked: z.coerce.boolean().optional(),
+  contactTypeId: z.coerce.number().optional(),
   dateFrom: z.string().optional(),
   dateTo: z.string().optional(),
 });
 
 const fuzzyMatchOptionsSchema = z.object({
-  emailWeight: z.number().min(0).max(1).optional(),
-  phoneWeight: z.number().min(0).max(1).optional(),
-  nameWeight: z.number().min(0).max(1).optional(),
-  companyWeight: z.number().min(0).max(1).optional(),
-  threshold: z.number().min(0).max(1).optional(),
+  emailWeight: z.coerce.number().min(0).max(1).optional(),
+  phoneWeight: z.coerce.number().min(0).max(1).optional(),
+  nameWeight: z.coerce.number().min(0).max(1).optional(),
+  companyWeight: z.coerce.number().min(0).max(1).optional(),
+  threshold: z.coerce.number().min(0).max(1).optional(),
 });
 
 export const contactsRouter = {
   list: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         search: z.string().optional(),
-        limit: z.number().min(1).max(100).default(50),
-        offset: z.number().min(0).default(0),
+        limit: z.coerce.number().min(1).max(100).default(50),
+        offset: z.coerce.number().min(0).default(0),
       }),
     )
     .handler(async ({ input }) => {
@@ -71,8 +71,8 @@ export const contactsRouter = {
   get: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        id: z.number(),
+        organizationId: z.coerce.number(),
+        id: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -88,7 +88,7 @@ export const contactsRouter = {
   getByEmail: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         email: z.string().email(),
       }),
     )
@@ -105,17 +105,17 @@ export const contactsRouter = {
   create: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         email: z.string().email().optional(),
         phone: z.string().optional(),
         firstName: z.string().optional(),
         lastName: z.string().optional(),
         company: z.string().optional(),
-        contactTypeId: z.number().optional(),
+        contactTypeId: z.coerce.number().optional(),
         language: z.string().optional(),
         timezone: z.string().optional(),
         metadata: z.record(z.string(), z.unknown()).optional(),
-        tagIds: z.array(z.number()).optional(),
+        tagIds: z.array(z.coerce.number()).optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -164,17 +164,17 @@ export const contactsRouter = {
   update: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
         email: z.string().email().optional(),
         phone: z.string().optional(),
         firstName: z.string().optional(),
         lastName: z.string().optional(),
         company: z.string().optional(),
-        contactTypeId: z.number().optional(),
+        contactTypeId: z.coerce.number().optional(),
         language: z.string().optional(),
         timezone: z.string().optional(),
-        isBlocked: z.boolean().optional(),
+        isBlocked: z.coerce.boolean().optional(),
         metadata: z.record(z.string(), z.unknown()).optional(),
       }),
     )
@@ -215,8 +215,8 @@ export const contactsRouter = {
   delete: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -246,13 +246,13 @@ export const contactsRouter = {
   updatePushPreferences: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
-        pushEnabled: z.boolean(),
-        pushOptIn: z.boolean().optional(),
-        emailNotifications: z.boolean().optional(),
-        ticketUpdates: z.boolean().optional(),
-        promotionalMessages: z.boolean().optional(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
+        pushEnabled: z.coerce.boolean(),
+        pushOptIn: z.coerce.boolean().optional(),
+        emailNotifications: z.coerce.boolean().optional(),
+        ticketUpdates: z.coerce.boolean().optional(),
+        promotionalMessages: z.coerce.boolean().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -296,8 +296,8 @@ export const contactsRouter = {
   getPushPreferences: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -328,13 +328,13 @@ export const contactsRouter = {
   findDuplicates: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         email: z.string().email().optional(),
         phone: z.string().optional(),
         firstName: z.string().optional(),
         lastName: z.string().optional(),
         company: z.string().optional(),
-        fuzzyMatch: z.boolean().default(true),
+        fuzzyMatch: z.coerce.boolean().default(true),
         options: fuzzyMatchOptionsSchema.optional(),
       }),
     )
@@ -374,9 +374,9 @@ export const contactsRouter = {
   getMergeSuggestions: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        sourceId: z.number(),
-        targetId: z.number(),
+        organizationId: z.coerce.number(),
+        sourceId: z.coerce.number(),
+        targetId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -412,11 +412,11 @@ export const contactsRouter = {
   merge: publicProcedure
     .input(
       z.object({
-        sourceId: z.number(),
-        targetId: z.number(),
-        organizationId: z.number(),
-        mergedBy: z.number().optional(),
-        preserveSourceTags: z.boolean().default(true),
+        sourceId: z.coerce.number(),
+        targetId: z.coerce.number(),
+        organizationId: z.coerce.number(),
+        mergedBy: z.coerce.number().optional(),
+        preserveSourceTags: z.coerce.boolean().default(true),
       }),
     )
     .handler(async ({ input }) => {
@@ -501,15 +501,15 @@ export const contactsRouter = {
   split: publicProcedure
     .input(
       z.object({
-        sourceId: z.number(),
-        organizationId: z.number(),
+        sourceId: z.coerce.number(),
+        organizationId: z.coerce.number(),
         extractedFields: z
           .object({
-            email: z.boolean().optional(),
-            phone: z.boolean().optional(),
-            firstName: z.boolean().optional(),
-            lastName: z.boolean().optional(),
-            company: z.boolean().optional(),
+            email: z.coerce.boolean().optional(),
+            phone: z.coerce.boolean().optional(),
+            firstName: z.coerce.boolean().optional(),
+            lastName: z.coerce.boolean().optional(),
+            company: z.coerce.boolean().optional(),
           })
           .optional(),
       }),
@@ -592,8 +592,8 @@ export const contactsRouter = {
   getTags: publicProcedure
     .input(
       z.object({
-        contactId: z.number(),
-        organizationId: z.number(),
+        contactId: z.coerce.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -624,10 +624,10 @@ export const contactsRouter = {
   addTags: publicProcedure
     .input(
       z.object({
-        contactId: z.number(),
-        organizationId: z.number(),
-        tagIds: z.array(z.number()),
-        createdBy: z.number().optional(),
+        contactId: z.coerce.number(),
+        organizationId: z.coerce.number(),
+        tagIds: z.array(z.coerce.number()),
+        createdBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -663,9 +663,9 @@ export const contactsRouter = {
   removeTag: publicProcedure
     .input(
       z.object({
-        contactId: z.number(),
-        tagId: z.number(),
-        organizationId: z.number(),
+        contactId: z.coerce.number(),
+        tagId: z.coerce.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -691,10 +691,10 @@ export const contactsRouter = {
   replaceTags: publicProcedure
     .input(
       z.object({
-        contactId: z.number(),
-        organizationId: z.number(),
-        tagIds: z.array(z.number()),
-        createdBy: z.number().optional(),
+        contactId: z.coerce.number(),
+        organizationId: z.coerce.number(),
+        tagIds: z.array(z.coerce.number()),
+        createdBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -728,7 +728,7 @@ export const contactsRouter = {
   listTagCategories: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -741,12 +741,12 @@ export const contactsRouter = {
   createTagCategory: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         name: z.string().min(1).max(100),
         nameAr: z.string().max(100).optional(),
         color: z.string().max(7).optional(),
-        orderBy: z.number().optional(),
-        createdBy: z.number().optional(),
+        orderBy: z.coerce.number().optional(),
+        createdBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -767,11 +767,11 @@ export const contactsRouter = {
   updateTagCategory: publicProcedure
     .input(
       z.object({
-        id: z.number(),
+        id: z.coerce.number(),
         name: z.string().min(1).max(100).optional(),
         nameAr: z.string().max(100).optional(),
         color: z.string().max(7).optional(),
-        orderBy: z.number().optional(),
+        orderBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -792,7 +792,7 @@ export const contactsRouter = {
   deleteTagCategory: publicProcedure
     .input(
       z.object({
-        id: z.number(),
+        id: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -803,8 +803,8 @@ export const contactsRouter = {
   listViews: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        userId: z.number().optional(),
+        organizationId: z.coerce.number(),
+        userId: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -821,7 +821,7 @@ export const contactsRouter = {
   getView: publicProcedure
     .input(
       z.object({
-        id: z.number(),
+        id: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -832,14 +832,14 @@ export const contactsRouter = {
   createView: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        userId: z.number().optional(),
+        organizationId: z.coerce.number(),
+        userId: z.coerce.number().optional(),
         name: z.string().min(1).max(150),
         filters: contactViewFiltersSchema,
         sortBy: z.string().max(50).default("created_at"),
         sortDir: z.enum(["asc", "desc"]).default("desc"),
-        isDefault: z.boolean().default(false),
-        createdBy: z.number().optional(),
+        isDefault: z.coerce.boolean().default(false),
+        createdBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -869,12 +869,12 @@ export const contactsRouter = {
   updateView: publicProcedure
     .input(
       z.object({
-        id: z.number(),
+        id: z.coerce.number(),
         name: z.string().min(1).max(150).optional(),
         filters: contactViewFiltersSchema.optional(),
         sortBy: z.string().max(50).optional(),
         sortDir: z.enum(["asc", "desc"]).optional(),
-        isDefault: z.boolean().optional(),
+        isDefault: z.coerce.boolean().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -905,7 +905,7 @@ export const contactsRouter = {
   deleteView: publicProcedure
     .input(
       z.object({
-        id: z.number(),
+        id: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -916,7 +916,7 @@ export const contactsRouter = {
   setDefaultView: publicProcedure
     .input(
       z.object({
-        id: z.number(),
+        id: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -940,11 +940,11 @@ export const contactsRouter = {
   bulkUpdate: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        contactIds: z.array(z.number()).min(1),
+        organizationId: z.coerce.number(),
+        contactIds: z.array(z.coerce.number()).min(1),
         data: z.object({
-          isBlocked: z.boolean().optional(),
-          contactTypeId: z.number().optional(),
+          isBlocked: z.coerce.boolean().optional(),
+          contactTypeId: z.coerce.number().optional(),
           language: z.string().optional(),
           timezone: z.string().optional(),
           company: z.string().optional(),
@@ -981,10 +981,10 @@ export const contactsRouter = {
   bulkAddTags: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        contactIds: z.array(z.number()).min(1),
-        tagIds: z.array(z.number()).min(1),
-        createdBy: z.number().optional(),
+        organizationId: z.coerce.number(),
+        contactIds: z.array(z.coerce.number()).min(1),
+        tagIds: z.array(z.coerce.number()).min(1),
+        createdBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -1017,9 +1017,9 @@ export const contactsRouter = {
   bulkRemoveTags: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        contactIds: z.array(z.number()).min(1),
-        tagIds: z.array(z.number()).min(1),
+        organizationId: z.coerce.number(),
+        contactIds: z.array(z.coerce.number()).min(1),
+        tagIds: z.array(z.coerce.number()).min(1),
       }),
     )
     .handler(async ({ input }) => {
@@ -1052,8 +1052,8 @@ export const contactsRouter = {
   bulkDelete: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        contactIds: z.array(z.number()).min(1),
+        organizationId: z.coerce.number(),
+        contactIds: z.array(z.coerce.number()).min(1),
       }),
     )
     .handler(async ({ input }) => {
@@ -1080,11 +1080,11 @@ export const contactsRouter = {
   bulkMerge: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        sourceContactIds: z.array(z.number()).min(1),
-        targetContactId: z.number(),
-        preserveSourceTags: z.boolean().default(true),
-        mergedBy: z.number().optional(),
+        organizationId: z.coerce.number(),
+        sourceContactIds: z.array(z.coerce.number()).min(1),
+        targetContactId: z.coerce.number(),
+        preserveSourceTags: z.coerce.boolean().default(true),
+        mergedBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -1177,8 +1177,8 @@ export const contactsRouter = {
   getMergeHistory: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        contactId: z.number(),
+        organizationId: z.coerce.number(),
+        contactId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {

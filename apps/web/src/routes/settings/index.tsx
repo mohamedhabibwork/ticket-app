@@ -1,6 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
-import { Button } from "@ticket-app/ui/components/button";
+import { Card, CardContent } from "@ticket-app/ui/components/card";
 import { User, Lock, Bell, Palette, ChevronRight } from "lucide-react";
 
 export const Route = createFileRoute("/settings/")({
@@ -60,9 +59,7 @@ function SettingsIndexRoute() {
                     </div>
                     <div>
                       <div className="font-medium">{item.title}</div>
-                      <div className="text-sm text-muted-foreground">
-                        {item.description}
-                      </div>
+                      <div className="text-sm text-muted-foreground">{item.description}</div>
                     </div>
                   </div>
                   <ChevronRight className="h-5 w-5 text-muted-foreground" />

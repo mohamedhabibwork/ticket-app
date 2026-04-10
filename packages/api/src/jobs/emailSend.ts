@@ -2,18 +2,19 @@ import { Queue, Worker, Job } from "bullmq";
 import { eq, and } from "drizzle-orm";
 import nodemailer from "nodemailer";
 
+import { env } from "@ticket-app/env/server";
 import { db } from "@ticket-app/db";
 import { emailMessages } from "@ticket-app/db/schema/_mailboxes";
 
-export const EMAIL_SEND_QUEUE = "email:send";
+export const EMAIL_SEND_QUEUE = "email-send";
 
 export type EmailSendJobData = {
   messageId: number;
 };
 
 const connection = {
-  host: process.env.REDIS_URL?.replace("redis://", "").split(":")[0] || "localhost",
-  port: parseInt(process.env.REDIS_URL?.split(":")[2] || "6379"),
+  host: env.REDIS_URL.replace("redis://", "").split(":")[0] || "localhost",
+  port: parseInt(env.REDIS_URL.split(":")[2] || "6379"),
 };
 
 export const emailSendQueue = new Queue<EmailSendJobData>(EMAIL_SEND_QUEUE, {
@@ -98,7 +99,7 @@ export function createEmailSendWorker() {
       return { sent: true, messageId };
     },
     {
-      connection,
+      connection: getRedis(),
       concurrency: 5,
     },
   );

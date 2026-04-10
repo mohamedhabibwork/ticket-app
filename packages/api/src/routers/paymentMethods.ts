@@ -9,7 +9,7 @@ export const paymentMethodsRouter = {
   list: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -25,8 +25,8 @@ export const paymentMethodsRouter = {
   get: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        id: z.number(),
+        organizationId: z.coerce.number(),
+        id: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -41,9 +41,9 @@ export const paymentMethodsRouter = {
   addStripe: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         stripePaymentMethodId: z.string(),
-        setAsDefault: z.boolean().default(false),
+        setAsDefault: z.coerce.boolean().default(false),
       }),
     )
     .handler(async ({ input }) => {
@@ -89,12 +89,12 @@ export const paymentMethodsRouter = {
   addPaytabs: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         token: z.string(),
         type: z.enum(["mada", "sadad", "applepay", "creditcard"]),
         last4: z.string().optional(),
         brand: z.string().optional(),
-        setAsDefault: z.boolean().default(false),
+        setAsDefault: z.coerce.boolean().default(false),
       }),
     )
     .handler(async ({ input }) => {
@@ -129,8 +129,8 @@ export const paymentMethodsRouter = {
   remove: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        id: z.number(),
+        organizationId: z.coerce.number(),
+        id: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -155,8 +155,8 @@ export const paymentMethodsRouter = {
   setDefault: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        id: z.number(),
+        organizationId: z.coerce.number(),
+        id: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -182,7 +182,7 @@ export const paymentMethodsRouter = {
   getDefault: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {

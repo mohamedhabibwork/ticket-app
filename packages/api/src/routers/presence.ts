@@ -19,9 +19,9 @@ export const presenceRouter = {
   join: protectedProcedure
     .input(
       z.object({
-        ticketId: z.number(),
-        organizationId: z.number(),
-        userId: z.number(),
+        ticketId: z.coerce.number(),
+        organizationId: z.coerce.number(),
+        userId: z.coerce.number(),
         userName: z.string(),
         avatarUrl: z.string().optional(),
       }),
@@ -46,9 +46,9 @@ export const presenceRouter = {
   leave: protectedProcedure
     .input(
       z.object({
-        ticketId: z.number(),
-        organizationId: z.number(),
-        userId: z.number(),
+        ticketId: z.coerce.number(),
+        organizationId: z.coerce.number(),
+        userId: z.coerce.number(),
       }),
     )
     .handler(async ({ input, context }) => {
@@ -71,9 +71,9 @@ export const presenceRouter = {
   ping: protectedProcedure
     .input(
       z.object({
-        ticketId: z.number(),
-        organizationId: z.number(),
-        userId: z.number(),
+        ticketId: z.coerce.number(),
+        organizationId: z.coerce.number(),
+        userId: z.coerce.number(),
       }),
     )
     .handler(async ({ input, context }) => {
@@ -94,7 +94,7 @@ export const presenceRouter = {
     }),
 
   list: protectedProcedure
-    .input(z.object({ ticketId: z.number(), organizationId: z.number() }))
+    .input(z.object({ ticketId: z.coerce.number(), organizationId: z.coerce.number() }))
     .handler(async ({ input, context }) => {
       const canRead = await hasPermission(
         {
@@ -114,9 +114,9 @@ export const presenceRouter = {
   check: protectedProcedure
     .input(
       z.object({
-        ticketId: z.number(),
-        organizationId: z.number(),
-        userId: z.number(),
+        ticketId: z.coerce.number(),
+        organizationId: z.coerce.number(),
+        userId: z.coerce.number(),
       }),
     )
     .handler(async ({ input, context }) => {

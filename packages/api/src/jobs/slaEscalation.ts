@@ -1,6 +1,7 @@
 import { Queue, Worker, Job } from "bullmq";
 import { eq, and, desc } from "drizzle-orm";
 
+import { env } from "@ticket-app/env/server";
 import { db } from "@ticket-app/db";
 import { ticketEscalations, ticketSla } from "@ticket-app/db/schema/_sla";
 import { tickets, ticketMessages } from "@ticket-app/db/schema/_tickets";
@@ -23,8 +24,8 @@ export type SlaEscalationJobData = {
 };
 
 const connection = {
-  host: process.env.REDIS_URL?.replace("redis://", "").split(":")[0] || "localhost",
-  port: parseInt(process.env.REDIS_URL?.split(":")[2] || "6379"),
+  host: env.REDIS_URL.replace("redis://", "").split(":")[0] || "localhost",
+  port: parseInt(env.REDIS_URL.split(":")[2] || "6379"),
 };
 
 export const slaEscalationQueue = new Queue<SlaEscalationJobData>(SLA_ESCALATION_QUEUE, {
@@ -110,7 +111,7 @@ export function createSlaEscalationWorker() {
       });
     },
     {
-      connection,
+      connection: getRedis(),
       concurrency: 5,
     },
   );

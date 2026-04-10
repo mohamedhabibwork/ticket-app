@@ -4,6 +4,7 @@ import { db } from "@ticket-app/db";
 import { workflows, workflowExecutionLogs } from "@ticket-app/db/schema/_workflows";
 import { workflowEngine } from "../services/workflowEngine";
 import { workflowActions } from "../services/workflowActions";
+import { publicProcedure } from "..";
 
 const workflowConditionSchema = z.object({
   field: z.string(),
@@ -57,7 +58,7 @@ const createWorkflowSchema = z.object({
     rules: z.array(workflowConditionSchema),
   }),
   actions: z.array(workflowActionSchema),
-  isActive: z.boolean().default(true),
+  isActive: z.coerce.boolean().default(true),
 });
 
 const updateWorkflowSchema = createWorkflowSchema.partial();
@@ -98,8 +99,8 @@ export const workflowsRouter = {
   list: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        isActive: z.boolean().optional(),
+        organizationId: z.coerce.number(),
+        isActive: z.coerce.boolean().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -119,8 +120,8 @@ export const workflowsRouter = {
   get: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -132,7 +133,7 @@ export const workflowsRouter = {
     }),
 
   create: publicProcedure
-    .input(createWorkflowSchema.extend({ organizationId: z.number() }))
+    .input(createWorkflowSchema.extend({ organizationId: z.coerce.number() }))
     .handler(async ({ input }) => {
       const { organizationId, ...rest } = input;
 
@@ -155,8 +156,8 @@ export const workflowsRouter = {
   update: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
         data: updateWorkflowSchema,
       }),
     )
@@ -176,8 +177,8 @@ export const workflowsRouter = {
   delete: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -191,9 +192,9 @@ export const workflowsRouter = {
   toggleActive: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
-        isActive: z.boolean(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
+        isActive: z.coerce.boolean(),
       }),
     )
     .handler(async ({ input }) => {
@@ -209,8 +210,8 @@ export const workflowsRouter = {
   execute: publicProcedure
     .input(
       z.object({
-        workflowId: z.number(),
-        ticketId: z.number(),
+        workflowId: z.coerce.number(),
+        ticketId: z.coerce.number(),
         triggerType: z.string(),
       }),
     )
@@ -308,10 +309,10 @@ export const workflowsRouter = {
   simulate: publicProcedure
     .input(
       z.object({
-        workflowId: z.number(),
-        organizationId: z.number(),
+        workflowId: z.coerce.number(),
+        organizationId: z.coerce.number(),
         testData: z.object({
-          ticketId: z.number().optional(),
+          ticketId: z.coerce.number().optional(),
           ticketData: z.record(z.string(), z.unknown()).optional(),
         }),
       }),
@@ -355,10 +356,10 @@ export const workflowsRouter = {
   getExecutionLogs: publicProcedure
     .input(
       z.object({
-        workflowId: z.number(),
-        organizationId: z.number(),
-        limit: z.number().min(1).max(100).default(50),
-        offset: z.number().min(0).default(0),
+        workflowId: z.coerce.number(),
+        organizationId: z.coerce.number(),
+        limit: z.coerce.number().min(1).max(100).default(50),
+        offset: z.coerce.number().min(0).default(0),
         startDate: z.string().optional(),
         endDate: z.string().optional(),
       }),

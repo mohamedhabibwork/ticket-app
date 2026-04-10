@@ -1,12 +1,18 @@
-import { useState, useCallback, useRef, useEffect } from "react";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useState, useRef, useEffect } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Button } from "@ticket-app/ui/components/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@ticket-app/ui/components/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
 import { Input } from "@ticket-app/ui/components/input";
 import { Label } from "@ticket-app/ui/components/label";
 import { Textarea } from "@ticket-app/ui/components/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@ticket-app/ui/components/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@ticket-app/ui/components/select";
 import { Badge } from "@ticket-app/ui/components/badge";
 import { Checkbox } from "@ticket-app/ui/components/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@ticket-app/ui/components/tabs";
@@ -17,7 +23,6 @@ import {
   GripVertical,
   Play,
   Save,
-  X,
   AlertCircle,
   Zap,
   GitBranch,
@@ -26,34 +31,41 @@ import {
   ChevronRight,
   CheckCircle,
   XCircle,
-  Grip,
   PanelRightClose,
   PanelRight,
 } from "lucide-react";
 
 interface ConditionRule {
   field: string;
-  operator: "equals" | "not_equals" | "contains" | "not_contains" | "greater_than" | "less_than" | "is_empty" | "is_not_empty" | "in" | "not_in";
+  operator:
+    | "equals"
+    | "not_equals"
+    | "contains"
+    | "not_contains"
+    | "greater_than"
+    | "less_than"
+    | "is_empty"
+    | "is_not_empty"
+    | "in"
+    | "not_in";
   value: string;
 }
 
 interface WorkflowAction {
-  type: "assign_agent" | "assign_team" | "set_priority" | "set_status" | "add_tags" | "remove_tags" | "send_email" | "send_webhook" | "create_task" | "add_note" | "apply_saved_reply" | "create_calendar_event";
+  type:
+    | "assign_agent"
+    | "assign_team"
+    | "set_priority"
+    | "set_status"
+    | "add_tags"
+    | "remove_tags"
+    | "send_email"
+    | "send_webhook"
+    | "create_task"
+    | "add_note"
+    | "apply_saved_reply"
+    | "create_calendar_event";
   params: Record<string, unknown>;
-}
-
-interface WorkflowNode {
-  id: string;
-  type: "trigger" | "condition" | "action";
-  label: string;
-  data: any;
-  position: { x: number; y: number };
-}
-
-interface WorkflowEdge {
-  id: string;
-  source: string;
-  target: string;
 }
 
 const TRIGGERS = [
@@ -134,7 +146,9 @@ function WorkflowBuilderRoute() {
     isActive: true,
   });
 
-  const [selectedWorkflowId, setSelectedWorkflowId] = useState<number | null>(initialWorkflowId || null);
+  const [selectedWorkflowId, setSelectedWorkflowId] = useState<number | null>(
+    initialWorkflowId || null,
+  );
   const [isTesting, setIsTesting] = useState(false);
   const [showHistory, setShowHistory] = useState(true);
   const [draggedNode, setDraggedNode] = useState<string | null>(null);
@@ -169,7 +183,7 @@ function WorkflowBuilderRoute() {
         setSelectedWorkflowId(data.id);
         navigate({ to: "/admin/workflows/builder", search: { workflowId: data.id } });
       },
-    })
+    }),
   );
 
   const updateMutation = useMutation(
@@ -177,7 +191,7 @@ function WorkflowBuilderRoute() {
       onSuccess: () => {
         console.log("Workflow updated");
       },
-    })
+    }),
   );
 
   useEffect(() => {
@@ -217,7 +231,10 @@ function WorkflowBuilderRoute() {
       ...workflow,
       conditions: {
         ...workflow.conditions,
-        rules: [...workflow.conditions.rules, { field: "status_id", operator: "equals", value: "" }],
+        rules: [
+          ...workflow.conditions.rules,
+          { field: "status_id", operator: "equals", value: "" },
+        ],
       },
     });
   };
@@ -237,7 +254,9 @@ function WorkflowBuilderRoute() {
       ...workflow,
       conditions: {
         ...workflow.conditions,
-        rules: workflow.conditions.rules.map((rule, i) => (i === index ? { ...rule, ...updates } : rule)),
+        rules: workflow.conditions.rules.map((rule, i) =>
+          i === index ? { ...rule, ...updates } : rule,
+        ),
       },
     });
   };
@@ -263,7 +282,9 @@ function WorkflowBuilderRoute() {
   const updateAction = (index: number, updates: Partial<WorkflowAction>) => {
     setWorkflow({
       ...workflow,
-      actions: workflow.actions.map((action, i) => (i === index ? { ...action, ...updates } : action)),
+      actions: workflow.actions.map((action, i) =>
+        i === index ? { ...action, ...updates } : action,
+      ),
     });
   };
 
@@ -355,7 +376,7 @@ function WorkflowBuilderRoute() {
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (draggedNode && canvasRef.current) {
-        const rect = canvasRef.current.getBoundingClientRect();
+        const _rect = canvasRef.current.getBoundingClientRect();
         const deltaX = e.movementX;
         const deltaY = e.movementY;
         handleNodeDrag(draggedNode, deltaX, deltaY);
@@ -389,11 +410,12 @@ function WorkflowBuilderRoute() {
               </p>
             </div>
             <div className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setShowHistory(!showHistory)}
-              >
-                {showHistory ? <PanelRightClose className="mr-2 h-4 w-4" /> : <PanelRight className="mr-2 h-4 w-4" />}
+              <Button variant="outline" onClick={() => setShowHistory(!showHistory)}>
+                {showHistory ? (
+                  <PanelRightClose className="mr-2 h-4 w-4" />
+                ) : (
+                  <PanelRight className="mr-2 h-4 w-4" />
+                )}
                 {showHistory ? "Hide" : "Show"} History
               </Button>
               <Button
@@ -468,7 +490,9 @@ function WorkflowBuilderRoute() {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <div className="space-y-1">
-                    <Label htmlFor="name" className="text-xs">Name</Label>
+                    <Label htmlFor="name" className="text-xs">
+                      Name
+                    </Label>
                     <Input
                       id="name"
                       value={workflow.name}
@@ -477,20 +501,29 @@ function WorkflowBuilderRoute() {
                     />
                   </div>
                   <div className="space-y-1">
-                    <Label htmlFor="trigger" className="text-xs">Trigger</Label>
-                    <Select value={workflow.trigger} onValueChange={(value) => setWorkflow({ ...workflow, trigger: value })}>
+                    <Label htmlFor="trigger" className="text-xs">
+                      Trigger
+                    </Label>
+                    <Select
+                      value={workflow.trigger}
+                      onValueChange={(value) => setWorkflow({ ...workflow, trigger: value })}
+                    >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
                         {TRIGGERS.map((t) => (
-                          <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                          <SelectItem key={t.value} value={t.value}>
+                            {t.label}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-1">
-                    <Label htmlFor="description" className="text-xs">Description</Label>
+                    <Label htmlFor="description" className="text-xs">
+                      Description
+                    </Label>
                     <Textarea
                       id="description"
                       value={workflow.description}
@@ -503,9 +536,13 @@ function WorkflowBuilderRoute() {
                     <Checkbox
                       id="isActive"
                       checked={workflow.isActive}
-                      onCheckedChange={(checked) => setWorkflow({ ...workflow, isActive: checked as boolean })}
+                      onCheckedChange={(checked) =>
+                        setWorkflow({ ...workflow, isActive: checked as boolean })
+                      }
                     />
-                    <Label htmlFor="isActive" className="text-xs font-normal">Active</Label>
+                    <Label htmlFor="isActive" className="text-xs font-normal">
+                      Active
+                    </Label>
                   </div>
                 </CardContent>
               </Card>
@@ -526,23 +563,24 @@ function WorkflowBuilderRoute() {
                     "trigger",
                     TRIGGER_LABELS[workflow.trigger] || workflow.trigger,
                     "trigger",
-                    <Zap className="h-4 w-4" />
+                    <Zap className="h-4 w-4" />,
                   )}
 
-                  {workflow.conditions.rules.length > 0 && renderCanvasNode(
-                    "conditions",
-                    `${workflow.conditions.rules.length} Conditions (${workflow.conditions.operator.toUpperCase()})`,
-                    "condition",
-                    <GitBranch className="h-4 w-4" />
-                  )}
+                  {workflow.conditions.rules.length > 0 &&
+                    renderCanvasNode(
+                      "conditions",
+                      `${workflow.conditions.rules.length} Conditions (${workflow.conditions.operator.toUpperCase()})`,
+                      "condition",
+                      <GitBranch className="h-4 w-4" />,
+                    )}
 
                   {workflow.actions.map((action, index) =>
                     renderCanvasNode(
                       `action-${index}`,
                       ACTION_TYPES.find((a) => a.value === action.type)?.label || action.type,
                       "action",
-                      <Hammer className="h-4 w-4" />
-                    )
+                      <Hammer className="h-4 w-4" />,
+                    ),
                   )}
 
                   {workflow.conditions.rules.length === 0 && workflow.actions.length === 0 && (
@@ -566,7 +604,7 @@ function WorkflowBuilderRoute() {
                         />
                         {workflow.conditions.rules.length > 0 && (
                           <path
-                            d={`M ${(nodePositions["trigger"]?.x || 50) + 192} ${(nodePositions["trigger"]?.y || 100) + 60} L ${(nodePositions["conditions"]?.x || 50) + 192} ${(nodePositions["conditions"]?.y || 200)}`}
+                            d={`M ${(nodePositions["trigger"]?.x || 50) + 192} ${(nodePositions["trigger"]?.y || 100) + 60} L ${(nodePositions["conditions"]?.x || 50) + 192} ${nodePositions["conditions"]?.y || 200}`}
                             stroke="currentColor"
                             strokeWidth="2"
                             fill="none"
@@ -574,10 +612,11 @@ function WorkflowBuilderRoute() {
                           />
                         )}
                         {workflow.actions.map((_, index) => {
-                          const sourceY = workflow.conditions.rules.length > 0
-                            ? (nodePositions["conditions"]?.y || 200) + 40
-                            : (nodePositions["trigger"]?.y || 100) + 60;
-                          const targetY = (nodePositions[`action-${index}`]?.y || 300 + index * 100);
+                          const sourceY =
+                            workflow.conditions.rules.length > 0
+                              ? (nodePositions["conditions"]?.y || 200) + 40
+                              : (nodePositions["trigger"]?.y || 100) + 60;
+                          const targetY = nodePositions[`action-${index}`]?.y || 300 + index * 100;
                           return (
                             <path
                               key={`edge-${index}`}
@@ -601,9 +640,7 @@ function WorkflowBuilderRoute() {
                     <TabsTrigger value="conditions">
                       Conditions ({workflow.conditions.rules.length})
                     </TabsTrigger>
-                    <TabsTrigger value="actions">
-                      Actions ({workflow.actions.length})
-                    </TabsTrigger>
+                    <TabsTrigger value="actions">Actions ({workflow.actions.length})</TabsTrigger>
                   </TabsList>
                 </div>
 
@@ -644,23 +681,33 @@ function WorkflowBuilderRoute() {
                       {workflow.conditions.rules.map((rule, index) => (
                         <div key={index} className="flex items-center gap-2 rounded border p-2">
                           <GripVertical className="h-3 w-3 cursor-grab text-muted-foreground" />
-                          <Select value={rule.field} onValueChange={(value) => updateCondition(index, { field: value })}>
+                          <Select
+                            value={rule.field}
+                            onValueChange={(value) => updateCondition(index, { field: value })}
+                          >
                             <SelectTrigger className="w-[140px]">
                               <SelectValue placeholder="Field" />
                             </SelectTrigger>
                             <SelectContent>
                               {CONDITION_FIELDS.map((f) => (
-                                <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
+                                <SelectItem key={f.value} value={f.value}>
+                                  {f.label}
+                                </SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
-                          <Select value={rule.operator} onValueChange={(value) => updateCondition(index, { operator: value })}>
+                          <Select
+                            value={rule.operator}
+                            onValueChange={(value) => updateCondition(index, { operator: value })}
+                          >
                             <SelectTrigger className="w-[120px]">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
                               {OPERATORS.map((op) => (
-                                <SelectItem key={op.value} value={op.value}>{op.label}</SelectItem>
+                                <SelectItem key={op.value} value={op.value}>
+                                  {op.label}
+                                </SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
@@ -672,7 +719,12 @@ function WorkflowBuilderRoute() {
                               className="flex-1"
                             />
                           )}
-                          <Button variant="ghost" size="icon" onClick={() => removeCondition(index)} className="h-7 w-7">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => removeCondition(index)}
+                            className="h-7 w-7"
+                          >
                             <Trash2 className="h-3 w-3 text-destructive" />
                           </Button>
                         </div>
@@ -698,21 +750,36 @@ function WorkflowBuilderRoute() {
                       {workflow.actions.map((action, index) => (
                         <div key={index} className="rounded border p-2">
                           <div className="flex items-center justify-between mb-2">
-                            <Select value={action.type} onValueChange={(value) => updateAction(index, { type: value, params: {} })}>
+                            <Select
+                              value={action.type}
+                              onValueChange={(value) =>
+                                updateAction(index, { type: value, params: {} })
+                              }
+                            >
                               <SelectTrigger className="w-[160px]">
                                 <SelectValue />
                               </SelectTrigger>
                               <SelectContent>
                                 {ACTION_TYPES.map((at) => (
-                                  <SelectItem key={at.value} value={at.value}>{at.label}</SelectItem>
+                                  <SelectItem key={at.value} value={at.value}>
+                                    {at.label}
+                                  </SelectItem>
                                 ))}
                               </SelectContent>
                             </Select>
-                            <Button variant="ghost" size="icon" onClick={() => removeAction(index)} className="h-7 w-7">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => removeAction(index)}
+                              className="h-7 w-7"
+                            >
                               <Trash2 className="h-3 w-3 text-destructive" />
                             </Button>
                           </div>
-                          <ActionParamsEditor action={action} onUpdate={(params) => updateAction(index, { params })} />
+                          <ActionParamsEditor
+                            action={action}
+                            onUpdate={(params) => updateAction(index, { params })}
+                          />
                         </div>
                       ))}
                     </div>
@@ -729,9 +796,7 @@ function WorkflowBuilderRoute() {
                 Recent Executions
               </h3>
               {!executionLogs || executionLogs.length === 0 ? (
-                <p className="text-xs text-muted-foreground text-center py-4">
-                  No executions yet
-                </p>
+                <p className="text-xs text-muted-foreground text-center py-4">No executions yet</p>
               ) : (
                 <div className="space-y-2">
                   {executionLogs.map((log: any) => (
@@ -747,9 +812,7 @@ function WorkflowBuilderRoute() {
                       <div className="text-muted-foreground">
                         {new Date(log.executedAt).toLocaleTimeString()} · {log.durationMs}ms
                       </div>
-                      {log.error && (
-                        <p className="text-red-600 mt-1 truncate">{log.error}</p>
-                      )}
+                      {log.error && <p className="text-red-600 mt-1 truncate">{log.error}</p>}
                     </div>
                   ))}
                 </div>
@@ -921,7 +984,9 @@ function ActionParamsEditor({
               checked={(action.params.isPrivate as boolean) ?? true}
               onCheckedChange={(checked) => onUpdate({ isPrivate: checked })}
             />
-            <Label htmlFor="isPrivate" className="text-xs font-normal">Internal note</Label>
+            <Label htmlFor="isPrivate" className="text-xs font-normal">
+              Internal note
+            </Label>
           </div>
         </div>
       );
@@ -974,14 +1039,14 @@ function ActionParamsEditor({
               checked={(action.params.addAttendees as boolean) ?? false}
               onCheckedChange={(checked) => onUpdate({ addAttendees: checked })}
             />
-            <Label htmlFor="addAttendees" className="text-xs font-normal">Add ticket contact as attendee</Label>
+            <Label htmlFor="addAttendees" className="text-xs font-normal">
+              Add ticket contact as attendee
+            </Label>
           </div>
         </div>
       );
 
     default:
-      return (
-        <div className="text-xs text-muted-foreground">No parameters needed.</div>
-      );
+      return <div className="text-xs text-muted-foreground">No parameters needed.</div>;
   }
 }

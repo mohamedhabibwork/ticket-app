@@ -1,12 +1,12 @@
 import crypto from "crypto";
+import { env } from "@ticket-app/env/server";
 
 const ALGORITHM = "aes-256-gcm";
 const IV_LENGTH = 16;
 const KEY_LENGTH = 32;
 
 function getEncryptionKey(): Buffer {
-  const secret =
-    process.env.ENCRYPTION_SECRET || process.env.DATABASE_URL || "default-secret-change-me";
+  const secret = env.ENCRYPTION_SECRET || env.DATABASE_URL || "default-secret-change-me";
   const salt = crypto.createHash("sha256").update("ticket-app-encryption-key-v1").digest();
   return crypto.pbkdf2Sync(secret, salt, 100000, KEY_LENGTH, "sha512");
 }

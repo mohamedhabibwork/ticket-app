@@ -1,6 +1,7 @@
 import { Queue, Worker, Job } from "bullmq";
 import { eq, and, sql } from "drizzle-orm";
 
+import { env } from "@ticket-app/env/server";
 import { db } from "@ticket-app/db";
 import { organizations } from "@ticket-app/db/schema/_organizations";
 import { subscriptions, usageSnapshots, seats } from "@ticket-app/db/schema/_billing";
@@ -8,11 +9,11 @@ import { contacts } from "@ticket-app/db/schema/_contacts";
 import { tickets } from "@ticket-app/db/schema/_tickets";
 import { addNotificationJob, addUsageCheckJob } from "@ticket-app/db/lib/queues";
 
-export const USAGE_CHECK_QUEUE = "billing:usage_check";
+export const USAGE_CHECK_QUEUE = "billing-usage-check";
 
 const connection = {
-  host: process.env.REDIS_URL?.replace("redis://", "").split(":")[0] || "localhost",
-  port: parseInt(process.env.REDIS_URL?.split(":")[2] || "6379"),
+  host: env.REDIS_URL.replace("redis://", "").split(":")[0] || "localhost",
+  port: parseInt(env.REDIS_URL.split(":")[2] || "6379"),
 };
 
 export type UsageCheckJobData = {
@@ -261,7 +262,7 @@ export function createUsageCheckWorker() {
       }
     },
     {
-      connection,
+      connection: getRedis(),
       concurrency: 3,
     },
   );

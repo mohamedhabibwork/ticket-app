@@ -1,0 +1,28 @@
+{
+  "name": "@ticket-app/socket-client",
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./types": {
+      "default": "./src/types.ts"
+    },
+    "./hooks": {
+      "default": "./src/hooks.ts"
+    }
+  },
+  "scripts": {},
+  "dependencies": {
+    "react": "catalog:",
+    "socket.io-client": "^4.8.0"
+  },
+  "devDependencies": {
+    "@ticket-app/config": "workspace:*",
+    "@types/react": "catalog:",
+    "typescript": "^5"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0"
+  }
+}

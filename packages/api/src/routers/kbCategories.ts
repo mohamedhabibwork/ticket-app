@@ -9,9 +9,9 @@ export const kbCategoriesRouter = {
   list: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        parentId: z.number().optional(),
-        isPublished: z.boolean().optional(),
+        organizationId: z.coerce.number(),
+        parentId: z.coerce.number().optional(),
+        isPublished: z.coerce.boolean().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -46,8 +46,8 @@ export const kbCategoriesRouter = {
   get: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        id: z.number(),
+        organizationId: z.coerce.number(),
+        id: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -70,7 +70,7 @@ export const kbCategoriesRouter = {
   getBySlug: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         slug: z.string(),
       }),
     )
@@ -94,16 +94,16 @@ export const kbCategoriesRouter = {
   create: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        parentId: z.number().optional(),
+        organizationId: z.coerce.number(),
+        parentId: z.coerce.number().optional(),
         name: z.string().min(1).max(150),
         nameAr: z.string().max(150).optional(),
         slug: z.string().min(1).max(200),
         description: z.string().optional(),
         icon: z.string().max(100).optional(),
-        orderBy: z.number().default(0),
-        isPublished: z.boolean().default(false),
-        createdBy: z.number().optional(),
+        orderBy: z.coerce.number().default(0),
+        isPublished: z.coerce.boolean().default(false),
+        createdBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -129,17 +129,17 @@ export const kbCategoriesRouter = {
   update: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        id: z.number(),
-        parentId: z.number().nullable().optional(),
+        organizationId: z.coerce.number(),
+        id: z.coerce.number(),
+        parentId: z.coerce.number().nullable().optional(),
         name: z.string().min(1).max(150).optional(),
         nameAr: z.string().max(150).optional(),
         slug: z.string().min(1).max(200).optional(),
         description: z.string().optional(),
         icon: z.string().max(100).optional(),
-        orderBy: z.number().optional(),
-        isPublished: z.boolean().optional(),
-        updatedBy: z.number().optional(),
+        orderBy: z.coerce.number().optional(),
+        isPublished: z.coerce.boolean().optional(),
+        updatedBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -167,9 +167,9 @@ export const kbCategoriesRouter = {
   delete: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        id: z.number(),
-        deletedBy: z.number(),
+        organizationId: z.coerce.number(),
+        id: z.coerce.number(),
+        deletedBy: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {

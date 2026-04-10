@@ -1,8 +1,6 @@
 import {
   pgTable,
   bigint,
-  boolean,
-  integer,
   jsonb,
   text,
   timestamp,
@@ -23,8 +21,9 @@ export const invoices = pgTable(
     organizationId: bigint("organization_id", { mode: "number" })
       .references(() => organizations.id)
       .notNull(),
-    subscriptionId: bigint("subscription_id", { mode: "number" })
-      .references(() => subscriptions.id),
+    subscriptionId: bigint("subscription_id", { mode: "number" }).references(
+      () => subscriptions.id,
+    ),
     number: varchar("number", { length: 50 }).notNull().unique(),
     status: varchar("status", { length: 30 }).default("draft").notNull(),
     currency: varchar("currency", { length: 3 }).default("USD").notNull(),
@@ -46,7 +45,7 @@ export const invoices = pgTable(
     orgNumberUnique: unique().on(table.organizationId, table.number),
     subscriptionIdx: index("invoices_subscription_idx").on(table.subscriptionId),
     statusIdx: index("invoices_status_idx").on(table.status),
-  })
+  }),
 );
 
 export const invoiceItems = pgTable(
@@ -65,7 +64,7 @@ export const invoiceItems = pgTable(
   },
   (table) => ({
     invoiceIdx: index("invoice_items_invoice_idx").on(table.invoiceId),
-  })
+  }),
 );
 
 export const payments = pgTable(
@@ -90,7 +89,7 @@ export const payments = pgTable(
   (table) => ({
     invoiceIdx: index("payments_invoice_idx").on(table.invoiceId),
     gatewayIdx: index("payments_gateway_idx").on(table.gateway, table.gatewayTransactionId),
-  })
+  }),
 );
 
 export const invoicesRelations = relations(invoices, ({ one, many }) => ({

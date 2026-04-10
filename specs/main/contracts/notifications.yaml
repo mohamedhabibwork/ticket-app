@@ -1,0 +1,134 @@
+openapi: 3.1.0
+info:
+  title: Notification Socket Events
+  version: 1.0.0
+  description: WebSocket events for real-time notifications using Bun WebSocket
+
+channels:
+  user/{userId}:
+    subscribe:
+      operationId: subscribeToUserNotifications
+      summary: Subscribe to user-specific notification channel
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: number
+      messages:
+        - name: notification
+          payload:
+            $ref: "#/components/schemas/notification"
+        - name: notification_read
+          payload:
+            $ref: "#/components/schemas/notificationRead"
+        - name: mark_read_ack
+          payload:
+            $ref: "#/components/schemas/markReadAck"
+        - name: mark_all_read_ack
+          payload:
+            $ref: "#/components/schemas/markAllReadAck"
+
+components:
+  schemas:
+    notification:
+      type: object
+      required: [id, type, title, body, organizationId, createdAt, read]
+      properties:
+        id:
+          type: string
+          description: Unique notification identifier
+        type:
+          type: string
+          enum: [ticket_assigned, ticket_updated, mention, system]
+          description: Type of notification
+        title:
+          type: string
+          description: Notification title
+        body:
+          type: string
+          description: Notification body text
+        ticketId:
+          type: number
+          description: Associated ticket ID
+          nullable: true
+        userId:
+          type: number
+          description: Target user ID for the notification
+          nullable: true
+        organizationId:
+          type: number
+          description: Organization ID
+        createdAt:
+          type: string
+          format: date-time
+          description: Notification creation timestamp
+        read:
+          type: boolean
+          description: Whether notification has been read
+        data:
+          type: object
+          description: Additional notification data
+          nullable: true
+          additionalProperties: true
+
+    notificationRead:
+      type: object
+      required: [notificationId, userId]
+      properties:
+        notificationId:
+          type: string
+          description: ID of the notification that was read
+        userId:
+          type: number
+          description: ID of the user who read the notification
+
+    markReadAck:
+      type: object
+      required: [notificationId, success]
+      properties:
+        notificationId:
+          type: string
+          description: ID of the notification
+        success:
+          type: boolean
+          description: Whether mark as read was successful
+
+    markAllReadAck:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Whether mark all as read was successful
+        count:
+          type: number
+          description: Number of notifications marked as read
+          nullable: true
+
+socketio:
+  clientEvents:
+    mark_read:
+      payload:
+        type: object
+        required: [notificationId]
+        properties:
+          notificationId:
+            type: string
+    mark_all_read:
+      payload:
+        type: object
+        properties: {}
+
+  serverEvents:
+    notification:
+      payload:
+        $ref: "#/components/schemas/notification"
+    notification_read:
+      payload:
+        $ref: "#/components/schemas/notificationRead"
+    mark_read_ack:
+      payload:
+        $ref: "#/components/schemas/markReadAck"
+    mark_all_read_ack:
+      payload:
+        $ref: "#/components/schemas/markAllReadAck"

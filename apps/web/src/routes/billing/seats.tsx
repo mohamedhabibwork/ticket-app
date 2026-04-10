@@ -2,12 +2,27 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { orpc } from "@/utils/orpc";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@ticket-app/ui/components/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@ticket-app/ui/components/card";
 import { Button } from "@ticket-app/ui/components/button";
 import { Badge } from "@ticket-app/ui/components/badge";
 import { Input } from "@ticket-app/ui/components/input";
 import { Label } from "@ticket-app/ui/components/label";
-import { ArrowLeft, Users, UserPlus, Mail, Clock, X, ArrowUpRight, AlertTriangle } from "lucide-react";
+import {
+  ArrowLeft,
+  Users,
+  UserPlus,
+  Mail,
+  Clock,
+  X,
+  ArrowUpRight,
+  AlertTriangle,
+} from "lucide-react";
 
 interface SeatUser {
   id: number;
@@ -138,7 +153,7 @@ export default function SeatManagementPage() {
   };
 
   const currentPlan = subscription?.plan?.slug || "free";
-  const currentPlanLimits = planLimits[currentPlan] || planLimits.free;
+  const _currentPlanLimits = planLimits[currentPlan] || planLimits.free;
 
   const formatLastActive = (dateString?: string) => {
     if (!dateString) return "Never";
@@ -168,9 +183,7 @@ export default function SeatManagementPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">Seat Management</h1>
-            <p className="text-muted-foreground mt-1">
-              Manage your team's seats and invitations
-            </p>
+            <p className="text-muted-foreground mt-1">Manage your team's seats and invitations</p>
           </div>
           <Button asChild>
             <Link to="/billing/upgrade">
@@ -186,9 +199,7 @@ export default function SeatManagementPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-sm font-medium text-muted-foreground mb-1">
-                  Active Users
-                </div>
+                <div className="text-sm font-medium text-muted-foreground mb-1">Active Users</div>
                 <div className="text-2xl font-bold">
                   {agentCount} {isUnlimited ? "" : `/ ${maxAgents}`}
                 </div>
@@ -211,9 +222,7 @@ export default function SeatManagementPage() {
                 <div className="text-sm font-medium text-muted-foreground mb-1">
                   Available Seats
                 </div>
-                <div className="text-2xl font-bold">
-                  {isUnlimited ? "∞" : seatsAvailable}
-                </div>
+                <div className="text-2xl font-bold">{isUnlimited ? "∞" : seatsAvailable}</div>
               </div>
               <UserPlus className="h-8 w-8 text-muted-foreground opacity-50" />
             </div>
@@ -236,9 +245,7 @@ export default function SeatManagementPage() {
               </div>
               <Mail className="h-8 w-8 text-muted-foreground opacity-50" />
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Invited but not yet accepted
-            </p>
+            <p className="text-xs text-muted-foreground mt-1">Invited but not yet accepted</p>
           </CardContent>
         </Card>
       </div>
@@ -248,16 +255,10 @@ export default function SeatManagementPage() {
           <div className="flex items-center justify-between">
             <div>
               <CardTitle>Team Members</CardTitle>
-              <CardDescription>
-                Manage who has access to your support workspace
-              </CardDescription>
+              <CardDescription>Manage who has access to your support workspace</CardDescription>
             </div>
             <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                onClick={() => setIsInviteOpen(true)}
-                disabled={isAtLimit}
-              >
+              <Button variant="outline" onClick={() => setIsInviteOpen(true)} disabled={isAtLimit}>
                 <Mail className="h-4 w-4 mr-2" />
                 Invite User
               </Button>
@@ -287,9 +288,7 @@ export default function SeatManagementPage() {
                       `${seat.user?.firstName || ""} ${seat.user?.lastName || ""}`.trim() ||
                       "Unknown"}
                   </div>
-                  <div className="text-sm text-muted-foreground">
-                    {seat.user?.email || "N/A"}
-                  </div>
+                  <div className="text-sm text-muted-foreground">{seat.user?.email || "N/A"}</div>
                   <div>
                     <Badge variant="secondary">{seat.role || "agent"}</Badge>
                   </div>
@@ -347,7 +346,9 @@ export default function SeatManagementPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => resendInvitationMutation.mutate({ invitationId: invitation.id })}
+                      onClick={() =>
+                        resendInvitationMutation.mutate({ invitationId: invitation.id })
+                      }
                       disabled={resendInvitationMutation.isPending}
                     >
                       Resend
@@ -355,7 +356,9 @@ export default function SeatManagementPage() {
                     <Button
                       variant="ghost"
                       size="icon-sm"
-                      onClick={() => cancelInvitationMutation.mutate({ invitationId: invitation.id })}
+                      onClick={() =>
+                        cancelInvitationMutation.mutate({ invitationId: invitation.id })
+                      }
                       disabled={cancelInvitationMutation.isPending}
                       className="text-destructive"
                     >
@@ -378,8 +381,8 @@ export default function SeatManagementPage() {
                 <div>
                   <p className="font-medium text-amber-800">Seat Limit Reached</p>
                   <p className="text-sm text-amber-700">
-                    You've reached your seat limit of {maxAgents}. Upgrade your plan or remove
-                    users to add more team members.
+                    You've reached your seat limit of {maxAgents}. Upgrade your plan or remove users
+                    to add more team members.
                   </p>
                 </div>
               </div>

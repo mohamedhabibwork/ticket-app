@@ -1,10 +1,12 @@
-# ticket-app Development Guidelines
+﻿# ticket-app Development Guidelines
 
 Auto-generated from all feature plans. Last updated: 2026-04-09
 
 ## Active Technologies
+
 - [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION] + [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION] (main)
 - [if applicable, e.g., PostgreSQL, CoreData, files or N/A] (main)
+- Redis (existing presence, new for Socket.io adapter and pub/sub) (main)
 
 **Backend**: Hono 4.x, ORPC 0.4.x, Drizzle ORM 0.45.x
 **Frontend**: React 19, Vite, TanStack Router, TailwindCSS v4
@@ -63,6 +65,8 @@ bun run check-types
 - Follow existing conventions in codebase
 
 ## Recent Changes
+
+- main: Added TypeScript 5.x
 - main: Added [e.g., Python 3.11, Swift 5.9, Rust 1.75 or NEEDS CLARIFICATION] + [e.g., FastAPI, UIKit, LLVM or NEEDS CLARIFICATION]
 
 - **2026-04-08**: Completed `/speckit.plan` execution for `001-support-platform` feature
@@ -78,6 +82,7 @@ bun run check-types
 **Status**: Planning complete, implementation pending
 
 **Key Artifacts**:
+
 - `specs/001-support-platform/spec.md` - Feature specification
 - `specs/001-support-platform/plan.md` - Implementation plan
 - `specs/001-support-platform/research.md` - Technology decisions

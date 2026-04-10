@@ -25,18 +25,18 @@ export const fileRouter = {
   generateUploadUrl: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         filename: z.string(),
         contentType: z.string(),
-        sizeBytes: z.number(),
+        sizeBytes: z.coerce.number(),
         attachmentType: z
           .enum(["ticket", "kb_article", "contact", "avatar", "brand", "email"])
           .default("ticket"),
-        ticketId: z.number().optional(),
-        ticketMessageId: z.number().optional(),
-        kbArticleId: z.number().optional(),
-        contactId: z.number().optional(),
-        expiresIn: z.number().default(3600),
+        ticketId: z.coerce.number().optional(),
+        ticketMessageId: z.coerce.number().optional(),
+        kbArticleId: z.coerce.number().optional(),
+        contactId: z.coerce.number().optional(),
+        expiresIn: z.coerce.number().default(3600),
       }),
     )
     .handler(async ({ input }) => {
@@ -69,28 +69,28 @@ export const fileRouter = {
         fileKey: z.string(),
         filename: z.string(),
         contentType: z.string(),
-        sizeBytes: z.number(),
-        organizationId: z.number(),
-        ticketId: z.number().optional(),
-        ticketMessageId: z.number().optional(),
-        kbArticleId: z.number().optional(),
-        contactId: z.number().optional(),
-        createdBy: z.number().optional(),
-        isInlineImage: z.boolean().default(false),
-        galleryOrder: z.number().optional(),
+        sizeBytes: z.coerce.number(),
+        organizationId: z.coerce.number(),
+        ticketId: z.coerce.number().optional(),
+        ticketMessageId: z.coerce.number().optional(),
+        kbArticleId: z.coerce.number().optional(),
+        contactId: z.coerce.number().optional(),
+        createdBy: z.coerce.number().optional(),
+        isInlineImage: z.coerce.boolean().default(false),
+        galleryOrder: z.coerce.number().optional(),
       }),
     )
     .output(
       z.object({
-        id: z.number(),
+        id: z.coerce.number(),
         uuid: z.string(),
         filename: z.string(),
         mimeType: z.string(),
-        sizeBytes: z.number(),
+        sizeBytes: z.coerce.number(),
         storageKey: z.string(),
         thumbnailKey: z.string().optional(),
-        imageWidth: z.number().optional(),
-        imageHeight: z.number().optional(),
+        imageWidth: z.coerce.number().optional(),
+        imageHeight: z.coerce.number().optional(),
         publicUrl: z.string(),
       }),
     )
@@ -207,8 +207,8 @@ export const fileRouter = {
   download: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -239,9 +239,9 @@ export const fileRouter = {
   getDownloadUrl: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
-        expiresIn: z.number().default(3600),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
+        expiresIn: z.coerce.number().default(3600),
       }),
     )
     .handler(async ({ input }) => {
@@ -278,8 +278,8 @@ export const fileRouter = {
   delete: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -295,8 +295,8 @@ export const fileRouter = {
   listByTicket: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        ticketId: z.number(),
+        organizationId: z.coerce.number(),
+        ticketId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -306,8 +306,8 @@ export const fileRouter = {
   listByMessage: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        ticketMessageId: z.number(),
+        organizationId: z.coerce.number(),
+        ticketMessageId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -317,8 +317,8 @@ export const fileRouter = {
   get: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -328,8 +328,8 @@ export const fileRouter = {
   getGallery: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        ticketId: z.number(),
+        organizationId: z.coerce.number(),
+        ticketId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -348,9 +348,9 @@ export const fileRouter = {
   updateGalleryOrder: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
-        galleryOrder: z.number(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
+        galleryOrder: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {

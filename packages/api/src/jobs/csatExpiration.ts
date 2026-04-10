@@ -1,15 +1,16 @@
 import { Queue, Worker, Job } from "bullmq";
 import { eq, lt, and, isNull } from "drizzle-orm";
 
+import { env } from "@ticket-app/env/server";
 import { db } from "@ticket-app/db";
 import { csatSurveys } from "@ticket-app/db/schema/_sla";
 import { addNotificationJob } from "@ticket-app/db/lib/queues";
 
-export const CSAT_EXPIRATION_QUEUE = "csat:expiration";
+export const CSAT_EXPIRATION_QUEUE = "csat-expiration";
 
 const connection = {
-  host: process.env.REDIS_URL?.replace("redis://", "").split(":")[0] || "localhost",
-  port: parseInt(process.env.REDIS_URL?.split(":")[2] || "6379"),
+  host: env.REDIS_URL.replace("redis://", "").split(":")[0] || "localhost",
+  port: parseInt(env.REDIS_URL.split(":")[2] || "6379"),
 };
 
 export type CsatExpirationJobData = {
@@ -142,7 +143,7 @@ export function createCsatExpirationWorker() {
       }
     },
     {
-      connection,
+      connection: getRedis(),
       concurrency: 3,
     },
   );

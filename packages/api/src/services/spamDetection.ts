@@ -1,5 +1,6 @@
 import { Worker, Job } from "bullmq";
 import { eq, and, isNull, desc } from "drizzle-orm";
+import { env } from "@ticket-app/env/server";
 import { db } from "@ticket-app/db";
 import { tickets, ticketMessages } from "@ticket-app/db/schema/_tickets";
 import { emailMessages } from "@ticket-app/db/schema/_mailboxes";
@@ -234,10 +235,10 @@ export async function executeSpamCheck(job: Job<SpamCheckJobData>): Promise<void
 }
 
 export function createSpamCheckWorker() {
-  return new Worker<SpamCheckJobData>("spam:check", executeSpamCheck, {
+  return new Worker<SpamCheckJobData>("spam-check", executeSpamCheck, {
     connection: {
-      host: process.env.REDIS_URL?.replace("redis://", "").split(":")[0] || "localhost",
-      port: parseInt(process.env.REDIS_URL?.split(":")[2] || "6379"),
+      host: env.REDIS_URL.replace("redis://", "").split(":")[0] || "localhost",
+      port: parseInt(env.REDIS_URL.split(":")[2] || "6379"),
     },
     concurrency: 5,
   });

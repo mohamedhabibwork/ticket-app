@@ -1,6 +1,6 @@
 import { db } from "@ticket-app/db";
 import { tickets } from "@ticket-app/db/schema";
-import { desc, eq, sql } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 
 export async function generateReferenceNumber(organizationId: number): Promise<string> {
   const year = new Date().getFullYear();
@@ -10,7 +10,7 @@ export async function generateReferenceNumber(organizationId: number): Promise<s
     .select({ count: sql<number>`COUNT(*)::int` })
     .from(tickets)
     .where(
-      sql`${tickets.organizationId} = ${organizationId} AND ${tickets.referenceNumber} LIKE ${prefix}%`
+      sql`${tickets.organizationId} = ${organizationId} AND ${tickets.referenceNumber} LIKE ${prefix}%`,
     );
 
   const sequence = (result[0]?.count ?? 0) + 1;

@@ -2,9 +2,9 @@ import { useState, useEffect } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@ticket-app/ui/components/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
 import { Checkbox } from "@ticket-app/ui/components/checkbox";
-import { Label } from "@ticket-app/ui/components/label";
+
 import { orpc } from "@/utils/orpc";
 import { ArrowLeft, Shield, Save, Lock, AlertTriangle } from "lucide-react";
 
@@ -83,27 +83,55 @@ const PERMISSION_GROUPS = [
 const SYSTEM_ROLE_PERMISSIONS: Record<string, string[]> = {
   owner: ["*"],
   admin: [
-    "tickets.view", "tickets.create", "tickets.edit", "tickets.delete", "tickets.assign",
-    "contacts.view", "contacts.create", "contacts.edit", "contacts.delete",
-    "users.view", "users.invite", "users.edit", "users.delete",
-    "reports.view", "reports.export",
-    "settings.view", "settings.edit",
-    "mailboxes.view", "mailboxes.configure",
-    "workflows.view", "workflows.create", "workflows.edit", "workflows.delete",
-    "billing.view", "billing.manage",
+    "tickets.view",
+    "tickets.create",
+    "tickets.edit",
+    "tickets.delete",
+    "tickets.assign",
+    "contacts.view",
+    "contacts.create",
+    "contacts.edit",
+    "contacts.delete",
+    "users.view",
+    "users.invite",
+    "users.edit",
+    "users.delete",
+    "reports.view",
+    "reports.export",
+    "settings.view",
+    "settings.edit",
+    "mailboxes.view",
+    "mailboxes.configure",
+    "workflows.view",
+    "workflows.create",
+    "workflows.edit",
+    "workflows.delete",
+    "billing.view",
+    "billing.manage",
   ],
   supervisor: [
-    "tickets.view", "tickets.create", "tickets.edit", "tickets.assign",
-    "contacts.view", "contacts.create", "contacts.edit",
+    "tickets.view",
+    "tickets.create",
+    "tickets.edit",
+    "tickets.assign",
+    "contacts.view",
+    "contacts.create",
+    "contacts.edit",
     "users.view",
-    "reports.view", "reports.export",
+    "reports.view",
+    "reports.export",
     "settings.view",
     "mailboxes.view",
-    "workflows.view", "workflows.create", "workflows.edit",
+    "workflows.view",
+    "workflows.create",
+    "workflows.edit",
   ],
   agent: [
-    "tickets.view", "tickets.create", "tickets.edit",
-    "contacts.view", "contacts.create",
+    "tickets.view",
+    "tickets.create",
+    "tickets.edit",
+    "contacts.view",
+    "contacts.create",
     "reports.view",
     "settings.view",
     "mailboxes.view",
@@ -128,7 +156,11 @@ function RolePermissionsRoute() {
   const [selectedPermissions, setSelectedPermissions] = useState<Set<string>>(new Set());
   const [hasChanges, setHasChanges] = useState(false);
 
-  const { data: role, isLoading, refetch } = useQuery({
+  const {
+    data: role,
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ["role", roleId],
     queryFn: () => orpc.users.getRole.query({ id: roleId }),
     enabled: !isNaN(roleId),
@@ -141,14 +173,12 @@ function RolePermissionsRoute() {
         setHasChanges(false);
         queryClient.invalidateQueries({ queryKey: ["roles"] });
       },
-    })
+    }),
   );
 
   useEffect(() => {
     if (role?.permissions) {
-      const currentPermissions = new Set(
-        role.permissions.map((rp: any) => rp.permission.key)
-      );
+      const currentPermissions = new Set(role.permissions.map((rp: any) => rp.permission.key));
       setSelectedPermissions(currentPermissions);
     }
   }, [role]);
@@ -248,8 +278,8 @@ function RolePermissionsRoute() {
               <div>
                 <h3 className="font-medium text-amber-900">Inherited Permissions</h3>
                 <p className="text-sm text-amber-700 mt-1">
-                  This system role inherits permissions from the platform configuration.
-                  These permissions are automatically managed and cannot be changed.
+                  This system role inherits permissions from the platform configuration. These
+                  permissions are automatically managed and cannot be changed.
                 </p>
               </div>
             </div>
@@ -258,8 +288,13 @@ function RolePermissionsRoute() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {PERMISSION_GROUPS.map((group) => {
-            const inheritedInGroup = hasInheritedPermissions === false || inheritedPermissions.includes("*") || group.permissions.every(p => inheritedPermissions.includes(p.key));
-            const allInherited = inheritedPermissions.includes("*") || group.permissions.every(p => inheritedPermissions.includes(p.key));
+            const _inheritedInGroup =
+              hasInheritedPermissions === false ||
+              inheritedPermissions.includes("*") ||
+              group.permissions.every((p) => inheritedPermissions.includes(p.key));
+            const allInherited =
+              inheritedPermissions.includes("*") ||
+              group.permissions.every((p) => inheritedPermissions.includes(p.key));
 
             return (
               <Card key={group.name} className={allInherited ? "opacity-60" : ""}>
@@ -272,7 +307,10 @@ function RolePermissionsRoute() {
                 <CardContent>
                   <div className="space-y-2">
                     {group.permissions.map((permission) => {
-                      const isInherited = hasInheritedPermissions === false || inheritedPermissions.includes("*") || inheritedPermissions.includes(permission.key);
+                      const isInherited =
+                        hasInheritedPermissions === false ||
+                        inheritedPermissions.includes("*") ||
+                        inheritedPermissions.includes(permission.key);
                       return (
                         <label
                           key={permission.key}
@@ -286,9 +324,7 @@ function RolePermissionsRoute() {
                           />
                           <span className="text-sm">{permission.label}</span>
                           {isInherited && (
-                            <span className="text-xs text-muted-foreground ml-auto">
-                              inherited
-                            </span>
+                            <span className="text-xs text-muted-foreground ml-auto">inherited</span>
                           )}
                         </label>
                       );
@@ -318,9 +354,7 @@ function RolePermissionsRoute() {
               <Shield className="h-8 w-8" />
               {role.name} Permissions
             </h1>
-            <p className="text-muted-foreground mt-1">
-              Configure what this role can access and do
-            </p>
+            <p className="text-muted-foreground mt-1">Configure what this role can access and do</p>
           </div>
           {hasChanges && (
             <Button onClick={handleSave} disabled={updatePermissionsMutation.isPending}>
@@ -360,9 +394,7 @@ function RolePermissionsRoute() {
                       onCheckedChange={() => togglePermission(permission.key)}
                     />
                     <span className="text-sm">{permission.label}</span>
-                    <code className="text-xs text-muted-foreground ml-auto">
-                      {permission.key}
-                    </code>
+                    <code className="text-xs text-muted-foreground ml-auto">{permission.key}</code>
                   </label>
                 ))}
               </div>

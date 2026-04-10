@@ -1,5 +1,3 @@
-import { db } from "../index";
-
 export const LOOKUP_TYPES = {
   TICKET_STATUS: "ticket_status",
   TICKET_PRIORITY: "ticket_priority",
@@ -20,7 +18,14 @@ export const LOOKUP_TYPES = {
 
 export const LOOKUP_SEEDS = {
   ticket_status: [
-    { name: "open", label: "Open", labelAr: "مفتوح", color: "#3B82F6", orderBy: 1, isDefault: true },
+    {
+      name: "open",
+      label: "Open",
+      labelAr: "مفتوح",
+      color: "#3B82F6",
+      orderBy: 1,
+      isDefault: true,
+    },
     { name: "pending", label: "Pending", labelAr: "معلق", color: "#F59E0B", orderBy: 2 },
     { name: "on_hold", label: "On Hold", labelAr: "في الانتظار", color: "#6366F1", orderBy: 3 },
     { name: "resolved", label: "Resolved", labelAr: "تم الحل", color: "#10B981", orderBy: 4 },
@@ -28,30 +33,77 @@ export const LOOKUP_SEEDS = {
   ],
   ticket_priority: [
     { name: "low", label: "Low", labelAr: "منخفض", color: "#10B981", orderBy: 1 },
-    { name: "normal", label: "Normal", labelAr: "عادي", color: "#3B82F6", orderBy: 2, isDefault: true },
+    {
+      name: "normal",
+      label: "Normal",
+      labelAr: "عادي",
+      color: "#3B82F6",
+      orderBy: 2,
+      isDefault: true,
+    },
     { name: "high", label: "High", labelAr: "عالي", color: "#F59E0B", orderBy: 3 },
     { name: "urgent", label: "Urgent", labelAr: "عاجل", color: "#EF4444", orderBy: 4 },
     { name: "critical", label: "Critical", labelAr: "حرج", color: "#991B1B", orderBy: 5 },
   ],
   task_status: [
-    { name: "todo", label: "To Do", labelAr: "للقيام", color: "#6B7280", orderBy: 1, isDefault: true },
-    { name: "in_progress", label: "In Progress", labelAr: "قيد التنفيذ", color: "#3B82F6", orderBy: 2 },
+    {
+      name: "todo",
+      label: "To Do",
+      labelAr: "للقيام",
+      color: "#6B7280",
+      orderBy: 1,
+      isDefault: true,
+    },
+    {
+      name: "in_progress",
+      label: "In Progress",
+      labelAr: "قيد التنفيذ",
+      color: "#3B82F6",
+      orderBy: 2,
+    },
     { name: "done", label: "Done", labelAr: "تم", color: "#10B981", orderBy: 3 },
   ],
   task_priority: [
     { name: "low", label: "Low", labelAr: "منخفض", color: "#10B981", orderBy: 1 },
-    { name: "medium", label: "Medium", labelAr: "متوسط", color: "#F59E0B", orderBy: 2, isDefault: true },
+    {
+      name: "medium",
+      label: "Medium",
+      labelAr: "متوسط",
+      color: "#F59E0B",
+      orderBy: 2,
+      isDefault: true,
+    },
     { name: "high", label: "High", labelAr: "عالي", color: "#EF4444", orderBy: 3 },
   ],
   article_status: [
     { name: "draft", label: "Draft", labelAr: "مسودة", color: "#6B7280", orderBy: 1 },
-    { name: "published", label: "Published", labelAr: "منشور", color: "#10B981", orderBy: 2, isDefault: true },
+    {
+      name: "published",
+      label: "Published",
+      labelAr: "منشور",
+      color: "#10B981",
+      orderBy: 2,
+      isDefault: true,
+    },
     { name: "archived", label: "Archived", labelAr: "مؤرشف", color: "#6B7280", orderBy: 3 },
   ],
   channel_type: [
-    { name: "email", label: "Email", labelAr: "البريد الإلكتروني", icon: "mail", orderBy: 1, isDefault: true },
+    {
+      name: "email",
+      label: "Email",
+      labelAr: "البريد الإلكتروني",
+      icon: "mail",
+      orderBy: 1,
+      isDefault: true,
+    },
     { name: "web", label: "Web Form", labelAr: "نموذج الويب", icon: "globe", orderBy: 2 },
-    { name: "chat", label: "Live Chat", labelAr: "الدردشة المباشرة", icon: "message-circle", orderBy: 3 },
+    {
+      name: "chat",
+      label: "Live Chat",
+      labelAr: "الدردشة المباشرة",
+      icon: "message-circle",
+      orderBy: 3,
+    },
     { name: "api", label: "API", labelAr: "واجهة برمجة", icon: "code", orderBy: 4 },
     { name: "twitter", label: "Twitter/X", labelAr: "تويتر", icon: "twitter", orderBy: 5 },
     { name: "facebook", label: "Facebook", labelAr: "فيسبوك", icon: "facebook", orderBy: 6 },
@@ -136,7 +188,7 @@ export const LOOKUP_SEEDS = {
 export async function seedLookups() {
   console.log("Seeding lookup types and lookups...");
 
-  for (const [typeName, lookups] of Object.entries(LOOKUP_SEEDS)) {
+  for (const [typeName] of Object.entries(LOOKUP_SEEDS)) {
     console.log(`  Seeding ${typeName}...`);
   }
 

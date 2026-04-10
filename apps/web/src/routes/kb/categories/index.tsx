@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Button } from "@ticket-app/ui/components/button";
 import { Input } from "@ticket-app/ui/components/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
+import { Card, CardContent } from "@ticket-app/ui/components/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,7 +29,7 @@ function KbCategoriesRoute() {
   const { data: categories, isLoading } = useQuery(
     orpc.kbCategories.list.queryOptions({
       organizationId,
-    })
+    }),
   );
 
   const createMutation = useMutation(
@@ -42,7 +42,7 @@ function KbCategoriesRoute() {
       onError: (error) => {
         toast.error(`Failed to create category: ${error.message}`);
       },
-    })
+    }),
   );
 
   const updateMutation = useMutation(
@@ -55,7 +55,7 @@ function KbCategoriesRoute() {
       onError: (error) => {
         toast.error(`Failed to update category: ${error.message}`);
       },
-    })
+    }),
   );
 
   const deleteMutation = useMutation(
@@ -67,7 +67,7 @@ function KbCategoriesRoute() {
       onError: (error) => {
         toast.error(`Failed to delete category: ${error.message}`);
       },
-    })
+    }),
   );
 
   const handleCreate = (e: React.FormEvent) => {
@@ -77,7 +77,10 @@ function KbCategoriesRoute() {
     createMutation.mutate({
       organizationId,
       name: newCategoryName.trim(),
-      slug: newCategoryName.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+      slug: newCategoryName
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-"),
     });
   };
 
@@ -150,7 +153,9 @@ function KbCategoriesRoute() {
                   <div className="flex gap-2">
                     <Input
                       value={editingCategory.name}
-                      onChange={(e) => setEditingCategory({ ...editingCategory, name: e.target.value })}
+                      onChange={(e) =>
+                        setEditingCategory({ ...editingCategory, name: e.target.value })
+                      }
                       className="flex-1"
                       autoFocus
                     />
@@ -163,7 +168,11 @@ function KbCategoriesRoute() {
                   </div>
                 ) : (
                   <div className="flex items-start justify-between">
-                    <Link to="/kb/categories/$id" params={{ id: String(category.id) }} className="flex-1">
+                    <Link
+                      to="/kb/categories/$id"
+                      params={{ id: String(category.id) }}
+                      className="flex-1"
+                    >
                       <div className="flex items-center gap-3">
                         <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
                           <FolderOpen className="h-5 w-5 text-primary" />
@@ -183,7 +192,11 @@ function KbCategoriesRoute() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => setEditingCategory({ id: category.id, name: category.name })}>
+                        <DropdownMenuItem
+                          onClick={() =>
+                            setEditingCategory({ id: category.id, name: category.name })
+                          }
+                        >
                           <Edit className="h-4 w-4 mr-2" />
                           Edit
                         </DropdownMenuItem>
@@ -207,9 +220,7 @@ function KbCategoriesRoute() {
           <CardContent className="py-12 text-center">
             <FolderOpen className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-30" />
             <p className="text-muted-foreground">No categories found</p>
-            <p className="text-sm text-muted-foreground mt-1">
-              Create your first category above
-            </p>
+            <p className="text-sm text-muted-foreground mt-1">Create your first category above</p>
           </CardContent>
         </Card>
       )}

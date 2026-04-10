@@ -14,7 +14,7 @@ import { env } from "@ticket-app/env/server";
 import { createAmazonClient } from "@ticket-app/shared/amazon-sp-api";
 import { decryptToken } from "@ticket-app/shared/crypto";
 
-const AMAZON_SYNC_QUEUE = `${env.QUEUE_PREFIX}:amazon-sync`;
+const AMAZON_SYNC_QUEUE = `${env.QUEUE_PREFIX}-amazon-sync`;
 
 export interface AmazonSyncJobData {
   type: "sync-messages" | "sync-orders";

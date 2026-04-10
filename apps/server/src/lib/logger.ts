@@ -1,175 +1,124 @@
-import { logger as honoLogger } from "hono/logger";
+import { Hono } from "hono";
+import type { MiddlewareHandler } from "hono/types";
+import pino from "pino";
+import { env } from "@ticket-app/env/server";
 
-export type LogLevel = "debug" | "info" | "warn" | "error";
+export type LogLevel = "trace" | "debug" | "info" | "warn" | "error" | "fatal";
 
-export interface LogEntry {
-  timestamp: string;
-  level: LogLevel;
-  message: string;
-  context?: Record<string, unknown>;
-  error?: {
-    message: string;
-    stack?: string;
-    name: string;
-  };
-  requestId?: string;
-  userId?: string;
-  organizationId?: string;
-  duration?: number;
-}
+const level = (env.LOG_LEVEL as LogLevel) || "info";
 
-export interface Logger {
-  debug(message: string, context?: Record<string, unknown>): void;
-  info(message: string, context?: Record<string, unknown>): void;
-  warn(message: string, context?: Record<string, unknown>): void;
-  error(message: string, context?: Record<string, unknown>): void;
-}
-
-const LOG_LEVELS: Record<LogLevel, number> = {
-  debug: 0,
-  info: 1,
-  warn: 2,
-  error: 3,
-};
-
-class StructuredLogger implements Logger {
-  private minLevel: LogLevel;
-
-  constructor(minLevel: LogLevel = "info") {
-    this.minLevel = minLevel;
-  }
-
-  private shouldLog(level: LogLevel): boolean {
-    return LOG_LEVELS[level] >= LOG_LEVELS[this.minLevel];
-  }
-
-  private formatLog(entry: LogEntry): string {
-    return JSON.stringify(entry);
-  }
-
-  protected log(level: LogLevel, message: string, context?: Record<string, unknown>): void {
-    if (!this.shouldLog(level)) return;
-
-    const entry: LogEntry = {
-      timestamp: new Date().toISOString(),
-      level,
-      message,
-      context,
-    };
-
-    const formatted = this.formatLog(entry);
-
-    switch (level) {
-      case "error":
-        console.error(formatted);
-        break;
-      case "warn":
-        console.warn(formatted);
-        break;
-      default:
-        console.log(formatted);
-    }
-  }
-
-  debug(message: string, context?: Record<string, unknown>): void {
-    this.log("debug", message, context);
-  }
-
-  info(message: string, context?: Record<string, unknown>): void {
-    this.log("info", message, context);
-  }
-
-  warn(message: string, context?: Record<string, unknown>): void {
-    this.log("warn", message, context);
-  }
-
-  error(message: string, context?: Record<string, unknown>): void {
-    this.log("error", message, context);
-  }
-
-  withRequestContext(requestId: string, userId?: string, organizationId?: string): Logger {
-    return new RequestContextLogger(this, { requestId, userId, organizationId });
-  }
-
-  withDuration(duration: number): Logger {
-    return new DurationLogger(this, duration);
-  }
-}
-
-class RequestContextLogger implements Logger {
-  constructor(
-    private parent: StructuredLogger,
-    private context: { requestId: string; userId?: string; organizationId?: string }
-  ) {}
-
-  private log(level: LogLevel, message: string, context?: Record<string, unknown>): void {
-    this.parent.log(level, message, {
-      ...context,
-      requestId: this.context.requestId,
-      userId: this.context.userId,
-      organizationId: this.context.organizationId,
-    });
-  }
-
-  debug(message: string, context?: Record<string, unknown>): void {
-    this.log("debug", message, context);
-  }
-
-  info(message: string, context?: Record<string, unknown>): void {
-    this.log("info", message, context);
-  }
-
-  warn(message: string, context?: Record<string, unknown>): void {
-    this.log("warn", message, context);
-  }
-
-  error(message: string, context?: Record<string, unknown>): void {
-    this.log("error", message, context);
-  }
-}
-
-class DurationLogger implements Logger {
-  constructor(private parent: StructuredLogger, private duration: number) {}
-
-  private log(level: LogLevel, message: string, context?: Record<string, unknown>): void {
-    this.parent.log(level, message, { ...context, duration: this.duration });
-  }
-
-  debug(message: string, context?: Record<string, unknown>): void {
-    this.log("debug", message, context);
-  }
-
-  info(message: string, context?: Record<string, unknown>): void {
-    this.log("info", message, context);
-  }
-
-  warn(message: string, context?: Record<string, unknown>): void {
-    this.log("warn", message, context);
-  }
-
-  error(message: string, context?: Record<string, unknown>): void {
-    this.log("error", message, context);
-  }
-}
-
-export const logger = new StructuredLogger(
-  (process.env.LOG_LEVEL as LogLevel) || ("info" as LogLevel)
-);
-
-export const requestLogger = honoLogger((message, ...rest) => {
-  const requestInfo = (rest[0] || {}) as { method?: string; path?: string; status?: number };
-  logger.info(message, {
-    method: requestInfo.method,
-    path: requestInfo.path,
-    status: requestInfo.status,
-  });
+export const logger = pino({
+  level,
+  base: {
+    env: env.NODE_ENV || "development",
+  },
+  timestamp: pino.stdTimeFunctions.isoTime,
+  formatters: {
+    level: (label: string) => ({ level: label }),
+  },
 });
 
-export function createChildLogger(context: Record<string, unknown>): Logger {
-  return {
-    debug: (msg: string, ctx?: Record<string, unknown>) => logger.debug(msg, { ...context, ...ctx }),
-    info: (msg: string, ctx?: Record<string, unknown>) => logger.info(msg, { ...context, ...ctx }),
-    warn: (msg: string, ctx?: Record<string, unknown>) => logger.warn(msg, { ...context, ...ctx }),
-    error: (msg: string, ctx?: Record<string, unknown>) => logger.error(msg, { ...context, ...ctx }),
+export function withRequestContext(requestId: string, userId?: string, organizationId?: string) {
+  return logger.child({ requestId, userId, organizationId });
+}
+
+export function withDuration(duration: number) {
+  return logger.child({ duration });
+}
+
+export function createChildLogger(bindings: Record<string, unknown>) {
+  return logger.child(bindings);
+}
+
+export function createRequestLogger(): MiddlewareHandler {
+  return async (c, next) => {
+    const start = Date.now();
+    const requestId = c.get("requestId") || crypto.randomUUID();
+
+    c.set("requestId", requestId);
+
+    let status = 0;
+
+    try {
+      await next();
+      status = c.res.status;
+    } catch (err) {
+      logger.error(
+        {
+          requestId,
+          method: c.req.method,
+          path: c.req.path,
+          err,
+        },
+        "Request error",
+      );
+      throw err;
+    } finally {
+      const duration = Date.now() - start;
+      const logLevel = status >= 500 ? "error" : status >= 400 ? "warn" : "info";
+
+      logger[logLevel](
+        {
+          requestId,
+          method: c.req.method,
+          path: c.req.path,
+          status,
+          duration,
+          userId: c.get("userId"),
+          organizationId: c.get("organizationId"),
+        },
+        `${c.req.method} ${c.req.path} ${status} - ${duration}ms`,
+      );
+    }
   };
+}
+
+export const requestLogger = createRequestLogger();
+
+export interface SocketLogContext {
+  socketId?: string;
+  userId?: number;
+  organizationId?: number;
+  room?: string;
+  event?: string;
+}
+
+export function createSocketLogger() {
+  const socketLog = logger.child({ type: "socket" });
+
+  return {
+    connection: (socketId: string, userId: number, organizationId: number) => {
+      socketLog.info({ socketId, userId, organizationId, event: "connection" }, "Socket connected");
+    },
+    disconnection: (socketId: string, userId: number, reason: string) => {
+      socketLog.info({ socketId, userId, reason, event: "disconnection" }, "Socket disconnected");
+    },
+    roomJoin: (socketId: string, userId: number, room: string) => {
+      socketLog.debug({ socketId, userId, room, event: "room_join" }, "Socket joined room");
+    },
+    roomLeave: (socketId: string, userId: number, room: string) => {
+      socketLog.debug({ socketId, userId, room, event: "room_leave" }, "Socket left room");
+    },
+    eventEmit: (socketId: string, userId: number, event: string, room: string) => {
+      socketLog.debug(
+        { socketId, userId, eventName: event, room, event: "emit" },
+        "Socket event emitted",
+      );
+    },
+    eventReceive: (socketId: string, userId: number, event: string) => {
+      socketLog.debug(
+        { socketId, userId, eventName: event, event: "receive" },
+        "Socket event received",
+      );
+    },
+    error: (socketId: string, userId: number, error: string) => {
+      socketLog.error({ socketId, userId, error, event: "error" }, "Socket error");
+    },
+  };
+}
+
+export const socketLogger = createSocketLogger();
+
+export function setupLoggerMiddleware(app: Hono) {
+  app.use(requestLogger);
 }

@@ -1,5 +1,5 @@
 import { db } from "@ticket-app/db";
-import { emailRoutingRules, mailboxes, teams, tags } from "@ticket-app/db/schema";
+import { emailRoutingRules } from "@ticket-app/db/schema";
 import { eq, and, isNull, asc } from "drizzle-orm";
 
 export interface RoutingContext {
@@ -20,14 +20,12 @@ export interface RoutingResult {
   assignedAgentId?: number;
 }
 
-export async function evaluateRoutingRules(
-  context: RoutingContext
-): Promise<RoutingResult> {
+export async function evaluateRoutingRules(context: RoutingContext): Promise<RoutingResult> {
   const rules = await db.query.emailRoutingRules.findMany({
     where: and(
       eq(emailRoutingRules.organizationId, context.organizationId),
       eq(emailRoutingRules.isActive, true),
-      isNull(emailRoutingRules.deletedAt)
+      isNull(emailRoutingRules.deletedAt),
     ),
     orderBy: [asc(emailRoutingRules.orderBy)],
     with: {
@@ -75,7 +73,7 @@ export async function evaluateRoutingRules(
 
 function evaluateCondition(
   condition: { field: string; operator: string; value: string | string[] },
-  context: RoutingContext
+  context: RoutingContext,
 ): boolean {
   let fieldValue: string | undefined;
 
@@ -135,7 +133,7 @@ function evaluateCondition(
 
 export async function applyRoutingToTicket(
   ticketId: number,
-  routingResult: RoutingResult
+  routingResult: RoutingResult,
 ): Promise<void> {
   const updates: Record<string, any> = {};
 
@@ -152,9 +150,6 @@ export async function applyRoutingToTicket(
   }
 
   if (Object.keys(updates).length > 0) {
-    await db
-      .update(db.query.tickets)
-      .set(updates)
-      .where(eq(db.query.tickets.id, ticketId));
+    await db.update(db.query.tickets).set(updates).where(eq(db.query.tickets.id, ticketId));
   }
 }

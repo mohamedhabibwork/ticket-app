@@ -1,0 +1,228 @@
+openapi: 3.1.0
+info:
+  title: Chat Socket Events
+  version: 1.0.0
+  description: WebSocket events for real-time chat sessions using Bun WebSocket
+
+channels:
+  session/{sessionId}:
+    subscribe:
+      operationId: joinChatSession
+      summary: Join a live chat session
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: number
+      messages:
+        - name: message_received
+          payload:
+            $ref: "#/components/schemas/chatMessage"
+        - name: user_typing
+          payload:
+            $ref: "#/components/schemas/userTyping"
+        - name: messages_read
+          payload:
+            $ref: "#/components/schemas/messagesRead"
+        - name: join_session_ack
+          payload:
+            $ref: "#/components/schemas/joinSessionAck"
+        - name: leave_session_ack
+          payload:
+            $ref: "#/components/schemas/leaveSessionAck"
+        - name: send_message_ack
+          payload:
+            $ref: "#/components/schemas/sendMessageAck"
+
+components:
+  schemas:
+    chatMessage:
+      type: object
+      required: [id, sessionId, authorId, authorName, body, createdAt, read]
+      properties:
+        id:
+          type: number
+          description: Unique message identifier
+        sessionId:
+          type: number
+          description: Chat session ID
+        authorId:
+          type: number
+          description: ID of the message author
+        authorName:
+          type: string
+          description: Display name of the author
+        authorAvatarUrl:
+          type: string
+          description: Avatar URL of the author
+          nullable: true
+        body:
+          type: string
+          description: Message content
+        createdAt:
+          type: string
+          format: date-time
+          description: Message creation timestamp
+        read:
+          type: boolean
+          description: Whether message has been read
+        attachments:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: number
+              url:
+                type: string
+              name:
+                type: string
+              mimeType:
+                type: string
+          description: Message attachments
+          nullable: true
+
+    chatMessageInput:
+      type: object
+      required: [sessionId, body]
+      properties:
+        sessionId:
+          type: number
+          description: Target session ID
+        body:
+          type: string
+          description: Message content
+        tempId:
+          type: string
+          description: Temporary client-generated ID for optimistic updates
+          nullable: true
+
+    userTyping:
+      type: object
+      required: [sessionId, userId, userName, isTyping]
+      properties:
+        sessionId:
+          type: number
+          description: Chat session ID
+        userId:
+          type: number
+          description: ID of the user who is typing
+        userName:
+          type: string
+          description: Display name of the user
+        isTyping:
+          type: boolean
+          description: Whether the user is currently typing
+
+    messagesRead:
+      type: object
+      required: [sessionId, userId]
+      properties:
+        sessionId:
+          type: number
+          description: Chat session ID
+        userId:
+          type: number
+          description: ID of the user who read messages
+        messageId:
+          type: number
+          description: ID of the last read message
+          nullable: true
+
+    joinSessionAck:
+      type: object
+      required: [sessionId, success]
+      properties:
+        sessionId:
+          type: number
+          description: Session ID that was joined
+        success:
+          type: boolean
+          description: Whether join was successful
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/chatMessage"
+          description: Recent messages in the session
+          nullable: true
+
+    leaveSessionAck:
+      type: object
+      required: [sessionId, success]
+      properties:
+        sessionId:
+          type: number
+          description: Session ID that was left
+        success:
+          type: boolean
+          description: Whether leave was successful
+
+    sendMessageAck:
+      type: object
+      required: [sessionId, success]
+      properties:
+        sessionId:
+          type: number
+          description: Session ID
+        success:
+          type: boolean
+          description: Whether send was successful
+        tempId:
+          type: string
+          description: Temporary ID from the client
+          nullable: true
+        message:
+          type: object
+          $ref: "#/components/schemas/chatMessage"
+          description: The正式 message object (if successful)
+          nullable: true
+
+socketio:
+  clientEvents:
+    join_session:
+      payload:
+        type: object
+        required: [sessionId]
+        properties:
+          sessionId:
+            type: number
+    leave_session:
+      payload:
+        type: object
+        required: [sessionId]
+        properties:
+          sessionId:
+            type: number
+    send_message:
+      payload:
+        $ref: "#/components/schemas/chatMessageInput"
+    typing:
+      payload:
+        type: object
+        required: [sessionId, isTyping]
+        properties:
+          sessionId:
+            type: number
+          isTyping:
+            type: boolean
+
+  serverEvents:
+    message_received:
+      payload:
+        $ref: "#/components/schemas/chatMessage"
+    user_typing:
+      payload:
+        $ref: "#/components/schemas/userTyping"
+    messages_read:
+      payload:
+        $ref: "#/components/schemas/messagesRead"
+    join_session_ack:
+      payload:
+        $ref: "#/components/schemas/joinSessionAck"
+    leave_session_ack:
+      payload:
+        $ref: "#/components/schemas/leaveSessionAck"
+    send_message_ack:
+      payload:
+        $ref: "#/components/schemas/sendMessageAck"

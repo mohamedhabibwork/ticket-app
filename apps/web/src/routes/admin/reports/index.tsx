@@ -35,22 +35,19 @@ function ReportsDashboardPage() {
       }),
   });
 
-  const { data: slaCompliance } = useQuery({
+  const { data: _slaCompliance } = useQuery({
     queryKey: ["reports", "slaCompliance", organizationId],
-    queryFn: () =>
-      orpc.reports.getSlaCompliance.query({ organizationId }),
+    queryFn: () => orpc.reports.getSlaCompliance.query({ organizationId }),
   });
 
   const { data: responseTime } = useQuery({
     queryKey: ["reports", "responseTime", organizationId],
-    queryFn: () =>
-      orpc.reports.getResponseTime.query({ organizationId }),
+    queryFn: () => orpc.reports.getResponseTime.query({ organizationId }),
   });
 
   const { data: resolutionRate } = useQuery({
     queryKey: ["reports", "resolutionRate", organizationId],
-    queryFn: () =>
-      orpc.reports.getResolutionRate.query({ organizationId }),
+    queryFn: () => orpc.reports.getResolutionRate.query({ organizationId }),
   });
 
   const dateRangeOptions: { value: DateRange; label: string }[] = [
@@ -152,9 +149,7 @@ function ReportsDashboardPage() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold">Reports Dashboard</h1>
-          <p className="text-muted-foreground mt-1">
-            Overview of support performance metrics
-          </p>
+          <p className="text-muted-foreground mt-1">Overview of support performance metrics</p>
         </div>
 
         <div className="flex gap-2">
@@ -181,9 +176,7 @@ function ReportsDashboardPage() {
                 </div>
                 <span
                   className={`text-xs px-2 py-1 rounded ${
-                    stat.changeUp
-                      ? "bg-green-100 text-green-800"
-                      : "bg-red-100 text-red-800"
+                    stat.changeUp ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
                   }`}
                 >
                   {stat.change}
@@ -205,7 +198,10 @@ function ReportsDashboardPage() {
             <div className="flex items-end gap-2 h-48">
               {mockChartData.map((data) => (
                 <div key={data.day} className="flex-1 flex flex-col items-center gap-2">
-                  <div className="w-full bg-blue-100 rounded-t relative" style={{ height: `${(data.tickets / maxChartValue) * 100}%` }}>
+                  <div
+                    className="w-full bg-blue-100 rounded-t relative"
+                    style={{ height: `${(data.tickets / maxChartValue) * 100}%` }}
+                  >
                     <div
                       className="absolute bottom-0 w-full bg-blue-500 rounded-t transition-all"
                       style={{ height: `${(data.tickets / maxChartValue) * 100}%` }}
@@ -225,7 +221,8 @@ function ReportsDashboardPage() {
           <CardContent>
             <div className="space-y-4">
               {ticketVolume?.byStatus?.map((status: any) => {
-                const percentage = ticketVolume.total > 0 ? (status.count / ticketVolume.total) * 100 : 0;
+                const percentage =
+                  ticketVolume.total > 0 ? (status.count / ticketVolume.total) * 100 : 0;
                 return (
                   <div key={status.statusId}>
                     <div className="flex items-center justify-between mb-1">
@@ -248,30 +245,35 @@ function ReportsDashboardPage() {
             <div className="mt-6 flex justify-center">
               <div className="relative w-32 h-32">
                 <svg className="w-full h-full" viewBox="0 0 100 100">
-                  {ticketVolume?.byStatus?.reduce(
-                    (acc: any, status: any, index: number) => {
-                      const percentage = ticketVolume.total > 0 ? (status.count / ticketVolume.total) * 100 : 0;
-                      const dashArray = `${percentage} ${100 - percentage}`;
-                      const dashOffset = acc.offset;
-                      acc.elements.push(
-                        <circle
-                          key={status.statusId}
-                          cx="50"
-                          cy="50"
-                          r="40"
-                          fill="none"
-                          stroke={["#3b82f6", "#8b5cf6", "#f59e0b", "#10b981", "#ef4444"][index % 5]}
-                          strokeWidth="20"
-                          strokeDasharray={dashArray}
-                          strokeDashoffset={dashOffset}
-                          transform="rotate(-90 50 50)"
-                        />
-                      );
-                      acc.offset -= percentage;
-                      return acc;
-                    },
-                    { elements: [], offset: 0 }
-                  ).elements}
+                  {
+                    ticketVolume?.byStatus?.reduce(
+                      (acc: any, status: any, index: number) => {
+                        const percentage =
+                          ticketVolume.total > 0 ? (status.count / ticketVolume.total) * 100 : 0;
+                        const dashArray = `${percentage} ${100 - percentage}`;
+                        const dashOffset = acc.offset;
+                        acc.elements.push(
+                          <circle
+                            key={status.statusId}
+                            cx="50"
+                            cy="50"
+                            r="40"
+                            fill="none"
+                            stroke={
+                              ["#3b82f6", "#8b5cf6", "#f59e0b", "#10b981", "#ef4444"][index % 5]
+                            }
+                            strokeWidth="20"
+                            strokeDasharray={dashArray}
+                            strokeDashoffset={dashOffset}
+                            transform="rotate(-90 50 50)"
+                          />,
+                        );
+                        acc.offset -= percentage;
+                        return acc;
+                      },
+                      { elements: [], offset: 0 },
+                    ).elements
+                  }
                 </svg>
               </div>
             </div>

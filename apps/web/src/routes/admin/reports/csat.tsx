@@ -4,14 +4,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
 import { Button } from "@ticket-app/ui/components/button";
 import { orpc } from "@/utils/orpc";
-import {
-  ArrowLeft,
-  Star,
-  Filter,
-  ThumbsUp,
-  ThumbsDown,
-  Clock,
-} from "lucide-react";
+import { ArrowLeft, Star, Filter, ThumbsUp } from "lucide-react";
 
 type DateRange = "7d" | "30d" | "90d" | "custom";
 
@@ -32,7 +25,7 @@ function CSATReportPage() {
   const [dateRange, setDateRange] = useState<DateRange>("30d");
   const organizationId = 1;
 
-  const { data: csatTrends } = useQuery({
+  const { data: _csatTrends } = useQuery({
     queryKey: ["reports", "csatTrends", organizationId, dateRange],
     queryFn: () =>
       orpc.reports.getCsatTrends.query({
@@ -119,9 +112,7 @@ function CSATReportPage() {
           <Star
             key={star}
             className={`h-4 w-4 ${
-              star <= rating
-                ? "text-amber-500 fill-amber-500"
-                : "text-gray-300"
+              star <= rating ? "text-amber-500 fill-amber-500" : "text-gray-300"
             }`}
           />
         ))}
@@ -139,9 +130,7 @@ function CSATReportPage() {
         </Button>
         <div>
           <h1 className="text-3xl font-bold">CSAT Report</h1>
-          <p className="text-muted-foreground mt-1">
-            Customer satisfaction trends and responses
-          </p>
+          <p className="text-muted-foreground mt-1">Customer satisfaction trends and responses</p>
         </div>
       </div>
 
@@ -242,17 +231,15 @@ function CSATReportPage() {
                         item.rating >= 4
                           ? "bg-green-500"
                           : item.rating === 3
-                          ? "bg-amber-500"
-                          : "bg-red-500"
+                            ? "bg-amber-500"
+                            : "bg-red-500"
                       }`}
                       style={{ width: `${item.percentage}%` }}
                     />
                   </div>
                   <div className="w-20 text-right">
                     <span className="text-sm font-medium">{item.count}</span>
-                    <span className="text-sm text-muted-foreground ml-1">
-                      ({item.percentage}%)
-                    </span>
+                    <span className="text-sm text-muted-foreground ml-1">({item.percentage}%)</span>
                   </div>
                 </div>
               ))}
@@ -261,29 +248,31 @@ function CSATReportPage() {
             <div className="mt-6 flex justify-center">
               <div className="relative w-32 h-32">
                 <svg className="w-full h-full" viewBox="0 0 100 100">
-                  {mockRatingDistribution.reduce(
-                    (acc: any, item, index) => {
-                      const percentage = item.percentage;
-                      const dashArray = `${percentage} ${100 - percentage}`;
-                      acc.elements.push(
-                        <circle
-                          key={item.rating}
-                          cx="50"
-                          cy="50"
-                          r="40"
-                          fill="none"
-                          stroke={["#10b981", "#22c55e", "#eab308", "#f97316", "#ef4444"][index]}
-                          strokeWidth="20"
-                          strokeDasharray={dashArray}
-                          strokeDashoffset={acc.offset}
-                          transform="rotate(-90 50 50)"
-                        />
-                      );
-                      acc.offset -= percentage;
-                      return acc;
-                    },
-                    { elements: [], offset: 0 }
-                  ).elements}
+                  {
+                    mockRatingDistribution.reduce(
+                      (acc: any, item, index) => {
+                        const percentage = item.percentage;
+                        const dashArray = `${percentage} ${100 - percentage}`;
+                        acc.elements.push(
+                          <circle
+                            key={item.rating}
+                            cx="50"
+                            cy="50"
+                            r="40"
+                            fill="none"
+                            stroke={["#10b981", "#22c55e", "#eab308", "#f97316", "#ef4444"][index]}
+                            strokeWidth="20"
+                            strokeDasharray={dashArray}
+                            strokeDashoffset={acc.offset}
+                            transform="rotate(-90 50 50)"
+                          />,
+                        );
+                        acc.offset -= percentage;
+                        return acc;
+                      },
+                      { elements: [], offset: 0 },
+                    ).elements
+                  }
                 </svg>
               </div>
             </div>
@@ -304,8 +293,8 @@ function CSATReportPage() {
                         data.score >= 4.5
                           ? "bg-green-500"
                           : data.score >= 4.0
-                          ? "bg-amber-500"
-                          : "bg-red-500"
+                            ? "bg-amber-500"
+                            : "bg-red-500"
                       }`}
                       style={{ height: `${(data.score / maxTrendValue) * 100}%` }}
                     />
@@ -358,15 +347,11 @@ function CSATReportPage() {
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
                         {renderStars(response.rating)}
-                        <span className="text-sm text-muted-foreground">
-                          {response.rating}/5
-                        </span>
+                        <span className="text-sm text-muted-foreground">{response.rating}/5</span>
                       </div>
                     </td>
                     <td className="px-4 py-3 max-w-xs">
-                      <p className="text-sm text-muted-foreground truncate">
-                        {response.comment}
-                      </p>
+                      <p className="text-sm text-muted-foreground truncate">{response.comment}</p>
                     </td>
                     <td className="px-4 py-3 text-sm text-muted-foreground">
                       {response.submittedAt}

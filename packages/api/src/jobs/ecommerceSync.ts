@@ -15,37 +15,29 @@ export type EcommerceSyncJobData = {
   forceFullSync?: boolean;
 };
 
-const connection = {
-  host: process.env.REDIS_URL?.replace("redis://", "").split(":")[0] || "localhost",
-  port: parseInt(process.env.REDIS_URL?.split(":")[2] || "6379"),
-};
-
-export const ecommerceSyncQueue = new Queue<EcommerceSyncJobData>(
-  ECOMMERCE_SYNC_QUEUE,
-  {
-    connection,
-    defaultJobOptions: {
-      attempts: 3,
-      backoff: {
-        type: "exponential",
-        delay: 5000,
-      },
-      removeOnComplete: { count: 100 },
-      removeOnFail: { count: 500 },
+export const ecommerceSyncQueue = new Queue<EcommerceSyncJobData>(ECOMMERCE_SYNC_QUEUE, {
+  connection: getRedis(),
+  defaultJobOptions: {
+    attempts: 3,
+    backoff: {
+      type: "exponential",
+      delay: 5000,
     },
-  }
-);
+    removeOnComplete: { count: 100 },
+    removeOnFail: { count: 500 },
+  },
+});
 
 export async function addEcommerceSyncJob(
   storeId: number,
-  forceFullSync = false
+  forceFullSync = false,
 ): Promise<Job<EcommerceSyncJobData>> {
   return ecommerceSyncQueue.add(
     "sync-store",
     { storeId, forceFullSync },
     {
       jobId: `ecommerce-sync-${storeId}-${Date.now()}`,
-    }
+    },
   );
 }
 
@@ -131,9 +123,9 @@ export function createEcommerceSyncWorker() {
       }
     },
     {
-      connection,
+      connection: getRedis(),
       concurrency: 3,
-    }
+    },
   );
 }
 
@@ -146,7 +138,7 @@ export function scheduleEcommerceSyncEvery15Minutes() {
         interval: 15 * 60 * 1000,
       },
       jobId: "ecommerce-sync-all-stores-recurring",
-    }
+    },
   );
 }
 

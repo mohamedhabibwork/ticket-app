@@ -1,5 +1,3 @@
-import { db } from "../index";
-
 export const SYSTEM_PERMISSIONS = [
   // Ticket permissions
   { key: "tickets.view", label: "View Tickets", group: "Tickets" },

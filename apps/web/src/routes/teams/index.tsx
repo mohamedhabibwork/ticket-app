@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -25,7 +24,7 @@ function TeamsIndexRoute() {
   const { data: teams, isLoading } = useQuery(
     orpc.teams.list.queryOptions({
       organizationId,
-    })
+    }),
   );
 
   const deleteMutation = useMutation(
@@ -37,7 +36,7 @@ function TeamsIndexRoute() {
       onError: (error) => {
         toast.error(`Failed to delete team: ${error.message}`);
       },
-    })
+    }),
   );
 
   const handleDelete = (teamId: number) => {
@@ -114,9 +113,7 @@ function TeamsIndexRoute() {
                   </DropdownMenu>
                 </div>
                 <div className="mt-4 flex items-center justify-between text-sm text-muted-foreground">
-                  <span>
-                    {team.autoAssignMethod?.replace("_", " ") || "Round Robin"}
-                  </span>
+                  <span>{team.autoAssignMethod?.replace("_", " ") || "Round Robin"}</span>
                 </div>
               </CardContent>
             </Card>

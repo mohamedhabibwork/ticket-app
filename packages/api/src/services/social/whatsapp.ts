@@ -1,6 +1,7 @@
 import { db } from "@ticket-app/db";
 import { socialAccounts } from "@ticket-app/db/schema";
-import { encryptToken, decryptToken } from "../../lib/crypto";
+import { encryptToken } from "../../lib/crypto";
+import { env } from "@ticket-app/env/server";
 
 const WHATSAPP_API_URL = "https://graph.facebook.com/v18.0";
 
@@ -52,9 +53,9 @@ export function setWhatsAppConfig(config: WhatsAppConfig): void {
 
 function getWhatsAppConfig(): WhatsAppConfig {
   if (!whatsappConfig) {
-    const phoneNumberId = process.env.WHATSAPP_PHONE_NUMBER_ID;
-    const wabaId = process.env.WHATSAPP_WABA_ID;
-    const accessToken = process.env.WHATSAPP_ACCESS_TOKEN;
+    const phoneNumberId = env.WHATSAPP_PHONE_NUMBER_ID;
+    const wabaId = env.WHATSAPP_WABA_ID;
+    const accessToken = env.WHATSAPP_ACCESS_TOKEN;
 
     if (!phoneNumberId || !wabaId || !accessToken) {
       throw new Error("WhatsApp Business credentials not configured");
@@ -65,10 +66,10 @@ function getWhatsAppConfig(): WhatsAppConfig {
   return whatsappConfig;
 }
 
-export async function getWhatsAppBusinessAccounts(accessToken: string): Promise<WhatsAppBusinessAccount[]> {
-  const response = await fetch(
-    `${WHATSAPP_API_URL}/me/businesses?access_token=${accessToken}`
-  );
+export async function getWhatsAppBusinessAccounts(
+  accessToken: string,
+): Promise<WhatsAppBusinessAccount[]> {
+  const response = await fetch(`${WHATSAPP_API_URL}/me/businesses?access_token=${accessToken}`);
 
   if (!response.ok) {
     const error = await response.text();
@@ -81,10 +82,10 @@ export async function getWhatsAppBusinessAccounts(accessToken: string): Promise<
 
 export async function getWhatsAppPhoneNumbers(
   wabaId: string,
-  accessToken: string
+  accessToken: string,
 ): Promise<WhatsAppPhoneNumber[]> {
   const response = await fetch(
-    `${WHATSAPP_API_URL}/${wabaId}/phone_numbers?access_token=${accessToken}`
+    `${WHATSAPP_API_URL}/${wabaId}/phone_numbers?access_token=${accessToken}`,
   );
 
   if (!response.ok) {
@@ -98,10 +99,10 @@ export async function getWhatsAppPhoneNumbers(
 
 export async function getWhatsAppTemplates(
   wabaId: string,
-  accessToken: string
+  accessToken: string,
 ): Promise<WhatsAppTemplate[]> {
   const response = await fetch(
-    `${WHATSAPP_API_URL}/${wabaId}/message_templates?access_token=${accessToken}`
+    `${WHATSAPP_API_URL}/${wabaId}/message_templates?access_token=${accessToken}`,
   );
 
   if (!response.ok) {
@@ -116,7 +117,7 @@ export async function getWhatsAppTemplates(
 export async function sendWhatsAppMessage(
   to: string,
   message: string,
-  phoneNumberId?: string
+  phoneNumberId?: string,
 ): Promise<{ messages: Array<{ id: string }> }> {
   const config = getWhatsAppConfig();
   const from = phoneNumberId || config.phoneNumberId;
@@ -130,17 +131,14 @@ export async function sendWhatsAppMessage(
     },
   };
 
-  const response = await fetch(
-    `${WHATSAPP_API_URL}/${from}/messages`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${config.accessToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    }
-  );
+  const response = await fetch(`${WHATSAPP_API_URL}/${from}/messages`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${config.accessToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
 
   if (!response.ok) {
     const error = await response.text();
@@ -154,7 +152,7 @@ export async function sendWhatsAppImageMessage(
   to: string,
   imageUrl: string,
   caption?: string,
-  phoneNumberId?: string
+  phoneNumberId?: string,
 ): Promise<{ messages: Array<{ id: string }> }> {
   const config = getWhatsAppConfig();
   const from = phoneNumberId || config.phoneNumberId;
@@ -169,17 +167,14 @@ export async function sendWhatsAppImageMessage(
     },
   };
 
-  const response = await fetch(
-    `${WHATSAPP_API_URL}/${from}/messages`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${config.accessToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    }
-  );
+  const response = await fetch(`${WHATSAPP_API_URL}/${from}/messages`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${config.accessToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
 
   if (!response.ok) {
     const error = await response.text();
@@ -189,7 +184,10 @@ export async function sendWhatsAppImageMessage(
   return response.json();
 }
 
-export async function markWhatsAppMessageAsRead(messageId: string, phoneNumberId?: string): Promise<void> {
+export async function markWhatsAppMessageAsRead(
+  messageId: string,
+  phoneNumberId?: string,
+): Promise<void> {
   const config = getWhatsAppConfig();
   const from = phoneNumberId || config.phoneNumberId;
 
@@ -199,17 +197,14 @@ export async function markWhatsAppMessageAsRead(messageId: string, phoneNumberId
     message_id: messageId,
   };
 
-  const response = await fetch(
-    `${WHATSAPP_API_URL}/${from}/messages`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${config.accessToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    }
-  );
+  const response = await fetch(`${WHATSAPP_API_URL}/${from}/messages`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${config.accessToken}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
 
   if (!response.ok) {
     const error = await response.text();
@@ -219,21 +214,22 @@ export async function markWhatsAppMessageAsRead(messageId: string, phoneNumberId
 
 export async function getWhatsAppIncomingMessages(
   phoneNumberId?: string,
-  limit: number = 25
+  limit: number = 25,
 ): Promise<any[]> {
   const config = getWhatsAppConfig();
   const from = phoneNumberId || config.phoneNumberId;
 
   const response = await fetch(
-    `${WHATSAPP_API_URL}/${from}/messages?` + new URLSearchParams({
-      fields: "id,timestamp,type,from,text,image,audio,video,document,location",
-      limit: String(limit),
-    }),
+    `${WHATSAPP_API_URL}/${from}/messages?` +
+      new URLSearchParams({
+        fields: "id,timestamp,type,from,text,image,audio,video,document,location",
+        limit: String(limit),
+      }),
     {
       headers: {
         Authorization: `Bearer ${config.accessToken}`,
       },
-    }
+    },
   );
 
   if (!response.ok) {
@@ -249,7 +245,7 @@ export async function connectWhatsAppAccount(
   organizationId: number,
   userId: number | undefined,
   phoneNumber: WhatsAppPhoneNumber,
-  accessToken: string
+  accessToken: string,
 ): Promise<number> {
   const encryptedAccessToken = encryptToken(accessToken);
   const encryptedRefreshToken = encryptToken(accessToken);
@@ -271,7 +267,11 @@ export async function connectWhatsAppAccount(
       updatedBy: userId,
     })
     .onConflictDoUpdate({
-      target: [socialAccounts.organizationId, socialAccounts.platform, socialAccounts.platformAccountId],
+      target: [
+        socialAccounts.organizationId,
+        socialAccounts.platform,
+        socialAccounts.platformAccountId,
+      ],
       set: {
         accessTokenEnc: encryptedAccessToken,
         refreshTokenEnc: encryptedRefreshToken,
@@ -287,9 +287,7 @@ export async function connectWhatsAppAccount(
   return account.id;
 }
 
-export async function getWhatsAppWebhookPayload(
-  payload: any
-): Promise<{
+export async function getWhatsAppWebhookPayload(payload: any): Promise<{
   waId: string;
   messageType: string;
   text?: string;
@@ -327,9 +325,9 @@ export async function getWhatsAppWebhookPayload(
 export function validateWhatsAppWebhook(
   payload: any,
   mode: string,
-  verifyToken?: string
+  verifyToken?: string,
 ): { challenge: string | null; valid: boolean } {
-  if (mode === "subscribe" && verifyToken === process.env.WHATSAPP_VERIFY_TOKEN) {
+  if (mode === "subscribe" && verifyToken === env.WHATSAPP_VERIFY_TOKEN) {
     return { challenge: payload["hub.challenge"], valid: true };
   }
 
@@ -338,26 +336,23 @@ export function validateWhatsAppWebhook(
 
 export async function downloadWhatsAppMedia(
   mediaId: string,
-  accessToken?: string
+  accessToken?: string,
 ): Promise<Buffer> {
   const config = getWhatsAppConfig();
   const token = accessToken || config.accessToken;
 
-  const response = await fetch(
-    `${WHATSAPP_API_URL}/${mediaId}`,
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    }
-  );
+  const response = await fetch(`${WHATSAPP_API_URL}/${mediaId}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
 
   if (!response.ok) {
     throw new Error(`Failed to get WhatsApp media URL: ${await response.text()}`);
   }
 
   const mediaData = await response.json();
-  
+
   const mediaResponse = await fetch(mediaData.url, {
     headers: {
       Authorization: `Bearer ${token}`,

@@ -5,12 +5,12 @@ export const QUEUE_NAMES = {
   EMAIL: "email",
   WORKFLOW: "workflow",
   NOTIFICATION: "notification",
-  DUNNING: "billing:dunning",
-  USAGE_CHECK: "billing:usage_check",
-  CSAT_EXPIRATION: "csat:expiration",
-  SPAM_CHECK: "spam:check",
-  AUTO_ASSIGN: "ticket:auto_assign",
-  SLA_ESCALATION: "sla:escalation",
+  DUNNING: "billing-dunning",
+  USAGE_CHECK: "billing-usage-check",
+  CSAT_EXPIRATION: "csat-expiration",
+  SPAM_CHECK: "spam-check",
+  AUTO_ASSIGN: "ticket-auto-assign",
+  SLA_ESCALATION: "sla-escalation",
 } as const;
 
 export type EmailJobData = {

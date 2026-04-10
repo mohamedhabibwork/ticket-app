@@ -5,7 +5,6 @@ import { orpc } from "@/utils/orpc";
 import { Card, CardContent, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
 import { Button } from "@ticket-app/ui/components/button";
 import { Badge } from "@ticket-app/ui/components/badge";
-import { Input } from "@ticket-app/ui/components/input";
 import {
   Select,
   SelectContent,
@@ -78,9 +77,7 @@ export default function InvoiceHistoryPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">Invoice History</h1>
-            <p className="text-muted-foreground mt-1">
-              View and download your past invoices
-            </p>
+            <p className="text-muted-foreground mt-1">View and download your past invoices</p>
           </div>
           <Button variant="outline" size="sm">
             <Download className="h-4 w-4 mr-2" />
@@ -99,17 +96,13 @@ export default function InvoiceHistoryPage() {
         <Card>
           <CardContent className="pt-6">
             <div className="text-sm font-medium text-muted-foreground mb-1">Total Paid</div>
-            <div className="text-2xl font-bold text-green-600">
-              {formatAmount(totalPaid)}
-            </div>
+            <div className="text-2xl font-bold text-green-600">{formatAmount(totalPaid)}</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
             <div className="text-sm font-medium text-muted-foreground mb-1">Pending</div>
-            <div className="text-2xl font-bold text-yellow-600">
-              {formatAmount(totalPending)}
-            </div>
+            <div className="text-2xl font-bold text-yellow-600">{formatAmount(totalPending)}</div>
           </CardContent>
         </Card>
       </div>
@@ -176,9 +169,7 @@ export default function InvoiceHistoryPage() {
                   <div className="text-sm text-muted-foreground">
                     {formatDate(invoice.createdAt)}
                   </div>
-                  <div className="font-medium">
-                    {formatAmount(invoice.total, invoice.currency)}
-                  </div>
+                  <div className="font-medium">{formatAmount(invoice.total, invoice.currency)}</div>
                   <div>
                     <Badge className={statusColors[invoice.status] || "bg-gray-100"}>
                       {invoice.status}

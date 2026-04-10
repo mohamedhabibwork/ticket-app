@@ -10,11 +10,11 @@ export const kbArticlesRouter = {
   list: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        categoryId: z.number().optional(),
+        organizationId: z.coerce.number(),
+        categoryId: z.coerce.number().optional(),
         status: z.string().optional(),
-        limit: z.number().min(1).max(100).default(50),
-        offset: z.number().min(0).default(0),
+        limit: z.coerce.number().min(1).max(100).default(50),
+        offset: z.coerce.number().min(0).default(0),
       }),
     )
     .handler(async ({ input }) => {
@@ -46,8 +46,8 @@ export const kbArticlesRouter = {
   get: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        id: z.number(),
+        organizationId: z.coerce.number(),
+        id: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -76,7 +76,7 @@ export const kbArticlesRouter = {
   getBySlug: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         slug: z.string(),
       }),
     )
@@ -112,8 +112,8 @@ export const kbArticlesRouter = {
   getRelated: publicProcedure
     .input(
       z.object({
-        articleId: z.number(),
-        limit: z.number().min(1).max(10).default(5),
+        articleId: z.coerce.number(),
+        limit: z.coerce.number().min(1).max(10).default(5),
       }),
     )
     .handler(async ({ input }) => {
@@ -135,9 +135,9 @@ export const kbArticlesRouter = {
   create: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        categoryId: z.number().optional(),
-        authorId: z.number().optional(),
+        organizationId: z.coerce.number(),
+        categoryId: z.coerce.number().optional(),
+        authorId: z.coerce.number().optional(),
         title: z.string().min(1).max(255),
         titleAr: z.string().max(255).optional(),
         slug: z.string().min(1).max(200),
@@ -147,7 +147,7 @@ export const kbArticlesRouter = {
         metaDescription: z.string().optional(),
         metaKeywords: z.string().max(500).optional(),
         status: z.string().default("draft"),
-        createdBy: z.number().optional(),
+        createdBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -177,9 +177,9 @@ export const kbArticlesRouter = {
   update: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        id: z.number(),
-        categoryId: z.number().nullable().optional(),
+        organizationId: z.coerce.number(),
+        id: z.coerce.number(),
+        categoryId: z.coerce.number().nullable().optional(),
         title: z.string().min(1).max(255).optional(),
         titleAr: z.string().max(255).optional(),
         slug: z.string().min(1).max(200).optional(),
@@ -189,7 +189,7 @@ export const kbArticlesRouter = {
         metaDescription: z.string().optional(),
         metaKeywords: z.string().max(500).optional(),
         status: z.string().optional(),
-        updatedBy: z.number().optional(),
+        updatedBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -229,9 +229,9 @@ export const kbArticlesRouter = {
   delete: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        id: z.number(),
-        deletedBy: z.number(),
+        organizationId: z.coerce.number(),
+        id: z.coerce.number(),
+        deletedBy: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -255,7 +255,7 @@ export const kbArticlesRouter = {
   submitFeedback: publicProcedure
     .input(
       z.object({
-        articleId: z.number(),
+        articleId: z.coerce.number(),
         rating: z.enum(["helpful", "not_helpful"]),
         comment: z.string().optional(),
         ipAddress: z.string().optional(),
@@ -290,10 +290,10 @@ export const kbArticlesRouter = {
   search: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         query: z.string().min(1),
         locale: z.string().default("en"),
-        limit: z.number().min(1).max(50).default(20),
+        limit: z.coerce.number().min(1).max(50).default(20),
       }),
     )
     .handler(async ({ input }) => {

@@ -2,15 +2,11 @@ import { Worker, Job, Queue } from "bullmq";
 import { eq, and, isNull, sql, desc } from "drizzle-orm";
 
 import { db } from "@ticket-app/db";
-import {
-  users,
-  notifications,
-  notificationChannels,
-} from "@ticket-app/db/schema";
+import { users, notifications, notificationChannels } from "@ticket-app/db/schema";
 import { getRedis } from "../redis";
 import { env } from "@ticket-app/env/server";
 
-const NOTIFICATION_DELIVERY_QUEUE = `${env.QUEUE_PREFIX}:notification-delivery`;
+const NOTIFICATION_DELIVERY_QUEUE = `${env.QUEUE_PREFIX}-notification-delivery`;
 
 export interface NotificationDeliveryJobData {
   notificationId?: number;
@@ -55,7 +51,9 @@ const notificationDeliveryQueue = new Queue(NOTIFICATION_DELIVERY_QUEUE, {
   },
 });
 
-export async function addNotificationJob(data: NotificationDeliveryJobData): Promise<Job<NotificationDeliveryJobData>> {
+export async function addNotificationJob(
+  data: NotificationDeliveryJobData,
+): Promise<Job<NotificationDeliveryJobData>> {
   return notificationDeliveryQueue.add("deliver-notification", data, {
     jobId: `notification-${data.userId}-${Date.now()}`,
   });
@@ -68,7 +66,7 @@ export async function scheduleEmailDigestBatch(intervalMs: number = 3600000): Pr
     {
       repeat: { every: intervalMs },
       jobId: "notification-email-digest-batch",
-    }
+    },
   );
 }
 
@@ -100,11 +98,16 @@ export function createNotificationDeliveryWorker(): Worker {
         throw new Error("Rate limit exceeded, will retry");
       }
 
-      const pushDelivered = prefs.pushEnabled ? await handlePushNotification(userId, type, title, body, data) : false;
-      const emailDelivered = prefs.emailEnabled && prefs.emailDigest === "immediate" 
-        ? await handleEmailNotification(userId, type, title, body, data) 
+      const pushDelivered = prefs.pushEnabled
+        ? await handlePushNotification(userId, type, title, body, data)
         : false;
-      const smsDelivered = prefs.smsEnabled ? await handleSmsNotification(userId, type, title, body, data) : false;
+      const emailDelivered =
+        prefs.emailEnabled && prefs.emailDigest === "immediate"
+          ? await handleEmailNotification(userId, type, title, body, data)
+          : false;
+      const smsDelivered = prefs.smsEnabled
+        ? await handleSmsNotification(userId, type, title, body, data)
+        : false;
 
       if (notificationId) {
         await db
@@ -113,25 +116,21 @@ export function createNotificationDeliveryWorker(): Worker {
           .where(eq(notifications.id, notificationId));
       }
 
-      return { 
-        delivered: pushDelivered || emailDelivered || smsDelivered, 
-        channels: { push: pushDelivered, email: emailDelivered, sms: smsDelivered } 
+      return {
+        delivered: pushDelivered || emailDelivered || smsDelivered,
+        channels: { push: pushDelivered, email: emailDelivered, sms: smsDelivered },
       };
     },
     {
       connection: getRedis(),
       concurrency: 10,
-    }
+    },
   );
 }
 
 async function getUserPreferences(userId: number): Promise<NotificationPreferences> {
   const user = await db.query.users.findFirst({
-    where: and(
-      eq(users.id, userId),
-      eq(users.isActive, true),
-      isNull(users.deletedAt)
-    ),
+    where: and(eq(users.id, userId), eq(users.isActive, true), isNull(users.deletedAt)),
   });
 
   if (!user) {
@@ -148,7 +147,7 @@ async function getUserPreferences(userId: number): Promise<NotificationPreferenc
     where: and(
       eq(notificationChannels.userId, userId),
       eq(notificationChannels.channel, "push"),
-      eq(notificationChannels.isActive, true)
+      eq(notificationChannels.isActive, true),
     ),
   });
 
@@ -156,7 +155,7 @@ async function getUserPreferences(userId: number): Promise<NotificationPreferenc
     where: and(
       eq(notificationChannels.userId, userId),
       eq(notificationChannels.channel, "sms"),
-      eq(notificationChannels.isActive, true)
+      eq(notificationChannels.isActive, true),
     ),
   });
 
@@ -219,13 +218,13 @@ async function handlePushNotification(
   type: string,
   title: string,
   body?: string,
-  data?: Record<string, any>
+  data?: Record<string, any>,
 ): Promise<boolean> {
   const pushChannel = await db.query.notificationChannels.findFirst({
     where: and(
       eq(notificationChannels.userId, userId),
       eq(notificationChannels.channel, "push"),
-      eq(notificationChannels.isActive, true)
+      eq(notificationChannels.isActive, true),
     ),
   });
 
@@ -235,8 +234,8 @@ async function handlePushNotification(
   }
 
   try {
-    const vapidPublicKey = process.env.WEBPUSH_VAPID_PUBLIC_KEY;
-    const vapidPrivateKey = process.env.WEBPUSH_VAPID_PRIVATE_KEY;
+    const vapidPublicKey = env.WEBPUSH_VAPID_PUBLIC_KEY;
+    const vapidPrivateKey = env.WEBPUSH_VAPID_PRIVATE_KEY;
 
     if (!vapidPublicKey || !vapidPrivateKey) {
       console.warn("WebPush not configured, skipping push notification");
@@ -244,7 +243,7 @@ async function handlePushNotification(
     }
 
     const webpush = await import("webpush");
-    
+
     const pushPayload = JSON.stringify({
       title,
       body,
@@ -266,7 +265,7 @@ async function handlePushNotification(
           publicKey: vapidPublicKey,
           privateKey: vapidPrivateKey,
         },
-      }
+      },
     );
 
     console.log(`Push notification sent to user ${userId}: ${result.statusCode}`);
@@ -291,14 +290,10 @@ async function handleEmailNotification(
   type: string,
   title: string,
   body?: string,
-  data?: Record<string, any>
+  data?: Record<string, any>,
 ): Promise<boolean> {
   const user = await db.query.users.findFirst({
-    where: and(
-      eq(users.id, userId),
-      eq(users.isActive, true),
-      isNull(users.deletedAt)
-    ),
+    where: and(eq(users.id, userId), eq(users.isActive, true), isNull(users.deletedAt)),
   });
 
   if (!user?.email) {
@@ -310,7 +305,7 @@ async function handleEmailNotification(
     const emailHtml = buildNotificationEmailHtml(title, body || "", type, data);
 
     const { addEmailSendJob } = await import("./email-send.worker");
-    
+
     await addEmailSendJob({
       mailboxId: 1,
       toEmails: [user.email],
@@ -331,14 +326,14 @@ async function handleSmsNotification(
   userId: number,
   type: string,
   title: string,
-  body?: string,
-  data?: Record<string, any>
+  _body?: string,
+  _data?: Record<string, any>,
 ): Promise<boolean> {
   const smsChannel = await db.query.notificationChannels.findFirst({
     where: and(
       eq(notificationChannels.userId, userId),
       eq(notificationChannels.channel, "sms"),
-      eq(notificationChannels.isActive, true)
+      eq(notificationChannels.isActive, true),
     ),
   });
 
@@ -355,11 +350,11 @@ function buildNotificationEmailHtml(
   title: string,
   body: string,
   type: string,
-  data?: Record<string, any>
+  data?: Record<string, any>,
 ): string {
-  const notificationUrl = data?.ticketId 
-    ? `${process.env.APP_URL || "https://app.example.com"}/tickets/${data.ticketId}`
-    : `${process.env.APP_URL || "https://app.example.com"}/notifications`;
+  const notificationUrl = data?.ticketId
+    ? `${env.APP_URL || "https://app.example.com"}/tickets/${data.ticketId}`
+    : `${env.APP_URL || "https://app.example.com"}/notifications`;
 
   return `
 <!DOCTYPE html>
@@ -386,7 +381,7 @@ function buildNotificationEmailHtml(
   </div>
   <div class="footer">
     <p>You received this email because you have notification alerts enabled.</p>
-    <p><a href="${process.env.APP_URL || "https://app.example.com"}/settings/notifications">Manage notification preferences</a></p>
+    <p><a href="${env.APP_URL || "https://app.example.com"}/settings/notifications">Manage notification preferences</a></p>
   </div>
 </body>
 </html>
@@ -395,16 +390,13 @@ function buildNotificationEmailHtml(
 
 export async function processEmailDigestBatch(): Promise<void> {
   const usersWithDigest = await db.query.users.findMany({
-    where: and(
-      eq(users.isActive, true),
-      isNull(users.deletedAt)
-    ),
+    where: and(eq(users.isActive, true), isNull(users.deletedAt)),
   });
 
   for (const user of usersWithDigest) {
     try {
       const prefs = await getUserPreferences(user.id);
-      
+
       if (prefs.emailDigest === "never" || prefs.emailDigest === "immediate") {
         continue;
       }
@@ -420,7 +412,7 @@ export async function processEmailDigestBatch(): Promise<void> {
         where: and(
           eq(notifications.userId, user.id),
           eq(notifications.isRead, false),
-          sql`${notifications.createdAt} >= ${sinceDate}`
+          sql`${notifications.createdAt} >= ${sinceDate}`,
         ),
         orderBy: desc(notifications.createdAt),
         limit: 20,
@@ -439,7 +431,7 @@ export async function processEmailDigestBatch(): Promise<void> {
 
 async function sendEmailDigest(
   user: typeof users.$inferSelect,
-  notificationsToSend: typeof notifications.$inferSelect[]
+  notificationsToSend: (typeof notifications.$inferSelect)[],
 ): Promise<void> {
   if (!user.email) return;
 
@@ -447,7 +439,7 @@ async function sendEmailDigest(
 
   try {
     const { addEmailSendJob } = await import("./email-send.worker");
-    
+
     await addEmailSendJob({
       mailboxId: 1,
       toEmails: [user.email],
@@ -456,22 +448,26 @@ async function sendEmailDigest(
       bodyText: `You have ${notificationsToSend.length} new notifications. Visit your dashboard to view them.`,
     });
 
-    console.log(`Email digest sent to user ${user.id} with ${notificationsToSend.length} notifications`);
+    console.log(
+      `Email digest sent to user ${user.id} with ${notificationsToSend.length} notifications`,
+    );
   } catch (err) {
     console.error(`Failed to send digest to user ${user.id}:`, err);
     throw err;
   }
 }
 
-function buildDigestEmailHtml(notificationsList: typeof notifications.$inferSelect[]): string {
+function buildDigestEmailHtml(notificationsList: (typeof notifications.$inferSelect)[]): string {
   const itemsHtml = notificationsList
-    .map((n) => `
+    .map(
+      (n) => `
       <div style="padding: 12px; background: white; border-radius: 6px; margin-bottom: 8px; border-left: 3px solid #4F46E5;">
         <strong>${n.title}</strong>
         ${n.body ? `<p style="margin: 8px 0 0 0; color: #666;">${n.body}</p>` : ""}
         <small style="color: #999;">${new Date(n.createdAt).toLocaleString()}</small>
       </div>
-    `)
+    `,
+    )
     .join("");
 
   return `
@@ -497,8 +493,8 @@ function buildDigestEmailHtml(notificationsList: typeof notifications.$inferSele
     ${itemsHtml}
   </div>
   <div class="footer">
-    <p><a href="${process.env.APP_URL || "https://app.example.com"}/notifications">View all notifications</a></p>
-    <p><a href="${process.env.APP_URL || "https://app.example.com"}/settings/notifications">Manage notification preferences</a></p>
+    <p><a href="${env.APP_URL || "https://app.example.com"}/notifications">View all notifications</a></p>
+    <p><a href="${env.APP_URL || "https://app.example.com"}/settings/notifications">Manage notification preferences</a></p>
   </div>
 </body>
 </html>
@@ -507,13 +503,13 @@ function buildDigestEmailHtml(notificationsList: typeof notifications.$inferSele
 
 export async function registerPushSubscription(
   userId: number,
-  subscription: { endpoint: string; keys: { p256dh: string; auth: string } }
+  subscription: { endpoint: string; keys: { p256dh: string; auth: string } },
 ): Promise<void> {
   const existing = await db.query.notificationChannels.findFirst({
     where: and(
       eq(notificationChannels.userId, userId),
       eq(notificationChannels.channel, "push"),
-      eq(notificationChannels.endpoint, subscription.endpoint)
+      eq(notificationChannels.endpoint, subscription.endpoint),
     ),
   });
 
@@ -536,10 +532,7 @@ export async function registerPushSubscription(
   }
 }
 
-export async function unregisterPushSubscription(
-  userId: number,
-  endpoint: string
-): Promise<void> {
+export async function unregisterPushSubscription(userId: number, endpoint: string): Promise<void> {
   await db
     .update(notificationChannels)
     .set({ isActive: false })
@@ -547,8 +540,8 @@ export async function unregisterPushSubscription(
       and(
         eq(notificationChannels.userId, userId),
         eq(notificationChannels.channel, "push"),
-        eq(notificationChannels.endpoint, endpoint)
-      )
+        eq(notificationChannels.endpoint, endpoint),
+      ),
     );
 }
 

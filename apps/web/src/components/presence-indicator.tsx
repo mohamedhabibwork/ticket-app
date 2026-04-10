@@ -1,5 +1,4 @@
 import { useEffect, useState, useCallback } from "react";
-import { useRouter } from "@tanstack/react-router";
 
 interface Viewer {
   ticketId: number;
@@ -15,9 +14,13 @@ interface PresenceIndicatorProps {
   currentUserName: string;
 }
 
-export function PresenceIndicator({ ticketId, currentUserId, currentUserName }: PresenceIndicatorProps) {
+export function PresenceIndicator({
+  ticketId,
+  currentUserId,
+  currentUserName,
+}: PresenceIndicatorProps) {
   const [viewers, setViewers] = useState<Viewer[]>([]);
-  const [ws, setWs] = useState<WebSocket | null>(null);
+  const [_ws, setWs] = useState<WebSocket | null>(null);
 
   const connect = useCallback(() => {
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";

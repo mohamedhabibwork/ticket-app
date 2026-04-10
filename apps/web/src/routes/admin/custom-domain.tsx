@@ -10,8 +10,16 @@ import {
 import { Button } from "@ticket-app/ui/components/button";
 import { Input } from "@ticket-app/ui/components/input";
 import { Label } from "@ticket-app/ui/components/label";
-import { Badge } from "@ticket-app/ui/components/badge";
-import { Globe, Plus, Trash2, CheckCircle, XCircle, AlertCircle, Copy, ExternalLink } from "lucide-react";
+import {
+  Globe,
+  Plus,
+  Trash2,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  Copy,
+  ExternalLink,
+} from "lucide-react";
 
 export const Route = createFileRoute("/admin/custom-domain")({
   component: CustomDomainRoute,
@@ -141,9 +149,7 @@ function CustomDomainRoute() {
     <div className="container mx-auto max-w-4xl px-4 py-6">
       <div className="mb-6">
         <h1 className="text-2xl font-bold">Custom Domain</h1>
-        <p className="text-muted-foreground">
-          Configure a custom domain for your customer portal
-        </p>
+        <p className="text-muted-foreground">Configure a custom domain for your customer portal</p>
       </div>
 
       <div className="space-y-6">
@@ -171,11 +177,7 @@ function CustomDomainRoute() {
                       </p>
                     )}
                   </div>
-                  <Button
-                    variant="destructive"
-                    onClick={handleRemoveDomain}
-                    disabled={isRemoving}
-                  >
+                  <Button variant="destructive" onClick={handleRemoveDomain} disabled={isRemoving}>
                     <Trash2 className="mr-2 h-4 w-4" />
                     {isRemoving ? "Removing..." : "Remove Domain"}
                   </Button>
@@ -223,9 +225,7 @@ function CustomDomainRoute() {
           <Card>
             <CardHeader>
               <CardTitle>DNS Configuration</CardTitle>
-              <CardDescription>
-                Add the following DNS records to verify your domain
-              </CardDescription>
+              <CardDescription>Add the following DNS records to verify your domain</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-3">
@@ -235,7 +235,11 @@ function CustomDomainRoute() {
                     <Button
                       variant="ghost"
                       size="icon-xs"
-                      onClick={() => navigator.clipboard.writeText(`CNAME ${currentDomain.domain} ticket-app.uvdesk.com`)}
+                      onClick={() =>
+                        navigator.clipboard.writeText(
+                          `CNAME ${currentDomain.domain} ticket-app.uvdesk.com`,
+                        )
+                      }
                     >
                       <Copy className="h-3 w-3" />
                     </Button>
@@ -243,7 +247,9 @@ function CustomDomainRoute() {
                   <div className="space-y-1">
                     <p className="text-sm">
                       <span className="font-medium">Host:</span>{" "}
-                      <span className="font-mono">{currentDomain.domain.replace(/^[^.]+/, "*")}</span>
+                      <span className="font-mono">
+                        {currentDomain.domain.replace(/^[^.]+/, "*")}
+                      </span>
                     </p>
                     <p className="text-sm">
                       <span className="font-medium">Value:</span>{" "}
@@ -258,7 +264,9 @@ function CustomDomainRoute() {
                     <Button
                       variant="ghost"
                       size="icon-xs"
-                      onClick={() => navigator.clipboard.writeText(`TXT uvdesk-verify=${currentDomain.domain}`)}
+                      onClick={() =>
+                        navigator.clipboard.writeText(`TXT uvdesk-verify=${currentDomain.domain}`)
+                      }
                     >
                       <Copy className="h-3 w-3" />
                     </Button>
@@ -279,7 +287,8 @@ function CustomDomainRoute() {
               <div className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
                 <AlertCircle className="h-4 w-4 text-blue-600" />
                 <span className="text-xs text-blue-700">
-                  DNS changes may take up to 48 hours to propagate. Click Verify once you've added the records.
+                  DNS changes may take up to 48 hours to propagate. Click Verify once you've added
+                  the records.
                 </span>
               </div>
 
@@ -295,9 +304,7 @@ function CustomDomainRoute() {
           <Card>
             <CardHeader>
               <CardTitle>SSL Certificate</CardTitle>
-              <CardDescription>
-                Your SSL certificate is automatically managed
-              </CardDescription>
+              <CardDescription>Your SSL certificate is automatically managed</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-3">
@@ -321,10 +328,15 @@ function CustomDomainRoute() {
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground mb-3">
-              To configure your custom domain, you'll need to add DNS records at your domain registrar.
+              To configure your custom domain, you'll need to add DNS records at your domain
+              registrar.
             </p>
             <Button variant="outline" asChild>
-              <a href="https://docs.uvdesk.com/domain-setup" target="_blank" rel="noopener noreferrer">
+              <a
+                href="https://docs.uvdesk.com/domain-setup"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <ExternalLink className="mr-2 h-4 w-4" />
                 View Documentation
               </a>

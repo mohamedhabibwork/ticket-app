@@ -1,5 +1,6 @@
 import dotenv from "dotenv";
 import { defineConfig } from "drizzle-kit";
+import { env } from "@ticket-app/env/server";
 
 dotenv.config({
   path: "../../apps/server/.env",
@@ -10,6 +11,6 @@ export default defineConfig({
   out: "./src/migrations",
   dialect: "postgresql",
   dbCredentials: {
-    url: process.env.DATABASE_URL || "postgresql://postgres:@localhost:5432/ticekt",
+    url: env.DATABASE_URL,
   },
 });

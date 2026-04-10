@@ -1,13 +1,7 @@
 import { useState, useCallback } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { format } from "date-fns";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@ticket-app/ui/components/card";
+import { Card, CardContent } from "@ticket-app/ui/components/card";
 import { Button } from "@ticket-app/ui/components/button";
 import { Input } from "@ticket-app/ui/components/input";
 import { Label } from "@ticket-app/ui/components/label";
@@ -26,12 +20,7 @@ import {
   TableHeader,
   TableRow,
 } from "@ticket-app/ui/components/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@ticket-app/ui/components/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@ticket-app/ui/components/dialog";
 import {
   Search,
   Download,
@@ -178,7 +167,7 @@ function AuditLogRoute() {
         resourceType: "settings",
         resourceId: null,
         changes: {
-          "enforce_2fa": { old: "false", new: "true" },
+          enforce_2fa: { old: "false", new: "true" },
         },
         ipAddress: "192.168.1.100",
         userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
@@ -212,7 +201,7 @@ function AuditLogRoute() {
         (e) =>
           e.user?.email.toLowerCase().includes(filters.actor.toLowerCase()) ||
           e.user?.firstName.toLowerCase().includes(filters.actor.toLowerCase()) ||
-          e.user?.lastName.toLowerCase().includes(filters.actor.toLowerCase())
+          e.user?.lastName.toLowerCase().includes(filters.actor.toLowerCase()),
       );
     }
 
@@ -276,9 +265,10 @@ function AuditLogRoute() {
       entry.changes ? JSON.stringify(entry.changes) : "",
     ]);
 
-    const csvContent = [headers.join(","), ...rows.map((r) => r.map((c) => `"${c}"`).join(","))].join(
-      "\n"
-    );
+    const csvContent = [
+      headers.join(","),
+      ...rows.map((r) => r.map((c) => `"${c}"`).join(",")),
+    ].join("\n");
 
     const blob = new Blob([csvContent], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
@@ -464,7 +454,7 @@ function AuditLogRoute() {
                     <TableCell>
                       <span
                         className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getActionColor(
-                          entry.action
+                          entry.action,
                         )}`}
                       >
                         {entry.action}
@@ -473,9 +463,7 @@ function AuditLogRoute() {
                     <TableCell>
                       <div className="font-medium">{entry.resourceType}</div>
                       {entry.resourceId && (
-                        <div className="text-xs text-muted-foreground">
-                          ID: {entry.resourceId}
-                        </div>
+                        <div className="text-xs text-muted-foreground">ID: {entry.resourceId}</div>
                       )}
                     </TableCell>
                     <TableCell>
@@ -497,11 +485,7 @@ function AuditLogRoute() {
                       {format(new Date(entry.createdAt), "MMM d, yyyy HH:mm:ss")}
                     </TableCell>
                     <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setSelectedEntry(entry)}
-                      >
+                      <Button variant="ghost" size="sm" onClick={() => setSelectedEntry(entry)}>
                         <Eye className="h-4 w-4" />
                       </Button>
                     </TableCell>
@@ -558,7 +542,7 @@ function AuditLogRoute() {
                   <div>
                     <span
                       className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getActionColor(
-                        selectedEntry.action
+                        selectedEntry.action,
                       )}`}
                     >
                       {selectedEntry.action}

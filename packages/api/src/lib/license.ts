@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { env } from "@ticket-app/env/server";
 
 export interface LicenseVerificationResult {
   valid: boolean;
@@ -21,7 +22,7 @@ export interface JWTPayload {
   features: string[];
 }
 
-const PUBLIC_KEY_PATH = process.env.LICENSE_PUBLIC_KEY_PATH || "./keys/license-public.pem";
+const PUBLIC_KEY_PATH = env.LICENSE_PUBLIC_KEY_PATH;
 
 let cachedPublicKey: string | null = null;
 
@@ -35,7 +36,7 @@ async function getPublicKey(): Promise<string> {
     cachedPublicKey = fs.readFileSync(PUBLIC_KEY_PATH, "utf8");
     return cachedPublicKey;
   } catch {
-    cachedPublicKey = process.env.LICENSE_PUBLIC_KEY || "";
+    cachedPublicKey = env.LICENSE_PUBLIC_KEY || "";
     return cachedPublicKey;
   }
 }
@@ -61,7 +62,7 @@ function verifyRS256(payload: string, signature: string, publicKey: string): boo
 export async function verifyLicenseSignature(
   licenseKey: string,
   domain: string,
-  signature: string
+  signature: string,
 ): Promise<boolean> {
   const publicKey = await getPublicKey();
 
@@ -71,10 +72,6 @@ export async function verifyLicenseSignature(
   }
 
   const payload = `${licenseKey}.${domain}`;
-  const expectedSignature = crypto
-    .createHash("sha256")
-    .update(payload)
-    .digest("base64url");
 
   const verify = crypto.createVerify("RSA-SHA256");
   verify.update(payload);
@@ -129,7 +126,7 @@ export async function decodeLicenseJWT(token: string): Promise<JWTPayload | null
 export async function verifyLicenseKey(
   licenseKey: string,
   domain: string,
-  signature: string
+  signature: string,
 ): Promise<LicenseVerificationResult> {
   try {
     const isValidSignature = await verifyLicenseSignature(licenseKey, domain, signature);
@@ -162,7 +159,7 @@ export async function verifyLicenseKey(
 export async function validateSeatLimit(
   organizationId: number,
   currentSeatCount: number,
-  seatLimit: number
+  seatLimit: number,
 ): Promise<{ allowed: boolean; message?: string }> {
   if (currentSeatCount > seatLimit) {
     return {
@@ -175,7 +172,7 @@ export async function validateSeatLimit(
 }
 
 export function isOnPremiseMode(): boolean {
-  return process.env.LICENSE_MODE === "on_premise" || process.env.ON_PREMISE === "true";
+  return env.LICENSE_MODE === "on_premise" || env.ON_PREMISE === true;
 }
 
 export function isMultiTenantBillingDisabled(): boolean {

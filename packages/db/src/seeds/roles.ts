@@ -1,5 +1,3 @@
-import { db } from "../index";
-
 export const SYSTEM_ROLES = [
   {
     slug: "owner",
@@ -16,7 +14,8 @@ export const SYSTEM_ROLES = [
   {
     slug: "supervisor",
     name: "Supervisor",
-    description: "Can manage tickets, agents, and view reports but cannot modify organization settings",
+    description:
+      "Can manage tickets, agents, and view reports but cannot modify organization settings",
     isSystem: true,
   },
   {

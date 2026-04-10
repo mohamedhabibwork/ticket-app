@@ -15,8 +15,8 @@ export const excelRouter = {
   createExportJob: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        userId: z.number(),
+        organizationId: z.coerce.number(),
+        userId: z.coerce.number(),
         entityType: EntityTypeEnum,
         filters: z.record(z.string(), z.unknown()).optional(),
       }),
@@ -67,7 +67,7 @@ export const excelRouter = {
     .input(
       z.object({
         jobId: z.string(),
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -100,7 +100,7 @@ export const excelRouter = {
     .input(
       z.object({
         jobId: z.string(),
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -133,10 +133,10 @@ export const excelRouter = {
   createImportJob: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        userId: z.number(),
+        organizationId: z.coerce.number(),
+        userId: z.coerce.number(),
         entityType: EntityTypeEnum,
-        fileUrl: z.string().url(),
+        fileUrl: z.url(),
         mode: ImportModeEnum.default("create"),
         matchField: z.string().optional(),
       }),
@@ -181,7 +181,7 @@ export const excelRouter = {
     .input(
       z.object({
         jobId: z.string(),
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -216,9 +216,9 @@ export const excelRouter = {
   listExportJobs: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        limit: z.number().min(1).max(100).default(20),
-        offset: z.number().min(0).default(0),
+        organizationId: z.coerce.number(),
+        limit: z.coerce.number().min(1).max(100).default(20),
+        offset: z.coerce.number().min(0).default(0),
       }),
     )
     .handler(async ({ input }) => {
@@ -244,9 +244,9 @@ export const excelRouter = {
   listImportJobs: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        limit: z.number().min(1).max(100).default(20),
-        offset: z.number().min(0).default(0),
+        organizationId: z.coerce.number(),
+        limit: z.coerce.number().min(1).max(100).default(20),
+        offset: z.coerce.number().min(0).default(0),
       }),
     )
     .handler(async ({ input }) => {

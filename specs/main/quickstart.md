@@ -1,282 +1,271 @@
-# Quickstart: Unified Customer Support & Ticket Management Platform
+# Quickstart: Real-time Socket System
 
-**Date**: 2026-04-08 | **Status**: Development Guide
+**Date**: 2026-04-09 | **Status**: Development Guide
 
 ---
 
 ## Prerequisites
 
-| Tool | Version | Installation |
-|------|---------|--------------|
-| Node.js | 20+ | [nodejs.org](https://nodejs.org) |
-| Bun | 1.3+ | [bun.sh](https://bun.sh) |
-| PostgreSQL | 16+ | [postgresql.org](https://www.postgresql.org) |
-| Redis | 7+ | [redis.io](https://redis.io) |
+| Tool             | Version | Installation                     |
+| ---------------- | ------- | -------------------------------- |
+| Node.js          | 20+     | [nodejs.org](https://nodejs.org) |
+| Bun              | 1.3+    | [bun.sh](https://bun.sh)         |
+| Redis            | 7+      | [redis.io](https://redis.io)     |
+| Socket.io Client | 4.x     | Via bun/npm                      |
 
 ---
 
-## Environment Setup
+## Local Development Setup
 
-### 1. Clone & Install
+### 1. Start Redis
 
-```bash
-git clone https://github.com/ticket-app/ticket-app.git
-cd ticket-app
-bun install
-```
-
-### 2. Environment Variables
-
-Copy the example env files:
+Socket.io Redis adapter requires a running Redis instance:
 
 ```bash
-cp apps/server/.env.example apps/server/.env
-cp packages/db/.env.example packages/db/.env
+# Using Docker
+docker run -d -p 6379:6379 redis:latest
+
+# Or locally installed
+redis-server
 ```
 
-**Required Environment Variables:**
-
-```env
-# apps/server/.env
-DATABASE_URL=postgresql://user:password@localhost:5432/ticket_app
-REDIS_URL=redis://localhost:6379
-SESSION_SECRET=your-32-char-secret
-CORS_ORIGIN=http://localhost:5173
-
-# packages/db/.env (for migrations)
-DATABASE_URL=postgresql://user:password@localhost:5432/ticket_app
-```
-
-### 3. Database Setup
+### 2. Verify Redis Connection
 
 ```bash
-# Create database
-createdb ticket_app
-
-# Push schema (dev)
-bun db:push
-
-# Or run migrations
-bun db:migrate
-
-# Generate types from schema
-bun db:generate
+redis-cli ping
+# Should return: PONG
 ```
 
-### 4. Start Development Servers
+### 3. Start the Server
 
 ```bash
-# Start all apps in development mode
-bun dev
+cd apps/server
+bun run dev
+```
 
-# Or start individual apps
-bun dev:server   # API server on http://localhost:3000
-bun dev:web      # Web app on http://localhost:5173
+The server starts on port 3000 with Socket.io available at `/socket.io/`.
+
+---
+
+## Socket.io Client Setup
+
+### Web App
+
+```bash
+cd apps/web
+bun install socket.io-client@^4.0.0
+```
+
+### Native App
+
+```bash
+cd apps/native
+bun install socket.io-client@^4.0.0
 ```
 
 ---
 
-## Project Structure Overview
+## Connecting to Socket.io
 
-```
-ticket-app/
-├── apps/
-│   ├── server/           # Hono API server
-│   │   └── src/
-│   │       └── index.ts  # Entry point
-│   │
-│   └── web/              # React frontend
-│       └── src/
-│           ├── routes/   # TanStack Router routes
-│           ├── components/
-│           └── pages/
-│
-├── packages/
-│   ├── api/              # ORPC procedures
-│   │   └── src/
-│   │       └── routers/  # Feature routers
-│   │
-│   ├── db/               # Drizzle ORM schemas
-│   │   └── src/
-│   │       └── schema/   # Table definitions
-│   │
-│   └── ui/               # Shared components
-│
-└── specs/main/           # Implementation specs
-```
-
----
-
-## Core Commands
-
-| Command | Description |
-|---------|-------------|
-| `bun dev` | Start all apps in dev mode |
-| `bun build` | Build all apps |
-| `bun check-types` | Type-check all packages |
-| `bun db:push` | Push schema to database (dev) |
-| `bun db:generate` | Generate Drizzle migrations |
-| `bun db:migrate` | Run migrations |
-| `bun db:studio` | Open Drizzle Studio |
-
----
-
-## First-Time Setup
-
-### 1. Create Platform Admin
-
-After database is set up, create your first user:
-
-```bash
-# Via the web UI at http://localhost:5173
-# Or via seed script (future)
-```
-
-### 2. Seed Initial Data
-
-The database seeds required lookup types:
+### Basic Connection
 
 ```typescript
-// Lookup types seeded:
-// - ticket_status: new, open, pending, on_hold, resolved, closed
-// - ticket_priority: low, medium, high, urgent, critical
-// - task_status: todo, in_progress, done, cancelled
-// - task_priority: low, medium, high, urgent
-// - channel_type: email, chat, form, social, api
-// - social_platform: facebook, instagram, twitter, whatsapp
-// - form_field_type: text, email, phone, number, date, etc.
-```
+import { io, Socket } from "socket.io-client";
 
-### 3. Create Your Organization
-
-Through the web UI or API:
-1. Sign up with your email
-2. Organization created with Free plan
-3. Trial starts with Professional features
-
----
-
-## Development Workflow
-
-### 1. Making Schema Changes
-
-```bash
-# 1. Edit schema in packages/db/src/schema/
-# 2. Generate migration
-bun db:generate
-# 3. Apply migration
-bun db:migrate
-```
-
-### 2. Creating New API Procedures
-
-```typescript
-// packages/api/src/routers/tickets.ts
-import { ORPCRouter } from '@orpc/server';
-import { z } from 'zod';
-
-export const ticketsRouter = new ORPCRouter()
-  .input(z.object({
-    organizationId: z.string().uuid(),
-    status: z.string().optional(),
-  }))
-  .handler(async ({ input, context }) => {
-    // context.auth contains the authenticated user
-    return db.query.tickets.findMany({
-      where: eq(tickets.organizationId, input.organizationId),
-    });
-  });
-```
-
-### 3. Adding New Frontend Pages
-
-```typescript
-// apps/web/src/routes/tickets.tsx
-import { createFileRoute } from '@tanstack/react-router';
-
-export const Route = createFileRoute('/tickets')({
-  component: TicketsPage,
+const socket: Socket = io("http://localhost:3000", {
+  auth: {
+    token: "your-jwt-token",
+  },
+  transports: ["websocket"],
+  autoConnect: true,
 });
 
-function TicketsPage() {
-  return <div>Tickets List</div>;
+socket.on("connect", () => {
+  console.log("Connected:", socket.id);
+});
+
+socket.on("disconnect", (reason) => {
+  console.log("Disconnected:", reason);
+});
+```
+
+### With React Hook
+
+```typescript
+import { useSocket, SocketProvider } from '@ticket-app/socket-client';
+
+// In your app
+function App() {
+  return (
+    <SocketProvider url="http://localhost:3000" authToken={token}>
+      <YourApp />
+    </SocketProvider>
+  );
+}
+
+// In a component
+function TicketPresence({ ticketId }: { ticketId: number }) {
+  const { viewers, isConnected } = usePresence(ticketId);
+
+  return (
+    <div>
+      {isConnected ? 'Connected' : 'Disconnected'}
+      {viewers.map(v => (
+        <span key={v.userId}>{v.userName}</span>
+      ))}
+    </div>
+  );
 }
 ```
 
 ---
 
-## Testing
+## Testing Presence Events
+
+### Terminal Testing (using websocat)
 
 ```bash
-# Run all tests
-bun test
+# Install websocat
+brew install websocat  # macOS
+# or: cargo install websocat
 
-# Run unit tests
-bun test --unit
+# Connect to socket
+websocat ws://localhost:3000/socket.io/?transport=websocket&EIO=4
 
-# Run e2e tests
-bun test:e2e
+# Send presence join (manually craft the Socket.io protocol)
+# Note: Manual Socket.io protocol testing is complex
+# Recommend using the client library instead
+```
 
-# Run with coverage
-bun test --coverage
+### Using the Socket.io CLI
+
+```bash
+# Install socket.io-client CLI
+npm install -g socket.io-client
+
+# Connect to server
+sio connect http://localhost:3000
 ```
 
 ---
 
-## Deployment
+## Debugging Socket.io
 
-### Development (Local)
+### Enable Debug Logging
 
-```bash
-bun dev:server   # API only
-bun dev:web      # Frontend only
+```typescript
+// In your client
+import debug from "debug";
+
+const log = debug("socket.io-client");
+log.enabled = true;
 ```
 
-### Production Build
+### Server-Side Logging
+
+The server logs socket connections and events:
 
 ```bash
-bun build
+# Server logs show:
+# - WebSocket opened
+# - WebSocket closed
+# - Room join/leave events
+# - Error events
 ```
 
-### Cloudflare Workers Deployment
+### Inspect Traffic
 
-```bash
-bun deploy
-```
+- Chrome DevTools → Network → WS (WebSocket frames)
+- Firefox DevTools → Network → Socket.io
+- Safari DevTools → Timelines → WebSocket
 
 ---
 
-## Troubleshooting
+## Common Issues
 
-### Database Connection Issues
+### CORS Error
 
-```bash
-# Check PostgreSQL is running
-pg_isready
-
-# Verify connection string
-psql $DATABASE_URL -c "SELECT 1"
+```
+Access to fetch at 'http://localhost:3000' from origin 'http://localhost:5173'
+has been blocked by CORS policy
 ```
 
-### Redis Connection Issues
+**Fix**: Ensure `CORS_ORIGIN` in server `.env` includes your client origin.
 
-```bash
-# Check Redis is running
-redis-cli ping
+### Redis Adapter Connection Failed
+
+```
+Error: Redis connection failed
 ```
 
-### Schema Drift
+**Fix**:
 
-```bash
-# Reset database (dev only!)
-dropdb ticket_app && createdb ticket_app && bun db:push
+1. Verify Redis is running: `redis-cli ping`
+2. Check `REDIS_URL` in server `.env`
+
+### Authentication Failed
+
+```
+Invalid token
+```
+
+**Fix**:
+
+1. Ensure JWT token is valid and not expired
+2. Token must be passed in `auth.token` or `query.token`
+
+### Transport Fallback
+
+If WebSocket fails, Socket.io falls back to long-polling. This is expected behavior.
+
+---
+
+## Event Testing Checklist
+
+- [ ] `join_ticket` → receives `viewer_joined` broadcast
+- [ ] `leave_ticket` → receives `viewer_left` broadcast
+- [ ] `heartbeat` → receives `heartbeat_ack`
+- [ ] `get_viewers` → receives `viewers_list`
+- [ ] Cross-tab presence works
+- [ ] Reconnection after network interruption works
+- [ ] Multiple users see same presence state
+
+---
+
+## Architecture Overview
+
+```
+┌─────────────┐     WebSocket      ┌─────────────┐
+│   Web App   │◄──────────────────►│   Server    │
+│             │                    │             │
+│             │     Socket.io      │  ┌───────┐  │
+│             │◄──────────────────►│  │ Redis │  │
+└─────────────┘                    │  │Adapter│  │
+                                 │  └───┬───┘  │
+┌─────────────┐                   │      │      │
+│Native App   │◄──────────────────►│      ▼      │
+│             │                    │  ┌───────┐  │
+└─────────────┘                    │  │ Redis │  │
+                                 │  │ Pub/  │  │
+┌─────────────┐                   │  │ Sub   │  │
+│  Queue      │                   │  └───────┘  │
+│  Workers    │───────────────────►             │
+└─────────────┘    Redis Pub/Sub                │
+                                                 │
+                    ┌─────────────────────────────┘
+                    │
+                    ▼
+              ┌───────────┐
+              │  Redis    │
+              │  Server   │
+              └───────────┘
 ```
 
 ---
 
 ## Next Steps
 
-1. Review [data-model.md](./data-model.md) for full schema reference
+1. Review [data-model.md](./data-model.md) for event type definitions
 2. Review [research.md](./research.md) for architecture decisions
-3. Check existing routers in `packages/api/src/routers/`
-4. Explore components in `packages/ui/`
+3. Check socket implementation in `apps/server/src/socket/`
+4. Review client hooks in `packages/socket-client/src/`

@@ -2,8 +2,8 @@ import { useState } from "react";
 import { X, Send } from "lucide-react";
 
 interface ForwardModalProps {
-  ticketId: number;
-  messageId?: number;
+  _ticketId: number;
+  _messageId?: number;
   initialSubject?: string;
   initialBody?: string;
   onClose: () => void;
@@ -18,7 +18,14 @@ interface ForwardData {
   body: string;
 }
 
-export function ForwardModal({ ticketId, messageId, initialSubject, initialBody, onClose, onSubmit }: ForwardModalProps) {
+export function ForwardModal({
+  _ticketId,
+  _messageId,
+  initialSubject,
+  initialBody,
+  onClose,
+  onSubmit,
+}: ForwardModalProps) {
   const [to, setTo] = useState("");
   const [cc, setCc] = useState("");
   const [bcc, setBcc] = useState("");
@@ -29,9 +36,18 @@ export function ForwardModal({ ticketId, messageId, initialSubject, initialBody,
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const toEmails = to.split(",").map((email) => email.trim()).filter(Boolean);
-    const ccEmails = cc.split(",").map((email) => email.trim()).filter(Boolean);
-    const bccEmails = bcc.split(",").map((email) => email.trim()).filter(Boolean);
+    const toEmails = to
+      .split(",")
+      .map((email) => email.trim())
+      .filter(Boolean);
+    const ccEmails = cc
+      .split(",")
+      .map((email) => email.trim())
+      .filter(Boolean);
+    const bccEmails = bcc
+      .split(",")
+      .map((email) => email.trim())
+      .filter(Boolean);
 
     if (toEmails.length === 0) {
       alert("Please enter at least one recipient");

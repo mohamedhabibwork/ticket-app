@@ -14,7 +14,14 @@ interface SettingsItemProps {
   danger?: boolean;
 }
 
-function SettingsItem({ icon, title, subtitle, onPress, showArrow = true, danger = false }: SettingsItemProps) {
+function SettingsItem({
+  icon,
+  title,
+  subtitle,
+  onPress,
+  showArrow = true,
+  danger = false,
+}: SettingsItemProps) {
   const mutedColor = useThemeColor("muted");
   const foregroundColor = useThemeColor("foreground");
 
@@ -22,20 +29,14 @@ function SettingsItem({ icon, title, subtitle, onPress, showArrow = true, danger
     <Pressable onPress={onPress}>
       <Surface variant="secondary" className="p-4 rounded-lg mb-2">
         <View className="flex-row items-center gap-3">
-          <Ionicons
-            name={icon as any}
-            size={22}
-            color={danger ? "#ef4444" : foregroundColor}
-          />
+          <Ionicons name={icon as any} size={22} color={danger ? "#ef4444" : foregroundColor} />
           <View className="flex-1">
             <Text className={danger ? "text-danger font-medium" : "text-foreground font-medium"}>
               {title}
             </Text>
             {subtitle && <Text className="text-muted text-xs mt-0.5">{subtitle}</Text>}
           </View>
-          {showArrow && (
-            <Ionicons name="chevron-forward" size={20} color={mutedColor} />
-          )}
+          {showArrow && <Ionicons name="chevron-forward" size={20} color={mutedColor} />}
         </View>
       </Surface>
     </Pressable>
@@ -44,31 +45,25 @@ function SettingsItem({ icon, title, subtitle, onPress, showArrow = true, danger
 
 export default function SettingsScreen() {
   const router = useRouter();
-  const mutedColor = useThemeColor("muted");
+  const _mutedColor = useThemeColor("muted");
 
   const handleLogout = () => {
-    Alert.alert(
-      "Logout",
-      "Are you sure you want to logout?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Logout",
-          style: "destructive",
-          onPress: () => {
-            // Handle logout logic here
-          },
+    Alert.alert("Logout", "Are you sure you want to logout?", [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Logout",
+        style: "destructive",
+        onPress: () => {
+          // Handle logout logic here
         },
-      ],
-    );
+      },
+    ]);
   };
 
   return (
     <Container>
       <View className="p-4">
-        <Text className="text-2xl font-semibold text-foreground tracking-tight mb-4">
-          Settings
-        </Text>
+        <Text className="text-2xl font-semibold text-foreground tracking-tight mb-4">Settings</Text>
 
         <Text className="text-muted text-xs font-medium mb-2 px-1">ACCOUNT</Text>
         <SettingsItem
@@ -105,16 +100,8 @@ export default function SettingsScreen() {
           subtitle="Get help and support"
           onPress={() => router.push("/kb")}
         />
-        <SettingsItem
-          icon="document-text-outline"
-          title="Terms of Service"
-          onPress={() => {}}
-        />
-        <SettingsItem
-          icon="shield-outline"
-          title="Privacy Policy"
-          onPress={() => {}}
-        />
+        <SettingsItem icon="document-text-outline" title="Terms of Service" onPress={() => {}} />
+        <SettingsItem icon="shield-outline" title="Privacy Policy" onPress={() => {}} />
 
         <Text className="text-muted text-xs font-medium mb-2 px-1 mt-4">DANGER ZONE</Text>
         <SettingsItem

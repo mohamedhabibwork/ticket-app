@@ -7,7 +7,7 @@ import { useState } from "react";
 
 export default function Header() {
   const { t } = useI18n();
-  const { direction, isRTL } = useDirection();
+  const { direction: _direction, isRTL } = useDirection();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navItems = [

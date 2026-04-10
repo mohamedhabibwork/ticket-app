@@ -1,17 +1,12 @@
 import { Worker, Job, Queue } from "bullmq";
-import { eq, and, isNull, gte, lt, lte, sql } from "drizzle-orm";
+import { eq, and, isNull, gte, lt, sql } from "drizzle-orm";
 import { db } from "@ticket-app/db";
-import {
-  csatSurveys,
-  tickets,
-  ticketMessages,
-  contacts,
-} from "@ticket-app/db/schema";
+import { csatSurveys, tickets } from "@ticket-app/db/schema";
 import { getRedis } from "../redis";
 import { env } from "@ticket-app/env/server";
 import { addEmailSendJob, type EmailSendJobData } from "./email-send.worker";
 
-const CSAT_SURVEY_QUEUE = `${env.QUEUE_PREFIX}:csat-survey`;
+const CSAT_SURVEY_QUEUE = `${env.QUEUE_PREFIX}-csat-survey`;
 
 export interface CsatSurveyJobData {
   type: "send-survey" | "process-response" | "send-reminder" | "expire-survey";
@@ -48,7 +43,7 @@ const csatSurveyQueue = new Queue(CsatSurveyJobData, {
 
 export async function addCsatSurveyJob(
   data: CsatSurveyJobData,
-  options?: { delay?: number }
+  options?: { delay?: number },
 ): Promise<Job<CsatSurveyJobData>> {
   return csatSurveyQueue.add("csat-survey", data, {
     ...options,
@@ -65,7 +60,7 @@ export async function scheduleCsatSurveys(): Promise<void> {
       )`,
       isNull(tickets.deletedAt),
       sql`${tickets.resolvedAt} IS NOT NULL`,
-      sql`${tickets.resolvedAt} <= NOW() - INTERVAL '1 hour'`
+      sql`${tickets.resolvedAt} <= NOW() - INTERVAL '1 hour'`,
     ),
     with: {
       contact: true,
@@ -84,10 +79,7 @@ export async function scheduleCsatSurveys(): Promise<void> {
   }
 
   const pendingSurveys = await db.query.csatSurveys.findMany({
-    where: and(
-      isNull(csatSurveys.respondedAt),
-      gte(csatSurveys.expiresAt, new Date())
-    ),
+    where: and(isNull(csatSurveys.respondedAt), gte(csatSurveys.expiresAt, new Date())),
     with: {
       ticket: {
         with: { contact: true },
@@ -99,23 +91,13 @@ export async function scheduleCsatSurveys(): Promise<void> {
   reminderDate.setDate(reminderDate.getDate() - defaultConfig.reminderAfterDays);
 
   for (const survey of pendingSurveys) {
-    if (
-      defaultConfig.reminderEnabled &&
-      survey.sentAt < reminderDate &&
-      !survey.sentAt
-    ) {
-      await addCsatSurveyJob(
-        { type: "send-reminder", surveyId: survey.id },
-        { delay: 0 }
-      );
+    if (defaultConfig.reminderEnabled && survey.sentAt < reminderDate && !survey.sentAt) {
+      await addCsatSurveyJob({ type: "send-reminder", surveyId: survey.id }, { delay: 0 });
     }
   }
 
   const expiredSurveys = await db.query.csatSurveys.findMany({
-    where: and(
-      isNull(csatSurveys.respondedAt),
-      lt(csatSurveys.expiresAt, new Date())
-    ),
+    where: and(isNull(csatSurveys.respondedAt), lt(csatSurveys.expiresAt, new Date())),
   });
 
   for (const survey of expiredSurveys) {
@@ -147,7 +129,7 @@ export function createCsatSurveyWorker(): Worker {
     {
       connection: getRedis(),
       concurrency: 5,
-    }
+    },
   );
 }
 
@@ -187,7 +169,7 @@ async function sendSurvey(ticketId: number): Promise<void> {
     })
     .returning();
 
-  const surveyUrl = `${process.env.APP_URL || "http://localhost:3000"}/csat/${survey.uuid}`;
+  const surveyUrl = `${env.APP_URL || "http://localhost:3000"}/csat/${survey.uuid}`;
   const subject = `How was your experience with Ticket #${ticket.referenceNumber}?`;
 
   const emailData: EmailSendJobData = {
@@ -243,7 +225,7 @@ async function sendReminder(surveyId: number): Promise<void> {
     return;
   }
 
-  const surveyUrl = `${process.env.APP_URL || "http://localhost:3000"}/csat/${survey.uuid}`;
+  const surveyUrl = `${env.APP_URL || "http://localhost:3000"}/csat/${survey.uuid}`;
   const subject = `Reminder: Rate your experience with Ticket #${survey.ticket.referenceNumber}`;
 
   const emailData: EmailSendJobData = {
@@ -272,19 +254,12 @@ async function sendReminder(surveyId: number): Promise<void> {
 async function expireSurvey(surveyId: number): Promise<void> {
   console.log(`[CSAT] Expiring survey ${surveyId}`);
 
-  await db
-    .update(csatSurveys)
-    .set({})
-    .where(eq(csatSurveys.id, surveyId));
+  await db.update(csatSurveys).set({}).where(eq(csatSurveys.id, surveyId));
 
   console.log(`[CSAT] Survey ${surveyId} expired`);
 }
 
-async function processResponse(
-  surveyId: number,
-  rating?: number,
-  comment?: string
-): Promise<void> {
+async function processResponse(surveyId: number, rating?: number, comment?: string): Promise<void> {
   console.log(`[CSAT] Processing response for survey ${surveyId}`);
 
   const survey = await db.query.csatSurveys.findFirst({
@@ -329,7 +304,7 @@ export async function getCsatStats(organizationId: number): Promise<{
       sql`ticket_id IN (
         SELECT id FROM tickets WHERE organization_id = ${organizationId}
       )`,
-      isNull(csatSurveys.respondedAt)
+      isNull(csatSurveys.respondedAt),
     ),
     with: {
       ticket: true,
@@ -340,14 +315,10 @@ export async function getCsatStats(organizationId: number): Promise<{
   const respondedSurveys = surveys.filter((s) => s.respondedAt !== null);
   const totalResponses = respondedSurveys.length;
 
-  const ratings = respondedSurveys
-    .map((s) => s.rating)
-    .filter((r): r is number => r !== null);
+  const ratings = respondedSurveys.map((s) => s.rating).filter((r): r is number => r !== null);
 
   const averageRating =
-    ratings.length > 0
-      ? ratings.reduce((sum, r) => sum + r, 0) / ratings.length
-      : 0;
+    ratings.length > 0 ? ratings.reduce((sum, r) => sum + r, 0) / ratings.length : 0;
 
   const responseRate = totalSurveys > 0 ? (totalResponses / totalSurveys) * 100 : 0;
 
@@ -366,10 +337,7 @@ export async function getCsatStats(organizationId: number): Promise<{
   };
 }
 
-function generateSurveyEmailHtml(
-  ticket: { referenceNumber: string },
-  surveyUrl: string
-): string {
+function generateSurveyEmailHtml(ticket: { referenceNumber: string }, surveyUrl: string): string {
   return `
 <!DOCTYPE html>
 <html>
@@ -391,10 +359,7 @@ function generateSurveyEmailHtml(
   `.trim();
 }
 
-function generateSurveyEmailText(
-  ticket: { referenceNumber: string },
-  surveyUrl: string
-): string {
+function generateSurveyEmailText(ticket: { referenceNumber: string }, surveyUrl: string): string {
   return `
 How was your experience?
 
@@ -409,7 +374,7 @@ This survey will expire in 7 days.
 
 function generateReminderEmailHtml(
   survey: { ticket: { referenceNumber: string } },
-  surveyUrl: string
+  surveyUrl: string,
 ): string {
   return `
 <!DOCTYPE html>
@@ -433,7 +398,7 @@ function generateReminderEmailHtml(
 
 function generateReminderEmailText(
   survey: { ticket: { referenceNumber: string } },
-  surveyUrl: string
+  surveyUrl: string,
 ): string {
   return `
 Reminder: We value your feedback

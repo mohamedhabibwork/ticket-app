@@ -1,5 +1,5 @@
 import { db } from "@ticket-app/db";
-import { invoices, invoiceItems, subscriptions, organizations } from "@ticket-app/db/schema";
+import { invoices, invoiceItems, organizations } from "@ticket-app/db/schema";
 import { eq, and, desc, sql } from "drizzle-orm";
 
 export interface InvoiceItemInput {
@@ -50,16 +50,13 @@ export async function generateInvoiceNumber(organizationId: number): Promise<str
 
 export async function calculateInvoiceTotals(
   items: InvoiceItemInput[],
-  taxRate: number
+  taxRate: number,
 ): Promise<{
   subtotal: number;
   taxAmount: number;
   total: number;
 }> {
-  const subtotal = items.reduce(
-    (sum, item) => sum + item.unitPrice * item.quantity,
-    0
-  );
+  const subtotal = items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
   const taxAmount = Math.round((subtotal * taxRate) / 100);
   const total = subtotal + taxAmount;
 
@@ -67,15 +64,12 @@ export async function calculateInvoiceTotals(
 }
 
 export async function createInvoice(
-  params: CreateInvoiceParams
+  params: CreateInvoiceParams,
 ): Promise<typeof invoices.$inferSelect> {
   const number = await generateInvoiceNumber(params.organizationId);
   const currency = params.currency || "USD";
 
-  const { subtotal, taxAmount, total } = await calculateInvoiceTotals(
-    params.items,
-    params.taxRate
-  );
+  const { subtotal, taxAmount, total } = await calculateInvoiceTotals(params.items, params.taxRate);
 
   const now = new Date();
   const periodStart = params.periodStart || now;
@@ -108,7 +102,7 @@ export async function createInvoice(
         quantity: item.quantity,
         unitPrice: item.unitPrice,
         total: item.unitPrice * item.quantity,
-      }))
+      })),
     );
   }
 
@@ -139,10 +133,7 @@ export async function finalizeInvoice(invoiceId: number): Promise<void> {
     .where(eq(invoices.id, invoiceId));
 }
 
-export async function markInvoiceAsPaid(
-  invoiceId: number,
-  paymentId?: number
-): Promise<void> {
+export async function markInvoiceAsPaid(invoiceId: number, _paymentId?: number): Promise<void> {
   await db
     .update(invoices)
     .set({
@@ -176,7 +167,7 @@ export async function getPendingInvoices(organizationId: number) {
   return await db.query.invoices.findMany({
     where: and(
       eq(invoices.organizationId, organizationId),
-      sql`${invoices.status} IN ('draft', 'finalized', 'overdue')`
+      sql`${invoices.status} IN ('draft', 'finalized', 'overdue')`,
     ),
     with: {
       items: true,
@@ -204,6 +195,6 @@ export async function getInvoiceStats(organizationId: number) {
       };
       return acc;
     },
-    {} as Record<string, { count: number; totalAmount: number }>
+    {} as Record<string, { count: number; totalAmount: number }>,
   );
 }

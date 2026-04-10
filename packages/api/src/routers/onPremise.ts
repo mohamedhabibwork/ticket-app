@@ -20,7 +20,7 @@ import { addLicenseVerificationJob } from "@ticket-app/queue";
 
 export const onPremiseRouter = {
   getLicense: protectedProcedure
-    .input(z.object({ organizationId: z.number() }))
+    .input(z.object({ organizationId: z.coerce.number() }))
     .handler(async ({ input, context }) => {
       const canRead = await hasPermission(
         {
@@ -44,12 +44,12 @@ export const onPremiseRouter = {
   verifyLicense: protectedProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         licenseKey: z.string(),
         domain: z.string(),
         signature: z.string(),
         productEdition: z.string(),
-        seatLimit: z.number(),
+        seatLimit: z.coerce.number(),
         validUntil: z.date(),
       }),
     )
@@ -127,7 +127,7 @@ export const onPremiseRouter = {
     }),
 
   checkSeatLimit: protectedProcedure
-    .input(z.object({ organizationId: z.number() }))
+    .input(z.object({ organizationId: z.coerce.number() }))
     .handler(async ({ input, context }) => {
       const canRead = await hasPermission(
         {
@@ -170,7 +170,7 @@ export const onPremiseRouter = {
     }),
 
   getLicenseStatus: protectedProcedure
-    .input(z.object({ organizationId: z.number() }))
+    .input(z.object({ organizationId: z.coerce.number() }))
     .handler(async ({ input, context }) => {
       const canRead = await hasPermission(
         {
@@ -216,9 +216,9 @@ export const onPremiseRouter = {
   updateLicense: protectedProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
-        isActive: z.boolean().optional(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
+        isActive: z.coerce.boolean().optional(),
       }),
     )
     .handler(async ({ input, context }) => {
@@ -245,7 +245,7 @@ export const onPremiseRouter = {
     }),
 
   deleteLicense: protectedProcedure
-    .input(z.object({ id: z.number(), organizationId: z.number() }))
+    .input(z.object({ id: z.coerce.number(), organizationId: z.coerce.number() }))
     .handler(async ({ input, context }) => {
       const canWrite = await hasPermission(
         {

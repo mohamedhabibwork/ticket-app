@@ -17,7 +17,7 @@ export const disqusRouter = {
   listAccounts: protectedProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async ({ input, context }) => {
@@ -52,8 +52,8 @@ export const disqusRouter = {
   getAccount: protectedProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        id: z.number(),
+        organizationId: z.coerce.number(),
+        id: z.coerce.number(),
       }),
     )
     .handler(async ({ input, context }) => {
@@ -90,12 +90,12 @@ export const disqusRouter = {
   connectDisqusForum: protectedProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         forumShortname: z.string(),
         apiKey: z.string(),
         apiSecret: z.string(),
         accessToken: z.string().optional(),
-        userId: z.number().optional(),
+        userId: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input, context }) => {
@@ -182,13 +182,13 @@ export const disqusRouter = {
   updateAccount: protectedProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
         apiKey: z.string().optional(),
         apiSecret: z.string().optional(),
         accessToken: z.string().optional(),
-        isActive: z.boolean().optional(),
-        updatedBy: z.number().optional(),
+        isActive: z.coerce.boolean().optional(),
+        updatedBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input, context }) => {
@@ -240,8 +240,8 @@ export const disqusRouter = {
   disconnect: protectedProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async ({ input, context }) => {
@@ -277,8 +277,8 @@ export const disqusRouter = {
   getDecryptedCredentials: protectedProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async ({ input, context }) => {
@@ -316,8 +316,8 @@ export const disqusRouter = {
   testConnection: protectedProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async ({ input, context }) => {
@@ -365,8 +365,8 @@ export const disqusRouter = {
   replyToPost: protectedProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
         threadId: z.string(),
         message: z.string(),
         authorEmail: z.string().optional(),

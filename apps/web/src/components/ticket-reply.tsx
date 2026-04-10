@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { Button } from "@ticket-app/ui/components/button";
 import {
   Card,
@@ -29,7 +29,7 @@ export function TicketReply({ ticketId, onSuccess }: TicketReplyProps) {
         setBody("");
         onSuccess?.();
       },
-    })
+    }),
   );
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -67,10 +67,7 @@ export function TicketReply({ ticketId, onSuccess }: TicketReplyProps) {
             disabled={createMutation.isPending}
           />
           <div className="flex justify-end">
-            <Button
-              type="submit"
-              disabled={createMutation.isPending || !body.trim()}
-            >
+            <Button type="submit" disabled={createMutation.isPending || !body.trim()}>
               {createMutation.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (

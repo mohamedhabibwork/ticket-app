@@ -12,7 +12,7 @@ export const aiRouter = {
   suggestReplies: publicProcedure
     .input(
       z.object({
-        ticketId: z.number(),
+        ticketId: z.coerce.number(),
         context: z.string().optional(),
       }),
     )
@@ -67,7 +67,7 @@ Respond only with valid JSON.`;
   predictPriority: publicProcedure
     .input(
       z.object({
-        ticketId: z.number(),
+        ticketId: z.coerce.number(),
         subject: z.string(),
         description: z.string(),
       }),
@@ -104,13 +104,13 @@ Return a JSON object with:
   suggestRouting: publicProcedure
     .input(
       z.object({
-        ticketId: z.number(),
+        ticketId: z.coerce.number(),
         subject: z.string(),
         description: z.string(),
         availableTeams: z
           .array(
             z.object({
-              id: z.number(),
+              id: z.coerce.number(),
               name: z.string(),
             }),
           )
@@ -157,7 +157,7 @@ Return a JSON object with:
   suggestArticles: publicProcedure
     .input(
       z.object({
-        ticketId: z.number(),
+        ticketId: z.coerce.number(),
         query: z.string().optional(),
       }),
     )
@@ -188,10 +188,10 @@ Return a JSON array of article suggestions with:
   generateDraft: publicProcedure
     .input(
       z.object({
-        ticketId: z.number(),
+        ticketId: z.coerce.number(),
         tone: z.enum(["professional", "friendly", "empathetic", "formal"]).default("professional"),
-        includeGreeting: z.boolean().default(true),
-        includeSignature: z.boolean().default(false),
+        includeGreeting: z.coerce.boolean().default(true),
+        includeSignature: z.coerce.boolean().default(false),
       }),
     )
     .handler(async ({ input }) => {
@@ -243,9 +243,9 @@ Respond only with valid JSON.`;
   summarize: publicProcedure
     .input(
       z.object({
-        ticketId: z.number(),
+        ticketId: z.coerce.number(),
         text: z.string().min(1),
-        maxLength: z.number().min(50).max(500).default(150),
+        maxLength: z.coerce.number().min(50).max(500).default(150),
       }),
     )
     .handler(async ({ input }) => {

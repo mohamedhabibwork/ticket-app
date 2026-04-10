@@ -1,5 +1,5 @@
 import type { Context } from "@ticket-app/api/context";
-import { logger } from "../lib/logger";
+import { logger, withRequestContext } from "../lib/logger";
 
 export interface TraceContext {
   traceId: string;
@@ -66,8 +66,7 @@ export function getTracingHeaders(context: TraceContext): TracingHeaders {
 
 export function extractTraceContext(context: Context): TraceContext {
   const incomingTraceparent =
-    context.headers?.[TRACEPARENT_HEADER] ||
-    context.headers?.[TRACEPARENT_HEADER.toLowerCase()];
+    context.headers?.[TRACEPARENT_HEADER] || context.headers?.[TRACEPARENT_HEADER.toLowerCase()];
 
   if (incomingTraceparent) {
     const parsed = parseTraceparent(incomingTraceparent);
@@ -91,7 +90,7 @@ export function tracingMiddleware() {
   return async function tracingHandler(
     context: Context,
     operation: { name?: string },
-    handler: () => Promise<unknown>
+    handler: () => Promise<unknown>,
   ): Promise<unknown> {
     const traceContext = extractTraceContext(context);
     const startTime = Date.now();
@@ -101,10 +100,10 @@ export function tracingMiddleware() {
       [TRACEPARENT_HEADER]: buildTraceparent(traceContext),
     };
 
-    const spanLogger = logger.withRequestContext(
+    const spanLogger = withRequestContext(
       traceContext.traceId,
       context.session?.userId,
-      context.session?.organizationId
+      context.session?.organizationId,
     );
 
     try {
@@ -150,10 +149,10 @@ export function createSpan(name: string, parentContext: TraceContext): TraceCont
 export function withSpan<T>(
   name: string,
   parentContext: TraceContext,
-  fn: (span: TraceContext) => T
+  fn: (span: TraceContext) => T,
 ): T {
   const span = createSpan(name, parentContext);
-  const headers = getTracingHeaders(span);
+  const _headers = getTracingHeaders(span);
 
   logger.debug("Span started", {
     spanName: name,

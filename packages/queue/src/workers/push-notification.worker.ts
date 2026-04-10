@@ -15,7 +15,7 @@ const FCM_API_URL = "https://fcm.googleapis.com/fcm/send";
 
 const APNS_URL = "https://api.push.apple.com/3/device/";
 
-const PUSH_NOTIFICATION_QUEUE = `${env.QUEUE_PREFIX}:push-notification`;
+const PUSH_NOTIFICATION_QUEUE = `${env.QUEUE_PREFIX}-push-notification`;
 
 export interface PushNotificationJobData {
   type: "send" | "send-batch";

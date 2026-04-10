@@ -15,7 +15,7 @@ export const adminRouter = {
   getOrganizationSettings: protectedProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async ({ input, context }) => {
@@ -45,7 +45,7 @@ export const adminRouter = {
   updateOrganizationSettings: protectedProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         settings: z.record(z.string(), z.unknown()),
       }),
     )
@@ -91,8 +91,8 @@ export const adminRouter = {
   enforce2FA: protectedProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        enabled: z.boolean(),
+        organizationId: z.coerce.number(),
+        enabled: z.coerce.boolean(),
       }),
     )
     .handler(async ({ input, context }) => {
@@ -136,7 +136,7 @@ export const adminRouter = {
   check2FAEnforced: protectedProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -153,7 +153,7 @@ export const adminRouter = {
   get2FAStatus: protectedProcedure
     .input(
       z.object({
-        userId: z.number(),
+        userId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -171,7 +171,7 @@ export const adminRouter = {
   getOrganizationUsage: protectedProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -219,8 +219,8 @@ export const adminRouter = {
   listOrganizations: protectedProcedure
     .input(
       z.object({
-        page: z.number().default(1),
-        limit: z.number().default(50),
+        page: z.coerce.number().default(1),
+        limit: z.coerce.number().default(50),
         search: z.string().optional(),
       }),
     )

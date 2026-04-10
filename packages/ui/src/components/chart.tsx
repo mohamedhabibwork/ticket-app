@@ -44,7 +44,7 @@ function Chart({
   height = 300,
   showGrid = true,
   showXAxis = true,
-  showYAxis = true,
+  _showYAxis = true,
   ...props
 }: ChartProps) {
   const [mounted, setMounted] = React.useState(false);
@@ -63,7 +63,10 @@ function Chart({
       "hsl(var(--chart-5, 340 75% 55%))",
     ];
 
-    return data.map((item, idx) => item.color || config[item.label]?.color || defaultColors[idx % defaultColors.length]);
+    return data.map(
+      (item, idx) =>
+        item.color || config[item.label]?.color || defaultColors[idx % defaultColors.length],
+    );
   }, [data, config]);
 
   const maxValue = Math.max(...data.map((d) => d.value), 0);
@@ -78,9 +81,7 @@ function Chart({
       ...d,
     }));
 
-    const pathD = points
-      .map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`)
-      .join(" ");
+    const pathD = points.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`).join(" ");
 
     return (
       <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="size-full">
@@ -109,13 +110,7 @@ function Chart({
           strokeLinejoin="round"
         />
         {points.map((p, i) => (
-          <circle
-            key={i}
-            cx={p.x}
-            cy={p.y}
-            r="3"
-            fill="var(--primary)"
-          />
+          <circle key={i} cx={p.x} cy={p.y} r="3" fill="var(--primary)" />
         ))}
       </svg>
     );
@@ -125,8 +120,8 @@ function Chart({
     const padding = 40;
     const chartWidth = 100;
     const chartHeight = 100;
-    const barWidth = (chartWidth - padding * 2) / data.length * 0.6;
-    const gap = (chartWidth - padding * 2) / data.length * 0.4;
+    const barWidth = ((chartWidth - padding * 2) / data.length) * 0.6;
+    const gap = ((chartWidth - padding * 2) / data.length) * 0.4;
 
     return (
       <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="size-full">
@@ -153,14 +148,7 @@ function Chart({
 
           return (
             <g key={idx}>
-              <rect
-                x={x}
-                y={y}
-                width={barWidth}
-                height={barHeight}
-                fill={colors[idx]}
-                rx="0"
-              />
+              <rect x={x} y={y} width={barWidth} height={barHeight} fill={colors[idx]} rx="0" />
               {d.label && showXAxis && (
                 <text
                   x={x + barWidth / 2}
@@ -238,12 +226,7 @@ function Chart({
 
   if (!mounted) {
     return (
-      <div
-        data-slot="chart"
-        className={cn("relative", className)}
-        style={{ height }}
-        {...props}
-      >
+      <div data-slot="chart" className={cn("relative", className)} style={{ height }} {...props}>
         <div className="flex items-center justify-center h-full">
           <LoaderIcon className="size-6 animate-spin text-muted-foreground" />
         </div>
@@ -272,18 +255,13 @@ function Chart({
             legend.position === "top" && "justify-center",
             legend.position === "bottom" && "justify-center",
             legend.position === "left" && "flex-col",
-            legend.position === "right" && "flex-col"
+            legend.position === "right" && "flex-col",
           )}
         >
           {data.map((d, idx) => (
             <div key={idx} className="flex items-center gap-2 text-xs">
-              <span
-                className="size-2 rounded-full"
-                style={{ backgroundColor: colors[idx] }}
-              />
-              <span className="text-muted-foreground">
-                {config[d.label]?.label || d.label}
-              </span>
+              <span className="size-2 rounded-full" style={{ backgroundColor: colors[idx] }} />
+              <span className="text-muted-foreground">{config[d.label]?.label || d.label}</span>
             </div>
           ))}
         </div>

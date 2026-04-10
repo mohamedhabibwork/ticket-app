@@ -2,11 +2,21 @@ import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@ticket-app/ui/components/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
+import { Card, CardContent } from "@ticket-app/ui/components/card";
 import { Input } from "@ticket-app/ui/components/input";
 import { Label } from "@ticket-app/ui/components/label";
 import { orpc } from "@/utils/orpc";
-import { ArrowLeft, Folder, Plus, Edit, Trash2, GripVertical, Check, X, MessageSquare } from "lucide-react";
+import {
+  ArrowLeft,
+  Folder,
+  Plus,
+  Edit,
+  Trash2,
+  GripVertical,
+  Check,
+  X,
+  MessageSquare,
+} from "lucide-react";
 
 export const Route = createFileRoute("/admin/saved-replies/folders")({
   component: SavedReplyFoldersRoute,
@@ -39,7 +49,7 @@ function SavedReplyFoldersRoute() {
         setNewFolderName("");
         setShowCreateForm(false);
       },
-    })
+    }),
   );
 
   const updateMutation = useMutation(
@@ -49,7 +59,7 @@ function SavedReplyFoldersRoute() {
         setEditingId(null);
         setEditingName("");
       },
-    })
+    }),
   );
 
   const deleteMutation = useMutation(
@@ -58,7 +68,7 @@ function SavedReplyFoldersRoute() {
         queryClient.invalidateQueries({ queryKey: ["saved-reply-folders", organizationId] });
         queryClient.invalidateQueries({ queryKey: ["saved-replies", organizationId] });
       },
-    })
+    }),
   );
 
   const handleCreateFolder = (e: React.FormEvent) => {
@@ -92,7 +102,11 @@ function SavedReplyFoldersRoute() {
   };
 
   const handleDeleteFolder = (folderId: number, folderName: string) => {
-    if (confirm(`Are you sure you want to delete the folder "${folderName}"? Replies in this folder will not be deleted but will become uncategorized.`)) {
+    if (
+      confirm(
+        `Are you sure you want to delete the folder "${folderName}"? Replies in this folder will not be deleted but will become uncategorized.`,
+      )
+    ) {
       deleteMutation.mutate({ id: folderId });
     }
   };
@@ -138,15 +152,11 @@ function SavedReplyFoldersRoute() {
           </Link>
         </Button>
         <h1 className="text-3xl font-bold">Saved Reply Folders</h1>
-        <p className="text-muted-foreground mt-1">
-          Organize your saved replies into folders
-        </p>
+        <p className="text-muted-foreground mt-1">Organize your saved replies into folders</p>
       </div>
 
       <div className="flex items-center justify-between mb-6">
-        <p className="text-sm text-muted-foreground">
-          Drag and drop to reorder folders
-        </p>
+        <p className="text-sm text-muted-foreground">Drag and drop to reorder folders</p>
         <Button onClick={() => setShowCreateForm(true)} disabled={showCreateForm}>
           <Plus className="mr-2 h-4 w-4" />
           Create Folder
@@ -215,7 +225,11 @@ function SavedReplyFoldersRoute() {
                         className="max-w-xs"
                       />
                     </div>
-                    <Button type="submit" size="sm" disabled={!editingName.trim() || updateMutation.isPending}>
+                    <Button
+                      type="submit"
+                      size="sm"
+                      disabled={!editingName.trim() || updateMutation.isPending}
+                    >
                       <Check className="mr-1 h-4 w-4" />
                       Save
                     </Button>
@@ -237,11 +251,7 @@ function SavedReplyFoldersRoute() {
                       </div>
                     </div>
                     <div className="flex items-center gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleStartEdit(folder)}
-                      >
+                      <Button variant="ghost" size="icon" onClick={() => handleStartEdit(folder)}>
                         <Edit className="h-4 w-4" />
                       </Button>
                       <Button

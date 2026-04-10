@@ -1,4 +1,13 @@
-import { pgTable, bigint, uuid, varchar, text, boolean, timestamp, integer, index } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  bigint,
+  uuid,
+  varchar,
+  text,
+  boolean,
+  timestamp,
+  index,
+} from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { organizations } from "./_organizations";
 import { teams, users } from "./_users";
@@ -24,7 +33,7 @@ export const groups = pgTable(
   },
   (table) => ({
     orgIdx: index("groups_org_idx").on(table.organizationId),
-  })
+  }),
 );
 
 export const groupsRelations = relations(groups, ({ one, many }) => ({

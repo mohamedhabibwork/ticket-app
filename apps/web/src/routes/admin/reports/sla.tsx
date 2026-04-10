@@ -4,13 +4,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
 import { Button } from "@ticket-app/ui/components/button";
 import { orpc } from "@/utils/orpc";
-import {
-  ArrowLeft,
-  AlertTriangle,
-  CheckCircle2,
-  Clock,
-  Filter,
-} from "lucide-react";
+import { ArrowLeft, AlertTriangle, CheckCircle2, Clock, Filter } from "lucide-react";
 
 type DateRange = "7d" | "30d" | "90d" | "custom";
 
@@ -30,10 +24,9 @@ function SLACompliancePage() {
   const [dateRange, setDateRange] = useState<DateRange>("30d");
   const organizationId = 1;
 
-  const { data: slaCompliance, isLoading } = useQuery({
+  const { data: slaCompliance, isLoading: _isLoading } = useQuery({
     queryKey: ["reports", "slaCompliance", organizationId, dateRange],
-    queryFn: () =>
-      orpc.reports.getSlaCompliance.query({ organizationId }),
+    queryFn: () => orpc.reports.getSlaCompliance.query({ organizationId }),
   });
 
   const dateRangeOptions: { value: DateRange; label: string }[] = [
@@ -112,9 +105,7 @@ function SLACompliancePage() {
         </Button>
         <div>
           <h1 className="text-3xl font-bold">SLA Compliance Report</h1>
-          <p className="text-muted-foreground mt-1">
-            SLA breach analysis and compliance tracking
-          </p>
+          <p className="text-muted-foreground mt-1">SLA breach analysis and compliance tracking</p>
         </div>
       </div>
 
@@ -167,9 +158,7 @@ function SLACompliancePage() {
                 <Clock className="h-5 w-5" />
               </div>
               <div>
-                <div className="text-2xl font-bold">
-                  {slaCompliance?.total || 250}
-                </div>
+                <div className="text-2xl font-bold">{slaCompliance?.total || 250}</div>
                 <div className="text-sm text-muted-foreground">Total Tickets</div>
               </div>
             </div>
@@ -182,9 +171,7 @@ function SLACompliancePage() {
                 <CheckCircle2 className="h-5 w-5" />
               </div>
               <div>
-                <div className="text-2xl font-bold">
-                  {slaCompliance?.withinSla || 228}
-                </div>
+                <div className="text-2xl font-bold">{slaCompliance?.withinSla || 228}</div>
                 <div className="text-sm text-muted-foreground">Within SLA</div>
               </div>
             </div>
@@ -197,9 +184,7 @@ function SLACompliancePage() {
                 <AlertTriangle className="h-5 w-5" />
               </div>
               <div>
-                <div className="text-2xl font-bold">
-                  {slaCompliance?.breachedSla || 22}
-                </div>
+                <div className="text-2xl font-bold">{slaCompliance?.breachedSla || 22}</div>
                 <div className="text-sm text-muted-foreground">Breached SLA</div>
               </div>
             </div>
@@ -217,8 +202,8 @@ function SLACompliancePage() {
                     item.priority === "High"
                       ? "bg-red-100 text-red-800"
                       : item.priority === "Medium"
-                      ? "bg-amber-100 text-amber-800"
-                      : "bg-blue-100 text-blue-800"
+                        ? "bg-amber-100 text-amber-800"
+                        : "bg-blue-100 text-blue-800"
                   }`}
                 >
                   {item.priority}
@@ -263,8 +248,8 @@ function SLACompliancePage() {
                         data.compliance >= 90
                           ? "bg-green-500"
                           : data.compliance >= 80
-                          ? "bg-amber-500"
-                          : "bg-red-500"
+                            ? "bg-amber-500"
+                            : "bg-red-500"
                       }`}
                       style={{ height: `${(data.compliance / maxTrendValue) * 100}%` }}
                     />
@@ -300,14 +285,7 @@ function SLACompliancePage() {
             <div className="mt-6 flex justify-center">
               <div className="relative w-32 h-32">
                 <svg className="w-full h-full" viewBox="0 0 100 100">
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="40"
-                    fill="none"
-                    stroke="#e5e7eb"
-                    strokeWidth="20"
-                  />
+                  <circle cx="50" cy="50" r="40" fill="none" stroke="#e5e7eb" strokeWidth="20" />
                   <circle
                     cx="50"
                     cy="50"
@@ -366,19 +344,15 @@ function SLACompliancePage() {
                           ticket.priority === "High"
                             ? "bg-red-100 text-red-800"
                             : ticket.priority === "Medium"
-                            ? "bg-amber-100 text-amber-800"
-                            : "bg-blue-100 text-blue-800"
+                              ? "bg-amber-100 text-amber-800"
+                              : "bg-blue-100 text-blue-800"
                         }`}
                       >
                         {ticket.priority}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-sm text-muted-foreground">
-                      {ticket.slaPolicy}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-muted-foreground">
-                      {ticket.breachedAt}
-                    </td>
+                    <td className="px-4 py-3 text-sm text-muted-foreground">{ticket.slaPolicy}</td>
+                    <td className="px-4 py-3 text-sm text-muted-foreground">{ticket.breachedAt}</td>
                   </tr>
                 ))}
               </tbody>

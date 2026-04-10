@@ -21,7 +21,7 @@ import { getRedis } from "../redis";
 import { env } from "@ticket-app/env/server";
 import { type ExcelExportJobData } from "../queue";
 
-const EXCEL_EXPORT_QUEUE = `${env.QUEUE_PREFIX}:excel:export`;
+const EXCEL_EXPORT_QUEUE = `${env.QUEUE_PREFIX}-excel-export`;
 
 export interface ExcelExportResult {
   fileUrl: string;

@@ -2,13 +2,29 @@ import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@ticket-app/ui/components/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@ticket-app/ui/components/card";
 import { Input } from "@ticket-app/ui/components/input";
 import { Label } from "@ticket-app/ui/components/label";
 import { Checkbox } from "@ticket-app/ui/components/checkbox";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@ticket-app/ui/components/dropdown-menu";
 import { orpc } from "@/utils/orpc";
-import { ArrowLeft, Mail, Phone, Globe, Clock, Shield, Monitor, Trash2, Edit, UserX, UserCheck, Key } from "lucide-react";
+import {
+  ArrowLeft,
+  Mail,
+  Phone,
+  Globe,
+  Clock,
+  Monitor,
+  Trash2,
+  Edit,
+  UserX,
+  UserCheck,
+} from "lucide-react";
 
 export const Route = createFileRoute("/admin/users/id")({
   component: UserDetailRoute,
@@ -30,7 +46,11 @@ function UserDetailRoute() {
 
   const userId = Number(id);
 
-  const { data: user, isLoading, refetch } = useQuery({
+  const {
+    data: user,
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ["user", userId],
     queryFn: () => orpc.users.get.query({ organizationId: 1, id: userId }),
     enabled: !isNaN(userId),
@@ -59,7 +79,7 @@ function UserDetailRoute() {
         setIsEditing(false);
         refetch();
       },
-    })
+    }),
   );
 
   const deactivateMutation = useMutation(
@@ -67,7 +87,7 @@ function UserDetailRoute() {
       onSuccess: () => {
         navigate({ to: "/admin/users" });
       },
-    })
+    }),
   );
 
   const revokeSessionMutation = useMutation(
@@ -75,7 +95,7 @@ function UserDetailRoute() {
       onSuccess: () => {
         refetch();
       },
-    })
+    }),
   );
 
   const startEditing = () => {
@@ -108,7 +128,9 @@ function UserDetailRoute() {
   };
 
   const handleDeactivate = () => {
-    if (confirm("Are you sure you want to deactivate this user? They will be logged out immediately.")) {
+    if (
+      confirm("Are you sure you want to deactivate this user? They will be logged out immediately.")
+    ) {
       deactivateMutation.mutate({ id: userId, organizationId: 1 });
     }
   };
@@ -164,7 +186,8 @@ function UserDetailRoute() {
           <div className="flex items-center gap-4">
             <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center">
               <span className="text-xl font-medium">
-                {user.firstName?.[0]}{user.lastName?.[0]}
+                {user.firstName?.[0]}
+                {user.lastName?.[0]}
               </span>
             </div>
             <div>
@@ -172,14 +195,10 @@ function UserDetailRoute() {
                 {user.firstName} {user.lastName}
               </h1>
               <div className="flex items-center gap-3 mt-1">
-                <span className="px-2 py-1 bg-muted rounded text-xs">
-                  {getRoleName(user)}
-                </span>
+                <span className="px-2 py-1 bg-muted rounded text-xs">{getRoleName(user)}</span>
                 <span
                   className={`px-2 py-1 rounded text-xs ${
-                    user.isActive
-                      ? "bg-green-100 text-green-800"
-                      : "bg-red-100 text-red-800"
+                    user.isActive ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
                   }`}
                 >
                   {user.isActive ? "Active" : "Inactive"}
@@ -356,7 +375,10 @@ function UserDetailRoute() {
               {userTickets?.tickets && userTickets.tickets.length > 0 ? (
                 <div className="space-y-3">
                   {userTickets.tickets.slice(0, 5).map((ticket: any) => (
-                    <div key={ticket.id} className="flex items-center justify-between p-3 border rounded">
+                    <div
+                      key={ticket.id}
+                      className="flex items-center justify-between p-3 border rounded"
+                    >
                       <div>
                         <div className="font-medium">{ticket.subject}</div>
                         <div className="text-sm text-muted-foreground">
@@ -368,8 +390,8 @@ function UserDetailRoute() {
                           ticket.status === "open"
                             ? "bg-blue-100 text-blue-800"
                             : ticket.status === "pending"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : "bg-green-100 text-green-800"
+                              ? "bg-yellow-100 text-yellow-800"
+                              : "bg-green-100 text-green-800"
                         }`}
                       >
                         {ticket.status}
@@ -378,9 +400,7 @@ function UserDetailRoute() {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-8 text-muted-foreground">
-                  No tickets assigned
-                </div>
+                <div className="text-center py-8 text-muted-foreground">No tickets assigned</div>
               )}
             </CardContent>
           </Card>
@@ -427,9 +447,7 @@ function UserDetailRoute() {
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-4 text-muted-foreground">
-                  No active sessions
-                </div>
+                <div className="text-center py-4 text-muted-foreground">No active sessions</div>
               )}
             </CardContent>
           </Card>
@@ -446,17 +464,13 @@ function UserDetailRoute() {
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Created</span>
                 <span>
-                  {user.createdAt
-                    ? new Date(user.createdAt).toLocaleDateString()
-                    : "N/A"}
+                  {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "N/A"}
                 </span>
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Last Seen</span>
                 <span>
-                  {user.lastSeenAt
-                    ? new Date(user.lastSeenAt).toLocaleString()
-                    : "Never"}
+                  {user.lastSeenAt ? new Date(user.lastSeenAt).toLocaleString() : "Never"}
                 </span>
               </div>
             </CardContent>

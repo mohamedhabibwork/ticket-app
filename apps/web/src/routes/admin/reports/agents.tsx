@@ -4,14 +4,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
 import { Button } from "@ticket-app/ui/components/button";
 import { orpc } from "@/utils/orpc";
-import {
-  ArrowLeft,
-  Download,
-  ArrowUpDown,
-  Clock,
-  CheckCircle2,
-  Star,
-} from "lucide-react";
+import { ArrowLeft, Download, ArrowUpDown, Clock, CheckCircle2, Star } from "lucide-react";
 
 type DateRange = "7d" | "30d" | "90d" | "custom";
 
@@ -36,7 +29,7 @@ function AgentPerformancePage() {
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const organizationId = 1;
 
-  const { data: agentPerformance, isLoading } = useQuery({
+  const { data: _agentPerformance, isLoading: _isLoading } = useQuery({
     queryKey: ["reports", "agentPerformance", organizationId, dateRange],
     queryFn: () =>
       orpc.reports.getAgentPerformance.query({
@@ -44,10 +37,9 @@ function AgentPerformancePage() {
       }),
   });
 
-  const { data: responseTime } = useQuery({
+  const { data: _responseTime } = useQuery({
     queryKey: ["reports", "responseTime", organizationId],
-    queryFn: () =>
-      orpc.reports.getResponseTime.query({ organizationId }),
+    queryFn: () => orpc.reports.getResponseTime.query({ organizationId }),
   });
 
   const dateRangeOptions: { value: DateRange; label: string }[] = [
@@ -130,7 +122,15 @@ function AgentPerformancePage() {
   };
 
   const exportToCSV = () => {
-    const headers = ["Name", "Email", "Tickets Assigned", "Tickets Resolved", "Avg First Response", "Avg Resolution", "CSAT Score"];
+    const headers = [
+      "Name",
+      "Email",
+      "Tickets Assigned",
+      "Tickets Resolved",
+      "Avg First Response",
+      "Avg Resolution",
+      "CSAT Score",
+    ];
     const rows = sortedAgents.map((agent) => [
       agent.name,
       agent.email,
@@ -150,7 +150,7 @@ function AgentPerformancePage() {
     URL.revokeObjectURL(url);
   };
 
-  const formatCSAT = (score: number) => {
+  const _formatCSAT = (score: number) => {
     return (score / 5) * 100;
   };
 

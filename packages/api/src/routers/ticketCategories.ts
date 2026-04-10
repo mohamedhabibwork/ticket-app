@@ -13,7 +13,7 @@ import {
 
 export const ticketCategoriesRouter = {
   list: protectedProcedure
-    .input(z.object({ organizationId: z.number() }))
+    .input(z.object({ organizationId: z.coerce.number() }))
     .handler(async ({ input, context }) => {
       const canRead = await hasPermission(
         {
@@ -35,7 +35,7 @@ export const ticketCategoriesRouter = {
     }),
 
   get: protectedProcedure
-    .input(z.object({ id: z.number(), organizationId: z.number() }))
+    .input(z.object({ id: z.coerce.number(), organizationId: z.coerce.number() }))
     .handler(async ({ input, context }) => {
       const canRead = await hasPermission(
         {
@@ -59,13 +59,13 @@ export const ticketCategoriesRouter = {
   create: protectedProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         name: z.string().min(1).max(100),
         description: z.string().optional(),
-        slaPolicyId: z.number().optional(),
-        teamId: z.number().optional(),
-        priorityId: z.number().optional(),
-        createdBy: z.number().optional(),
+        slaPolicyId: z.coerce.number().optional(),
+        teamId: z.coerce.number().optional(),
+        priorityId: z.coerce.number().optional(),
+        createdBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input, context }) => {
@@ -99,14 +99,14 @@ export const ticketCategoriesRouter = {
   update: protectedProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
         name: z.string().min(1).max(100).optional(),
         description: z.string().optional(),
-        slaPolicyId: z.number().nullable().optional(),
-        teamId: z.number().nullable().optional(),
-        priorityId: z.number().nullable().optional(),
-        isActive: z.boolean().optional(),
+        slaPolicyId: z.coerce.number().nullable().optional(),
+        teamId: z.coerce.number().nullable().optional(),
+        priorityId: z.coerce.number().nullable().optional(),
+        isActive: z.coerce.boolean().optional(),
       }),
     )
     .handler(async ({ input, context }) => {
@@ -138,7 +138,7 @@ export const ticketCategoriesRouter = {
     }),
 
   delete: protectedProcedure
-    .input(z.object({ id: z.number(), organizationId: z.number() }))
+    .input(z.object({ id: z.coerce.number(), organizationId: z.coerce.number() }))
     .handler(async ({ input, context }) => {
       const canWrite = await hasPermission(
         {

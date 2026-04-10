@@ -21,6 +21,7 @@
     "@tanstack/react-router": "^1.141.1",
     "@ticket-app/api": "workspace:*",
     "@ticket-app/env": "workspace:*",
+    "@ticket-app/socket-client": "workspace:*",
     "@ticket-app/ui": "workspace:*",
     "ai": "catalog:",
     "date-fns": "^4.1.0",
@@ -29,6 +30,7 @@
     "next-themes": "catalog:",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
+    "socket.io-client": "^4.8.0",
     "sonner": "catalog:",
     "streamdown": "^1.6.10",
     "zod": "catalog:"

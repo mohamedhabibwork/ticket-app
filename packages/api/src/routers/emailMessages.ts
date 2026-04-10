@@ -9,14 +9,14 @@ export const emailMessagesRouter = {
   list: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        mailboxId: z.number().optional(),
+        organizationId: z.coerce.number(),
+        mailboxId: z.coerce.number().optional(),
         direction: z.enum(["inbox", "sent", "draft"]).optional(),
-        ticketId: z.number().optional(),
-        isSpam: z.boolean().optional(),
+        ticketId: z.coerce.number().optional(),
+        isSpam: z.coerce.boolean().optional(),
         search: z.string().optional(),
-        limit: z.number().min(1).max(100).default(50),
-        offset: z.number().min(0).default(0),
+        limit: z.coerce.number().min(1).max(100).default(50),
+        offset: z.coerce.number().min(0).default(0),
       }),
     )
     .handler(async ({ input }) => {
@@ -58,8 +58,8 @@ export const emailMessagesRouter = {
   get: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        id: z.number(),
+        organizationId: z.coerce.number(),
+        id: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -85,8 +85,8 @@ export const emailMessagesRouter = {
   send: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        mailboxId: z.number(),
+        organizationId: z.coerce.number(),
+        mailboxId: z.coerce.number(),
         toEmails: z.array(z.string().email()),
         ccEmails: z.array(z.string().email()).optional(),
         bccEmails: z.array(z.string().email()).optional(),
@@ -94,7 +94,7 @@ export const emailMessagesRouter = {
         bodyHtml: z.string().optional(),
         bodyText: z.string().optional(),
         inReplyTo: z.string().optional(),
-        ticketId: z.number().optional(),
+        ticketId: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -127,9 +127,9 @@ export const emailMessagesRouter = {
   reply: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        ticketId: z.number(),
-        mailboxId: z.number(),
+        organizationId: z.coerce.number(),
+        ticketId: z.coerce.number(),
+        mailboxId: z.coerce.number(),
         bodyHtml: z.string().optional(),
         bodyText: z.string().optional(),
         ccEmails: z.array(z.string().email()).optional(),
@@ -181,8 +181,8 @@ export const emailMessagesRouter = {
   forward: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        ticketId: z.number(),
+        organizationId: z.coerce.number(),
+        ticketId: z.coerce.number(),
         forwardTo: z.array(z.string().email()),
         bodyHtml: z.string().optional(),
         bodyText: z.string().optional(),
@@ -224,8 +224,8 @@ export const emailMessagesRouter = {
   markSpam: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        id: z.number(),
+        organizationId: z.coerce.number(),
+        id: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -247,8 +247,8 @@ export const emailMessagesRouter = {
   markNotSpam: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        id: z.number(),
+        organizationId: z.coerce.number(),
+        id: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -270,8 +270,8 @@ export const emailMessagesRouter = {
   getAttachment: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        id: z.number(),
+        organizationId: z.coerce.number(),
+        id: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -295,7 +295,7 @@ export const emailMessagesRouter = {
   getThread: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         messageId: z.string(),
       }),
     )

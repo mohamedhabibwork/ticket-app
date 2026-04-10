@@ -25,15 +25,10 @@ export type NotificationProcessJobData = {
   userId?: number;
 };
 
-const connection = {
-  host: process.env.REDIS_URL?.replace("redis://", "").split(":")[0] || "localhost",
-  port: parseInt(process.env.REDIS_URL?.split(":")[2] || "6379"),
-};
-
 export const notificationProcessQueue = new Queue<NotificationProcessJobData>(
   NOTIFICATION_PROCESS_QUEUE,
   {
-    connection,
+    connection: getRedis(),
     defaultJobOptions: {
       attempts: 3,
       backoff: {
@@ -78,7 +73,7 @@ export function createNotificationProcessWorker() {
       }
     },
     {
-      connection,
+      connection: getRedis(),
       concurrency: 10,
     },
   );

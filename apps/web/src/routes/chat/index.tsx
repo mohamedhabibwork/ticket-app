@@ -1,12 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useEffect, useRef } from "react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@ticket-app/ui/components/card";
+import { useState } from "react";
+
 import { Loader2, Send, Phone, MessageSquare, Clock, User } from "lucide-react";
 
 import { orpc } from "@/utils/orpc";
@@ -38,31 +33,23 @@ function ChatDashboardRoute() {
     orpc.chatSessions.list.queryOptions({
       organizationId: 1,
       limit: 50,
-    })
+    }),
   );
 
   const { data: selectedSession } = useQuery(
     orpc.chatSessions.get.queryOptions(
       { organizationId: 1, id: selectedSessionId! },
-      { enabled: !!selectedSessionId }
-    )
+      { enabled: !!selectedSessionId },
+    ),
   );
 
-  const sendMessage = useMutation.useMutation(
-    orpc.chatMessages.createFromAgent.mutationOptions()
-  );
+  const sendMessage = useMutation.useMutation(orpc.chatMessages.createFromAgent.mutationOptions());
 
-  const assignAgent = useMutation.useMutation(
-    orpc.chatSessions.assignAgent.mutationOptions()
-  );
+  const assignAgent = useMutation.useMutation(orpc.chatSessions.assignAgent.mutationOptions());
 
-  const endSession = useMutation.useMutation(
-    orpc.chatSessions.updateStatus.mutationOptions()
-  );
+  const endSession = useMutation.useMutation(orpc.chatSessions.updateStatus.mutationOptions());
 
-  const activeSessions = sessions?.filter(
-    (s) => s.status === "waiting" || s.status === "active"
-  );
+  const activeSessions = sessions?.filter((s) => s.status === "waiting" || s.status === "active");
 
   const handleSendMessage = async () => {
     if (!messageText.trim() || !selectedSessionId) return;
@@ -74,7 +61,9 @@ function ChatDashboardRoute() {
     });
 
     setMessageText("");
-    queryClient.invalidateQueries(orpc.chatSessions.get.queryOptions({ organizationId: 1, id: selectedSessionId }));
+    queryClient.invalidateQueries(
+      orpc.chatSessions.get.queryOptions({ organizationId: 1, id: selectedSessionId }),
+    );
   };
 
   const handleAcceptChat = async (sessionId: number) => {
@@ -110,9 +99,7 @@ function ChatDashboardRoute() {
       <div className="w-80 border-r flex flex-col">
         <div className="p-4 border-b">
           <h2 className="text-lg font-semibold">Live Chats</h2>
-          <p className="text-sm text-muted-foreground">
-            {activeSessions?.length || 0} active
-          </p>
+          <p className="text-sm text-muted-foreground">{activeSessions?.length || 0} active</p>
         </div>
 
         <div className="flex-1 overflow-y-auto">
@@ -202,17 +189,15 @@ function ChatDashboardRoute() {
               {selectedSession.messages?.map((msg) => (
                 <div
                   key={msg.id}
-                  className={`flex ${
-                    msg.authorType === "agent" ? "justify-end" : "justify-start"
-                  }`}
+                  className={`flex ${msg.authorType === "agent" ? "justify-end" : "justify-start"}`}
                 >
                   <div
                     className={`max-w-[70%] rounded-lg px-4 py-2 ${
                       msg.authorType === "agent"
                         ? "bg-primary text-primary-foreground"
                         : msg.authorType === "system"
-                        ? "bg-yellow-100 text-yellow-800 text-center text-sm"
-                        : "bg-muted"
+                          ? "bg-yellow-100 text-yellow-800 text-center text-sm"
+                          : "bg-muted"
                     }`}
                   >
                     <p className="text-sm">{msg.body}</p>
@@ -276,8 +261,7 @@ function ChatDashboardRoute() {
                 Object.keys(selectedSession.preChatData).length > 0 ? (
                   Object.entries(selectedSession.preChatData).map(([key, value]) => (
                     <div key={key} className="text-sm">
-                      <span className="text-muted-foreground">{key}:</span>{" "}
-                      {String(value)}
+                      <span className="text-muted-foreground">{key}:</span> {String(value)}
                     </div>
                   ))
                 ) : (
@@ -295,9 +279,7 @@ function ChatDashboardRoute() {
             )}
           </div>
         ) : (
-          <p className="text-sm text-muted-foreground">
-            Select a session to view details
-          </p>
+          <p className="text-sm text-muted-foreground">Select a session to view details</p>
         )}
       </div>
     </div>

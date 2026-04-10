@@ -11,7 +11,7 @@ import { Button } from "@ticket-app/ui/components/button";
 import { Input } from "@ticket-app/ui/components/input";
 import { Label } from "@ticket-app/ui/components/label";
 import { Textarea } from "@ticket-app/ui/components/textarea";
-import { ArrowLeft, Save, FileText, MessageSquare, Heart, Headphones, Settings } from "lucide-react";
+import { ArrowLeft, Save, MessageSquare, Heart, Headphones, Settings } from "lucide-react";
 
 const FORM_TYPES = [
   {
@@ -71,11 +71,7 @@ function CreateFormRoute() {
   return (
     <div className="container mx-auto max-w-3xl px-4 py-6">
       <div className="mb-6">
-        <Button
-          variant="ghost"
-          onClick={() => navigate({ to: "/admin/forms/" })}
-          className="mb-4"
-        >
+        <Button variant="ghost" onClick={() => navigate({ to: "/admin/forms/" })} className="mb-4">
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Forms
         </Button>
@@ -155,11 +151,7 @@ function CreateFormRoute() {
         </Card>
 
         <div className="flex justify-end gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => navigate({ to: "/admin/forms/" })}
-          >
+          <Button type="button" variant="outline" onClick={() => navigate({ to: "/admin/forms/" })}>
             Cancel
           </Button>
           <Button type="submit">

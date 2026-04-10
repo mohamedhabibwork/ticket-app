@@ -1,8 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Spinner, Surface, Text, useThemeColor } from "heroui-native";
-import { Link, useRouter } from "expo-router";
-import { useState } from "react";
+import { useRouter } from "expo-router";
 import { View, Pressable, FlatList } from "react-native";
 
 import { Container } from "@/components/container";
@@ -11,7 +10,7 @@ import { orpc } from "@/utils/orpc";
 export default function NewChatScreen() {
   const router = useRouter();
   const mutedColor = useThemeColor("muted");
-  const foregroundColor = useThemeColor("foreground");
+  const _foregroundColor = useThemeColor("foreground");
 
   const contacts = useQuery(orpc.contacts.list.queryOptions());
   const startChatMutation = useMutation(
@@ -29,9 +28,7 @@ export default function NewChatScreen() {
   return (
     <Container>
       <View className="px-4 py-4">
-        <Text className="text-2xl font-semibold text-foreground tracking-tight mb-2">
-          New Chat
-        </Text>
+        <Text className="text-2xl font-semibold text-foreground tracking-tight mb-2">New Chat</Text>
         <Text className="text-muted text-sm">Select a contact to start a conversation</Text>
       </View>
 

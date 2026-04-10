@@ -1,10 +1,5 @@
-import { paytabs } from "@ticket-app/api/services/paytabs";
 import { db } from "@ticket-app/db";
-import {
-  paytabsTransactions,
-  invoices,
-  paymentMethods,
-} from "@ticket-app/db/schema";
+import { paytabsTransactions, invoices } from "@ticket-app/db/schema";
 import { eq } from "drizzle-orm";
 import { Hono } from "hono";
 
@@ -145,7 +140,6 @@ async function handleTransactionFailed(data: any) {
 
 async function handleRefundCompleted(data: any) {
   const tranRef = data.transaction?.tran_ref;
-  const refundAmount = data.transaction?.refunded_amount;
 
   if (!tranRef) return;
 

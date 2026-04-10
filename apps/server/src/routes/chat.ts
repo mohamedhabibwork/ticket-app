@@ -32,11 +32,7 @@ function getConnectionKey(organizationId: number, sessionId: number, isAgent: bo
   return `${organizationId}:${sessionId}:${isAgent}`;
 }
 
-function broadcastToSession(
-  sessionId: number,
-  message: ChatMessage,
-  excludeKey?: string
-) {
+function broadcastToSession(sessionId: number, message: ChatMessage, excludeKey?: string) {
   connections.forEach((conn, key) => {
     if (conn.sessionId === sessionId && key !== excludeKey) {
       if (conn.ws.readyState === WebSocket.OPEN) {
@@ -65,10 +61,14 @@ function handleTypingIndicator(connection: ChatConnection, isTyping: boolean) {
     contactTyping: state.contactTyping,
   };
 
-  broadcastToSession(connection.sessionId, {
-    type: "typing",
-    payload: typingPayload,
-  }, getConnectionKey(connection.organizationId, connection.sessionId, !connection.isAgent));
+  broadcastToSession(
+    connection.sessionId,
+    {
+      type: "typing",
+      payload: typingPayload,
+    },
+    getConnectionKey(connection.organizationId, connection.sessionId, !connection.isAgent),
+  );
 }
 
 async function handleChatMessage(connection: ChatConnection, payload: Record<string, unknown>) {
@@ -81,15 +81,17 @@ async function handleChatMessage(connection: ChatConnection, payload: Record<str
   const session = await db.query.chatSessions.findFirst({
     where: and(
       eq(chatSessions.id, connection.sessionId),
-      eq(chatSessions.organizationId, connection.organizationId)
+      eq(chatSessions.organizationId, connection.organizationId),
     ),
   });
 
   if (!session || session.status === "ended" || session.status === "converted") {
-    connection.ws.send(JSON.stringify({
-      type: "error",
-      payload: { message: "Chat session is no longer active" },
-    }));
+    connection.ws.send(
+      JSON.stringify({
+        type: "error",
+        payload: { message: "Chat session is no longer active" },
+      }),
+    );
     return;
   }
 
@@ -124,15 +126,17 @@ async function handleEndChat(connection: ChatConnection) {
   const session = await db.query.chatSessions.findFirst({
     where: and(
       eq(chatSessions.id, connection.sessionId),
-      eq(chatSessions.organizationId, connection.organizationId)
+      eq(chatSessions.organizationId, connection.organizationId),
     ),
   });
 
   if (!session) {
-    connection.ws.send(JSON.stringify({
-      type: "error",
-      payload: { message: "Chat session not found" },
-    }));
+    connection.ws.send(
+      JSON.stringify({
+        type: "error",
+        payload: { message: "Chat session not found" },
+      }),
+    );
     return;
   }
 
@@ -186,7 +190,7 @@ export function setupChatWebSocket(server: any) {
   wss.on("connection", async (ws: WebSocket, req) => {
     const url = new URL(req.url || "", `http://${req.headers.host}`);
     const sessionId = parseInt(url.searchParams.get("sessionId") || "0", 10);
-    const token = url.searchParams.get("token");
+    const _token = url.searchParams.get("token");
     const organizationId = parseInt(url.searchParams.get("orgId") || "0", 10);
     const isAgentParam = url.searchParams.get("isAgent");
 
@@ -196,10 +200,7 @@ export function setupChatWebSocket(server: any) {
     }
 
     const session = await db.query.chatSessions.findFirst({
-      where: and(
-        eq(chatSessions.id, sessionId),
-        eq(chatSessions.organizationId, organizationId)
-      ),
+      where: and(eq(chatSessions.id, sessionId), eq(chatSessions.organizationId, organizationId)),
     });
 
     if (!session) {
@@ -231,16 +232,20 @@ export function setupChatWebSocket(server: any) {
         })
         .where(eq(chatSessions.id, sessionId));
 
-      broadcastToSession(sessionId, {
-        type: "message",
-        payload: {
-          id: null,
-          sessionId,
-          authorType: "system",
-          body: "An agent has joined the chat",
-          createdAt: new Date().toISOString(),
+      broadcastToSession(
+        sessionId,
+        {
+          type: "message",
+          payload: {
+            id: null,
+            sessionId,
+            authorType: "system",
+            body: "An agent has joined the chat",
+            createdAt: new Date().toISOString(),
+          },
         },
-      }, key);
+        key,
+      );
     }
 
     startPingInterval(key, ws);
@@ -264,10 +269,12 @@ export function setupChatWebSocket(server: any) {
         }
       } catch (error) {
         console.error("Error processing message:", error);
-        ws.send(JSON.stringify({
-          type: "error",
-          payload: { message: "Invalid message format" },
-        }));
+        ws.send(
+          JSON.stringify({
+            type: "error",
+            payload: { message: "Invalid message format" },
+          }),
+        );
       }
     });
 

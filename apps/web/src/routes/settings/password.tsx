@@ -5,12 +5,7 @@ import { toast } from "sonner";
 import { Button } from "@ticket-app/ui/components/button";
 import { Input } from "@ticket-app/ui/components/input";
 import { Label } from "@ticket-app/ui/components/label";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@ticket-app/ui/components/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
 import { Loader2, ArrowLeft, Check } from "lucide-react";
 
 export const Route = createFileRoute("/settings/password")({
@@ -23,7 +18,7 @@ function PasswordSettingsRoute() {
   const [confirmPassword, setConfirmPassword] = useState("");
 
   const updateMutation = useMutation({
-    mutationFn: async (data: { currentPassword: string; newPassword: string }) => {
+    mutationFn: async (_data: { currentPassword: string; newPassword: string }) => {
       return true;
     },
     onSuccess: () => {
@@ -153,13 +148,8 @@ function PasswordSettingsRoute() {
           </Card>
 
           <div className="flex justify-end">
-            <Button
-              type="submit"
-              disabled={updateMutation.isPending || !allRequirementsMet}
-            >
-              {updateMutation.isPending && (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              )}
+            <Button type="submit" disabled={updateMutation.isPending || !allRequirementsMet}>
+              {updateMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               Update Password
             </Button>
           </div>

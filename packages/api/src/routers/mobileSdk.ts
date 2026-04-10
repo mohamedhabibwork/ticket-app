@@ -20,7 +20,7 @@ import { sendAPNsNotification } from "../lib/apns";
 
 export const mobileSdkRouter = {
   listConfigs: protectedProcedure
-    .input(z.object({ organizationId: z.number() }))
+    .input(z.object({ organizationId: z.coerce.number() }))
     .handler(async ({ input, context }) => {
       const canRead = await hasPermission(
         {
@@ -42,7 +42,7 @@ export const mobileSdkRouter = {
     }),
 
   getConfig: protectedProcedure
-    .input(z.object({ id: z.number(), organizationId: z.number() }))
+    .input(z.object({ id: z.coerce.number(), organizationId: z.coerce.number() }))
     .handler(async ({ input, context }) => {
       const canRead = await hasPermission(
         {
@@ -66,7 +66,7 @@ export const mobileSdkRouter = {
   createConfig: protectedProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         platform: z.enum(["ios", "android"]),
         appBundleId: z.string(),
         fcmServerKey: z.string().optional(),
@@ -74,7 +74,7 @@ export const mobileSdkRouter = {
         apnsTeamId: z.string().optional(),
         apnsKey: z.string().optional(),
         apnsBundleId: z.string().optional(),
-        isEnabled: z.boolean().default(true),
+        isEnabled: z.coerce.boolean().default(true),
       }),
     )
     .handler(async ({ input, context }) => {
@@ -110,15 +110,15 @@ export const mobileSdkRouter = {
   updateConfig: protectedProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
         appBundleId: z.string().optional(),
         fcmServerKey: z.string().optional(),
         apnsKeyId: z.string().optional(),
         apnsTeamId: z.string().optional(),
         apnsKey: z.string().optional(),
         apnsBundleId: z.string().optional(),
-        isEnabled: z.boolean().optional(),
+        isEnabled: z.coerce.boolean().optional(),
       }),
     )
     .handler(async ({ input, context }) => {
@@ -151,7 +151,7 @@ export const mobileSdkRouter = {
     }),
 
   deleteConfig: protectedProcedure
-    .input(z.object({ id: z.number(), organizationId: z.number() }))
+    .input(z.object({ id: z.coerce.number(), organizationId: z.coerce.number() }))
     .handler(async ({ input, context }) => {
       const canWrite = await hasPermission(
         {
@@ -172,8 +172,8 @@ export const mobileSdkRouter = {
   registerToken: protectedProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        contactId: z.number(),
+        organizationId: z.coerce.number(),
+        contactId: z.coerce.number(),
         platform: z.enum(["ios", "android"]),
         token: z.string(),
         deviceId: z.string().optional(),
@@ -221,7 +221,7 @@ export const mobileSdkRouter = {
     }),
 
   listTokens: protectedProcedure
-    .input(z.object({ organizationId: z.number(), contactId: z.number() }))
+    .input(z.object({ organizationId: z.coerce.number(), contactId: z.coerce.number() }))
     .handler(async ({ input, context }) => {
       const canRead = await hasPermission(
         {
@@ -243,7 +243,7 @@ export const mobileSdkRouter = {
     }),
 
   deleteToken: protectedProcedure
-    .input(z.object({ id: z.number(), organizationId: z.number() }))
+    .input(z.object({ id: z.coerce.number(), organizationId: z.coerce.number() }))
     .handler(async ({ input, context }) => {
       const canWrite = await hasPermission(
         {
@@ -264,12 +264,12 @@ export const mobileSdkRouter = {
   sendPushNotification: protectedProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        contactId: z.number(),
+        organizationId: z.coerce.number(),
+        contactId: z.coerce.number(),
         title: z.string(),
         body: z.string(),
         data: z.record(z.string(), z.unknown()).optional(),
-        ticketId: z.number().optional(),
+        ticketId: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input, context }) => {
@@ -349,12 +349,12 @@ export const mobileSdkRouter = {
   sendBatchPushNotification: protectedProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        contactIds: z.array(z.number()),
+        organizationId: z.coerce.number(),
+        contactIds: z.array(z.coerce.number()),
         title: z.string(),
         body: z.string(),
         data: z.record(z.string(), z.unknown()).optional(),
-        ticketId: z.number().optional(),
+        ticketId: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input, context }) => {
@@ -430,9 +430,9 @@ export const mobileSdkRouter = {
   listNotificationLogs: protectedProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        contactId: z.number().optional(),
-        limit: z.number().default(50),
+        organizationId: z.coerce.number(),
+        contactId: z.coerce.number().optional(),
+        limit: z.coerce.number().default(50),
       }),
     )
     .handler(async ({ input, context }) => {

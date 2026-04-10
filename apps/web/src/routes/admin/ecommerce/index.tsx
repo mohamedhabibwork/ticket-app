@@ -1,11 +1,18 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import {
-  Card,
-  CardContent,
-} from "@ticket-app/ui/components/card";
+import { Card, CardContent } from "@ticket-app/ui/components/card";
 import { Button } from "@ticket-app/ui/components/button";
-import { Loader2, Plus, Settings, RefreshCw, Trash2, CheckCircle, XCircle, AlertCircle, ExternalLink, ShoppingBag } from "lucide-react";
+import {
+  Loader2,
+  Plus,
+  Settings,
+  RefreshCw,
+  Trash2,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  ShoppingBag,
+} from "lucide-react";
 import { orpc } from "@/utils/orpc";
 
 function formatRelativeTime(date: Date | string): string {
@@ -50,22 +57,26 @@ export const Route = createFileRoute("/admin/ecommerce/")({
 });
 
 function EcommerceStoresRoute() {
-  const { data: stores, isLoading, refetch } = useQuery(
+  const {
+    data: stores,
+    isLoading,
+    refetch,
+  } = useQuery(
     orpc.ecommerceStores.list.queryOptions({
       organizationId: 1,
-    })
+    }),
   );
 
   const disconnectMutation = useMutation(
     orpc.ecommerceStores.disconnect.mutationOptions({
       onSuccess: () => refetch(),
-    })
+    }),
   );
 
   const syncMutation = useMutation(
     orpc.ecommerceStores.syncNow.mutationOptions({
       onSuccess: () => refetch(),
-    })
+    }),
   );
 
   const getStatusBadge = (status: string | null) => {
@@ -137,10 +148,15 @@ function EcommerceStoresRoute() {
                         <h3 className="font-medium">{store.name}</h3>
                         {getStatusBadge(store.syncStatus)}
                       </div>
-                      <p className="text-sm text-muted-foreground font-mono">{store.shopDomain || store.domain}</p>
+                      <p className="text-sm text-muted-foreground font-mono">
+                        {store.shopDomain || store.domain}
+                      </p>
                       <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
                         <span>Platform: {platformNames[store.platform] || store.platform}</span>
-                        <span>Last sync: {store.lastSyncAt ? formatRelativeTime(store.lastSyncAt) : "Never"}</span>
+                        <span>
+                          Last sync:{" "}
+                          {store.lastSyncAt ? formatRelativeTime(store.lastSyncAt) : "Never"}
+                        </span>
                         {store.syncError && (
                           <span className="text-red-600">Error: {store.syncError}</span>
                         )}
@@ -163,7 +179,9 @@ function EcommerceStoresRoute() {
                         onClick={() => syncMutation.mutate({ id: store.id, organizationId: 1 })}
                         disabled={syncMutation.isPending}
                       >
-                        <RefreshCw className={`h-4 w-4 ${syncMutation.isPending ? "animate-spin" : ""}`} />
+                        <RefreshCw
+                          className={`h-4 w-4 ${syncMutation.isPending ? "animate-spin" : ""}`}
+                        />
                       </Button>
                       <Button
                         variant="ghost"

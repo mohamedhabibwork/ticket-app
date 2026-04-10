@@ -1,5 +1,3 @@
-import { db } from "../index";
-
 export const SUBSCRIPTION_PLANS = [
   {
     slug: "free",

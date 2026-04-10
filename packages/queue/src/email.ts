@@ -7,12 +7,12 @@ let transporter: Transporter | null = null;
 export function getTransporter(): Transporter {
   if (!transporter) {
     transporter = nodemailer.createTransport({
-      host: env.SMTP_HOST,
-      port: env.SMTP_PORT,
-      secure: env.SMTP_SECURE,
+      host: env.SMTP_HOST || "", // e.g., "smtp.example.com"
+      port: env.SMTP_PORT || 587, // default to 587 if SMTP_PORT is not set
+      secure: env.SMTP_SECURE || false, // true for 465, false for other ports
       auth: {
-        user: env.SMTP_USER,
-        pass: env.SMTP_PASS,
+        user: env.SMTP_USER || env.SMTP_FROM || "", // fallback to SMTP_FROM if SMTP_USER is not set
+        pass: env.SMTP_PASS || "", // fallback to empty string if SMTP_PASS is not set
       },
     });
   }

@@ -59,7 +59,7 @@ function QuickLink({ title, subtitle, icon, href }: QuickLinkProps) {
 }
 
 export default function AdminDashboardScreen() {
-  const mutedColor = useThemeColor("muted");
+  const _mutedColor = useThemeColor("muted");
   const stats = useQuery(orpc.reports.getDashboardStats.queryOptions());
 
   return (

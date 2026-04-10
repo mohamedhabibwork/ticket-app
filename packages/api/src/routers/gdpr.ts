@@ -15,10 +15,10 @@ export const gdprRouter = {
   create: protectedProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         type: z.enum(["access", "erasure", "portability"]),
-        contactId: z.number(),
-        requestedBy: z.number(),
+        contactId: z.coerce.number(),
+        requestedBy: z.coerce.number(),
         reason: z.string().optional(),
       }),
     )
@@ -52,11 +52,11 @@ export const gdprRouter = {
   list: protectedProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         status: z.enum(["pending", "in_progress", "completed", "cancelled"]).optional(),
         type: z.enum(["access", "erasure", "portability"]).optional(),
-        limit: z.number().min(1).max(100).default(50),
-        offset: z.number().min(0).default(0),
+        limit: z.coerce.number().min(1).max(100).default(50),
+        offset: z.coerce.number().min(0).default(0),
       }),
     )
     .handler(async ({ input, context }) => {
@@ -86,7 +86,7 @@ export const gdprRouter = {
     }),
 
   get: protectedProcedure
-    .input(z.object({ id: z.number(), organizationId: z.number() }))
+    .input(z.object({ id: z.coerce.number(), organizationId: z.coerce.number() }))
     .handler(async ({ input, context }) => {
       const canRead = await hasPermission(
         {
@@ -108,11 +108,11 @@ export const gdprRouter = {
   update: protectedProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
         status: z.enum(["pending", "in_progress", "completed", "cancelled"]).optional(),
         notes: z.string().optional(),
-        processedBy: z.number().optional(),
+        processedBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input, context }) => {
@@ -148,7 +148,7 @@ export const gdprRouter = {
     }),
 
   processAccessRequest: protectedProcedure
-    .input(z.object({ id: z.number(), organizationId: z.number() }))
+    .input(z.object({ id: z.coerce.number(), organizationId: z.coerce.number() }))
     .handler(async ({ input, context }) => {
       const canWrite = await hasPermission(
         {
@@ -197,9 +197,9 @@ export const gdprRouter = {
   processErasureRequest: protectedProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
-        anonymizeData: z.boolean().default(true),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
+        anonymizeData: z.coerce.boolean().default(true),
       }),
     )
     .handler(async ({ input, context }) => {
@@ -249,7 +249,7 @@ export const gdprRouter = {
     }),
 
   processPortabilityRequest: protectedProcedure
-    .input(z.object({ id: z.number(), organizationId: z.number() }))
+    .input(z.object({ id: z.coerce.number(), organizationId: z.coerce.number() }))
     .handler(async ({ input, context }) => {
       const canWrite = await hasPermission(
         {

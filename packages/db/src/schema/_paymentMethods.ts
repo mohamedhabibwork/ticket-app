@@ -4,7 +4,6 @@ import {
   boolean,
   integer,
   jsonb,
-  text,
   timestamp,
   uuid,
   varchar,
@@ -39,29 +38,26 @@ export const paymentMethods = pgTable(
   (table) => ({
     orgGatewayUnique: unique().on(table.organizationId, table.gateway, table.gatewayToken),
     orgIdx: index("payment_methods_org_idx").on(table.organizationId),
-  })
+  }),
 );
 
-export const coupons = pgTable(
-  "coupons",
-  {
-    id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
-    uuid: uuid("uuid").defaultRandom().notNull().unique(),
-    code: varchar("code", { length: 50 }).notNull().unique(),
-    type: varchar("type", { length: 20 }).notNull(),
-    value: integer("value").notNull(),
-    currency: varchar("currency", { length: 3 }),
-    maxRedemptions: integer("max_redemptions"),
-    redemptionCount: integer("redemption_count").default(0).notNull(),
-    minSubscriptionValue: bigint("min_subscription_value", { mode: "number" }),
-    validFrom: timestamp("valid_from", { withTimezone: true }),
-    validUntil: timestamp("valid_until", { withTimezone: true }),
-    isActive: boolean("is_active").default(true).notNull(),
-    metadata: jsonb("metadata"),
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
-  }
-);
+export const coupons = pgTable("coupons", {
+  id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
+  uuid: uuid("uuid").defaultRandom().notNull().unique(),
+  code: varchar("code", { length: 50 }).notNull().unique(),
+  type: varchar("type", { length: 20 }).notNull(),
+  value: integer("value").notNull(),
+  currency: varchar("currency", { length: 3 }),
+  maxRedemptions: integer("max_redemptions"),
+  redemptionCount: integer("redemption_count").default(0).notNull(),
+  minSubscriptionValue: bigint("min_subscription_value", { mode: "number" }),
+  validFrom: timestamp("valid_from", { withTimezone: true }),
+  validUntil: timestamp("valid_until", { withTimezone: true }),
+  isActive: boolean("is_active").default(true).notNull(),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
 
 export const couponRedemptions = pgTable(
   "coupon_redemptions",
@@ -73,8 +69,9 @@ export const couponRedemptions = pgTable(
     organizationId: bigint("organization_id", { mode: "number" })
       .references(() => organizations.id)
       .notNull(),
-    subscriptionId: bigint("subscription_id", { mode: "number" })
-      .references(() => subscriptions.id),
+    subscriptionId: bigint("subscription_id", { mode: "number" }).references(
+      () => subscriptions.id,
+    ),
     discount: bigint("discount", { mode: "number" }).notNull(),
     redeemedAt: timestamp("redeemed_at", { withTimezone: true }).defaultNow().notNull(),
     metadata: jsonb("metadata"),
@@ -83,7 +80,7 @@ export const couponRedemptions = pgTable(
     couponOrgUnique: unique().on(table.couponId, table.organizationId),
     couponIdx: index("coupon_redemptions_coupon_idx").on(table.couponId),
     orgIdx: index("coupon_redemptions_org_idx").on(table.organizationId),
-  })
+  }),
 );
 
 export const paymentMethodsRelations = relations(paymentMethods, ({ one }) => ({

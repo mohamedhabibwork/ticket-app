@@ -2,17 +2,21 @@ import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { Button } from "@ticket-app/ui/components/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@ticket-app/ui/components/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@ticket-app/ui/components/card";
 import { Input } from "@ticket-app/ui/components/input";
 import { Badge } from "@ticket-app/ui/components/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@ticket-app/ui/components/tabs";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@ticket-app/ui/components/select";
+import { Tabs, TabsList, TabsTrigger } from "@ticket-app/ui/components/tabs";
 import { orpc } from "@/utils/orpc";
 import {
   ArrowLeft,
   FileText,
   Search,
-  Filter,
   CheckCircle,
   XCircle,
   Clock,
@@ -52,7 +56,7 @@ function WorkflowLogsRoute() {
   const workflowId = Number(id);
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [resultFilter, setResultFilter] = useState<string>("all");
+  const [resultFilter, _setResultFilter] = useState<string>("all");
   const [expandedLogId, setExpandedLogId] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(0);
   const pageSize = 20;
@@ -66,7 +70,11 @@ function WorkflowLogsRoute() {
       }),
   });
 
-  const { data: logsData, isLoading, refetch } = useQuery({
+  const {
+    data: logsData,
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ["workflow-logs", workflowId, currentPage],
     queryFn: () =>
       orpc.workflows.getExecutionLogs.queryOptions({
@@ -87,9 +95,7 @@ function WorkflowLogsRoute() {
   });
 
   const filteredLogs = logsData?.filter((log: any) => {
-    const matchesSearch =
-      searchQuery === "" ||
-      String(log.ticketId).includes(searchQuery);
+    const matchesSearch = searchQuery === "" || String(log.ticketId).includes(searchQuery);
     const matchesResult =
       resultFilter === "all" ||
       (resultFilter === "success" && !log.error) ||
@@ -119,17 +125,10 @@ function WorkflowLogsRoute() {
             </div>
             <div>
               <h1 className="text-2xl font-bold">{workflow?.name || "Workflow"} Logs</h1>
-              <p className="text-muted-foreground">
-                Execution history and debugging information
-              </p>
+              <p className="text-muted-foreground">Execution history and debugging information</p>
             </div>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => refetch()}
-            disabled={isLoading}
-          >
+          <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isLoading}>
             <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? `animate-spin` : ``}`} />
             Refresh
           </Button>
@@ -140,9 +139,7 @@ function WorkflowLogsRoute() {
         <Card>
           <CardContent className="p-4">
             <div className="text-xs text-muted-foreground">Total Executions</div>
-            <div className="text-2xl font-bold mt-1">
-              {stats?.totalExecutions || 0}
-            </div>
+            <div className="text-2xl font-bold mt-1">{stats?.totalExecutions || 0}</div>
           </CardContent>
         </Card>
         <Card>
@@ -164,9 +161,7 @@ function WorkflowLogsRoute() {
         <Card>
           <CardContent className="p-4">
             <div className="text-xs text-muted-foreground">Avg Duration</div>
-            <div className="text-2xl font-bold mt-1">
-              {stats?.avgDurationMs || 0}ms
-            </div>
+            <div className="text-2xl font-bold mt-1">{stats?.avgDurationMs || 0}ms</div>
           </CardContent>
         </Card>
       </div>
@@ -253,24 +248,18 @@ function WorkflowLogsRoute() {
                       <div className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
                           <div>
-                            <p className="text-xs text-muted-foreground mb-1">
-                              Execution ID
-                            </p>
+                            <p className="text-xs text-muted-foreground mb-1">Execution ID</p>
                             <p className="text-sm font-mono">{log.uuid}</p>
                           </div>
                           <div>
-                            <p className="text-xs text-muted-foreground mb-1">
-                              Executed At
-                            </p>
+                            <p className="text-xs text-muted-foreground mb-1">Executed At</p>
                             <p className="text-sm">{formatDate(log.executedAt)}</p>
                           </div>
                         </div>
 
                         {log.error && (
                           <div>
-                            <p className="text-xs text-muted-foreground mb-1">
-                              Error
-                            </p>
+                            <p className="text-xs text-muted-foreground mb-1">Error</p>
                             <p className="text-sm text-red-600 bg-red-50 p-2 rounded">
                               {log.error}
                             </p>
@@ -279,9 +268,7 @@ function WorkflowLogsRoute() {
 
                         {log.conditionsResult && (
                           <div>
-                            <p className="text-xs text-muted-foreground mb-1">
-                              Conditions Result
-                            </p>
+                            <p className="text-xs text-muted-foreground mb-1">Conditions Result</p>
                             <pre className="text-xs bg-background p-2 rounded overflow-auto">
                               {JSON.stringify(log.conditionsResult, null, 2)}
                             </pre>
@@ -290,9 +277,7 @@ function WorkflowLogsRoute() {
 
                         {log.actionsResult && (
                           <div>
-                            <p className="text-xs text-muted-foreground mb-1">
-                              Actions Result
-                            </p>
+                            <p className="text-xs text-muted-foreground mb-1">Actions Result</p>
                             <pre className="text-xs bg-background p-2 rounded overflow-auto">
                               {JSON.stringify(log.actionsResult, null, 2)}
                             </pre>
@@ -322,9 +307,7 @@ function WorkflowLogsRoute() {
 
           {filteredLogs && filteredLogs.length > 0 && (
             <div className="flex items-center justify-between mt-4 pt-4 border-t">
-              <p className="text-xs text-muted-foreground">
-                Showing {filteredLogs.length} results
-              </p>
+              <p className="text-xs text-muted-foreground">Showing {filteredLogs.length} results</p>
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
@@ -334,9 +317,7 @@ function WorkflowLogsRoute() {
                 >
                   Previous
                 </Button>
-                <span className="text-xs text-muted-foreground">
-                  Page {currentPage + 1}
-                </span>
+                <span className="text-xs text-muted-foreground">Page {currentPage + 1}</span>
                 <Button
                   variant="outline"
                   size="sm"

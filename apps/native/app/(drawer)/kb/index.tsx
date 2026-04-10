@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
-import { Spinner, Surface, Text, TextField, Input, useThemeColor } from "heroui-native";
+import { Spinner, Surface, Text, useThemeColor } from "heroui-native";
 import { Link } from "expo-router";
 import { View, Pressable } from "react-native";
 
@@ -18,7 +18,10 @@ export default function KBHomeScreen() {
   };
 
   return (
-    <Container onRefresh={handleRefresh} refreshing={categories.isFetching && !categories.isLoading}>
+    <Container
+      onRefresh={handleRefresh}
+      refreshing={categories.isFetching && !categories.isLoading}
+    >
       <View className="px-4 py-4">
         <Text className="text-2xl font-semibold text-foreground tracking-tight mb-4">
           Help Center

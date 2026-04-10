@@ -1,17 +1,12 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { toast } from "sonner";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@ticket-app/ui/components/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
 import { Button } from "@ticket-app/ui/components/button";
 import { Input } from "@ticket-app/ui/components/input";
 import { Label } from "@ticket-app/ui/components/label";
-import { Loader2, AlertTriangle, Trash2, Mail, RefreshCw } from "lucide-react";
+import { Loader2, AlertTriangle, Trash2, Mail } from "lucide-react";
 
 import { orpc } from "@/utils/orpc";
 
@@ -45,7 +40,7 @@ function SpamQueueRoute() {
     orpc.tickets.listSpam.queryOptions({
       organizationId,
       limit: 100,
-    })
+    }),
   );
 
   const markAsNotSpamMutation = useMutation(
@@ -58,7 +53,7 @@ function SpamQueueRoute() {
       onError: (error) => {
         toast.error(`Failed to mark as not spam: ${error.message}`);
       },
-    })
+    }),
   );
 
   const deletePermanentMutation = useMutation(
@@ -70,7 +65,7 @@ function SpamQueueRoute() {
       onError: (error) => {
         toast.error(`Failed to delete ticket: ${error.message}`);
       },
-    })
+    }),
   );
 
   const handleMarkAsNotSpam = (ticketId: number) => {
@@ -78,7 +73,11 @@ function SpamQueueRoute() {
   };
 
   const handleDeletePermanent = (ticketId: number) => {
-    if (window.confirm("Are you sure you want to permanently delete this ticket? This action cannot be undone.")) {
+    if (
+      window.confirm(
+        "Are you sure you want to permanently delete this ticket? This action cannot be undone.",
+      )
+    ) {
       deletePermanentMutation.mutate({ id: ticketId, organizationId });
     }
   };
@@ -92,9 +91,7 @@ function SpamQueueRoute() {
           <AlertTriangle className="h-5 w-5 text-amber-500" />
           <h1 className="text-2xl font-bold">Spam Queue</h1>
         </div>
-        <p className="text-muted-foreground">
-          Review and manage tickets marked as spam
-        </p>
+        <p className="text-muted-foreground">Review and manage tickets marked as spam</p>
       </div>
 
       <Card className="mb-6">

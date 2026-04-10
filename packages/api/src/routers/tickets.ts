@@ -54,19 +54,19 @@ export const ticketsRouter = {
   list: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        statusId: z.number().optional(),
-        priorityId: z.number().optional(),
-        channelId: z.number().optional(),
-        assignedAgentId: z.number().optional(),
-        contactId: z.number().optional(),
-        groupId: z.number().optional(),
-        categoryId: z.number().optional(),
+        organizationId: z.coerce.number(),
+        statusId: z.coerce.number().optional(),
+        priorityId: z.coerce.number().optional(),
+        channelId: z.coerce.number().optional(),
+        assignedAgentId: z.coerce.number().optional(),
+        contactId: z.coerce.number().optional(),
+        groupId: z.coerce.number().optional(),
+        categoryId: z.coerce.number().optional(),
         search: z.string().optional(),
-        tagIds: z.array(z.number()).optional(),
-        isSpam: z.boolean().optional(),
-        limit: z.number().min(1).max(100).default(50),
-        offset: z.number().min(0).default(0),
+        tagIds: z.array(z.coerce.number()).optional(),
+        isSpam: z.coerce.boolean().optional(),
+        limit: z.coerce.number().min(1).max(100).default(50),
+        offset: z.coerce.number().min(0).default(0),
         sortBy: z.enum(["created_at", "updated_at", "priority", "status"]).default("created_at"),
         sortDir: z.enum(["asc", "desc"]).default("desc"),
       }),
@@ -144,8 +144,8 @@ export const ticketsRouter = {
   get: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        id: z.number(),
+        organizationId: z.coerce.number(),
+        id: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -181,7 +181,7 @@ export const ticketsRouter = {
   getByReference: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         referenceNumber: z.string(),
       }),
     )
@@ -207,22 +207,22 @@ export const ticketsRouter = {
   create: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         subject: z.string().min(1).max(500),
         descriptionHtml: z.string().optional(),
         descriptionText: z.string().optional(),
-        statusId: z.number().optional(),
-        priorityId: z.number().optional(),
-        channelId: z.number().optional(),
-        contactId: z.number().optional(),
-        assignedAgentId: z.number().optional(),
-        assignedTeamId: z.number().optional(),
-        mailboxId: z.number().optional(),
-        formSubmissionId: z.number().optional(),
-        parentTicketId: z.number().optional(),
+        statusId: z.coerce.number().optional(),
+        priorityId: z.coerce.number().optional(),
+        channelId: z.coerce.number().optional(),
+        contactId: z.coerce.number().optional(),
+        assignedAgentId: z.coerce.number().optional(),
+        assignedTeamId: z.coerce.number().optional(),
+        mailboxId: z.coerce.number().optional(),
+        formSubmissionId: z.coerce.number().optional(),
+        parentTicketId: z.coerce.number().optional(),
         ccEmails: z.array(z.string().email()).optional(),
-        isSpam: z.boolean().default(false),
-        createdBy: z.number().optional(),
+        isSpam: z.coerce.boolean().default(false),
+        createdBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -315,15 +315,15 @@ export const ticketsRouter = {
   update: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
         subject: z.string().min(1).max(500).optional(),
         descriptionHtml: z.string().optional(),
-        priorityId: z.number().optional(),
-        statusId: z.number().optional(),
-        assignedAgentId: z.number().nullable().optional(),
-        assignedTeamId: z.number().nullable().optional(),
-        updatedBy: z.number().optional(),
+        priorityId: z.coerce.number().optional(),
+        statusId: z.coerce.number().optional(),
+        assignedAgentId: z.coerce.number().nullable().optional(),
+        assignedTeamId: z.coerce.number().nullable().optional(),
+        updatedBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -459,9 +459,9 @@ export const ticketsRouter = {
   delete: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
-        deletedBy: z.number().optional(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
+        deletedBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -502,9 +502,9 @@ export const ticketsRouter = {
   addCc: publicProcedure
     .input(
       z.object({
-        ticketId: z.number(),
+        ticketId: z.coerce.number(),
         email: z.string().email(),
-        createdBy: z.number().optional(),
+        createdBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -534,7 +534,7 @@ export const ticketsRouter = {
   removeCc: publicProcedure
     .input(
       z.object({
-        ticketId: z.number(),
+        ticketId: z.coerce.number(),
         email: z.string().email(),
       }),
     )
@@ -559,11 +559,11 @@ export const ticketsRouter = {
   assign: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
-        assignedAgentId: z.number().nullable().optional(),
-        assignedTeamId: z.number().nullable().optional(),
-        updatedBy: z.number().optional(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
+        assignedAgentId: z.coerce.number().nullable().optional(),
+        assignedTeamId: z.coerce.number().nullable().optional(),
+        updatedBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -624,10 +624,10 @@ export const ticketsRouter = {
   updateStatus: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
-        statusId: z.number(),
-        updatedBy: z.number().optional(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
+        statusId: z.coerce.number(),
+        updatedBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -659,10 +659,10 @@ export const ticketsRouter = {
   updatePriority: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
-        priorityId: z.number(),
-        updatedBy: z.number().optional(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
+        priorityId: z.coerce.number(),
+        updatedBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -702,9 +702,9 @@ export const ticketsRouter = {
   lock: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
-        lockedBy: z.number(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
+        lockedBy: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -732,8 +732,8 @@ export const ticketsRouter = {
   unlock: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -765,10 +765,10 @@ export const ticketsRouter = {
   merge: publicProcedure
     .input(
       z.object({
-        masterTicketId: z.number(),
-        mergedTicketId: z.number(),
-        organizationId: z.number(),
-        mergedBy: z.number(),
+        masterTicketId: z.coerce.number(),
+        mergedTicketId: z.coerce.number(),
+        organizationId: z.coerce.number(),
+        mergedBy: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -816,8 +816,8 @@ export const ticketsRouter = {
   getTimeline: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        includePrivate: z.boolean().default(false),
+        id: z.coerce.number(),
+        includePrivate: z.coerce.boolean().default(false),
       }),
     )
     .handler(async ({ input }) => {
@@ -827,8 +827,8 @@ export const ticketsRouter = {
   getConversation: publicProcedure
     .input(
       z.object({
-        ticketId: z.number(),
-        includePrivate: z.boolean().default(false),
+        ticketId: z.coerce.number(),
+        includePrivate: z.coerce.boolean().default(false),
       }),
     )
     .handler(async ({ input }) => {
@@ -840,8 +840,8 @@ export const ticketsRouter = {
   getNotes: publicProcedure
     .input(
       z.object({
-        ticketId: z.number(),
-        includePrivate: z.boolean().default(true),
+        ticketId: z.coerce.number(),
+        includePrivate: z.coerce.boolean().default(true),
       }),
     )
     .handler(async ({ input }) => {
@@ -851,24 +851,24 @@ export const ticketsRouter = {
   addReply: publicProcedure
     .input(
       z.object({
-        ticketId: z.number(),
-        organizationId: z.number(),
+        ticketId: z.coerce.number(),
+        organizationId: z.coerce.number(),
         bodyHtml: z.string(),
         bodyText: z.string().optional(),
-        authorUserId: z.number(),
-        isPrivate: z.boolean().default(false),
-        savedReplyId: z.number().optional(),
+        authorUserId: z.coerce.number(),
+        isPrivate: z.coerce.boolean().default(false),
+        savedReplyId: z.coerce.number().optional(),
         attachments: z
           .array(
             z.object({
               filename: z.string(),
               mimeType: z.string(),
-              sizeBytes: z.number(),
+              sizeBytes: z.coerce.number(),
               storageKey: z.string(),
             }),
           )
           .optional(),
-        createdBy: z.number().optional(),
+        createdBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -921,12 +921,12 @@ export const ticketsRouter = {
   addNote: publicProcedure
     .input(
       z.object({
-        ticketId: z.number(),
-        organizationId: z.number(),
+        ticketId: z.coerce.number(),
+        organizationId: z.coerce.number(),
         bodyHtml: z.string(),
         bodyText: z.string().optional(),
-        authorUserId: z.number(),
-        createdBy: z.number().optional(),
+        authorUserId: z.coerce.number(),
+        createdBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -963,12 +963,12 @@ export const ticketsRouter = {
   addActivity: publicProcedure
     .input(
       z.object({
-        ticketId: z.number(),
-        organizationId: z.number(),
+        ticketId: z.coerce.number(),
+        organizationId: z.coerce.number(),
         activityType: z.string(),
         description: z.string(),
         metadata: z.record(z.string(), z.unknown()).optional(),
-        createdBy: z.number().optional(),
+        createdBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -984,11 +984,11 @@ export const ticketsRouter = {
   bulkAssign: publicProcedure
     .input(
       z.object({
-        ticketIds: z.array(z.number()),
-        organizationId: z.number(),
-        assignedAgentId: z.number().nullable().optional(),
-        assignedTeamId: z.number().nullable().optional(),
-        updatedBy: z.number().optional(),
+        ticketIds: z.array(z.coerce.number()),
+        organizationId: z.coerce.number(),
+        assignedAgentId: z.coerce.number().nullable().optional(),
+        assignedTeamId: z.coerce.number().nullable().optional(),
+        updatedBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -1008,10 +1008,10 @@ export const ticketsRouter = {
   bulkUpdateStatus: publicProcedure
     .input(
       z.object({
-        ticketIds: z.array(z.number()),
-        organizationId: z.number(),
-        statusId: z.number(),
-        updatedBy: z.number().optional(),
+        ticketIds: z.array(z.coerce.number()),
+        organizationId: z.coerce.number(),
+        statusId: z.coerce.number(),
+        updatedBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -1025,9 +1025,9 @@ export const ticketsRouter = {
   bulkAddTags: publicProcedure
     .input(
       z.object({
-        ticketIds: z.array(z.number()),
-        tagIds: z.array(z.number()),
-        createdBy: z.number().optional(),
+        ticketIds: z.array(z.coerce.number()),
+        tagIds: z.array(z.coerce.number()),
+        createdBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -1047,8 +1047,8 @@ export const ticketsRouter = {
   bulkRemoveTags: publicProcedure
     .input(
       z.object({
-        ticketIds: z.array(z.number()),
-        tagIds: z.array(z.number()),
+        ticketIds: z.array(z.coerce.number()),
+        tagIds: z.array(z.coerce.number()),
       }),
     )
     .handler(async ({ input }) => {
@@ -1067,9 +1067,9 @@ export const ticketsRouter = {
   bulkDelete: publicProcedure
     .input(
       z.object({
-        ticketIds: z.array(z.number()),
-        organizationId: z.number(),
-        deletedBy: z.number().optional(),
+        ticketIds: z.array(z.coerce.number()),
+        organizationId: z.coerce.number(),
+        deletedBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -1087,9 +1087,9 @@ export const ticketsRouter = {
   addFollower: publicProcedure
     .input(
       z.object({
-        ticketId: z.number(),
-        userId: z.number(),
-        createdBy: z.number().optional(),
+        ticketId: z.coerce.number(),
+        userId: z.coerce.number(),
+        createdBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -1119,8 +1119,8 @@ export const ticketsRouter = {
   removeFollower: publicProcedure
     .input(
       z.object({
-        ticketId: z.number(),
-        userId: z.number(),
+        ticketId: z.coerce.number(),
+        userId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -1147,9 +1147,9 @@ export const ticketsRouter = {
   listSpam: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        limit: z.number().min(1).max(100).default(50),
-        offset: z.number().min(0).default(0),
+        organizationId: z.coerce.number(),
+        limit: z.coerce.number().min(1).max(100).default(50),
+        offset: z.coerce.number().min(0).default(0),
       }),
     )
     .handler(async ({ input }) => {
@@ -1175,9 +1175,9 @@ export const ticketsRouter = {
   markAsSpam: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
-        markedBy: z.number().optional(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
+        markedBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -1204,9 +1204,9 @@ export const ticketsRouter = {
   markAsNotSpam: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
-        markedBy: z.number().optional(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
+        markedBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -1233,8 +1233,8 @@ export const ticketsRouter = {
   deletePermanent: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -1253,7 +1253,7 @@ export const ticketsRouter = {
   checkSpam: publicProcedure
     .input(
       z.object({
-        id: z.number(),
+        id: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -1264,9 +1264,9 @@ export const ticketsRouter = {
   getAuditHistory: publicProcedure
     .input(
       z.object({
-        ticketId: z.number(),
-        limit: z.number().min(1).max(100).default(50),
-        offset: z.number().min(0).default(0),
+        ticketId: z.coerce.number(),
+        limit: z.coerce.number().min(1).max(100).default(50),
+        offset: z.coerce.number().min(0).default(0),
       }),
     )
     .handler(async ({ input }) => {
@@ -1279,7 +1279,7 @@ export const ticketsRouter = {
   checkSLABreach: publicProcedure
     .input(
       z.object({
-        ticketId: z.number(),
+        ticketId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -1290,9 +1290,9 @@ export const ticketsRouter = {
   getSavedReplies: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        userId: z.number().optional(),
-        folderId: z.number().optional(),
+        organizationId: z.coerce.number(),
+        userId: z.coerce.number().optional(),
+        folderId: z.coerce.number().optional(),
         search: z.string().optional(),
       }),
     )
@@ -1338,9 +1338,9 @@ export const ticketsRouter = {
   applySavedReply: publicProcedure
     .input(
       z.object({
-        savedReplyId: z.number(),
-        ticketId: z.number(),
-        agentId: z.number(),
+        savedReplyId: z.coerce.number(),
+        ticketId: z.coerce.number(),
+        agentId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {

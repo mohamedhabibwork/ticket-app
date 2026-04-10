@@ -9,11 +9,11 @@ export const ecommerceStoresRouter = {
   list: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         platform: z.string().optional(),
-        isActive: z.boolean().optional(),
-        limit: z.number().min(1).max(100).default(50),
-        offset: z.number().min(0).default(0),
+        isActive: z.coerce.boolean().optional(),
+        limit: z.coerce.number().min(1).max(100).default(50),
+        offset: z.coerce.number().min(0).default(0),
       }),
     )
     .handler(async ({ input }) => {
@@ -40,8 +40,8 @@ export const ecommerceStoresRouter = {
   get: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        id: z.number(),
+        organizationId: z.coerce.number(),
+        id: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -57,7 +57,7 @@ export const ecommerceStoresRouter = {
   getByPlatform: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         platform: z.string(),
         shopDomain: z.string(),
       }),
@@ -76,8 +76,8 @@ export const ecommerceStoresRouter = {
   create: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        userId: z.number().optional(),
+        organizationId: z.coerce.number(),
+        userId: z.coerce.number().optional(),
         platform: z.string().min(1),
         name: z.string().min(1).max(255),
         domain: z.string().optional(),
@@ -119,8 +119,8 @@ export const ecommerceStoresRouter = {
   update: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
         name: z.string().min(1).max(255).optional(),
         domain: z.string().optional(),
         apiKeyEnc: z.string().optional(),
@@ -130,7 +130,7 @@ export const ecommerceStoresRouter = {
         tokenExpiresAt: z.date().optional(),
         shopDomain: z.string().optional(),
         region: z.string().optional(),
-        isActive: z.boolean().optional(),
+        isActive: z.coerce.boolean().optional(),
         webhookSecretEnc: z.string().optional(),
         settings: z.record(z.string(), z.unknown()).optional(),
       }),
@@ -167,7 +167,7 @@ export const ecommerceStoresRouter = {
   updateSyncStatus: publicProcedure
     .input(
       z.object({
-        id: z.number(),
+        id: z.coerce.number(),
         syncStatus: z.string(),
         lastSyncAt: z.date().optional(),
         syncError: z.string().optional(),
@@ -191,9 +191,9 @@ export const ecommerceStoresRouter = {
   delete: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
-        deletedBy: z.number().optional(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
+        deletedBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -217,8 +217,8 @@ export const ecommerceStoresRouter = {
   refresh: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -248,10 +248,10 @@ export const ecommerceStoresRouter = {
   connectShopify: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         storeUrl: z.string(),
         accessToken: z.string(),
-        userId: z.number().optional(),
+        userId: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -300,11 +300,11 @@ export const ecommerceStoresRouter = {
   connectWooCommerce: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         storeUrl: z.string(),
         consumerKey: z.string(),
         consumerSecret: z.string(),
-        userId: z.number().optional(),
+        userId: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -355,10 +355,10 @@ export const ecommerceStoresRouter = {
   connectSalla: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         storeUrl: z.string(),
         accessToken: z.string(),
-        userId: z.number().optional(),
+        userId: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -407,10 +407,10 @@ export const ecommerceStoresRouter = {
   connectZid: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         storeUrl: z.string(),
         accessToken: z.string(),
-        userId: z.number().optional(),
+        userId: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -459,9 +459,9 @@ export const ecommerceStoresRouter = {
   disconnect: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
-        deletedBy: z.number().optional(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
+        deletedBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -486,8 +486,8 @@ export const ecommerceStoresRouter = {
   syncNow: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -520,8 +520,8 @@ export const ecommerceStoresRouter = {
   getSyncStatus: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -547,11 +547,11 @@ export const ecommerceStoresRouter = {
   getOrders: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
         status: z.string().optional(),
-        limit: z.number().min(1).max(100).default(50),
-        offset: z.number().min(0).default(0),
+        limit: z.coerce.number().min(1).max(100).default(50),
+        offset: z.coerce.number().min(0).default(0),
       }),
     )
     .handler(async ({ input }) => {
@@ -578,10 +578,10 @@ export const ecommerceStoresRouter = {
   searchOrders: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         query: z.string().min(1),
         platform: z.string().optional(),
-        limit: z.number().min(1).max(100).default(50),
+        limit: z.coerce.number().min(1).max(100).default(50),
       }),
     )
     .handler(async ({ input }) => {

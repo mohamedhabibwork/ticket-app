@@ -1,5 +1,6 @@
 import type { Context } from "@ticket-app/api/context";
 import { ORPCError } from "@orpc/server";
+import { env } from "@ticket-app/env/server";
 import { db } from "@ticket-app/db";
 import { organizations } from "@ticket-app/db/schema";
 import { eq, and, isNull } from "drizzle-orm";
@@ -21,8 +22,8 @@ export interface TenantContext {
   isRTL: boolean;
 }
 
-const SUBDOMAIN_SUFFIX = process.env.SUBDOMAIN_SUFFIX || "support.app";
-const DEFAULT_DOMAIN = process.env.DEFAULT_DOMAIN;
+const SUBDOMAIN_SUFFIX = env.SUBDOMAIN_SUFFIX || "support.app";
+const DEFAULT_DOMAIN = env.DEFAULT_DOMAIN;
 
 export async function resolveTenantFromHost(host: string): Promise<number | null> {
   if (!host) return null;

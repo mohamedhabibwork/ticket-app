@@ -17,7 +17,7 @@ export default function BillingOverviewPage() {
     queryFn: () => orpc.paymentMethods.list.query({ organizationId: 1 }),
   });
 
-  const { data: plans } = useQuery({
+  const { data: _plans } = useQuery({
     queryKey: ["plans"],
     queryFn: () => orpc.subscriptions.getAvailablePlans.query(),
   });
@@ -43,7 +43,10 @@ export default function BillingOverviewPage() {
     paused: "bg-gray-100 text-gray-800",
   };
 
-  const planLimits: Record<string, { agents: number; mailboxes: number; forms: number; ecommerce: number }> = {
+  const planLimits: Record<
+    string,
+    { agents: number; mailboxes: number; forms: number; ecommerce: number }
+  > = {
     free: { agents: 3, mailboxes: 1, forms: 1, ecommerce: 0 },
     starter: { agents: 10, mailboxes: 3, forms: 5, ecommerce: 1 },
     professional: { agents: 50, mailboxes: 10, forms: -1, ecommerce: 5 },
@@ -63,9 +66,7 @@ export default function BillingOverviewPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Billing Overview</h1>
-          <p className="text-muted-foreground mt-1">
-            Manage your subscription, seats, and billing
-          </p>
+          <p className="text-muted-foreground mt-1">Manage your subscription, seats, and billing</p>
         </div>
         {subscription && (
           <Badge
@@ -101,9 +102,7 @@ export default function BillingOverviewPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              Seat Usage
-            </CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Seat Usage</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>

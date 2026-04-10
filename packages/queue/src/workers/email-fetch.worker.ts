@@ -13,7 +13,7 @@ import {
 import { getRedis } from "../redis";
 import { env } from "@ticket-app/env/server";
 
-const EMAIL_FETCH_QUEUE = `${env.QUEUE_PREFIX}:email-fetch`;
+const EMAIL_FETCH_QUEUE = `${env.QUEUE_PREFIX}-email-fetch`;
 
 export interface EmailFetchJobData {
   mailboxId: number;
@@ -55,9 +55,13 @@ const emailFetchQueue = new Queue(EMAIL_FETCH_QUEUE, {
 });
 
 export async function addEmailFetchJob(mailboxId: number): Promise<void> {
-  await emailFetchQueue.add("fetch-emails", { mailboxId }, {
-    jobId: `email-fetch-${mailboxId}`,
-  });
+  await emailFetchQueue.add(
+    "fetch-emails",
+    { mailboxId },
+    {
+      jobId: `email-fetch-${mailboxId}`,
+    },
+  );
 }
 
 export async function scheduleEmailFetchPoll(intervalMs: number = 120000): Promise<void> {
@@ -67,7 +71,7 @@ export async function scheduleEmailFetchPoll(intervalMs: number = 120000): Promi
     {
       repeat: { every: intervalMs },
       jobId: "email-fetch-poll-recurring",
-    }
+    },
   );
 }
 
@@ -81,7 +85,7 @@ export function createEmailFetchWorker(): Worker {
         where: and(
           eq(mailboxes.id, mailboxId),
           eq(mailboxes.isActive, true),
-          isNull(mailboxes.deletedAt)
+          isNull(mailboxes.deletedAt),
         ),
         with: { imapConfig: true },
       });
@@ -138,7 +142,7 @@ export function createEmailFetchWorker(): Worker {
     {
       connection: getRedis(),
       concurrency: 2,
-    }
+    },
   );
 }
 
@@ -267,9 +271,19 @@ function calculateSpamScore(parsed: any): number {
   const body = ((parsed.text as string) || "").toLowerCase();
 
   const spamKeywords = [
-    "viagra", "cialis", "lottery", "winner", "prize", "click here",
-    "act now", "limited time", "free money", "congratulations",
-    "urgent", "immediate action", "suspicious"
+    "viagra",
+    "cialis",
+    "lottery",
+    "winner",
+    "prize",
+    "click here",
+    "act now",
+    "limited time",
+    "free money",
+    "congratulations",
+    "urgent",
+    "immediate action",
+    "suspicious",
   ];
 
   for (const keyword of spamKeywords) {
@@ -286,12 +300,12 @@ function calculateSpamScore(parsed: any): number {
 async function processEmailToTicket(
   organizationId: number,
   mailboxId: number,
-  email: ParsedEmail
+  email: ParsedEmail,
 ): Promise<{ ticket: any; isReply: boolean }> {
   const existingEmailMessage = await db.query.emailMessages.findFirst({
     where: and(
       eq(emailMessages.messageId, email.messageId),
-      eq(emailMessages.mailboxId, mailboxId)
+      eq(emailMessages.mailboxId, mailboxId),
     ),
   });
 
@@ -302,7 +316,7 @@ async function processEmailToTicket(
   const channelLookup = await db.query.lookups.findFirst({
     where: and(
       eq(lookups.lookupTypeId, sql`(SELECT id FROM lookup_types WHERE name = 'channel')`),
-      sql`${lookups.metadata}->>'slug' = 'email'`
+      sql`${lookups.metadata}->>'slug' = 'email'`,
     ),
   });
 
@@ -310,7 +324,7 @@ async function processEmailToTicket(
     where: and(
       eq(contacts.email, email.fromEmail.toLowerCase()),
       eq(contacts.organizationId, organizationId),
-      isNull(contacts.deletedAt)
+      isNull(contacts.deletedAt),
     ),
   });
 
@@ -357,7 +371,7 @@ async function processEmailToTicket(
     const parentEmail = await db.query.emailMessages.findFirst({
       where: and(
         eq(emailMessages.messageId, email.inReplyTo),
-        eq(emailMessages.organizationId, organizationId)
+        eq(emailMessages.organizationId, organizationId),
       ),
     });
 
@@ -371,7 +385,7 @@ async function processEmailToTicket(
     await db.query.lookups.findFirst({
       where: and(
         eq(lookups.lookupTypeId, sql`(SELECT id FROM lookup_types WHERE name = 'ticket_status')`),
-        eq(lookups.isDefault, true)
+        eq(lookups.isDefault, true),
       ),
     })
   )?.id;
@@ -380,7 +394,7 @@ async function processEmailToTicket(
     await db.query.lookups.findFirst({
       where: and(
         eq(lookups.lookupTypeId, sql`(SELECT id FROM lookup_types WHERE name = 'ticket_priority')`),
-        eq(lookups.isDefault, true)
+        eq(lookups.isDefault, true),
       ),
     })
   )?.id;
@@ -391,7 +405,7 @@ async function processEmailToTicket(
     .select({ count: sql<number>`COUNT(*)::int` })
     .from(tickets)
     .where(
-      sql`${tickets.organizationId} = ${organizationId} AND ${tickets.referenceNumber} LIKE ${prefix}%`
+      sql`${tickets.organizationId} = ${organizationId} AND ${tickets.referenceNumber} LIKE ${prefix}%`,
     );
   const sequence = (countResult[0]?.count ?? 0) + 1;
   const referenceNumber = `${prefix}${sequence.toString().padStart(6, "0")}`;

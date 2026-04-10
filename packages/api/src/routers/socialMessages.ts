@@ -9,15 +9,15 @@ export const socialMessagesRouter = {
   list: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        socialAccountId: z.number().optional(),
+        organizationId: z.coerce.number(),
+        socialAccountId: z.coerce.number().optional(),
         platform: z.string().optional(),
-        ticketId: z.number().optional(),
-        isIncoming: z.boolean().optional(),
-        isSpam: z.boolean().optional(),
+        ticketId: z.coerce.number().optional(),
+        isIncoming: z.coerce.boolean().optional(),
+        isSpam: z.coerce.boolean().optional(),
         search: z.string().optional(),
-        limit: z.number().min(1).max(100).default(50),
-        offset: z.number().min(0).default(0),
+        limit: z.coerce.number().min(1).max(100).default(50),
+        offset: z.coerce.number().min(0).default(0),
       }),
     )
     .handler(async ({ input }) => {
@@ -67,8 +67,8 @@ export const socialMessagesRouter = {
   get: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        id: z.number(),
+        organizationId: z.coerce.number(),
+        id: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -102,7 +102,7 @@ export const socialMessagesRouter = {
   getByPlatformMessageId: publicProcedure
     .input(
       z.object({
-        socialAccountId: z.number(),
+        socialAccountId: z.coerce.number(),
         platformMessageId: z.string(),
       }),
     )
@@ -119,21 +119,21 @@ export const socialMessagesRouter = {
   create: publicProcedure
     .input(
       z.object({
-        socialAccountId: z.number(),
+        socialAccountId: z.coerce.number(),
         platform: z.string(),
         platformMessageId: z.string(),
         platformParentMessageId: z.string().optional(),
         authorPlatformUserId: z.string().optional(),
         authorUsername: z.string().optional(),
         authorName: z.string().optional(),
-        authorAvatarUrl: z.string().url().optional(),
+        authorAvatarUrl: z.url().optional(),
         messageType: z.string(),
         bodyText: z.string(),
         bodyHtml: z.string().optional(),
         mediaUrls: z.array(z.string()).optional(),
         linkUrls: z.array(z.string()).optional(),
-        isIncoming: z.boolean().default(true),
-        isSpam: z.boolean().default(false),
+        isIncoming: z.coerce.boolean().default(true),
+        isSpam: z.coerce.boolean().default(false),
         sentAt: z.string().datetime().optional(),
       }),
     )
@@ -166,8 +166,8 @@ export const socialMessagesRouter = {
   linkToTicket: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        ticketId: z.number(),
+        id: z.coerce.number(),
+        ticketId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -186,8 +186,8 @@ export const socialMessagesRouter = {
   markAsSpam: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        isSpam: z.boolean(),
+        id: z.coerce.number(),
+        isSpam: z.coerce.boolean(),
       }),
     )
     .handler(async ({ input }) => {
@@ -206,7 +206,7 @@ export const socialMessagesRouter = {
   delete: publicProcedure
     .input(
       z.object({
-        id: z.number(),
+        id: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -223,9 +223,9 @@ export const socialMessagesRouter = {
   getConversation: publicProcedure
     .input(
       z.object({
-        socialAccountId: z.number(),
+        socialAccountId: z.coerce.number(),
         authorPlatformUserId: z.string(),
-        limit: z.number().min(1).max(100).default(20),
+        limit: z.coerce.number().min(1).max(100).default(20),
       }),
     )
     .handler(async ({ input }) => {

@@ -1,4 +1,5 @@
 import type { Context } from "@ticket-app/api/context";
+import { env } from "@ticket-app/env/server";
 
 export interface CustomDomainContext {
   resolvedDomain: string | null;
@@ -6,12 +7,10 @@ export interface CustomDomainContext {
   organizationId: number | null;
 }
 
-const DEFAULT_DOMAIN = process.env.DEFAULT_DOMAIN;
-const SUBDOMAIN_SUFFIX = process.env.SUBDOMAIN_SUFFIX || "support.app";
+const DEFAULT_DOMAIN = env.DEFAULT_DOMAIN;
+const SUBDOMAIN_SUFFIX = env.SUBDOMAIN_SUFFIX || "support.app";
 
-export async function resolveCustomDomain(
-  context: Context
-): Promise<CustomDomainContext> {
+export async function resolveCustomDomain(context: Context): Promise<CustomDomainContext> {
   const host = context.headers?.host || context.headers?.Host || "";
 
   if (!host) {
@@ -57,7 +56,7 @@ export function getBaseUrl(context: Context, protocol: "http" | "https" = "https
 export function buildCustomDomainUrl(
   context: Context,
   path: string,
-  protocol: "http" | "https" = "https"
+  protocol: "http" | "https" = "https",
 ): string {
   const baseUrl = getBaseUrl(context, protocol);
   return `${baseUrl}${path}`;

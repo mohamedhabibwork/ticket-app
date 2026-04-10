@@ -59,7 +59,7 @@ function SecuritySettingsRoute() {
   });
 
   const revokeSessionMutation = useMutation({
-    mutationFn: async (sessionId: number) => {
+    mutationFn: async (_sessionId: number) => {
       return true;
     },
     onSuccess: () => {
@@ -69,7 +69,7 @@ function SecuritySettingsRoute() {
   });
 
   const deleteApiKeyMutation = useMutation({
-    mutationFn: async (keyId: number) => {
+    mutationFn: async (_keyId: number) => {
       return true;
     },
     onSuccess: () => {
@@ -78,13 +78,13 @@ function SecuritySettingsRoute() {
     },
   });
 
-  const handleRevokeSession = (sessionId: number) => {
+  const handleRevokeSession = (_sessionId: number) => {
     if (confirm("Are you sure you want to revoke this session?")) {
       revokeSessionMutation.mutate(sessionId);
     }
   };
 
-  const handleDeleteApiKey = (keyId: number) => {
+  const handleDeleteApiKey = (_keyId: number) => {
     if (confirm("Are you sure you want to delete this API key?")) {
       deleteApiKeyMutation.mutate(keyId);
     }
@@ -135,9 +135,7 @@ function SecuritySettingsRoute() {
                 <Smartphone className="h-5 w-5" />
                 Two-Factor Authentication
               </CardTitle>
-              <CardDescription>
-                Add an extra layer of security to your account
-              </CardDescription>
+              <CardDescription>Add an extra layer of security to your account</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {show2FASetup ? (
@@ -192,9 +190,7 @@ function SecuritySettingsRoute() {
                 <Globe className="h-5 w-5" />
                 Active Sessions
               </CardTitle>
-              <CardDescription>
-                Manage devices that are logged into your account
-              </CardDescription>
+              <CardDescription>Manage devices that are logged into your account</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {sessionsLoading ? (
@@ -251,9 +247,7 @@ function SecuritySettingsRoute() {
                 <Key className="h-5 w-5" />
                 API Keys
               </CardTitle>
-              <CardDescription>
-                Manage API keys for accessing the API
-              </CardDescription>
+              <CardDescription>Manage API keys for accessing the API</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <Button className="mb-4">
@@ -268,12 +262,9 @@ function SecuritySettingsRoute() {
                 >
                   <div>
                     <div className="font-medium">{key.name}</div>
-                    <div className="text-sm text-muted-foreground font-mono">
-                      {key.prefix}
-                    </div>
+                    <div className="text-sm text-muted-foreground font-mono">{key.prefix}</div>
                     <div className="text-xs text-muted-foreground mt-1">
-                      Created: {formatDate(key.createdAt)} • Last used:{" "}
-                      {formatDate(key.lastUsed)}
+                      Created: {formatDate(key.createdAt)} • Last used: {formatDate(key.lastUsed)}
                     </div>
                   </div>
                   <Button

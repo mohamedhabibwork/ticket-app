@@ -15,12 +15,16 @@ interface SocialConnectPageProps {
 
 type Platform = "facebook" | "instagram" | "twitter" | "whatsapp";
 
-const platformConfig: Record<Platform, { name: string; icon: typeof Facebook; color: string; scopes: string }> = {
+const platformConfig: Record<
+  Platform,
+  { name: string; icon: typeof Facebook; color: string; scopes: string }
+> = {
   facebook: {
     name: "Facebook",
     icon: Facebook,
     color: "bg-blue-600 hover:bg-blue-700",
-    scopes: "pages_read_engagement, pages_manage_messages, instagram_basic, instagram_manage_messages",
+    scopes:
+      "pages_read_engagement, pages_manage_messages, instagram_basic, instagram_manage_messages",
   },
   instagram: {
     name: "Instagram",
@@ -49,7 +53,7 @@ export function SocialConnectPage({ organizationId }: SocialConnectPageProps) {
   const [connecting, setConnecting] = useState<Platform | null>(null);
   const [showDisconnectModal, setShowDisconnectModal] = useState<SocialAccount | null>(null);
 
-  const fetchAccounts = async () => {
+  const _fetchAccounts = async () => {
     setLoading(true);
     setError(null);
     try {
@@ -114,7 +118,7 @@ export function SocialConnectPage({ organizationId }: SocialConnectPageProps) {
       if (!response.ok) throw new Error("Failed to update account");
 
       setAccounts((prev) =>
-        prev.map((a) => (a.id === account.id ? { ...a, isActive: !a.isActive } : a))
+        prev.map((a) => (a.id === account.id ? { ...a, isActive: !a.isActive } : a)),
       );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to update account");
@@ -152,10 +156,7 @@ export function SocialConnectPage({ organizationId }: SocialConnectPageProps) {
       {error && (
         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
           {error}
-          <button
-            onClick={() => setError(null)}
-            className="ml-2 underline"
-          >
+          <button onClick={() => setError(null)} className="ml-2 underline">
             Dismiss
           </button>
         </div>
@@ -181,9 +182,7 @@ export function SocialConnectPage({ organizationId }: SocialConnectPageProps) {
                     <Icon className="w-6 h-6" />
                   </div>
                   <div>
-                    <h3 className="font-medium text-gray-900 dark:text-white">
-                      {config.name}
-                    </h3>
+                    <h3 className="font-medium text-gray-900 dark:text-white">{config.name}</h3>
                     {existingAccount && getStatusBadge(existingAccount)}
                   </div>
                 </div>
@@ -302,8 +301,8 @@ export function SocialConnectPage({ organizationId }: SocialConnectPageProps) {
               Disconnect Account
             </h3>
             <p className="text-gray-600 dark:text-gray-400 mb-6">
-              Are you sure you want to disconnect this {showDisconnectModal.platform} account?
-              You will stop receiving messages from this account.
+              Are you sure you want to disconnect this {showDisconnectModal.platform} account? You
+              will stop receiving messages from this account.
             </p>
             <div className="flex gap-3">
               <button

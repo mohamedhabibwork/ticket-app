@@ -9,9 +9,9 @@ export const chatMessagesRouter = {
   list: publicProcedure
     .input(
       z.object({
-        sessionId: z.number(),
-        limit: z.number().min(1).max(100).default(50),
-        offset: z.number().min(0).default(0),
+        sessionId: z.coerce.number(),
+        limit: z.coerce.number().min(1).max(100).default(50),
+        offset: z.coerce.number().min(0).default(0),
       }),
     )
     .handler(async ({ input }) => {
@@ -30,7 +30,7 @@ export const chatMessagesRouter = {
   get: publicProcedure
     .input(
       z.object({
-        id: z.number(),
+        id: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -46,10 +46,10 @@ export const chatMessagesRouter = {
   create: publicProcedure
     .input(
       z.object({
-        sessionId: z.number(),
+        sessionId: z.coerce.number(),
         authorType: z.enum(["agent", "contact", "system"]),
-        authorUserId: z.number().optional(),
-        authorContactId: z.number().optional(),
+        authorUserId: z.coerce.number().optional(),
+        authorContactId: z.coerce.number().optional(),
         messageType: z.enum(["text", "file", "system"]).default("text"),
         body: z.string(),
         attachments: z
@@ -58,11 +58,11 @@ export const chatMessagesRouter = {
               name: z.string(),
               url: z.string(),
               mimeType: z.string(),
-              sizeBytes: z.number(),
+              sizeBytes: z.coerce.number(),
             }),
           )
           .optional(),
-        isSystem: z.boolean().default(false),
+        isSystem: z.coerce.boolean().default(false),
       }),
     )
     .handler(async ({ input }) => {
@@ -86,7 +86,7 @@ export const chatMessagesRouter = {
   createFromContact: publicProcedure
     .input(
       z.object({
-        sessionId: z.number(),
+        sessionId: z.coerce.number(),
         body: z.string(),
         attachments: z
           .array(
@@ -94,7 +94,7 @@ export const chatMessagesRouter = {
               name: z.string(),
               url: z.string(),
               mimeType: z.string(),
-              sizeBytes: z.number(),
+              sizeBytes: z.coerce.number(),
             }),
           )
           .optional(),
@@ -127,8 +127,8 @@ export const chatMessagesRouter = {
   createFromAgent: publicProcedure
     .input(
       z.object({
-        sessionId: z.number(),
-        agentId: z.number(),
+        sessionId: z.coerce.number(),
+        agentId: z.coerce.number(),
         body: z.string(),
         attachments: z
           .array(
@@ -136,7 +136,7 @@ export const chatMessagesRouter = {
               name: z.string(),
               url: z.string(),
               mimeType: z.string(),
-              sizeBytes: z.number(),
+              sizeBytes: z.coerce.number(),
             }),
           )
           .optional(),
@@ -161,7 +161,7 @@ export const chatMessagesRouter = {
   createSystemMessage: publicProcedure
     .input(
       z.object({
-        sessionId: z.number(),
+        sessionId: z.coerce.number(),
         body: z.string(),
       }),
     )
@@ -183,9 +183,9 @@ export const chatMessagesRouter = {
   getRecent: publicProcedure
     .input(
       z.object({
-        sessionId: z.number(),
-        sinceId: z.number().optional(),
-        limit: z.number().min(1).max(100).default(20),
+        sessionId: z.coerce.number(),
+        sinceId: z.coerce.number().optional(),
+        limit: z.coerce.number().min(1).max(100).default(20),
       }),
     )
     .handler(async ({ input }) => {
@@ -205,10 +205,10 @@ export const chatMessagesRouter = {
   send: publicProcedure
     .input(
       z.object({
-        sessionId: z.number(),
+        sessionId: z.coerce.number(),
         authorType: z.enum(["agent", "contact"]),
-        authorUserId: z.number().optional(),
-        authorContactId: z.number().optional(),
+        authorUserId: z.coerce.number().optional(),
+        authorContactId: z.coerce.number().optional(),
         body: z.string(),
         attachments: z
           .array(
@@ -216,7 +216,7 @@ export const chatMessagesRouter = {
               name: z.string(),
               url: z.string(),
               mimeType: z.string(),
-              sizeBytes: z.number(),
+              sizeBytes: z.coerce.number(),
             }),
           )
           .optional(),
@@ -260,9 +260,9 @@ export const chatMessagesRouter = {
   addReaction: publicProcedure
     .input(
       z.object({
-        messageId: z.number(),
-        userId: z.number().optional(),
-        contactId: z.number().optional(),
+        messageId: z.coerce.number(),
+        userId: z.coerce.number().optional(),
+        contactId: z.coerce.number().optional(),
         reaction: z.string().min(1).max(50),
       }),
     )

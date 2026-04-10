@@ -1,6 +1,6 @@
 import type { Context } from "@ticket-app/api/context";
 import { appRouter } from "@ticket-app/api/routers/index";
-import { logger } from "./lib/logger";
+import { logger, withRequestContext } from "./lib/logger";
 import { extractTraceContext } from "./middleware/tracing";
 import { rateLimitMiddleware, type RateLimitTier } from "./middleware/rateLimit";
 import { authMiddleware } from "./middleware/auth";
@@ -109,7 +109,7 @@ function tracingInterceptor(): InterceptorFn {
     const traceContext = extractTraceContext(context);
     const startTime = Date.now();
 
-    const spanLogger = logger.withRequestContext(
+    const spanLogger = withRequestContext(
       traceContext.traceId,
       context.session?.userId,
       context.session?.organizationId,

@@ -10,8 +10,8 @@ export const formsRouter = {
   list: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        isPublished: z.boolean().optional(),
+        organizationId: z.coerce.number(),
+        isPublished: z.coerce.boolean().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -36,8 +36,8 @@ export const formsRouter = {
   get: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        id: z.number(),
+        organizationId: z.coerce.number(),
+        id: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -59,7 +59,7 @@ export const formsRouter = {
   getBySlug: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         slug: z.string(),
       }),
     )
@@ -82,8 +82,8 @@ export const formsRouter = {
   submit: publicProcedure
     .input(
       z.object({
-        formId: z.number(),
-        organizationId: z.number(),
+        formId: z.coerce.number(),
+        organizationId: z.coerce.number(),
         fields: z.record(z.string(), z.string()),
         email: z.string().email().optional(),
         firstName: z.string().optional(),

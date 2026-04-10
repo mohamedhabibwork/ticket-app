@@ -9,13 +9,13 @@ export const chatSessionsRouter = {
   list: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        widgetId: z.number().optional(),
+        organizationId: z.coerce.number(),
+        widgetId: z.coerce.number().optional(),
         status: z.string().optional(),
-        agentId: z.number().optional(),
-        contactId: z.number().optional(),
-        limit: z.number().min(1).max(100).default(50),
-        offset: z.number().min(0).default(0),
+        agentId: z.coerce.number().optional(),
+        contactId: z.coerce.number().optional(),
+        limit: z.coerce.number().min(1).max(100).default(50),
+        offset: z.coerce.number().min(0).default(0),
       }),
     )
     .handler(async ({ input }) => {
@@ -42,8 +42,8 @@ export const chatSessionsRouter = {
   get: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        id: z.number(),
+        organizationId: z.coerce.number(),
+        id: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -87,9 +87,9 @@ export const chatSessionsRouter = {
   create: publicProcedure
     .input(
       z.object({
-        widgetId: z.number(),
-        organizationId: z.number(),
-        contactId: z.number().optional(),
+        widgetId: z.coerce.number(),
+        organizationId: z.coerce.number(),
+        contactId: z.coerce.number().optional(),
         preChatData: z.record(z.string(), z.unknown()).optional(),
         ipAddress: z.string().optional(),
         userAgent: z.string().optional(),
@@ -115,10 +115,10 @@ export const chatSessionsRouter = {
   assignAgent: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
-        agentId: z.number(),
-        updatedBy: z.number().optional(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
+        agentId: z.coerce.number(),
+        updatedBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -141,11 +141,11 @@ export const chatSessionsRouter = {
   updateStatus: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
         status: z.enum(["waiting", "active", "ended", "converted"]),
         endedBy: z.enum(["agent", "contact", "system"]).optional(),
-        updatedBy: z.number().optional(),
+        updatedBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -174,9 +174,9 @@ export const chatSessionsRouter = {
   linkTicket: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
-        ticketId: z.number(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
+        ticketId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -198,8 +198,8 @@ export const chatSessionsRouter = {
   setRating: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        rating: z.number().min(1).max(5),
+        id: z.coerce.number(),
+        rating: z.coerce.number().min(1).max(5),
         comment: z.string().optional(),
       }),
     )
@@ -220,8 +220,8 @@ export const chatSessionsRouter = {
   getActiveByContact: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        contactId: z.number(),
+        organizationId: z.coerce.number(),
+        contactId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -245,8 +245,8 @@ export const chatSessionsRouter = {
   getActiveSessions: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        widgetId: z.number().optional(),
+        organizationId: z.coerce.number(),
+        widgetId: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -273,8 +273,8 @@ export const chatSessionsRouter = {
   getStats: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        widgetId: z.number().optional(),
+        organizationId: z.coerce.number(),
+        widgetId: z.coerce.number().optional(),
         startDate: z.string().optional(),
         endDate: z.string().optional(),
       }),
@@ -313,10 +313,10 @@ export const chatSessionsRouter = {
   sendTypingIndicator: publicProcedure
     .input(
       z.object({
-        sessionId: z.number(),
-        userId: z.number().optional(),
-        contactId: z.number().optional(),
-        isTyping: z.boolean(),
+        sessionId: z.coerce.number(),
+        userId: z.coerce.number().optional(),
+        contactId: z.coerce.number().optional(),
+        isTyping: z.coerce.boolean(),
       }),
     )
     .handler(async ({ input }) => {
@@ -335,9 +335,9 @@ export const chatSessionsRouter = {
   sendReadReceipt: publicProcedure
     .input(
       z.object({
-        messageId: z.number(),
-        userId: z.number().optional(),
-        contactId: z.number().optional(),
+        messageId: z.coerce.number(),
+        userId: z.coerce.number().optional(),
+        contactId: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {

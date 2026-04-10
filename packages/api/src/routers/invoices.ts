@@ -9,9 +9,9 @@ export const invoicesRouter = {
   list: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        page: z.number().min(1).default(1),
-        limit: z.number().min(1).max(100).default(20),
+        organizationId: z.coerce.number(),
+        page: z.coerce.number().min(1).default(1),
+        limit: z.coerce.number().min(1).max(100).default(20),
       }),
     )
     .handler(async ({ input }) => {
@@ -52,8 +52,8 @@ export const invoicesRouter = {
   get: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        id: z.number(),
+        organizationId: z.coerce.number(),
+        id: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -74,7 +74,7 @@ export const invoicesRouter = {
   getByNumber: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         number: z.string(),
       }),
     )
@@ -94,16 +94,16 @@ export const invoicesRouter = {
   create: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        subscriptionId: z.number().optional(),
+        organizationId: z.coerce.number(),
+        subscriptionId: z.coerce.number().optional(),
         items: z.array(
           z.object({
             description: z.string(),
-            quantity: z.number().min(1).default(1),
-            unitPrice: z.number(),
+            quantity: z.coerce.number().min(1).default(1),
+            unitPrice: z.coerce.number(),
           }),
         ),
-        taxRate: z.number().min(0).default(0),
+        taxRate: z.coerce.number().min(0).default(0),
         dueDate: z.string().or(z.date()),
         periodStart: z.string().or(z.date()),
         periodEnd: z.string().or(z.date()),
@@ -181,9 +181,9 @@ export const invoicesRouter = {
   markAsPaid: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        id: z.number(),
-        paymentId: z.number().optional(),
+        organizationId: z.coerce.number(),
+        id: z.coerce.number(),
+        paymentId: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -203,8 +203,8 @@ export const invoicesRouter = {
   void: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        id: z.number(),
+        organizationId: z.coerce.number(),
+        id: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -223,7 +223,7 @@ export const invoicesRouter = {
   getInvoiceStats: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {

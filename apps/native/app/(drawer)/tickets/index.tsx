@@ -1,14 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  Button,
-  Chip,
-  Divider,
-  Spinner,
-  Surface,
-  Text,
-  useThemeColor,
-} from "heroui-native";
+import { Button, Chip, Divider, Spinner, Surface, Text, useThemeColor } from "heroui-native";
 import { Link } from "expo-router";
 import { View, Pressable, Alert } from "react-native";
 
@@ -67,7 +59,7 @@ export default function TicketListScreen() {
     }
   };
 
-  const handleQuickReply = (ticketId: number) => {
+  const handleQuickReply = (_ticketId: number) => {
     hapticImpact("medium");
     Alert.alert("Quick Reply", "Open reply composer for this ticket", [
       { text: "Cancel", style: "cancel" },
@@ -139,20 +131,17 @@ export default function TicketListScreen() {
                 {
                   icon: "flag-outline",
                   color: "#FF9500",
-                  onPress: () => handleMarkPriority(ticket.id, ticket.priority === "urgent" ? "low" : "urgent"),
+                  onPress: () =>
+                    handleMarkPriority(ticket.id, ticket.priority === "urgent" ? "low" : "urgent"),
                 },
               ]}
               onLongPress={() => {
                 hapticImpact("heavy");
-                Alert.alert(
-                  ticket.subject,
-                  `Ticket ${ticket.reference}`,
-                  [
-                    { text: "Cancel", style: "cancel" },
-                    { text: "View", onPress: () => {} },
-                    { text: "Reply", onPress: () => handleQuickReply(ticket.id) },
-                  ],
-                );
+                Alert.alert(ticket.subject, `Ticket ${ticket.reference}`, [
+                  { text: "Cancel", style: "cancel" },
+                  { text: "View", onPress: () => {} },
+                  { text: "Reply", onPress: () => handleQuickReply(ticket.id) },
+                ]);
               }}
             >
               <Link href={`/tickets/${ticket.id}`} asChild>
@@ -167,21 +156,13 @@ export default function TicketListScreen() {
                           {ticket.subject}
                         </Text>
                       </View>
-                      <Chip
-                        variant="flat"
-                        color={getStatusColor(ticket.status)}
-                        size="sm"
-                      >
+                      <Chip variant="flat" color={getStatusColor(ticket.status)} size="sm">
                         <Chip.Label className="text-xs">{ticket.status}</Chip.Label>
                       </Chip>
                     </View>
                     <Divider className="my-2" />
                     <View className="flex-row items-center justify-between">
-                      <Chip
-                        variant="flat"
-                        color={getPriorityColor(ticket.priority)}
-                        size="sm"
-                      >
+                      <Chip variant="flat" color={getPriorityColor(ticket.priority)} size="sm">
                         <Chip.Label className="text-xs">{ticket.priority}</Chip.Label>
                       </Chip>
                       <Text className="text-muted text-xs">

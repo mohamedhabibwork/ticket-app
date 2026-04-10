@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { useMutation } from "@tanstack/react-query";
 import {
   Button,
@@ -21,8 +20,8 @@ import { orpc } from "@/utils/orpc";
 
 export default function CreateTicketScreen() {
   const router = useRouter();
-  const foregroundColor = useThemeColor("foreground");
-  const mutedColor = useThemeColor("muted");
+  const _foregroundColor = useThemeColor("foreground");
+  const _mutedColor = useThemeColor("muted");
 
   const [subject, setSubject] = useState("");
   const [description, setDescription] = useState("");
@@ -69,9 +68,7 @@ export default function CreateTicketScreen() {
             <Text className="text-2xl font-semibold text-foreground tracking-tight">
               Create Ticket
             </Text>
-            <Text className="text-muted text-sm mt-1">
-              Submit a new support request
-            </Text>
+            <Text className="text-muted text-sm mt-1">Submit a new support request</Text>
           </View>
 
           <Surface variant="secondary" className="p-4 rounded-lg mb-4">

@@ -2,7 +2,13 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@ticket-app/ui/components/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@ticket-app/ui/components/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@ticket-app/ui/components/dropdown-menu";
 import { orpc } from "@/utils/orpc";
 import { MoreHorizontal, Plus, Edit, Trash2, Shield, Users } from "lucide-react";
 
@@ -23,21 +29,23 @@ function RolesListRoute() {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ["roles"] });
       },
-    })
+    }),
   );
 
   const handleDelete = (roleId: number, roleName: string) => {
-    if (confirm(`Are you sure you want to delete the role "${roleName}"? This action cannot be undone.`)) {
+    if (
+      confirm(
+        `Are you sure you want to delete the role "${roleName}"? This action cannot be undone.`,
+      )
+    ) {
       deleteMutation.mutate({ id: roleId, organizationId: 1 });
     }
   };
 
   const SYSTEM_ROLES = ["Owner", "Admin", "Supervisor", "Agent", "Readonly"];
 
-  const isSystemRole = (roleName: string) => {
-    return SYSTEM_ROLES.some(
-      (sys) => roleName.toLowerCase() === sys.toLowerCase()
-    );
+  const _isSystemRole = (roleName: string) => {
+    return SYSTEM_ROLES.some((sys) => roleName.toLowerCase() === sys.toLowerCase());
   };
 
   return (
@@ -45,9 +53,7 @@ function RolesListRoute() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold">Roles</h1>
-          <p className="text-muted-foreground mt-1">
-            Manage user roles and permissions
-          </p>
+          <p className="text-muted-foreground mt-1">Manage user roles and permissions</p>
         </div>
         <Button asChild>
           <Link to="/admin/roles/new">
@@ -81,9 +87,7 @@ function RolesListRoute() {
                         )}
                       </CardTitle>
                       {role.slug && (
-                        <div className="text-xs text-muted-foreground">
-                          {role.slug}
-                        </div>
+                        <div className="text-xs text-muted-foreground">{role.slug}</div>
                       )}
                     </div>
                   </div>
@@ -129,9 +133,7 @@ function RolesListRoute() {
                 <div className="flex items-center gap-4 text-sm text-muted-foreground">
                   <div className="flex items-center gap-1">
                     <Users className="h-4 w-4" />
-                    <span>
-                      {role.userRoles?.length || 0} users
-                    </span>
+                    <span>{role.userRoles?.length || 0} users</span>
                   </div>
                 </div>
               </CardContent>

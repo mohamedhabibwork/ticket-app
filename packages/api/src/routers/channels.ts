@@ -9,8 +9,8 @@ export const channelsRouter = {
   list: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        isActive: z.boolean().optional(),
+        organizationId: z.coerce.number(),
+        isActive: z.coerce.boolean().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -32,8 +32,8 @@ export const channelsRouter = {
   get: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        id: z.number(),
+        organizationId: z.coerce.number(),
+        id: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -49,7 +49,7 @@ export const channelsRouter = {
   getByType: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         type: z.string(),
       }),
     )
@@ -67,10 +67,10 @@ export const channelsRouter = {
   create: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         name: z.string().min(1).max(150),
         type: z.string().min(1).max(50),
-        isActive: z.boolean().default(true),
+        isActive: z.coerce.boolean().default(true),
       }),
     )
     .handler(async ({ input }) => {

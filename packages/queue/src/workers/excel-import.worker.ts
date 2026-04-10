@@ -2,12 +2,13 @@ import { Worker, Job } from "bullmq";
 import { eq, and } from "drizzle-orm";
 import * as XLSX from "xlsx";
 
+import { env } from "@ticket-app/env/server";
 import { db } from "@ticket-app/db";
 import { excelImportJobs, tickets, contacts, users, lookups, teams } from "@ticket-app/db/schema";
 import { getRedis } from "../redis";
 import { type ExcelImportJobData } from "../queue";
 
-const EXCEL_IMPORT_QUEUE = `${process.env.QUEUE_PREFIX || "ticket-app"}:excel:import`;
+const EXCEL_IMPORT_QUEUE = `${env.QUEUE_PREFIX}-excel-import`;
 
 export interface ImportError {
   row: number;

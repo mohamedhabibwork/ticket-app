@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Surface, Text, View } from "heroui-native";
-import { type PropsWithChildren, useCallback } from "react";
+import { Surface, View } from "heroui-native";
+import { useCallback } from "react";
 import { StyleSheet } from "react-native";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import Animated, {
@@ -44,21 +44,15 @@ export function SwipeableRow({
     hapticImpact("medium");
   }, []);
 
-  const handleLeftAction = useCallback(
-    (action: SwipeAction) => {
-      hapticImpact("light");
-      action.onPress();
-    },
-    [],
-  );
+  const handleLeftAction = useCallback((action: SwipeAction) => {
+    hapticImpact("light");
+    action.onPress();
+  }, []);
 
-  const handleRightAction = useCallback(
-    (action: SwipeAction) => {
-      hapticImpact("light");
-      action.onPress();
-    },
-    [],
-  );
+  const handleRightAction = useCallback((action: SwipeAction) => {
+    hapticImpact("light");
+    action.onPress();
+  }, []);
 
   const panGesture = Gesture.Pan()
     .activeOffsetX([-10, 10])

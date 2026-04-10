@@ -9,7 +9,7 @@ export const chatWidgetsRouter = {
   list: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -25,8 +25,8 @@ export const chatWidgetsRouter = {
   get: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        id: z.number(),
+        organizationId: z.coerce.number(),
+        id: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -58,7 +58,7 @@ export const chatWidgetsRouter = {
   create: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         name: z.string().min(1).max(150),
         position: z.string().default("bottom-right"),
         theme: z
@@ -74,28 +74,28 @@ export const chatWidgetsRouter = {
               name: z.string(),
               label: z.string(),
               type: z.string(),
-              required: z.boolean().optional(),
+              required: z.coerce.boolean().optional(),
               placeholder: z.string().optional(),
             }),
           )
           .optional(),
-        offlineMessageEnabled: z.boolean().optional(),
+        offlineMessageEnabled: z.coerce.boolean().optional(),
         offlineMessageTitle: z.string().optional(),
         offlineMessageBody: z.string().optional(),
         businessHours: z
           .object({
-            enabled: z.boolean().optional(),
+            enabled: z.coerce.boolean().optional(),
             timezone: z.string().optional(),
             schedule: z.record(z.string(), z.unknown()).optional(),
           })
           .optional(),
-        allowFileUpload: z.boolean().optional(),
-        maxFileSizeBytes: z.number().optional(),
+        allowFileUpload: z.coerce.boolean().optional(),
+        maxFileSizeBytes: z.coerce.number().optional(),
         allowedFileTypes: z.array(z.string()).optional(),
-        autoTicketConversion: z.boolean().optional(),
+        autoTicketConversion: z.coerce.boolean().optional(),
         greetingMessage: z.string().optional(),
         agentUnavailableMessage: z.string().optional(),
-        createdBy: z.number().optional(),
+        createdBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -136,10 +136,10 @@ export const chatWidgetsRouter = {
   update: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
         name: z.string().min(1).max(150).optional(),
-        isActive: z.boolean().optional(),
+        isActive: z.coerce.boolean().optional(),
         position: z.string().optional(),
         theme: z
           .object({
@@ -154,28 +154,28 @@ export const chatWidgetsRouter = {
               name: z.string(),
               label: z.string(),
               type: z.string(),
-              required: z.boolean().optional(),
+              required: z.coerce.boolean().optional(),
               placeholder: z.string().optional(),
             }),
           )
           .optional(),
-        offlineMessageEnabled: z.boolean().optional(),
+        offlineMessageEnabled: z.coerce.boolean().optional(),
         offlineMessageTitle: z.string().optional(),
         offlineMessageBody: z.string().optional(),
         businessHours: z
           .object({
-            enabled: z.boolean().optional(),
+            enabled: z.coerce.boolean().optional(),
             timezone: z.string().optional(),
             schedule: z.record(z.string(), z.unknown()).optional(),
           })
           .optional(),
-        allowFileUpload: z.boolean().optional(),
-        maxFileSizeBytes: z.number().optional(),
+        allowFileUpload: z.coerce.boolean().optional(),
+        maxFileSizeBytes: z.coerce.number().optional(),
         allowedFileTypes: z.array(z.string()).optional(),
-        autoTicketConversion: z.boolean().optional(),
+        autoTicketConversion: z.coerce.boolean().optional(),
         greetingMessage: z.string().optional(),
         agentUnavailableMessage: z.string().optional(),
-        updatedBy: z.number().optional(),
+        updatedBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -211,9 +211,9 @@ export const chatWidgetsRouter = {
   delete: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
-        deletedBy: z.number().optional(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
+        deletedBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {

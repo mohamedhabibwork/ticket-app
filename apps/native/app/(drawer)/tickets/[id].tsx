@@ -13,20 +13,36 @@ import {
   Input,
   useThemeColor,
 } from "heroui-native";
-import { useLocalSearchParams, Stack, Link } from "expo-router";
-import { useState } from "react";
-import { View, ScrollView, Alert } from "react-native";
+import { useLocalSearchParams, Link } from "expo-router";
+import { useState, useCallback, useEffect, useRef } from "react";
+import { View, ScrollView } from "react-native";
 
 import { Container } from "@/components/container";
 import { hapticImpact, hapticNotification } from "@/utils/haptics";
 import { orpc } from "@/utils/orpc";
+import { PresenceAvatars } from "@/components/PresenceAvatars";
+import { NotificationBanner } from "@/components/NotificationBanner";
+import { LiveChatSheet } from "@/components/LiveChatSheet";
+import { useSocketContext } from "@/providers/SocketProvider";
+import type { NotificationPayload } from "@ticket-app/socket-client";
 
 export default function TicketDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const ticketId = parseInt(id, 10);
   const queryClient = useQueryClient();
-  const mutedColor = useThemeColor("muted");
+  const _mutedColor = useThemeColor("muted");
   const foregroundColor = useThemeColor("foreground");
+  const { socket, isConnected } = useSocketContext();
+
+  const [replyText, setReplyText] = useState("");
+  const [noteText, setNoteText] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("");
+  const [selectedPriority, setSelectedPriority] = useState("");
+  const [viewers, setViewers] = useState<any[]>([]);
+  const [_notifications, setNotifications] = useState<NotificationPayload[]>([]);
+  const [currentNotification, setCurrentNotification] = useState<NotificationPayload | null>(null);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const heartbeatRef = useRef<NodeJS.Timeout | null>(null);
 
   const ticket = useQuery(orpc.tickets.get.queryOptions({ id: ticketId }));
   const messages = useQuery(orpc.ticketMessages.list.queryOptions({ ticketId }));
@@ -63,10 +79,74 @@ export default function TicketDetailScreen() {
     }),
   );
 
-  const [replyText, setReplyText] = useState("");
-  const [noteText, setNoteText] = useState("");
-  const [selectedStatus, setSelectedStatus] = useState("");
-  const [selectedPriority, setSelectedPriority] = useState("");
+  useEffect(() => {
+    if (!socket || !isConnected || !ticketId) return;
+
+    const handleViewerJoined = (data: any) => {
+      if (data.ticketId === ticketId) {
+        setViewers((prev) => {
+          if (prev.some((v) => v.userId === data.userId)) return prev;
+          return [...prev, data];
+        });
+      }
+    };
+
+    const handleViewerLeft = (data: { ticketId: number; userId: number }) => {
+      if (data.ticketId === ticketId) {
+        setViewers((prev) => prev.filter((v) => v.userId !== data.userId));
+      }
+    };
+
+    const handleViewersList = (data: { ticketId: number; viewers: any[] }) => {
+      if (data.ticketId === ticketId) {
+        setViewers(data.viewers);
+      }
+    };
+
+    const handleNotification = (data: NotificationPayload) => {
+      if (data.userId === undefined || !data.read) {
+        setNotifications((prev) => [data, ...prev]);
+        setCurrentNotification(data);
+      }
+    };
+
+    socket.on("viewer_joined", handleViewerJoined);
+    socket.on("viewer_left", handleViewerLeft);
+    socket.on("viewers_list", handleViewersList);
+    socket.on("notification", handleNotification);
+
+    socket.emit("join_ticket", { ticketId, userName: "Agent", avatarUrl: undefined });
+    socket.emit("get_viewers", { ticketId });
+
+    heartbeatRef.current = setInterval(() => {
+      socket.emit("heartbeat", { ticketId });
+    }, 30000);
+
+    return () => {
+      socket.off("viewer_joined", handleViewerJoined);
+      socket.off("viewer_left", handleViewerLeft);
+      socket.off("viewers_list", handleViewersList);
+      socket.off("notification", handleNotification);
+      socket.emit("leave_ticket", { ticketId });
+      if (heartbeatRef.current) {
+        clearInterval(heartbeatRef.current);
+      }
+    };
+  }, [socket, isConnected, ticketId]);
+
+  const dismissNotification = useCallback(() => {
+    setCurrentNotification(null);
+  }, []);
+
+  const handleNotificationPress = useCallback(
+    (notification: NotificationPayload) => {
+      if (notification.ticketId) {
+        hapticImpact("light");
+        dismissNotification();
+      }
+    },
+    [dismissNotification],
+  );
 
   const getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
@@ -83,7 +163,7 @@ export default function TicketDetailScreen() {
     }
   };
 
-  const getPriorityColor = (priority: string) => {
+  const _getPriorityColor = (priority: string) => {
     switch (priority?.toLowerCase()) {
       case "urgent":
         return "danger";
@@ -146,13 +226,22 @@ export default function TicketDetailScreen() {
 
   return (
     <Container>
+      <NotificationBanner
+        notification={currentNotification}
+        onDismiss={dismissNotification}
+        onPress={handleNotificationPress}
+      />
+
       <ScrollView className="flex-1" contentContainerClassName="p-4">
         <Surface variant="secondary" className="p-4 rounded-lg mb-4">
           <View className="flex-row items-start justify-between mb-2">
             <Text className="text-foreground font-semibold">{ticket.data.reference}</Text>
-            <Chip variant="flat" color={getStatusColor(ticket.data.status)} size="sm">
-              <Chip.Label>{ticket.data.status}</Chip.Label>
-            </Chip>
+            <View className="flex-row items-center gap-2">
+              <PresenceAvatars viewers={viewers} maxVisible={3} size="sm" />
+              <Chip variant="flat" color={getStatusColor(ticket.data.status)} size="sm">
+                <Chip.Label>{ticket.data.status}</Chip.Label>
+              </Chip>
+            </View>
           </View>
           <Text className="text-xl font-medium text-foreground mt-2">{ticket.data.subject}</Text>
           <Divider className="my-3" />
@@ -188,11 +277,17 @@ export default function TicketDetailScreen() {
 
         <View className="flex-row justify-between items-center mb-3">
           <Text className="text-lg font-semibold text-foreground">Messages</Text>
-          <Link href={`/tickets/${id}/replies`} asChild>
-            <Button variant="ghost" size="sm">
-              <Text className="text-primary text-sm">View All</Text>
+          <View className="flex-row gap-2">
+            <Link href={`/tickets/${id}/replies`} asChild>
+              <Button variant="ghost" size="sm">
+                <Text className="text-primary text-sm">View All</Text>
+              </Button>
+            </Link>
+            <Button variant="ghost" size="sm" onPress={() => setIsChatOpen(true)}>
+              <Ionicons name="chatbubble" size={16} color={foregroundColor} />
+              <Text className="text-foreground text-sm ml-1">Live</Text>
             </Button>
-          </Link>
+          </View>
         </View>
 
         <View className="gap-3 mb-4">
@@ -255,6 +350,16 @@ export default function TicketDetailScreen() {
           </Button>
         </Surface>
       </ScrollView>
+
+      <LiveChatSheet
+        isOpen={isChatOpen}
+        onClose={() => setIsChatOpen(false)}
+        messages={[]}
+        isTyping={{ agent: false, contact: false }}
+        onSendMessage={(body) => console.log("Send message:", body)}
+        onSendTyping={(isTyping) => console.log("Typing:", isTyping)}
+        sessionId={ticketId}
+      />
     </Container>
   );
 }

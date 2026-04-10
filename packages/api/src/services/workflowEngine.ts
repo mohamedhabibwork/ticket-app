@@ -1,10 +1,20 @@
 import { db } from "@ticket-app/db";
-import { workflowExecutionLogs, workflows } from "@ticket-app/db/schema/_workflows";
+import { workflowExecutionLogs } from "@ticket-app/db/schema/_workflows";
 import { eq, and, gte, sql } from "drizzle-orm";
 
 export interface WorkflowCondition {
   field: string;
-  operator: "equals" | "not_equals" | "contains" | "not_contains" | "greater_than" | "less_than" | "is_empty" | "is_not_empty" | "in" | "not_in";
+  operator:
+    | "equals"
+    | "not_equals"
+    | "contains"
+    | "not_contains"
+    | "greater_than"
+    | "less_than"
+    | "is_empty"
+    | "is_not_empty"
+    | "in"
+    | "not_in";
   value: unknown;
 }
 
@@ -48,14 +58,14 @@ function resolveFieldValue(field: string, ticket: Record<string, unknown>): unkn
 
 function evaluateCondition(condition: WorkflowCondition, ticket: Record<string, unknown>): boolean {
   const fieldValue = resolveFieldValue(condition.field, ticket);
-  
+
   switch (condition.operator) {
     case "equals":
       return fieldValue === condition.value;
-    
+
     case "not_equals":
       return fieldValue !== condition.value;
-    
+
     case "contains":
       if (typeof fieldValue === "string" && typeof condition.value === "string") {
         return fieldValue.toLowerCase().includes(condition.value.toLowerCase());
@@ -64,7 +74,7 @@ function evaluateCondition(condition: WorkflowCondition, ticket: Record<string, 
         return fieldValue.includes(condition.value);
       }
       return false;
-    
+
     case "not_contains":
       if (typeof fieldValue === "string" && typeof condition.value === "string") {
         return !fieldValue.toLowerCase().includes(condition.value.toLowerCase());
@@ -73,38 +83,51 @@ function evaluateCondition(condition: WorkflowCondition, ticket: Record<string, 
         return !fieldValue.includes(condition.value);
       }
       return true;
-    
+
     case "greater_than":
       return Number(fieldValue) > Number(condition.value);
-    
+
     case "less_than":
       return Number(fieldValue) < Number(condition.value);
-    
+
     case "is_empty":
-      return fieldValue === null || fieldValue === undefined || fieldValue === "" || (Array.isArray(fieldValue) && fieldValue.length === 0);
-    
+      return (
+        fieldValue === null ||
+        fieldValue === undefined ||
+        fieldValue === "" ||
+        (Array.isArray(fieldValue) && fieldValue.length === 0)
+      );
+
     case "is_not_empty":
-      return fieldValue !== null && fieldValue !== undefined && fieldValue !== "" && !(Array.isArray(fieldValue) && fieldValue.length === 0);
-    
+      return (
+        fieldValue !== null &&
+        fieldValue !== undefined &&
+        fieldValue !== "" &&
+        !(Array.isArray(fieldValue) && fieldValue.length === 0)
+      );
+
     case "in":
       if (Array.isArray(condition.value)) {
         return condition.value.includes(fieldValue);
       }
       return false;
-    
+
     case "not_in":
       if (Array.isArray(condition.value)) {
         return !condition.value.includes(fieldValue);
       }
       return true;
-    
+
     default:
       return false;
   }
 }
 
 export const workflowEngine = {
-  evaluateConditions(conditions: WorkflowConditions, ticket: Record<string, unknown>): ConditionEvaluationResult {
+  evaluateConditions(
+    conditions: WorkflowConditions,
+    ticket: Record<string, unknown>,
+  ): ConditionEvaluationResult {
     const evaluatedRules = conditions.rules.map((rule) => ({
       rule,
       result: evaluateCondition(rule, ticket),
@@ -122,7 +145,7 @@ export const workflowEngine = {
 
   async detectLoop(workflowId: number, ticketId: number): Promise<boolean> {
     const oneMinuteAgo = new Date(Date.now() - 60 * 1000);
-    
+
     const recentExecutions = await db
       .select({
         count: sql<number>`count(*)::int`,
@@ -132,12 +155,12 @@ export const workflowEngine = {
         and(
           eq(workflowExecutionLogs.workflowId, workflowId),
           eq(workflowExecutionLogs.ticketId, ticketId),
-          gte(workflowExecutionLogs.executedAt, oneMinuteAgo)
-        )
+          gte(workflowExecutionLogs.executedAt, oneMinuteAgo),
+        ),
       );
 
     const executionCount = recentExecutions[0]?.count ?? 0;
-    
+
     return executionCount >= 2;
   },
 
@@ -148,8 +171,8 @@ export const workflowEngine = {
       .where(
         and(
           eq(workflowExecutionLogs.workflowId, workflowId),
-          eq(workflowExecutionLogs.ticketId, ticketId)
-        )
+          eq(workflowExecutionLogs.ticketId, ticketId),
+        ),
       )
       .orderBy(workflowExecutionLogs.executedAt)
       .limit(limit);
@@ -157,37 +180,51 @@ export const workflowEngine = {
     return logs;
   },
 
-  async shouldStopProcessing(workflowId: number, ticketId: number, stopProcessing: boolean): Promise<boolean> {
+  async shouldStopProcessing(
+    workflowId: number,
+    ticketId: number,
+    stopProcessing: boolean,
+  ): Promise<boolean> {
     if (!stopProcessing) {
       return false;
     }
-    
+
     return await this.detectLoop(workflowId, ticketId);
   },
 
   getTriggerFields(trigger: string): string[] {
     switch (trigger) {
       case "ticket_created":
-        return ["id", "reference_number", "subject", "description_html", "status_id", "priority_id", "channel_id", "contact_id", "created_by"];
-      
+        return [
+          "id",
+          "reference_number",
+          "subject",
+          "description_html",
+          "status_id",
+          "priority_id",
+          "channel_id",
+          "contact_id",
+          "created_by",
+        ];
+
       case "ticket_updated":
         return ["id", "updated_at", "updated_by", "subject", "description_html"];
-      
+
       case "ticket_status_changed":
         return ["id", "status_id", "updated_by"];
-      
+
       case "ticket_priority_changed":
         return ["id", "priority_id", "updated_by"];
-      
+
       case "ticket_assigned":
         return ["id", "assigned_agent_id", "assigned_team_id", "updated_by"];
-      
+
       case "sla_breached":
         return ["id", "status_id", "priority_id", "assigned_agent_id", "assigned_team_id"];
-      
+
       case "time_elapsed":
         return ["id", "created_at", "due_at", "first_response_at", "resolved_at"];
-      
+
       default:
         return [];
     }

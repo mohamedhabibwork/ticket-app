@@ -1,11 +1,21 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import {
-  Card,
-  CardContent,
-} from "@ticket-app/ui/components/card";
+import { Card, CardContent } from "@ticket-app/ui/components/card";
 import { Button } from "@ticket-app/ui/components/button";
-import { Loader2, Plus, Facebook, Instagram, Twitter, MessageCircle, RefreshCw, Settings, Trash2, CheckCircle, XCircle, AlertCircle, Link as LinkIcon } from "lucide-react";
+import {
+  Loader2,
+  Facebook,
+  Instagram,
+  Twitter,
+  MessageCircle,
+  RefreshCw,
+  Settings,
+  Trash2,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  Link as LinkIcon,
+} from "lucide-react";
 import { orpc } from "@/utils/orpc";
 
 function formatRelativeTime(date: Date | string): string {
@@ -43,22 +53,26 @@ export const Route = createFileRoute("/admin/social/")({
 });
 
 function SocialAccountsRoute() {
-  const { data: accounts, isLoading, refetch } = useQuery(
+  const {
+    data: accounts,
+    isLoading,
+    refetch,
+  } = useQuery(
     orpc.socialAccounts.list.queryOptions({
       organizationId: 1,
-    })
+    }),
   );
 
   const disconnectMutation = useMutation(
     orpc.socialAccounts.disconnect.mutationOptions({
       onSuccess: () => refetch(),
-    })
+    }),
   );
 
   const refreshMutation = useMutation(
     orpc.socialAccounts.refreshToken.mutationOptions({
       onSuccess: () => refetch(),
-    })
+    }),
   );
 
   const getStatusBadge = (isActive: boolean, isValid?: boolean) => {
@@ -138,14 +152,23 @@ function SocialAccountsRoute() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-medium">{account.platformUsername || platformNames[account.platform]}</h3>
+                        <h3 className="font-medium">
+                          {account.platformUsername || platformNames[account.platform]}
+                        </h3>
                         {getStatusBadge(account.isActive)}
                       </div>
-                      <p className="text-sm text-muted-foreground font-mono">{platformNames[account.platform]}</p>
+                      <p className="text-sm text-muted-foreground font-mono">
+                        {platformNames[account.platform]}
+                      </p>
                       <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-                        <span>Last updated: {account.updatedAt ? formatRelativeTime(account.updatedAt) : "Never"}</span>
+                        <span>
+                          Last updated:{" "}
+                          {account.updatedAt ? formatRelativeTime(account.updatedAt) : "Never"}
+                        </span>
                         {account.tokenExpiresAt && (
-                          <span>Token expires: {new Date(account.tokenExpiresAt).toLocaleDateString()}</span>
+                          <span>
+                            Token expires: {new Date(account.tokenExpiresAt).toLocaleDateString()}
+                          </span>
                         )}
                       </div>
                     </div>
@@ -158,10 +181,14 @@ function SocialAccountsRoute() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => refreshMutation.mutate({ id: account.id, organizationId: 1 })}
+                        onClick={() =>
+                          refreshMutation.mutate({ id: account.id, organizationId: 1 })
+                        }
                         disabled={refreshMutation.isPending}
                       >
-                        <RefreshCw className={`h-4 w-4 ${refreshMutation.isPending ? "animate-spin" : ""}`} />
+                        <RefreshCw
+                          className={`h-4 w-4 ${refreshMutation.isPending ? "animate-spin" : ""}`}
+                        />
                       </Button>
                       <Button
                         variant="ghost"

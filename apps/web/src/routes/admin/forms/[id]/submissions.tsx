@@ -1,18 +1,12 @@
 import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@ticket-app/ui/components/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
 import { Button } from "@ticket-app/ui/components/button";
 import { Input } from "@ticket-app/ui/components/input";
 import { Label } from "@ticket-app/ui/components/label";
-import { Textarea } from "@ticket-app/ui/components/textarea";
-import { ArrowLeft, Download, Eye, FileText, Check, Clock, Ticket, X } from "lucide-react";
+
+import { ArrowLeft, Download, FileText, Check, Clock, Ticket } from "lucide-react";
 import { orpc } from "@/utils/orpc";
 
 function formatRelativeTime(date: Date | string): string {
@@ -62,28 +56,31 @@ function FormSubmissionsRoute() {
     orpc.forms.get.queryOptions({
       id: formId,
       organizationId: 1,
-    })
+    }),
   );
 
-  const { data: submissions, isLoading: submissionsLoading, refetch } = useQuery(
+  const {
+    data: submissions,
+    isLoading: submissionsLoading,
+    refetch,
+  } = useQuery(
     orpc.forms.getSubmissions?.queryOptions({
       formId,
       organizationId: 1,
-    }) || { enabled: false }
+    }) || { enabled: false },
   );
 
   const convertToTicketMutation = useMutation(
     orpc.forms.convertToTicket?.mutationOptions({
       onSuccess: () => refetch(),
-    })
+    }),
   );
 
   const filteredSubmissions = submissions?.filter((sub: Submission) => {
     if (!searchQuery) return true;
     const search = searchQuery.toLowerCase();
     return (
-      sub.contact?.email.toLowerCase().includes(search) ||
-      sub.uuid.toLowerCase().includes(search)
+      sub.contact?.email.toLowerCase().includes(search) || sub.uuid.toLowerCase().includes(search)
     );
   });
 
@@ -129,7 +126,11 @@ function FormSubmissionsRoute() {
   };
 
   if (formLoading) {
-    return <div className="flex justify-center py-12"><div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" /></div>;
+    return (
+      <div className="flex justify-center py-12">
+        <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
+      </div>
+    );
   }
 
   if (!form) {
@@ -139,7 +140,9 @@ function FormSubmissionsRoute() {
           <CardContent className="py-12 text-center">
             <p className="text-muted-foreground">Form not found</p>
             <Link to="/admin/forms/">
-              <Button variant="outline" className="mt-4">Back to Forms</Button>
+              <Button variant="outline" className="mt-4">
+                Back to Forms
+              </Button>
             </Link>
           </CardContent>
         </Card>
@@ -161,7 +164,11 @@ function FormSubmissionsRoute() {
             <h1 className="text-2xl font-bold">{form.name} - Submissions</h1>
             <p className="text-muted-foreground">View and manage form submissions</p>
           </div>
-          <Button variant="outline" onClick={exportToCSV} disabled={!submissions || submissions.length === 0}>
+          <Button
+            variant="outline"
+            onClick={exportToCSV}
+            disabled={!submissions || submissions.length === 0}
+          >
             <Download className="mr-2 h-4 w-4" />
             Export CSV
           </Button>
@@ -195,9 +202,7 @@ function FormSubmissionsRoute() {
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between">
                     <div>
-                      <p className="font-medium">
-                        {submission.contact?.email || "No email"}
-                      </p>
+                      <p className="font-medium">{submission.contact?.email || "No email"}</p>
                       <p className="text-sm text-muted-foreground">
                         {submission.contact?.firstName} {submission.contact?.lastName}
                       </p>
@@ -219,7 +224,9 @@ function FormSubmissionsRoute() {
                 {selectedSubmission && !selectedSubmission.ticketId && (
                   <Button
                     size="sm"
-                    onClick={() => convertToTicketMutation?.mutate({ submissionId: selectedSubmission.id })}
+                    onClick={() =>
+                      convertToTicketMutation?.mutate({ submissionId: selectedSubmission.id })
+                    }
                     disabled={convertToTicketMutation.isPending}
                   >
                     <Ticket className="mr-2 h-4 w-4" />
@@ -238,7 +245,9 @@ function FormSubmissionsRoute() {
                     </div>
                     <div>
                       <Label className="text-muted-foreground">Date</Label>
-                      <p className="text-sm">{new Date(selectedSubmission.createdAt).toLocaleString()}</p>
+                      <p className="text-sm">
+                        {new Date(selectedSubmission.createdAt).toLocaleString()}
+                      </p>
                     </div>
                     <div>
                       <Label className="text-muted-foreground">Email</Label>
@@ -252,7 +261,9 @@ function FormSubmissionsRoute() {
                       <div>
                         <Label className="text-muted-foreground">Ticket</Label>
                         <Link to={`/tickets/${selectedSubmission.ticketId}`}>
-                          <p className="text-sm text-primary">View Ticket #{selectedSubmission.ticketId}</p>
+                          <p className="text-sm text-primary">
+                            View Ticket #{selectedSubmission.ticketId}
+                          </p>
                         </Link>
                       </div>
                     )}

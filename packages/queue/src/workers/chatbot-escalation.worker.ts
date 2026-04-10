@@ -6,7 +6,7 @@ import { chatbotSessions, chatbotMessages } from "@ticket-app/db/schema";
 import { getRedis } from "../redis";
 import { env } from "@ticket-app/env/server";
 
-const CHATBOT_ESCALATION_QUEUE = `${env.QUEUE_PREFIX}:chatbot-escalation`;
+const CHATBOT_ESCALATION_QUEUE = `${env.QUEUE_PREFIX}-chatbot-escalation`;
 
 export interface ChatbotEscalationJobData {
   type: "check-escalation" | "escalate-session";

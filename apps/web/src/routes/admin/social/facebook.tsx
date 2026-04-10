@@ -10,7 +10,7 @@ import {
 } from "@ticket-app/ui/components/card";
 import { Button } from "@ticket-app/ui/components/button";
 import { Checkbox } from "@ticket-app/ui/components/checkbox";
-import { Loader2, Facebook, ArrowLeft, RefreshCw, CheckCircle, XCircle, AlertCircle, ExternalLink } from "lucide-react";
+import { Loader2, Facebook, ArrowLeft, RefreshCw, CheckCircle, ExternalLink } from "lucide-react";
 import { orpc } from "@/utils/orpc";
 
 function formatRelativeTime(date: Date | string): string {
@@ -36,41 +36,46 @@ export const Route = createFileRoute("/admin/social/facebook")({
 function FacebookConnectionRoute() {
   const [messageToTicket, setMessageToTicket] = useState(true);
   const [autoReply, setAutoReply] = useState(false);
-  const [selectedPages, setSelectedPages] = useState<string[]>([]);
+  const [_selectedPages, _setSelectedPages] = useState<string[]>([]);
 
-  const { data: accounts, isLoading, refetch } = useQuery(
+  const {
+    data: accounts,
+    isLoading,
+    refetch,
+  } = useQuery(
     orpc.socialAccounts.list.queryOptions({
       organizationId: 1,
       platform: "facebook",
-    })
+    }),
   );
 
-  const connectMutation = useMutation(
+  const _connectMutation = useMutation(
     orpc.socialAccounts.connectFacebook.mutationOptions({
       onSuccess: () => refetch(),
-    })
+    }),
   );
 
   const disconnectMutation = useMutation(
     orpc.socialAccounts.disconnect.mutationOptions({
       onSuccess: () => refetch(),
-    })
+    }),
   );
 
   const refreshMutation = useMutation(
     orpc.socialAccounts.refreshToken.mutationOptions({
       onSuccess: () => refetch(),
-    })
+    }),
   );
 
   const handleOAuthFlow = () => {
     const clientId = import.meta.env.VITE_FACEBOOK_APP_ID;
     const redirectUri = `${window.location.origin}/admin/social/facebook/callback`;
-    const scope = "pages_read_engagement,pages_manage_metadata,instagram_basic,instagram_manage_messages";
+    const scope =
+      "pages_read_engagement,pages_manage_metadata,instagram_basic,instagram_manage_messages";
     window.location.href = `https://www.facebook.com/v18.0/dialog/oauth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${scope}`;
   };
 
-  const connectedPages = accounts?.filter(a => a.isActive) || [];
+  const connectedPages = accounts?.filter((a) => a.isActive) || [];
 
   return (
     <div className="container mx-auto max-w-4xl px-4 py-6">
@@ -87,7 +92,9 @@ function FacebookConnectionRoute() {
           </div>
           <div>
             <h1 className="text-2xl font-bold">Facebook</h1>
-            <p className="text-muted-foreground">Connect Facebook Pages to receive messages as tickets</p>
+            <p className="text-muted-foreground">
+              Connect Facebook Pages to receive messages as tickets
+            </p>
           </div>
         </div>
       </div>
@@ -106,12 +113,17 @@ function FacebookConnectionRoute() {
             ) : connectedPages.length > 0 ? (
               <div className="space-y-3">
                 {connectedPages.map((page) => (
-                  <div key={page.id} className="flex items-center justify-between p-3 rounded bg-green-50 dark:bg-green-950/20">
+                  <div
+                    key={page.id}
+                    className="flex items-center justify-between p-3 rounded bg-green-50 dark:bg-green-950/20"
+                  >
                     <div className="flex items-center gap-3">
                       <CheckCircle className="h-5 w-5 text-green-600" />
                       <div>
                         <p className="font-medium">{page.platformUsername || "Facebook Page"}</p>
-                        <p className="text-xs text-muted-foreground">Connected {formatRelativeTime(page.updatedAt)}</p>
+                        <p className="text-xs text-muted-foreground">
+                          Connected {formatRelativeTime(page.updatedAt)}
+                        </p>
                       </div>
                     </div>
                     <Button
@@ -147,7 +159,9 @@ function FacebookConnectionRoute() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="font-medium text-sm">Message to Ticket</p>
-                <p className="text-xs text-muted-foreground">Convert incoming messages to tickets</p>
+                <p className="text-xs text-muted-foreground">
+                  Convert incoming messages to tickets
+                </p>
               </div>
               <Checkbox
                 checked={messageToTicket}
@@ -184,7 +198,9 @@ function FacebookConnectionRoute() {
                     </div>
                     <div>
                       <p className="font-medium">{page.platformUsername || "Facebook Page"}</p>
-                      <p className="text-xs text-muted-foreground font-mono">{page.platformAccountId}</p>
+                      <p className="text-xs text-muted-foreground font-mono">
+                        {page.platformAccountId}
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -198,7 +214,9 @@ function FacebookConnectionRoute() {
                       onClick={() => refreshMutation.mutate({ id: page.id, organizationId: 1 })}
                       disabled={refreshMutation.isPending}
                     >
-                      <RefreshCw className={`h-4 w-4 ${refreshMutation.isPending ? "animate-spin" : ""}`} />
+                      <RefreshCw
+                        className={`h-4 w-4 ${refreshMutation.isPending ? "animate-spin" : ""}`}
+                      />
                     </Button>
                   </div>
                 </div>

@@ -1,12 +1,15 @@
 import type { InvoicePdfData } from "@ticket-app/api/src/services/invoicePdf";
-import { generateInvoiceHtml, isRtlLocale, formatAmount, formatDate } from "@ticket-app/api/src/services/invoicePdf";
+import { isRtlLocale, formatAmount, formatDate } from "@ticket-app/api/src/services/invoicePdf";
 
 export { type InvoicePdfData } from "@ticket-app/api/src/services/invoicePdf";
 
 const ARABIC_FONTS = {
-  regular: "https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap",
-  amiri: "https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@400;500;600;700&display=swap",
-  tajawal: "https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap",
+  regular:
+    "https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap",
+  amiri:
+    "https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@400;500;600;700&display=swap",
+  tajawal:
+    "https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&family=Inter:wght@400;500;600;700&display=swap",
 };
 
 export type ArabicFont = keyof typeof ARABIC_FONTS;
@@ -18,43 +21,11 @@ export interface ArabicPdfOptions {
   margin?: number;
 }
 
-function toArabicNumerals(num: number, locale: string = "ar"): string {
-  if (locale !== "ar") return num.toString();
-  
-  const arabicDigits = ["٠", "١", "٢", "٣", "٤", "٥", "٦", "٧", "٨", "٩"];
-  return num
-    .toString()
-    .split("")
-    .map((digit) => {
-      if (/\d/.test(digit)) {
-        return arabicDigits[parseInt(digit)];
-      }
-      return digit;
-    })
-    .join("");
-}
-
-function formatArabicNumber(num: number, locale: string = "ar"): string {
-  if (locale !== "ar") return num.toLocaleString();
-  
-  return num
-    .toLocaleString("ar-SA")
-    .replace(/[٠-٩]/g, (d) => {
-      const arabicDigits = ["٠", "١", "٢", "٣", "٤", "٥", "٦", "٧", "٨", "٩"];
-      return arabicDigits[parseInt(d)] || d;
-    });
-}
-
 export function generateArabicInvoiceHtml(
   data: InvoicePdfData,
-  options: ArabicPdfOptions = {}
+  options: ArabicPdfOptions = {},
 ): string {
-  const {
-    font = "tajawal",
-    fontSize = 14,
-    pageSize = "A4",
-    margin = 40,
-  } = options;
+  const { font = "tajawal", fontSize = 14, pageSize = "A4", margin = 40 } = options;
 
   const isRtl = isRtlLocale(data.locale || "en");
   const dir = isRtl ? "rtl" : "ltr";
@@ -118,9 +89,6 @@ export function generateArabicInvoiceHtml(
     .join("");
 
   const subtotalText = formatAmount(data.invoice.subtotal, data.invoice.currency);
-  const taxText = data.invoice.taxRate > 0 
-    ? `${labels.tax} (${data.invoice.taxRate}%) ${formatAmount(data.invoice.taxAmount, data.invoice.currency)}`
-    : "";
   const totalText = formatAmount(data.invoice.total, data.invoice.currency);
 
   const pageWidth = pageSize === "A4" ? "595px" : "612px";
@@ -411,12 +379,16 @@ export function generateArabicInvoiceHtml(
           <td class="label">${labels.subtotal}</td>
           <td class="amount">${subtotalText}</td>
         </tr>
-        ${data.invoice.taxRate > 0 ? `
+        ${
+          data.invoice.taxRate > 0
+            ? `
         <tr>
           <td class="label">${labels.tax} (${data.invoice.taxRate}%)</td>
           <td class="amount">${formatAmount(data.invoice.taxAmount, data.invoice.currency)}</td>
         </tr>
-        ` : ""}
+        `
+            : ""
+        }
         <tr class="total-row">
           <td>${labels.grandTotal}</td>
           <td class="amount">${totalText}</td>
@@ -424,12 +396,16 @@ export function generateArabicInvoiceHtml(
       </table>
     </div>
     
-    ${data.invoice.status === "paid" && data.invoice.paidAt ? `
+    ${
+      data.invoice.status === "paid" && data.invoice.paidAt
+        ? `
     <div class="payment-info">
       <h4>✓ ${labels.paymentReceived}</h4>
       <p>${labels.paidOn} ${formatDate(data.invoice.paidAt, data.locale || "en")}</p>
     </div>
-    ` : ""}
+    `
+        : ""
+    }
     
     <div class="footer">
       <p>${labels.thankYou}</p>
@@ -444,6 +420,6 @@ export function getArabicInvoicePdf(data: InvoicePdfData, options?: ArabicPdfOpt
   return generateArabicInvoiceHtml(data, options);
 }
 
-export function convertToArabicPdfBuffer(html: string): Buffer | null {
+export function convertToArabicPdfBuffer(_html: string): Buffer | null {
   return null;
 }

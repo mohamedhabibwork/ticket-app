@@ -6,12 +6,7 @@ import { Button } from "@ticket-app/ui/components/button";
 import { Input } from "@ticket-app/ui/components/input";
 import { Label } from "@ticket-app/ui/components/label";
 import { Textarea } from "@ticket-app/ui/components/textarea";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@ticket-app/ui/components/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,7 +14,19 @@ import {
   DropdownMenuTrigger,
 } from "@ticket-app/ui/components/dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@ticket-app/ui/components/tabs";
-import { Loader2, Edit, Trash2, Merge, ArrowLeft, Mail, Phone, Building, Ticket, ShoppingCart, FileText } from "lucide-react";
+import {
+  Loader2,
+  Edit,
+  Trash2,
+  Merge,
+  ArrowLeft,
+  Mail,
+  Phone,
+  Building,
+  Ticket,
+  ShoppingCart,
+  FileText,
+} from "lucide-react";
 
 import { orpc } from "@/utils/orpc";
 
@@ -46,8 +53,8 @@ function ContactDetailRoute() {
   const { data: contact, isLoading } = useQuery(
     orpc.contacts.get.queryOptions(
       { organizationId, id: contactId },
-      { enabled: !isNaN(contactId) }
-    )
+      { enabled: !isNaN(contactId) },
+    ),
   );
 
   const { data: tickets } = useQuery(
@@ -55,7 +62,7 @@ function ContactDetailRoute() {
       organizationId,
       contactId,
       limit: 10,
-    })
+    }),
   );
 
   const updateMutation = useMutation(
@@ -63,12 +70,14 @@ function ContactDetailRoute() {
       onSuccess: () => {
         toast.success("Contact updated successfully");
         setIsEditing(false);
-        queryClient.invalidateQueries(orpc.contacts.get.queryOptions({ organizationId, id: contactId }));
+        queryClient.invalidateQueries(
+          orpc.contacts.get.queryOptions({ organizationId, id: contactId }),
+        );
       },
       onError: (error) => {
         toast.error(`Failed to update contact: ${error.message}`);
       },
-    })
+    }),
   );
 
   const mergeMutation = useMutation(
@@ -80,7 +89,7 @@ function ContactDetailRoute() {
       onError: (error) => {
         toast.error(`Failed to merge contacts: ${error.message}`);
       },
-    })
+    }),
   );
 
   const handleSave = () => {
@@ -90,8 +99,10 @@ function ContactDetailRoute() {
     });
   };
 
-  const handleMerge = (targetId: number) => {
-    if (confirm("Are you sure you want to merge these contacts? The source contact will be deleted.")) {
+  const _handleMerge = (targetId: number) => {
+    if (
+      confirm("Are you sure you want to merge these contacts? The source contact will be deleted.")
+    ) {
       mergeMutation.mutate({
         organizationId,
         sourceId: contactId,
@@ -149,9 +160,7 @@ function ContactDetailRoute() {
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline">
-                Actions
-              </Button>
+              <Button variant="outline">Actions</Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem>
@@ -320,10 +329,7 @@ function ContactDetailRoute() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <Textarea
-                placeholder="Add notes about this contact..."
-                className="min-h-[150px]"
-              />
+              <Textarea placeholder="Add notes about this contact..." className="min-h-[150px]" />
               <Button className="mt-4">Save Note</Button>
             </CardContent>
           </Card>

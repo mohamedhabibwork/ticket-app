@@ -17,7 +17,7 @@ export const notificationsRouter = {
   unsubscribe: publicProcedure
     .input(
       z.object({
-        userId: z.number(),
+        userId: z.coerce.number(),
         type: z.string(),
         token: z.string(),
       }),
@@ -84,7 +84,7 @@ export const notificationsRouter = {
   getPreferences: publicProcedure
     .input(
       z.object({
-        userId: z.number(),
+        userId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -123,17 +123,17 @@ export const notificationsRouter = {
   updatePreferences: publicProcedure
     .input(
       z.object({
-        userId: z.number(),
-        emailDigest: z.boolean().optional(),
-        inAppEnabled: z.boolean().optional(),
+        userId: z.coerce.number(),
+        emailDigest: z.coerce.boolean().optional(),
+        inAppEnabled: z.coerce.boolean().optional(),
         channels: z
           .object({
-            email: z.boolean().optional(),
-            slack: z.boolean().optional(),
-            push: z.boolean().optional(),
+            email: z.coerce.boolean().optional(),
+            slack: z.coerce.boolean().optional(),
+            push: z.coerce.boolean().optional(),
           })
           .optional(),
-        types: z.record(z.string(), z.boolean()).optional(),
+        types: z.record(z.string(), z.coerce.boolean()).optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -147,7 +147,7 @@ export const notificationsRouter = {
   deletePreferences: publicProcedure
     .input(
       z.object({
-        userId: z.number(),
+        userId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -176,10 +176,10 @@ export const notificationsRouter = {
   listNotifications: publicProcedure
     .input(
       z.object({
-        userId: z.number(),
-        unreadOnly: z.boolean().default(false),
-        limit: z.number().min(1).max(100).default(50),
-        offset: z.number().min(0).default(0),
+        userId: z.coerce.number(),
+        unreadOnly: z.coerce.boolean().default(false),
+        limit: z.coerce.number().min(1).max(100).default(50),
+        offset: z.coerce.number().min(0).default(0),
       }),
     )
     .handler(async ({ input }) => {
@@ -216,8 +216,8 @@ export const notificationsRouter = {
   getNotification: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        userId: z.number(),
+        id: z.coerce.number(),
+        userId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -231,8 +231,8 @@ export const notificationsRouter = {
   markAsRead: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        userId: z.number(),
+        id: z.coerce.number(),
+        userId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -243,7 +243,7 @@ export const notificationsRouter = {
   markAllAsRead: publicProcedure
     .input(
       z.object({
-        userId: z.number(),
+        userId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -254,8 +254,8 @@ export const notificationsRouter = {
   deleteNotification: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        userId: z.number(),
+        id: z.coerce.number(),
+        userId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {

@@ -7,13 +7,12 @@ import {
   socialMessages,
   tickets,
   ticketMessages,
-  contacts,
   lookups,
 } from "@ticket-app/db/schema";
 import { getRedis } from "../redis";
 import { env } from "@ticket-app/env/server";
 
-const SOCIAL_SYNC_QUEUE = `${env.QUEUE_PREFIX}:social-sync`;
+const SOCIAL_SYNC_QUEUE = `${env.QUEUE_PREFIX}-social-sync`;
 
 export interface SocialSyncJobData {
   socialAccountId: number;
@@ -49,9 +48,13 @@ const socialSyncQueue = new Queue(SOCIAL_SYNC_QUEUE, {
 });
 
 export async function addSocialSyncJob(socialAccountId: number): Promise<void> {
-  await socialSyncQueue.add("sync-account", { socialAccountId }, {
-    jobId: `social-sync-${socialAccountId}`,
-  });
+  await socialSyncQueue.add(
+    "sync-account",
+    { socialAccountId },
+    {
+      jobId: `social-sync-${socialAccountId}`,
+    },
+  );
 }
 
 export async function scheduleSocialSyncPoll(intervalMs: number = 180000): Promise<void> {
@@ -61,7 +64,7 @@ export async function scheduleSocialSyncPoll(intervalMs: number = 180000): Promi
     {
       repeat: { every: intervalMs },
       jobId: "social-sync-poll-recurring",
-    }
+    },
   );
 }
 
@@ -75,7 +78,7 @@ export function createSocialSyncWorker(): Worker {
         where: and(
           eq(socialAccounts.id, socialAccountId),
           eq(socialAccounts.isActive, true),
-          isNull(socialAccounts.deletedAt)
+          isNull(socialAccounts.deletedAt),
         ),
       });
 
@@ -117,7 +120,7 @@ export function createSocialSyncWorker(): Worker {
     {
       connection: getRedis(),
       concurrency: 3,
-    }
+    },
   );
 }
 
@@ -138,11 +141,15 @@ async function refreshOAuthToken(account: typeof socialAccounts.$inferSelect): P
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: new URLSearchParams({
           grant_type: "refresh_token",
-          client_id: process.env.FACEBOOK_APP_ID || "",
+          client_id: env.FACEBOOK_APP_ID || "",
           fb_exchange_token: account.refreshTokenEnc,
         }),
       });
-      const data = await response.json() as { access_token: string; expires_in: number; refresh_token?: string };
+      const data = (await response.json()) as {
+        access_token: string;
+        expires_in: number;
+        refresh_token?: string;
+      };
       newAccessToken = data.access_token;
       newRefreshToken = data.refresh_token;
       newExpiresAt = new Date(Date.now() + data.expires_in * 1000);
@@ -155,11 +162,15 @@ async function refreshOAuthToken(account: typeof socialAccounts.$inferSelect): P
         body: new URLSearchParams({
           grant_type: "refresh_token",
           refresh_token: account.refreshTokenEnc,
-          client_id: process.env.TWITTER_CLIENT_ID || "",
-          client_secret: process.env.TWITTER_CLIENT_SECRET || "",
+          client_id: env.TWITTER_CLIENT_ID || "",
+          client_secret: env.TWITTER_CLIENT_SECRET || "",
         }),
       });
-      const data = await response.json() as { access_token: string; refresh_token?: string; expires_in: number };
+      const data = (await response.json()) as {
+        access_token: string;
+        refresh_token?: string;
+        expires_in: number;
+      };
       newAccessToken = data.access_token;
       newRefreshToken = data.refresh_token;
       newExpiresAt = new Date(Date.now() + data.expires_in * 1000);
@@ -180,7 +191,9 @@ async function refreshOAuthToken(account: typeof socialAccounts.$inferSelect): P
     .where(eq(socialAccounts.id, account.id));
 }
 
-async function pollSocialMessages(account: typeof socialAccounts.$inferSelect): Promise<SocialMessagePayload[]> {
+async function pollSocialMessages(
+  account: typeof socialAccounts.$inferSelect,
+): Promise<SocialMessagePayload[]> {
   switch (account.platform.toLowerCase()) {
     case "facebook":
     case "instagram":
@@ -195,18 +208,20 @@ async function pollSocialMessages(account: typeof socialAccounts.$inferSelect): 
   }
 }
 
-async function pollFacebookMessages(account: typeof socialAccounts.$inferSelect): Promise<SocialMessagePayload[]> {
+async function pollFacebookMessages(
+  account: typeof socialAccounts.$inferSelect,
+): Promise<SocialMessagePayload[]> {
   try {
     const pageId = account.platformAccountId;
     const fields = "messages{from,message,created_time,id,parent_id,attachments,type}";
     const url = `https://graph.facebook.com/v18.0/${pageId}?fields=${fields}&access_token=${account.accessTokenEnc}`;
-    
+
     const response = await fetch(url);
     if (!response.ok) {
       throw new Error(`Facebook API error: ${response.status}`);
     }
 
-    const data = await response.json() as any;
+    const data = (await response.json()) as any;
     const messages: SocialMessagePayload[] = [];
 
     if (data.messages?.data) {
@@ -231,11 +246,13 @@ async function pollFacebookMessages(account: typeof socialAccounts.$inferSelect)
   }
 }
 
-async function pollTwitterMessages(account: typeof socialAccounts.$inferSelect): Promise<SocialMessagePayload[]> {
+async function pollTwitterMessages(
+  account: typeof socialAccounts.$inferSelect,
+): Promise<SocialMessagePayload[]> {
   try {
     const userId = account.platformAccountId;
     const url = `https://api.twitter.com/2/users/${userId}/dm_events`;
-    
+
     const response = await fetch(url, {
       headers: { Authorization: `Bearer ${account.accessTokenEnc}` },
     });
@@ -243,7 +260,7 @@ async function pollTwitterMessages(account: typeof socialAccounts.$inferSelect):
       throw new Error(`Twitter API error: ${response.status}`);
     }
 
-    const data = await response.json() as any;
+    const data = (await response.json()) as any;
     const messages: SocialMessagePayload[] = [];
 
     if (data.data) {
@@ -268,17 +285,19 @@ async function pollTwitterMessages(account: typeof socialAccounts.$inferSelect):
   }
 }
 
-async function pollWhatsAppMessages(account: typeof socialAccounts.$inferSelect): Promise<SocialMessagePayload[]> {
+async function pollWhatsAppMessages(
+  account: typeof socialAccounts.$inferSelect,
+): Promise<SocialMessagePayload[]> {
   try {
     const phoneNumberId = account.platformAccountId;
     const url = `https://graph.facebook.com/v18.0/${phoneNumberId}/messages?access_token=${account.accessTokenEnc}`;
-    
+
     const response = await fetch(url);
     if (!response.ok) {
       throw new Error(`WhatsApp API error: ${response.status}`);
     }
 
-    const data = await response.json() as any;
+    const data = (await response.json()) as any;
     const messages: SocialMessagePayload[] = [];
 
     if (data.data) {
@@ -303,12 +322,12 @@ async function pollWhatsAppMessages(account: typeof socialAccounts.$inferSelect)
 
 async function processSocialMessage(
   account: typeof socialAccounts.$inferSelect,
-  message: SocialMessagePayload
+  message: SocialMessagePayload,
 ): Promise<void> {
   const existingMessage = await db.query.socialMessages.findFirst({
     where: and(
       eq(socialMessages.socialAccountId, account.id),
-      eq(socialMessages.platformMessageId, message.platformMessageId)
+      eq(socialMessages.platformMessageId, message.platformMessageId),
     ),
   });
 
@@ -319,7 +338,7 @@ async function processSocialMessage(
   const channelLookup = await db.query.lookups.findFirst({
     where: and(
       eq(lookups.lookupTypeId, sql`(SELECT id FROM lookup_types WHERE name = 'channel')`),
-      sql`${lookups.metadata}->>'slug' = ${account.platform.toLowerCase()}`
+      sql`${lookups.metadata}->>'slug' = ${account.platform.toLowerCase()}`,
     ),
   });
 
@@ -353,8 +372,11 @@ async function processSocialMessage(
       const defaultStatusId = (
         await db.query.lookups.findFirst({
           where: and(
-            eq(lookups.lookupTypeId, sql`(SELECT id FROM lookup_types WHERE name = 'ticket_status')`),
-            eq(lookups.isDefault, true)
+            eq(
+              lookups.lookupTypeId,
+              sql`(SELECT id FROM lookup_types WHERE name = 'ticket_status')`,
+            ),
+            eq(lookups.isDefault, true),
           ),
         })
       )?.id;
@@ -362,8 +384,11 @@ async function processSocialMessage(
       const defaultPriorityId = (
         await db.query.lookups.findFirst({
           where: and(
-            eq(lookups.lookupTypeId, sql`(SELECT id FROM lookup_types WHERE name = 'ticket_priority')`),
-            eq(lookups.isDefault, true)
+            eq(
+              lookups.lookupTypeId,
+              sql`(SELECT id FROM lookup_types WHERE name = 'ticket_priority')`,
+            ),
+            eq(lookups.isDefault, true),
           ),
         })
       )?.id;
@@ -374,7 +399,7 @@ async function processSocialMessage(
         .select({ count: sql<number>`COUNT(*)::int` })
         .from(tickets)
         .where(
-          sql`${tickets.organizationId} = ${account.organizationId} AND ${tickets.referenceNumber} LIKE ${prefix}%`
+          sql`${tickets.organizationId} = ${account.organizationId} AND ${tickets.referenceNumber} LIKE ${prefix}%`,
         );
       const sequence = (countResult[0]?.count ?? 0) + 1;
       const referenceNumber = `${prefix}${sequence.toString().padStart(6, "0")}`;
@@ -410,14 +435,17 @@ async function processSocialMessage(
         })
         .returning();
     } catch (err) {
-      console.error(`Failed to create ticket for social message ${message.platformMessageId}:`, err);
+      console.error(
+        `Failed to create ticket for social message ${message.platformMessageId}:`,
+        err,
+      );
     }
   }
 }
 
 export async function handleSocialWebhook(
   platform: string,
-  payload: Record<string, any>
+  payload: Record<string, any>,
 ): Promise<void> {
   console.log(`Received ${platform} webhook:`, JSON.stringify(payload));
 
@@ -433,7 +461,7 @@ export async function handleSocialWebhook(
               where: and(
                 eq(socialAccounts.platformAccountId, value.recipient?.id || entry.id),
                 eq(socialAccounts.platform, platform),
-                eq(socialAccounts.isActive, true)
+                eq(socialAccounts.isActive, true),
               ),
             });
             if (account) {
@@ -460,7 +488,7 @@ export async function handleSocialWebhook(
           where: and(
             eq(socialAccounts.platformAccountId, tweet.user?.id_str),
             eq(socialAccounts.platform, "twitter"),
-            eq(socialAccounts.isActive, true)
+            eq(socialAccounts.isActive, true),
           ),
         });
         if (account) {
@@ -485,12 +513,12 @@ export async function handleSocialWebhook(
 export async function updateSocialMessageStatus(
   platformMessageId: string,
   platform: string,
-  status: "read" | "replied"
+  status: "read" | "replied",
 ): Promise<void> {
   const message = await db.query.socialMessages.findFirst({
     where: and(
       eq(socialMessages.platformMessageId, platformMessageId),
-      eq(socialMessages.platform, platform)
+      eq(socialMessages.platform, platform),
     ),
   });
 

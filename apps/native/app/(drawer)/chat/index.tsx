@@ -18,7 +18,7 @@ export default function ChatListScreen() {
     hapticImpact("light");
   };
 
-  const getStatusColor = (status: string) => {
+  const _getStatusColor = (status: string) => {
     switch (status?.toLowerCase()) {
       case "active":
         return "success";
@@ -42,7 +42,7 @@ export default function ChatListScreen() {
     return d.toLocaleDateString();
   };
 
-  const handleEndChat = (sessionId: number) => {
+  const handleEndChat = (_sessionId: number) => {
     hapticImpact("medium");
     Alert.alert("End Chat", "Are you sure you want to end this chat session?", [
       { text: "Cancel", style: "cancel" },
@@ -56,7 +56,10 @@ export default function ChatListScreen() {
         <View className="flex-row items-center justify-between mb-4">
           <Text className="text-2xl font-semibold text-foreground tracking-tight">Chat</Text>
           <Link href="/chat/new" asChild>
-            <Pressable className="flex-row items-center gap-1" onPress={() => hapticImpact("light")}>
+            <Pressable
+              className="flex-row items-center gap-1"
+              onPress={() => hapticImpact("light")}
+            >
               <Ionicons name="add-circle-outline" size={24} color={mutedColor} />
             </Pressable>
           </Link>
@@ -105,17 +108,19 @@ export default function ChatListScreen() {
               ]}
               onLongPress={() => {
                 hapticImpact("heavy");
-                Alert.alert(
-                  session.contact?.name || "Unknown Contact",
-                  "Chat options",
-                  [
-                    { text: "Cancel", style: "cancel" },
-                    { text: "View Chat", onPress: () => {} },
-                    ...(session.status === "active"
-                      ? [{ text: "End Chat", style: "destructive" as const, onPress: () => handleEndChat(session.id) }]
-                      : []),
-                  ],
-                );
+                Alert.alert(session.contact?.name || "Unknown Contact", "Chat options", [
+                  { text: "Cancel", style: "cancel" },
+                  { text: "View Chat", onPress: () => {} },
+                  ...(session.status === "active"
+                    ? [
+                        {
+                          text: "End Chat",
+                          style: "destructive" as const,
+                          onPress: () => handleEndChat(session.id),
+                        },
+                      ]
+                    : []),
+                ]);
               }}
             >
               <Link href={`/chat/${session.id}`} asChild>

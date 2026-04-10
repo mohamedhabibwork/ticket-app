@@ -11,14 +11,7 @@ import {
 import { Button } from "@ticket-app/ui/components/button";
 import { Input } from "@ticket-app/ui/components/input";
 import { Label } from "@ticket-app/ui/components/label";
-import {
-  Loader2,
-  Smartphone,
-  Plus,
-  Trash2,
-  CheckCircle,
-  XCircle,
-} from "lucide-react";
+import { Loader2, Smartphone, Plus, Trash2, CheckCircle, XCircle } from "lucide-react";
 import { orpc } from "@/utils/orpc";
 
 export const Route = createFileRoute("/admin/settings/mobile-sdk")({
@@ -26,7 +19,7 @@ export const Route = createFileRoute("/admin/settings/mobile-sdk")({
 });
 
 function MobileSdkSettingsRoute() {
-  const queryClient = useQueryClient();
+  const _queryClient = useQueryClient();
   const [showAddForm, setShowAddForm] = useState(false);
   const [platform, setPlatform] = useState<"ios" | "android">("android");
   const [appBundleId, setAppBundleId] = useState("");
@@ -36,10 +29,14 @@ function MobileSdkSettingsRoute() {
   const [apnsKey, setApnsKey] = useState("");
   const [apnsBundleId, setApnsBundleId] = useState("");
 
-  const { data: configs, isLoading, refetch } = useQuery(
+  const {
+    data: configs,
+    isLoading,
+    refetch,
+  } = useQuery(
     orpc.mobileSdk.listConfigs.queryOptions({
       organizationId: 1,
-    })
+    }),
   );
 
   const createMutation = useMutation(
@@ -49,19 +46,19 @@ function MobileSdkSettingsRoute() {
         setShowAddForm(false);
         resetForm();
       },
-    })
+    }),
   );
 
   const deleteMutation = useMutation(
     orpc.mobileSdk.deleteConfig.mutationOptions({
       onSuccess: () => refetch(),
-    })
+    }),
   );
 
   const updateMutation = useMutation(
     orpc.mobileSdk.updateConfig.mutationOptions({
       onSuccess: () => refetch(),
-    })
+    }),
   );
 
   const resetForm = () => {
@@ -181,16 +178,12 @@ function MobileSdkSettingsRoute() {
                   <div className="flex items-center gap-4">
                     <div
                       className={`rounded-full p-2 ${
-                        config.platform === "android"
-                          ? "bg-green-100"
-                          : "bg-purple-100"
+                        config.platform === "android" ? "bg-green-100" : "bg-purple-100"
                       }`}
                     >
                       <Smartphone
                         className={`h-5 w-5 ${
-                          config.platform === "android"
-                            ? "text-green-600"
-                            : "text-purple-600"
+                          config.platform === "android" ? "text-green-600" : "text-purple-600"
                         }`}
                       />
                     </div>

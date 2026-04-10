@@ -9,15 +9,15 @@ export const tasksRouter = {
   list: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        ticketId: z.number().optional(),
-        statusId: z.number().optional(),
-        priorityId: z.number().optional(),
-        assignedUserId: z.number().optional(),
+        organizationId: z.coerce.number(),
+        ticketId: z.coerce.number().optional(),
+        statusId: z.coerce.number().optional(),
+        priorityId: z.coerce.number().optional(),
+        assignedUserId: z.coerce.number().optional(),
         search: z.string().optional(),
-        includeCompleted: z.boolean().default(true),
-        limit: z.number().min(1).max(100).default(50),
-        offset: z.number().min(0).default(0),
+        includeCompleted: z.coerce.boolean().default(true),
+        limit: z.coerce.number().min(1).max(100).default(50),
+        offset: z.coerce.number().min(0).default(0),
       }),
     )
     .handler(async ({ input }) => {
@@ -58,8 +58,8 @@ export const tasksRouter = {
   get: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        id: z.number(),
+        organizationId: z.coerce.number(),
+        id: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -99,15 +99,15 @@ export const tasksRouter = {
   create: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         title: z.string().min(1).max(255),
         description: z.string().optional(),
-        ticketId: z.number().optional(),
-        statusId: z.number(),
-        priorityId: z.number().optional(),
+        ticketId: z.coerce.number().optional(),
+        statusId: z.coerce.number(),
+        priorityId: z.coerce.number().optional(),
         dueAt: z.date().optional(),
-        assignedUserIds: z.array(z.number()).optional(),
-        createdBy: z.number().optional(),
+        assignedUserIds: z.array(z.coerce.number()).optional(),
+        createdBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -154,14 +154,14 @@ export const tasksRouter = {
   update: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
         title: z.string().min(1).max(255).optional(),
         description: z.string().optional(),
-        statusId: z.number().optional(),
-        priorityId: z.number().optional(),
+        statusId: z.coerce.number().optional(),
+        priorityId: z.coerce.number().optional(),
         dueAt: z.date().nullable().optional(),
-        updatedBy: z.number().optional(),
+        updatedBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -188,9 +188,9 @@ export const tasksRouter = {
   delete: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
-        deletedBy: z.number().optional(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
+        deletedBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -208,10 +208,10 @@ export const tasksRouter = {
   assign: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
-        userId: z.number(),
-        assignedBy: z.number().optional(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
+        userId: z.coerce.number(),
+        assignedBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -230,9 +230,9 @@ export const tasksRouter = {
   complete: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
-        completedBy: z.number().optional(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
+        completedBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -252,10 +252,10 @@ export const tasksRouter = {
   addComment: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
         content: z.string().min(1),
-        createdBy: z.number().optional(),
+        createdBy: z.coerce.number().optional(),
       }),
     )
     .handler(async () => {
@@ -265,8 +265,8 @@ export const tasksRouter = {
   getSubtasks: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -279,9 +279,9 @@ export const tasksRouter = {
   createSubtask: publicProcedure
     .input(
       z.object({
-        taskId: z.number(),
+        taskId: z.coerce.number(),
         title: z.string().min(1).max(255),
-        orderBy: z.number().default(0),
+        orderBy: z.coerce.number().default(0),
       }),
     )
     .handler(async ({ input }) => {

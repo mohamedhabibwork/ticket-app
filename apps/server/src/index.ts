@@ -1,4 +1,3 @@
-import "dotenv/config";
 import { devToolsMiddleware } from "@ai-sdk/devtools";
 import { google } from "@ai-sdk/google";
 import { OpenAPIHandler } from "@orpc/openapi/fetch";
@@ -12,31 +11,24 @@ import { env } from "@ticket-app/env/server";
 import { streamText, convertToModelMessages, wrapLanguageModel } from "ai";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
-import { logger } from "hono/logger";
-import { websocket } from "@hono/node-ws";
-import { joinTicket, leaveTicket, heartbeat, getTicketViewers } from "@ticket-app/api/lib/presence";
+import { serve } from "@hono/node-server";
 import { auth as authRoutes } from "./routes/auth";
 import { billing as billingRoutes } from "./routes/billing";
 import { widget as chatWidgetRoutes } from "./routes/chat/widget";
 import { createExcelExportWorker, createExcelImportWorker } from "@ticket-app/queue";
+import { initializeWithRedisAdapter, getSocketServer } from "./socket/index";
+import { initializeSocketPubSub } from "./socket/pubsub";
+import { requestLogger, logger } from "./lib/logger";
 
 const app = new Hono();
-const { upgradeWebSocket, websocket } = websocket({
-  open(_ws) {
-    console.log("WebSocket opened");
-  },
-  close(_ws) {
-    console.log("WebSocket closed");
-  },
-});
 
-console.log("Starting Excel export worker...");
+logger.info("Starting Excel export worker...");
 createExcelExportWorker();
 
-console.log("Starting Excel import worker...");
+logger.info("Starting Excel import worker...");
 createExcelImportWorker();
 
-app.use(logger());
+app.use(requestLogger);
 app.use(
   "/*",
   cors({
@@ -53,7 +45,7 @@ export const apiHandler = new OpenAPIHandler(appRouter, {
   ],
   interceptors: [
     onError((error) => {
-      console.error(error);
+      logger.error({ error }, "API handler error");
     }),
   ],
 });
@@ -61,7 +53,7 @@ export const apiHandler = new OpenAPIHandler(appRouter, {
 export const rpcHandler = new RPCHandler(appRouter, {
   interceptors: [
     onError((error) => {
-      console.error(error);
+      logger.error({ error }, "RPC handler error");
     }),
   ],
 });
@@ -113,36 +105,31 @@ app.get("/", (c) => {
   return c.text("OK");
 });
 
-app.get(
-  "/ws/presence/:ticketId/:userId/:userName",
-  upgradeWebSocket((c) => {
-    const ticketId = parseInt(c.req.param("ticketId"));
-    const userId = parseInt(c.req.param("userId"));
-    const userName = c.req.param("userName");
+const PORT = parseInt(process.env.PORT || "3000");
 
-    return {
-      onOpen(ws) {
-        joinTicket(ticketId, userId, userName).then(() => {
-          ws.send(JSON.stringify({ type: "viewer_joined", ticketId, userId, userName }));
-        });
-      },
-      onMessage(event, ws) {
-        const data = JSON.parse(event.data);
-        if (data.type === "heartbeat") {
-          heartbeat(ticketId, userId);
-          ws.send(JSON.stringify({ type: "heartbeat_ack" }));
-        } else if (data.type === "get_viewers") {
-          getTicketViewers(ticketId).then((viewers) => {
-            ws.send(JSON.stringify({ type: "viewers_list", viewers }));
-          });
-        }
-      },
-      onClose(_ws) {
-        leaveTicket(ticketId, userId);
-      },
-    };
-  }),
-);
+const { server } = serve({
+  fetch: app.fetch,
+  port: PORT,
+  override: true,
+});
 
-export { websocket };
+logger.info({ port: PORT }, "Server starting");
+
+initializeWithRedisAdapter(server)
+  .then(() => {
+    logger.info("Socket.IO server initialized");
+
+    initializeSocketPubSub()
+      .then(() => {
+        logger.info("Socket pub/sub subscriber initialized");
+      })
+      .catch((err) => {
+        logger.error({ err }, "Failed to initialize socket pub/sub");
+      });
+  })
+  .catch((err) => {
+    logger.error({ err }, "Failed to initialize Socket.IO server");
+  });
+
+export { getSocketServer };
 export default app;

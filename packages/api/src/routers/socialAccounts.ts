@@ -10,9 +10,9 @@ export const socialAccountsRouter = {
   list: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         platform: z.string().optional(),
-        isActive: z.boolean().optional(),
+        isActive: z.coerce.boolean().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -43,8 +43,8 @@ export const socialAccountsRouter = {
   get: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        id: z.number(),
+        organizationId: z.coerce.number(),
+        id: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -68,7 +68,7 @@ export const socialAccountsRouter = {
   getByPlatform: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         platform: z.string(),
         platformAccountId: z.string(),
       }),
@@ -95,15 +95,15 @@ export const socialAccountsRouter = {
   create: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        userId: z.number().optional(),
+        organizationId: z.coerce.number(),
+        userId: z.coerce.number().optional(),
         platform: z.string(),
         platformAccountId: z.string(),
         platformUsername: z.string().optional(),
         accessToken: z.string(),
         refreshToken: z.string().optional(),
         tokenExpiresAt: z.string().datetime().optional(),
-        createdBy: z.number().optional(),
+        createdBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -136,7 +136,7 @@ export const socialAccountsRouter = {
   updateToken: publicProcedure
     .input(
       z.object({
-        id: z.number(),
+        id: z.coerce.number(),
         accessToken: z.string(),
         refreshToken: z.string().optional(),
         tokenExpiresAt: z.string().datetime().optional(),
@@ -167,8 +167,8 @@ export const socialAccountsRouter = {
   setActive: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        isActive: z.boolean(),
+        id: z.coerce.number(),
+        isActive: z.coerce.boolean(),
       }),
     )
     .handler(async ({ input }) => {
@@ -187,8 +187,8 @@ export const socialAccountsRouter = {
   delete: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        deletedBy: z.number().optional(),
+        id: z.coerce.number(),
+        deletedBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -206,7 +206,7 @@ export const socialAccountsRouter = {
   getDecryptedToken: publicProcedure
     .input(
       z.object({
-        id: z.number(),
+        id: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -226,11 +226,11 @@ export const socialAccountsRouter = {
   connectFacebook: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         pageId: z.string(),
         accessToken: z.string(),
         pageName: z.string().optional(),
-        userId: z.number().optional(),
+        userId: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -277,11 +277,11 @@ export const socialAccountsRouter = {
   connectInstagram: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         accountId: z.string(),
         accessToken: z.string(),
         username: z.string().optional(),
-        userId: z.number().optional(),
+        userId: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -328,11 +328,11 @@ export const socialAccountsRouter = {
   connectTwitter: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         accountId: z.string(),
         accessToken: z.string(),
         username: z.string().optional(),
-        userId: z.number().optional(),
+        userId: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -379,11 +379,11 @@ export const socialAccountsRouter = {
   connectWhatsApp: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         phoneNumberId: z.string(),
         accessToken: z.string(),
         businessAccountId: z.string().optional(),
-        userId: z.number().optional(),
+        userId: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -430,9 +430,9 @@ export const socialAccountsRouter = {
   disconnect: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
-        deletedBy: z.number().optional(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
+        deletedBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -457,8 +457,8 @@ export const socialAccountsRouter = {
   refreshToken: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -505,8 +505,8 @@ export const socialAccountsRouter = {
   getStatus: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {

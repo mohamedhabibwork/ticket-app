@@ -3,6 +3,7 @@ import { customerSessions, customerSocialIdentities, contacts } from "@ticket-ap
 import { eq, desc } from "drizzle-orm";
 import * as z from "zod";
 
+import { env } from "@ticket-app/env/server";
 import { protectedProcedure } from "../index";
 import {
   hasPermission,
@@ -15,7 +16,7 @@ export const customerAuthRouter = {
   getOAuthUrl: protectedProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         provider: z.enum(["google", "facebook", "apple"]),
         redirectUri: z.string(),
       }),
@@ -34,9 +35,9 @@ export const customerAuthRouter = {
       }
 
       const urls: Record<string, string> = {
-        google: `https://accounts.google.com/o/oauth2/v2/auth?client_id=${process.env.GOOGLE_CLIENT_ID}&redirect_uri=${input.redirectUri}&response_type=code&scope=email profile`,
-        facebook: `https://www.facebook.com/v18.0/dialog/oauth?client_id=${process.env.FACEBOOK_CLIENT_ID}&redirect_uri=${input.redirectUri}&scope=email`,
-        apple: `https://appleid.apple.com/auth/authorize?client_id=${process.env.APPLE_CLIENT_ID}&redirect_uri=${input.redirectUri}&response_type=code id_token&scope=email name`,
+        google: `https://accounts.google.com/o/oauth2/v2/auth?client_id=${env.GOOGLE_CLIENT_ID}&redirect_uri=${input.redirectUri}&response_type=code&scope=email profile`,
+        facebook: `https://www.facebook.com/v18.0/dialog/oauth?client_id=${env.FACEBOOK_CLIENT_ID}&redirect_uri=${input.redirectUri}&scope=email`,
+        apple: `https://appleid.apple.com/auth/authorize?client_id=${env.APPLE_CLIENT_ID}&redirect_uri=${input.redirectUri}&response_type=code id_token&scope=email name`,
       };
 
       return { url: urls[input.provider] };
@@ -45,7 +46,7 @@ export const customerAuthRouter = {
   handleGoogleCallback: protectedProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         code: z.string(),
         redirectUri: z.string(),
       }),
@@ -68,8 +69,8 @@ export const customerAuthRouter = {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           code: input.code,
-          client_id: process.env.GOOGLE_CLIENT_ID,
-          client_secret: process.env.GOOGLE_CLIENT_SECRET,
+          client_id: env.GOOGLE_CLIENT_ID,
+          client_secret: env.GOOGLE_CLIENT_SECRET,
           redirect_uri: input.redirectUri,
           grant_type: "authorization_code",
         }),
@@ -89,7 +90,7 @@ export const customerAuthRouter = {
   handleFacebookCallback: protectedProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         code: z.string(),
         redirectUri: z.string(),
       }),
@@ -108,7 +109,7 @@ export const customerAuthRouter = {
       }
 
       const tokenRes = await fetch(
-        `https://graph.facebook.com/v18.0/oauth/access_token?client_id=${process.env.FACEBOOK_CLIENT_ID}&client_secret=${process.env.FACEBOOK_CLIENT_SECRET}&code=${input.code}&redirect_uri=${input.redirectUri}`,
+        `https://graph.facebook.com/v18.0/oauth/access_token?client_id=${env.FACEBOOK_CLIENT_ID}&client_secret=${env.FACEBOOK_CLIENT_SECRET}&code=${input.code}&redirect_uri=${input.redirectUri}`,
       );
 
       const tokenData = await tokenRes.json();
@@ -125,7 +126,7 @@ export const customerAuthRouter = {
   handleAppleCallback: protectedProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         code: z.string(),
         idToken: z.string(),
         redirectUri: z.string(),
@@ -154,9 +155,9 @@ export const customerAuthRouter = {
   mergeAccounts: protectedProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        primaryContactId: z.number(),
-        secondaryContactId: z.number(),
+        organizationId: z.coerce.number(),
+        primaryContactId: z.coerce.number(),
+        secondaryContactId: z.coerce.number(),
       }),
     )
     .handler(async ({ input, context }) => {
@@ -186,7 +187,7 @@ export const customerAuthRouter = {
     }),
 
   listIdentities: protectedProcedure
-    .input(z.object({ organizationId: z.number(), contactId: z.number() }))
+    .input(z.object({ organizationId: z.coerce.number(), contactId: z.coerce.number() }))
     .handler(async ({ input, context }) => {
       const canRead = await hasPermission(
         {
@@ -208,7 +209,7 @@ export const customerAuthRouter = {
     }),
 
   getIdentity: protectedProcedure
-    .input(z.object({ id: z.number(), organizationId: z.number() }))
+    .input(z.object({ id: z.coerce.number(), organizationId: z.coerce.number() }))
     .handler(async ({ input, context }) => {
       const canRead = await hasPermission(
         {
@@ -232,8 +233,8 @@ export const customerAuthRouter = {
   linkIdentity: protectedProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        contactId: z.number(),
+        organizationId: z.coerce.number(),
+        contactId: z.coerce.number(),
         provider: z.enum(["google", "facebook", "apple"]),
         providerUserId: z.string(),
         accessToken: z.string().optional(),
@@ -260,7 +261,7 @@ export const customerAuthRouter = {
     }),
 
   unlinkIdentity: protectedProcedure
-    .input(z.object({ id: z.number(), organizationId: z.number() }))
+    .input(z.object({ id: z.coerce.number(), organizationId: z.coerce.number() }))
     .handler(async ({ input, context }) => {
       const canWrite = await hasPermission(
         {
@@ -279,7 +280,7 @@ export const customerAuthRouter = {
     }),
 
   listSessions: protectedProcedure
-    .input(z.object({ organizationId: z.number(), contactId: z.number() }))
+    .input(z.object({ organizationId: z.coerce.number(), contactId: z.coerce.number() }))
     .handler(async ({ input, context }) => {
       const canRead = await hasPermission(
         {
@@ -301,7 +302,7 @@ export const customerAuthRouter = {
     }),
 
   getSession: protectedProcedure
-    .input(z.object({ id: z.number(), organizationId: z.number() }))
+    .input(z.object({ id: z.coerce.number(), organizationId: z.coerce.number() }))
     .handler(async ({ input, context }) => {
       const canRead = await hasPermission(
         {
@@ -325,9 +326,9 @@ export const customerAuthRouter = {
   createSession: protectedProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        contactId: z.number(),
-        customerSocialIdentityId: z.number().optional(),
+        organizationId: z.coerce.number(),
+        contactId: z.coerce.number(),
+        customerSocialIdentityId: z.coerce.number().optional(),
         ipAddress: z.string().optional(),
         userAgent: z.string().optional(),
       }),
@@ -358,7 +359,7 @@ export const customerAuthRouter = {
     }),
 
   deleteSession: protectedProcedure
-    .input(z.object({ id: z.number(), organizationId: z.number() }))
+    .input(z.object({ id: z.coerce.number(), organizationId: z.coerce.number() }))
     .handler(async ({ input, context }) => {
       const canWrite = await hasPermission(
         {
@@ -377,7 +378,7 @@ export const customerAuthRouter = {
     }),
 
   deleteAllSessions: protectedProcedure
-    .input(z.object({ organizationId: z.number(), contactId: z.number() }))
+    .input(z.object({ organizationId: z.coerce.number(), contactId: z.coerce.number() }))
     .handler(async ({ input, context }) => {
       const canWrite = await hasPermission(
         {

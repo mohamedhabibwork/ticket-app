@@ -1,5 +1,3 @@
-import type { Invoice, InvoiceItem, Organization, SubscriptionPlan } from "@ticket-app/db/schema";
-
 export interface InvoicePdfData {
   invoice: {
     id: number;
@@ -101,7 +99,7 @@ export function generateInvoiceHtml(data: InvoicePdfData): string {
       <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: right;">${formatAmount(item.unitPrice, data.invoice.currency)}</td>
       <td style="padding: 12px; border-bottom: 1px solid #e5e7eb; text-align: right;">${formatAmount(item.total, data.invoice.currency)}</td>
     </tr>
-  `
+  `,
     )
     .join("");
 
@@ -372,12 +370,16 @@ export function generateInvoiceHtml(data: InvoicePdfData): string {
           <td class="label">${isRtl ? "المجموع الفرعي" : "Subtotal"}</td>
           <td class="amount">${formatAmount(data.invoice.subtotal, data.invoice.currency)}</td>
         </tr>
-        ${data.invoice.taxRate > 0 ? `
+        ${
+          data.invoice.taxRate > 0
+            ? `
         <tr>
           <td class="label">${isRtl ? "الضريبة" : "Tax"} (${data.invoice.taxRate}%)</td>
           <td class="amount">${formatAmount(data.invoice.taxAmount, data.invoice.currency)}</td>
         </tr>
-        ` : ""}
+        `
+            : ""
+        }
         <tr class="total-row">
           <td>${isRtl ? "المجموع" : "Total"}</td>
           <td class="amount">${formatAmount(data.invoice.total, data.invoice.currency)}</td>
@@ -385,12 +387,16 @@ export function generateInvoiceHtml(data: InvoicePdfData): string {
       </table>
     </div>
     
-    ${data.invoice.status === "paid" && data.invoice.paidAt ? `
+    ${
+      data.invoice.status === "paid" && data.invoice.paidAt
+        ? `
     <div class="payment-info">
       <h4>✓ ${isRtl ? "تم الدفع" : "Payment Received"}</h4>
       <p>${isRtl ? "تم دفع هذه الفاتورة في" : "This invoice was paid on"} ${formatDate(data.invoice.paidAt, data.locale)}</p>
     </div>
-    ` : ""}
+    `
+        : ""
+    }
     
     <div class="footer">
       <p>${isRtl ? "شكراً لثقتك بنا" : "Thank you for your business"}</p>
@@ -416,14 +422,16 @@ export function generateSimpleText(data: InvoicePdfData): string {
   for (const item of data.items) {
     lines.push(`${item.description}`);
     lines.push(
-      `${item.quantity} x ${formatAmount(item.unitPrice, data.invoice.currency)} = ${formatAmount(item.total, data.invoice.currency)}`
+      `${item.quantity} x ${formatAmount(item.unitPrice, data.invoice.currency)} = ${formatAmount(item.total, data.invoice.currency)}`,
     );
   }
 
   lines.push("-".repeat(50));
   lines.push(`Subtotal: ${formatAmount(data.invoice.subtotal, data.invoice.currency)}`);
   if (data.invoice.taxRate > 0) {
-    lines.push(`Tax (${data.invoice.taxRate}%): ${formatAmount(data.invoice.taxAmount, data.invoice.currency)}`);
+    lines.push(
+      `Tax (${data.invoice.taxRate}%): ${formatAmount(data.invoice.taxAmount, data.invoice.currency)}`,
+    );
   }
   lines.push(`Total: ${formatAmount(data.invoice.total, data.invoice.currency)}`);
   lines.push("=".repeat(50));

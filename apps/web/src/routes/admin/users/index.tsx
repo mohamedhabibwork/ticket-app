@@ -2,11 +2,14 @@ import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@ticket-app/ui/components/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
+import { Card, CardContent } from "@ticket-app/ui/components/card";
 import { Input } from "@ticket-app/ui/components/input";
-import { Label } from "@ticket-app/ui/components/label";
-import { Checkbox } from "@ticket-app/ui/components/checkbox";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@ticket-app/ui/components/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@ticket-app/ui/components/dropdown-menu";
 import { orpc } from "@/utils/orpc";
 import { MoreHorizontal, Plus, Search, Mail, Edit, UserX, UserCheck } from "lucide-react";
 
@@ -44,7 +47,7 @@ function UsersListRoute() {
       onSuccess: () => {
         // Refetch users after deactivation
       },
-    })
+    }),
   );
 
   const handleDeactivate = (userId: number) => {
@@ -73,9 +76,7 @@ function UsersListRoute() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold">Users</h1>
-          <p className="text-muted-foreground mt-1">
-            Manage organization users and roles
-          </p>
+          <p className="text-muted-foreground mt-1">Manage organization users and roles</p>
         </div>
         <Button asChild>
           <Link to="/admin/users/invite">
@@ -166,7 +167,8 @@ function UsersListRoute() {
                       <div className="flex items-center gap-3">
                         <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center">
                           <span className="text-sm font-medium">
-                            {user.firstName?.[0]}{user.lastName?.[0]}
+                            {user.firstName?.[0]}
+                            {user.lastName?.[0]}
                           </span>
                         </div>
                         <div>
@@ -193,18 +195,14 @@ function UsersListRoute() {
                     <td className="px-6 py-4">
                       <span
                         className={`px-2 py-1 rounded text-xs ${
-                          user.isActive
-                            ? "bg-green-100 text-green-800"
-                            : "bg-red-100 text-red-800"
+                          user.isActive ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
                         }`}
                       >
                         {user.isActive ? "Active" : "Inactive"}
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-muted-foreground">
-                      {user.createdAt
-                        ? new Date(user.createdAt).toLocaleDateString()
-                        : "N/A"}
+                      {user.createdAt ? new Date(user.createdAt).toLocaleDateString() : "N/A"}
                     </td>
                     <td className="px-6 py-4">
                       <DropdownMenu>

@@ -1,6 +1,7 @@
 import { Queue, Worker, Job } from "bullmq";
 import { eq, and } from "drizzle-orm";
 
+import { env } from "@ticket-app/env/server";
 import { db } from "@ticket-app/db";
 import { subscriptions, subscriptionPlans } from "@ticket-app/db/schema/_billing";
 import { organizations } from "@ticket-app/db/schema/_organizations";
@@ -9,11 +10,11 @@ import { dunningLogs, subscriptionStateChanges } from "@ticket-app/db/schema/_du
 import { stripe } from "../services/stripe";
 import { addNotificationJob, addEmailJob, addDunningJob } from "@ticket-app/db/lib/queues";
 
-export const DUNNING_QUEUE = "billing:dunning";
+export const DUNNING_QUEUE = "billing-dunning";
 
 const connection = {
-  host: process.env.REDIS_URL?.replace("redis://", "").split(":")[0] || "localhost",
-  port: parseInt(process.env.REDIS_URL?.split(":")[2] || "6379"),
+  host: env.REDIS_URL.replace("redis://", "").split(":")[0] || "localhost",
+  port: parseInt(env.REDIS_URL.split(":")[2] || "6379"),
 };
 
 export const DUNNING_ATTEMPT_DELAYS = {
@@ -311,7 +312,7 @@ export function createDunningWorker() {
       await processDunningAction(job);
     },
     {
-      connection,
+      connection: getRedis(),
       concurrency: 5,
     },
   );

@@ -1,9 +1,9 @@
 import { db } from "@ticket-app/db";
 import { socialAccounts } from "@ticket-app/db/schema";
-import { eq } from "drizzle-orm";
 import crypto from "crypto";
 
-import { encryptToken, decryptToken, generateStateToken } from "../../lib/crypto";
+import { encryptToken } from "../../lib/crypto";
+import { env } from "@ticket-app/env/server";
 
 const FACEBOOK_API_VERSION = "v18.0";
 const FACEBOOK_AUTH_URL = "https://www.facebook.com/v18.0/dialog/oauth";
@@ -48,9 +48,10 @@ export function setFacebookConfig(config: FacebookConfig): void {
 
 function getFacebookConfig(): FacebookConfig {
   if (!facebookConfig) {
-    const clientId = process.env.FACEBOOK_APP_ID;
-    const clientSecret = process.env.FACEBOOK_APP_SECRET;
-    const callbackUrl = process.env.FACEBOOK_CALLBACK_URL || "http://localhost:3000/admin/social/facebook/callback";
+    const clientId = env.FACEBOOK_APP_ID;
+    const clientSecret = env.FACEBOOK_APP_SECRET;
+    const callbackUrl =
+      env.FACEBOOK_CALLBACK_URL || "http://localhost:3000/admin/social/facebook/callback";
 
     if (!clientId || !clientSecret) {
       throw new Error("Facebook OAuth credentials not configured");
@@ -66,7 +67,8 @@ export function getFacebookAuthUrl(state: string): string {
   const params = new URLSearchParams({
     client_id: config.clientId,
     redirect_uri: config.callbackUrl,
-    scope: "pages_read_engagement,pages_manage_messages,instagram_basic,instagram_manage_messages,instagram_manage_comments",
+    scope:
+      "pages_read_engagement,pages_manage_messages,instagram_basic,instagram_manage_messages,instagram_manage_comments",
     response_type: "code",
     state,
   });
@@ -77,13 +79,16 @@ export function getFacebookAuthUrl(state: string): string {
 export async function exchangeFacebookCode(code: string): Promise<FacebookOAuthTokens> {
   const config = getFacebookConfig();
 
-  const response = await fetch(`${FACEBOOK_TOKEN_URL}?` + new URLSearchParams({
-    client_id: config.clientId,
-    client_secret: config.clientSecret,
-    redirect_uri: config.callbackUrl,
-    code,
-    grant_type: "authorization_code",
-  }));
+  const response = await fetch(
+    `${FACEBOOK_TOKEN_URL}?` +
+      new URLSearchParams({
+        client_id: config.clientId,
+        client_secret: config.clientSecret,
+        redirect_uri: config.callbackUrl,
+        code,
+        grant_type: "authorization_code",
+      }),
+  );
 
   if (!response.ok) {
     const error = await response.text();
@@ -102,12 +107,15 @@ export async function exchangeFacebookCode(code: string): Promise<FacebookOAuthT
 export async function refreshFacebookToken(refreshToken: string): Promise<FacebookOAuthTokens> {
   const config = getFacebookConfig();
 
-  const response = await fetch(`${FACEBOOK_TOKEN_URL}?` + new URLSearchParams({
-    client_id: config.clientId,
-    client_secret: config.clientSecret,
-    refresh_token: refreshToken,
-    grant_type: "fb_exchange_token",
-  }));
+  const response = await fetch(
+    `${FACEBOOK_TOKEN_URL}?` +
+      new URLSearchParams({
+        client_id: config.clientId,
+        client_secret: config.clientSecret,
+        refresh_token: refreshToken,
+        grant_type: "fb_exchange_token",
+      }),
+  );
 
   if (!response.ok) {
     const error = await response.text();
@@ -125,7 +133,7 @@ export async function refreshFacebookToken(refreshToken: string): Promise<Facebo
 
 export async function getFacebookUser(accessToken: string): Promise<FacebookUser> {
   const response = await fetch(
-    `${FACEBOOK_GRAPH_URL}/me?fields=id,name,email,picture&access_token=${accessToken}`
+    `${FACEBOOK_GRAPH_URL}/me?fields=id,name,email,picture&access_token=${accessToken}`,
   );
 
   if (!response.ok) {
@@ -137,9 +145,7 @@ export async function getFacebookUser(accessToken: string): Promise<FacebookUser
 }
 
 export async function getFacebookPages(accessToken: string): Promise<FacebookPage[]> {
-  const response = await fetch(
-    `${FACEBOOK_GRAPH_URL}/me/accounts?access_token=${accessToken}`
-  );
+  const response = await fetch(`${FACEBOOK_GRAPH_URL}/me/accounts?access_token=${accessToken}`);
 
   if (!response.ok) {
     const error = await response.text();
@@ -150,9 +156,12 @@ export async function getFacebookPages(accessToken: string): Promise<FacebookPag
   return data.data || [];
 }
 
-export async function getInstagramBusinessId(pageId: string, accessToken: string): Promise<string | null> {
+export async function getInstagramBusinessId(
+  pageId: string,
+  accessToken: string,
+): Promise<string | null> {
   const response = await fetch(
-    `${FACEBOOK_GRAPH_URL}/${pageId}?fields=instagram_business_account&access_token=${accessToken}`
+    `${FACEBOOK_GRAPH_URL}/${pageId}?fields=instagram_business_account&access_token=${accessToken}`,
   );
 
   if (!response.ok) {
@@ -165,12 +174,13 @@ export async function getInstagramBusinessId(pageId: string, accessToken: string
 
 export async function getFacebookLongLivedToken(accessToken: string): Promise<string> {
   const response = await fetch(
-    `${FACEBOOK_GRAPH_URL}/oauth/access_token?` + new URLSearchParams({
-      grant_type: "fb_exchange_token",
-      client_id: getFacebookConfig().clientId,
-      client_secret: getFacebookConfig().clientSecret,
-      fb_exchange_token: accessToken,
-    })
+    `${FACEBOOK_GRAPH_URL}/oauth/access_token?` +
+      new URLSearchParams({
+        grant_type: "fb_exchange_token",
+        client_id: getFacebookConfig().clientId,
+        client_secret: getFacebookConfig().clientSecret,
+        fb_exchange_token: accessToken,
+      }),
   );
 
   if (!response.ok) {
@@ -184,7 +194,7 @@ export async function getFacebookLongLivedToken(accessToken: string): Promise<st
 export async function connectFacebookPage(
   organizationId: number,
   userId: number | undefined,
-  page: FacebookPage
+  page: FacebookPage,
 ): Promise<number> {
   const longLivedToken = await getFacebookLongLivedToken(page.access_token);
   const encryptedToken = encryptToken(longLivedToken);
@@ -207,7 +217,11 @@ export async function connectFacebookPage(
       updatedBy: userId,
     })
     .onConflictDoUpdate({
-      target: [socialAccounts.organizationId, socialAccounts.platform, socialAccounts.platformAccountId],
+      target: [
+        socialAccounts.organizationId,
+        socialAccounts.platform,
+        socialAccounts.platformAccountId,
+      ],
       set: {
         accessTokenEnc: encryptedToken,
         refreshTokenEnc: encryptedRefresh,
@@ -228,7 +242,7 @@ export async function connectInstagramAccount(
   userId: number | undefined,
   instagramId: string,
   username: string,
-  accessToken: string
+  accessToken: string,
 ): Promise<number> {
   const longLivedToken = await getFacebookLongLivedToken(accessToken);
   const encryptedToken = encryptToken(longLivedToken);
@@ -251,7 +265,11 @@ export async function connectInstagramAccount(
       updatedBy: userId,
     })
     .onConflictDoUpdate({
-      target: [socialAccounts.organizationId, socialAccounts.platform, socialAccounts.platformAccountId],
+      target: [
+        socialAccounts.organizationId,
+        socialAccounts.platform,
+        socialAccounts.platformAccountId,
+      ],
       set: {
         accessTokenEnc: encryptedToken,
         refreshTokenEnc: encryptedRefresh,
@@ -270,10 +288,10 @@ export async function connectInstagramAccount(
 export async function getFacebookPageMessages(
   pageId: string,
   accessToken: string,
-  limit: number = 25
+  limit: number = 25,
 ): Promise<any[]> {
   const response = await fetch(
-    `${FACEBOOK_GRAPH_URL}/${pageId}/conversations?fields=id,snippet,updated_time,participants&limit=${limit}&access_token=${accessToken}`
+    `${FACEBOOK_GRAPH_URL}/${pageId}/conversations?fields=id,snippet,updated_time,participants&limit=${limit}&access_token=${accessToken}`,
   );
 
   if (!response.ok) {
@@ -287,10 +305,10 @@ export async function getFacebookPageMessages(
 export async function getFacebookConversationMessages(
   conversationId: string,
   accessToken: string,
-  limit: number = 25
+  limit: number = 25,
 ): Promise<any[]> {
   const response = await fetch(
-    `${FACEBOOK_GRAPH_URL}/${conversationId}/messages?fields=id,message,from,to,created_time,attachments&limit=${limit}&access_token=${accessToken}`
+    `${FACEBOOK_GRAPH_URL}/${conversationId}/messages?fields=id,message,from,to,created_time,attachments&limit=${limit}&access_token=${accessToken}`,
   );
 
   if (!response.ok) {
@@ -304,19 +322,16 @@ export async function getFacebookConversationMessages(
 export async function sendFacebookMessage(
   recipientId: string,
   message: string,
-  accessToken: string
+  accessToken: string,
 ): Promise<{ messageId: string }> {
-  const response = await fetch(
-    `${FACEBOOK_GRAPH_URL}/me/messages?access_token=${accessToken}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        recipient: { id: recipientId },
-        message: { text: message },
-      }),
-    }
-  );
+  const response = await fetch(`${FACEBOOK_GRAPH_URL}/me/messages?access_token=${accessToken}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      recipient: { id: recipientId },
+      message: { text: message },
+    }),
+  });
 
   if (!response.ok) {
     const error = await response.text();
@@ -332,14 +347,16 @@ export function generateFacebookState(organizationId: number): string {
   return `${organizationId}:${timestamp}:${random}`;
 }
 
-export function parseFacebookState(state: string): { organizationId: number; timestamp: number } | null {
+export function parseFacebookState(
+  state: string,
+): { organizationId: number; timestamp: number } | null {
   const parts = state.split(":");
   if (parts.length !== 3) return null;
-  
+
   const organizationId = parseInt(parts[0], 10);
   const timestamp = parseInt(parts[1], 10);
-  
+
   if (isNaN(organizationId) || isNaN(timestamp)) return null;
-  
+
   return { organizationId, timestamp };
 }

@@ -1,8 +1,12 @@
 import { db } from "@ticket-app/db";
-import { chatbotConfigs, chatbotSessions, chatbotMessages, kbArticles } from "@ticket-app/db/schema";
-import { eq, desc, and, isNull, gte, sql } from "drizzle-orm";
+import {
+  chatbotConfigs,
+  chatbotSessions,
+  chatbotMessages,
+  kbArticles,
+} from "@ticket-app/db/schema";
+import { eq, and, isNull, gte, sql } from "drizzle-orm";
 import { embedText } from "./ai";
-import { users } from "@ticket-app/db/schema";
 
 export interface ChatbotConfig {
   id: number;
@@ -40,13 +44,12 @@ export interface ChatbotResponse {
 }
 
 const DEFAULT_ESCALATION_THRESHOLD = 0.7;
-const DEFAULT_RESPONSE_DELAY = 300;
 
 export async function getChatbotConfig(organizationId: number): Promise<ChatbotConfig | null> {
   const config = await db.query.chatbotConfigs.findFirst({
     where: and(
       eq(chatbotConfigs.organizationId, organizationId),
-      eq(chatbotConfigs.isEnabled, true)
+      eq(chatbotConfigs.isEnabled, true),
     ),
   });
 
@@ -71,7 +74,7 @@ export async function generateKBEmbeddings(articleId: number): Promise<number[]>
 export async function semanticSearchKB(
   organizationId: number,
   query: string,
-  limit: number = 5
+  limit: number = 5,
 ): Promise<SemanticSearchResult[]> {
   const queryEmbedding = await embedText(query.substring(0, 5000));
 
@@ -79,7 +82,7 @@ export async function semanticSearchKB(
     where: and(
       eq(kbArticles.organizationId, organizationId),
       eq(kbArticles.status, "published"),
-      isNull(kbArticles.deletedAt)
+      isNull(kbArticles.deletedAt),
     ),
     limit: 20,
   });
@@ -121,7 +124,7 @@ function cosineSimilarity(a: number[], b: number[]): number {
 
 export async function processChatbotMessage(
   sessionId: number,
-  message: string
+  message: string,
 ): Promise<ChatbotResponse> {
   const session = await db.query.chatbotSessions.findFirst({
     where: eq(chatbotSessions.id, sessionId),
@@ -141,11 +144,7 @@ export async function processChatbotMessage(
   });
 
   const threshold = session.config.escalationThreshold || DEFAULT_ESCALATION_THRESHOLD;
-  const searchResults = await semanticSearchKB(
-    session.config.organizationId,
-    message,
-    3
-  );
+  const searchResults = await semanticSearchKB(session.config.organizationId, message, 3);
 
   let response: ChatbotResponse;
 
@@ -158,19 +157,14 @@ export async function processChatbotMessage(
       intent: "kb_lookup",
     };
   } else {
-    const messageCount = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(chatbotMessages)
-      .where(eq(chatbotMessages.chatbotSessionId, sessionId));
-
     const userMessageCount = await db
       .select({ count: sql<number>`count(*)` })
       .from(chatbotMessages)
       .where(
         and(
           eq(chatbotMessages.chatbotSessionId, sessionId),
-          eq(chatbotMessages.authorType, "user")
-        )
+          eq(chatbotMessages.authorType, "user"),
+        ),
       );
 
     if (userMessageCount[0].count >= 3) {
@@ -219,7 +213,7 @@ export async function escalateChatbotSession(sessionId: number, agentId?: number
 }
 
 export async function getChatbotSessionHistory(
-  sessionId: number
+  sessionId: number,
 ): Promise<{ user: string; bot: string }[]> {
   const messages = await db.query.chatbotMessages.findMany({
     where: eq(chatbotMessages.chatbotSessionId, sessionId),
@@ -251,7 +245,7 @@ export async function getChatbotSessionHistory(
 
 export async function getChatbotAnalytics(
   organizationId: number,
-  days: number = 30
+  days: number = 30,
 ): Promise<{
   totalSessions: number;
   escalatedSessions: number;
@@ -265,7 +259,7 @@ export async function getChatbotAnalytics(
   const sessions = await db.query.chatbotSessions.findMany({
     where: and(
       eq(chatbotSessions.contactId, sql`contact_id`),
-      gte(chatbotSessions.createdAt, startDate)
+      gte(chatbotSessions.createdAt, startDate),
     ),
   });
 

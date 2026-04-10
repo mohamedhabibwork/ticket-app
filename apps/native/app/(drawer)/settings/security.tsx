@@ -1,15 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useMutation } from "@tanstack/react-query";
-import {
-  Button,
-  Divider,
-  Spinner,
-  Surface,
-  Text,
-  TextField,
-  Input,
-  useThemeColor,
-} from "heroui-native";
+import { Button, Spinner, Surface, Text, TextField, Input, useThemeColor } from "heroui-native";
 import { useState } from "react";
 import { View, Alert, ScrollView } from "react-native";
 
@@ -87,9 +78,7 @@ export default function SecuritySettingsScreen() {
   return (
     <Container>
       <ScrollView className="flex-1" contentContainerClassName="p-4">
-        <Text className="text-2xl font-semibold text-foreground tracking-tight mb-2">
-          Security
-        </Text>
+        <Text className="text-2xl font-semibold text-foreground tracking-tight mb-2">Security</Text>
         <Text className="text-muted text-sm mb-4">Manage your account security</Text>
 
         <Text className="text-muted text-xs font-medium mb-2 px-1">CHANGE PASSWORD</Text>
@@ -153,11 +142,7 @@ export default function SecuritySettingsScreen() {
                 Add an extra layer of security to your account
               </Text>
             </View>
-            <Button
-              variant="secondary"
-              size="sm"
-              onPress={() => handleToggle2FA(true)}
-            >
+            <Button variant="secondary" size="sm" onPress={() => handleToggle2FA(true)}>
               <Ionicons name="key-outline" size={16} color={foregroundColor} />
               <Text className="ml-1 text-sm">Enable</Text>
             </Button>
@@ -168,8 +153,8 @@ export default function SecuritySettingsScreen() {
           <View className="flex-row items-start gap-2">
             <Ionicons name="information-circle-outline" size={18} color={mutedColor} />
             <Text className="text-muted text-xs flex-1">
-              Two-factor authentication adds an extra layer of security to your account by
-              requiring a code from your authenticator app in addition to your password.
+              Two-factor authentication adds an extra layer of security to your account by requiring
+              a code from your authenticator app in addition to your password.
             </Text>
           </View>
         </Surface>

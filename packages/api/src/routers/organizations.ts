@@ -31,10 +31,10 @@ export const organizationsRouter = {
   list: publicProcedure
     .input(
       z.object({
-        isActive: z.boolean().optional(),
+        isActive: z.coerce.boolean().optional(),
         search: z.string().optional(),
-        limit: z.number().min(1).max(100).default(50),
-        offset: z.number().min(0).default(0),
+        limit: z.coerce.number().min(1).max(100).default(50),
+        offset: z.coerce.number().min(0).default(0),
       }),
     )
     .handler(async ({ input }) => {
@@ -69,7 +69,7 @@ export const organizationsRouter = {
       };
     }),
 
-  get: publicProcedure.input(z.object({ id: z.number() })).handler(async ({ input }) => {
+  get: publicProcedure.input(z.object({ id: z.coerce.number() })).handler(async ({ input }) => {
     const org = await db.query.organizations.findFirst({
       where: and(eq(organizations.id, input.id), isNull(organizations.deletedAt)),
     });
@@ -127,9 +127,9 @@ export const organizationsRouter = {
         customDomain: z.string().max(255).optional(),
         locale: z.string().max(10).default("en"),
         timezone: z.string().max(50).default("UTC"),
-        planId: z.number().optional(),
-        maxAgents: z.number().optional(),
-        createdBy: z.number().optional(),
+        planId: z.coerce.number().optional(),
+        maxAgents: z.coerce.number().optional(),
+        createdBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -188,7 +188,7 @@ export const organizationsRouter = {
   update: publicProcedure
     .input(
       z.object({
-        id: z.number(),
+        id: z.coerce.number(),
         name: z.string().min(1).max(255).optional(),
         slug: z
           .string()
@@ -205,8 +205,8 @@ export const organizationsRouter = {
         customDomain: z.string().max(255).optional().nullable,
         locale: z.string().max(10).optional(),
         timezone: z.string().max(50).optional(),
-        isActive: z.boolean().optional(),
-        maxAgents: z.number().optional().nullable,
+        isActive: z.coerce.boolean().optional(),
+        maxAgents: z.coerce.number().optional().nullable,
       }),
     )
     .handler(async ({ input }) => {
@@ -267,8 +267,8 @@ export const organizationsRouter = {
   delete: publicProcedure
     .input(
       z.object({
-        id: z.number(),
-        deletedBy: z.number().optional(),
+        id: z.coerce.number(),
+        deletedBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -294,7 +294,7 @@ export const organizationsRouter = {
     }),
 
   verifyCustomDomain: publicProcedure
-    .input(z.object({ id: z.number() }))
+    .input(z.object({ id: z.coerce.number() }))
     .handler(async ({ input }) => {
       const [updated] = await db
         .update(organizations)
@@ -309,7 +309,7 @@ export const organizationsRouter = {
     }),
 
   getSettings: publicProcedure
-    .input(z.object({ organizationId: z.number() }))
+    .input(z.object({ organizationId: z.coerce.number() }))
     .handler(async ({ input }) => {
       const settings = await db.query.organizationSettings.findMany({
         where: eq(organizationSettings.organizationId, input.organizationId),
@@ -325,7 +325,7 @@ export const organizationsRouter = {
   getSetting: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         key: z.string(),
       }),
     )
@@ -342,10 +342,10 @@ export const organizationsRouter = {
   setSetting: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         key: z.string(),
         value: z.string(),
-        createdBy: z.number().optional(),
+        createdBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -385,7 +385,7 @@ export const organizationsRouter = {
   deleteSetting: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         key: z.string(),
       }),
     )
@@ -405,9 +405,9 @@ export const organizationsRouter = {
   bulkSetSettings: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         settings: z.record(z.string()),
-        createdBy: z.number().optional(),
+        createdBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -450,7 +450,7 @@ export const organizationsRouter = {
     }),
 
   getBranding: publicProcedure
-    .input(z.object({ organizationId: z.number() }))
+    .input(z.object({ organizationId: z.coerce.number() }))
     .handler(async ({ input }) => {
       const branding = await db.query.brandingConfigs.findFirst({
         where: eq(brandingConfigs.organizationId, input.organizationId),
@@ -461,23 +461,23 @@ export const organizationsRouter = {
   updateBranding: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        logoUrl: z.string().url().optional().nullable(),
-        faviconUrl: z.string().url().optional().nullable(),
+        organizationId: z.coerce.number(),
+        logoUrl: z.url().optional().nullable(),
+        faviconUrl: z.url().optional().nullable(),
         primaryColor: z.string().max(7).optional(),
         secondaryColor: z.string().max(7).optional(),
         backgroundColor: z.string().max(7).optional(),
         fontFamily: z.string().max(100).optional().nullable(),
         customCss: z.string().optional().nullable(),
-        loginBgUrl: z.string().url().optional().nullable(),
+        loginBgUrl: z.url().optional().nullable(),
         loginHeadline: z.string().max(255).optional().nullable(),
-        hideVendorBranding: z.boolean().optional(),
+        hideVendorBranding: z.coerce.boolean().optional(),
         portalHeaderHtml: z.string().optional().nullable(),
         portalFooterHtml: z.string().optional().nullable(),
-        emailLogoUrl: z.string().url().optional().nullable(),
+        emailLogoUrl: z.url().optional().nullable(),
         emailHeaderColor: z.string().max(7).optional(),
         emailFooterText: z.string().optional().nullable(),
-        updatedBy: z.number().optional(),
+        updatedBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -538,20 +538,22 @@ export const organizationsRouter = {
       return updated;
     }),
 
-  getTheme: publicProcedure.input(z.object({ userId: z.number() })).handler(async ({ input }) => {
-    const theme = await db.query.themes.findFirst({
-      where: eq(themes.userId, input.userId),
-    });
-    return theme ?? null;
-  }),
+  getTheme: publicProcedure
+    .input(z.object({ userId: z.coerce.number() }))
+    .handler(async ({ input }) => {
+      const theme = await db.query.themes.findFirst({
+        where: eq(themes.userId, input.userId),
+      });
+      return theme ?? null;
+    }),
 
   updateTheme: publicProcedure
     .input(
       z.object({
-        userId: z.number(),
+        userId: z.coerce.number(),
         mode: z.enum(["light", "dark", "system"]).optional(),
         density: z.enum(["compact", "comfortable", "spacious"]).optional(),
-        sidebarCollapsed: z.boolean().optional(),
+        sidebarCollapsed: z.coerce.boolean().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -587,7 +589,7 @@ export const organizationsRouter = {
     }),
 
   getFullOrganization: publicProcedure
-    .input(z.object({ id: z.number() }))
+    .input(z.object({ id: z.coerce.number() }))
     .handler(async ({ input }) => {
       const org = await db.query.organizations.findFirst({
         where: and(eq(organizations.id, input.id), isNull(organizations.deletedAt)),

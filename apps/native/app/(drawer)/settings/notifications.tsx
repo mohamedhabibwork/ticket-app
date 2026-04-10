@@ -1,6 +1,5 @@
-import { Ionicons } from "@expo/vector-icons";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Switch, Divider, Spinner, Surface, Text, Button, useThemeColor } from "heroui-native";
+import { Switch, Spinner, Surface, Text, useThemeColor } from "heroui-native";
 import { View } from "react-native";
 
 import { Container } from "@/components/container";
@@ -15,7 +14,7 @@ interface NotificationToggleProps {
 }
 
 function NotificationToggle({ title, description, value, onValueChange }: NotificationToggleProps) {
-  const foregroundColor = useThemeColor("foreground");
+  const _foregroundColor = useThemeColor("foreground");
 
   return (
     <Surface variant="secondary" className="p-4 rounded-lg mb-2">
@@ -37,7 +36,7 @@ function NotificationToggle({ title, description, value, onValueChange }: Notifi
 }
 
 export default function NotificationSettingsScreen() {
-  const foregroundColor = useThemeColor("foreground");
+  const _foregroundColor = useThemeColor("foreground");
 
   const { data: settings, isLoading } = useQuery(orpc.users.getNotificationSettings.queryOptions());
   const updateMutation = useMutation(orpc.users.updateNotificationSettings.mutationOptions());

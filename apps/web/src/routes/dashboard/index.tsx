@@ -1,13 +1,21 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@ticket-app/ui/components/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
 import { Button } from "@ticket-app/ui/components/button";
-import { Loader2, ArrowUpRight, ArrowDownRight, MessageSquare, Clock, CheckCircle, AlertTriangle, Users, Plus, Search, FileText, ChevronDown, ChevronUp, Calendar } from "lucide-react";
+import {
+  Loader2,
+  ArrowUpRight,
+  MessageSquare,
+  Clock,
+  AlertTriangle,
+  Users,
+  Plus,
+  Search,
+  FileText,
+  ChevronDown,
+  ChevronUp,
+  Calendar,
+} from "lucide-react";
 import { orpc } from "@/utils/orpc";
 import { useState } from "react";
 
@@ -48,7 +56,7 @@ function DashboardRoute() {
     orpc.tickets.list.queryOptions({
       organizationId,
       limit: 1,
-    })
+    }),
   );
 
   const { data: myTickets, isLoading: loadingMyTickets } = useQuery(
@@ -56,37 +64,37 @@ function DashboardRoute() {
       organizationId,
       assignedAgentId: currentUserId,
       limit: 10,
-    })
+    }),
   );
 
   const { data: responseTimeData, isLoading: loadingResponseTime } = useQuery(
     orpc.reports.getResponseTime.queryOptions({
       organizationId,
-    })
+    }),
   );
 
   const { data: slaData, isLoading: loadingSla } = useQuery(
     orpc.reports.getSlaCompliance.queryOptions({
       organizationId,
-    })
+    }),
   );
 
   const { data: chatStats, isLoading: loadingChat } = useQuery(
     orpc.chatSessions.getActiveSessions.queryOptions({
       organizationId,
-    })
+    }),
   );
 
   const { data: teamMembers, isLoading: loadingTeam } = useQuery(
     orpc.users.list.queryOptions({
       organizationId,
-    })
+    }),
   );
 
   const { data: breachedSla, isLoading: loadingBreached } = useQuery(
     orpc.ticketSla.listBreached.queryOptions({
       organizationId,
-    })
+    }),
   );
 
   const { data: upcomingEvents, isLoading: loadingEvents } = useQuery(
@@ -94,34 +102,39 @@ function DashboardRoute() {
       userId: currentUserId,
       startDate: new Date().toISOString(),
       endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-    })
+    }),
   );
 
   const openTicketCount = openTickets?.length || 0;
   const myTicketCount = myTickets?.length || 0;
   const avgResponseMinutes = responseTimeData?.averageResponseTimeMinutes || 0;
   const csatScore = slaData ? Math.round((slaData.withinSla / (slaData.total || 1)) * 100) : 0;
-  const activeChats = chatStats?.filter(c => c.status === "active").length || 0;
-  const waitingChats = chatStats?.filter(c => c.status === "waiting").length || 0;
+  const activeChats = chatStats?.filter((c) => c.status === "active").length || 0;
+  const waitingChats = chatStats?.filter((c) => c.status === "waiting").length || 0;
   const onlineAgents = teamMembers?.users?.filter((u: any) => u.isActive).length || 0;
   const totalAgents = teamMembers?.users?.length || 0;
 
-  const ticketsToday = myTickets?.filter((t: any) => {
-    const today = new Date();
-    const ticketDate = new Date(t.createdAt);
-    return ticketDate.toDateString() === today.toDateString();
-  }).length || 0;
+  const ticketsToday =
+    myTickets?.filter((t: any) => {
+      const today = new Date();
+      const ticketDate = new Date(t.createdAt);
+      return ticketDate.toDateString() === today.toDateString();
+    }).length || 0;
 
-  const resolvedToday = myTickets?.filter((t: any) => {
-    const today = new Date();
-    const resolved = t.resolvedAt ? new Date(t.resolvedAt) : null;
-    return resolved && resolved.toDateString() === today.toDateString();
-  }).length || 0;
+  const resolvedToday =
+    myTickets?.filter((t: any) => {
+      const today = new Date();
+      const resolved = t.resolvedAt ? new Date(t.resolvedAt) : null;
+      return resolved && resolved.toDateString() === today.toDateString();
+    }).length || 0;
 
-  const agentTicketCounts = teamMembers?.users?.reduce((acc: Record<number, number>, user: any) => {
-    acc[user.id] = 0;
-    return acc;
-  }, {});
+  const _agentTicketCounts = teamMembers?.users?.reduce(
+    (acc: Record<number, number>, user: any) => {
+      acc[user.id] = 0;
+      return acc;
+    },
+    {},
+  );
 
   return (
     <div className="container mx-auto max-w-7xl px-4 py-6">
@@ -195,9 +208,7 @@ function DashboardRoute() {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">
-              CSAT Score
-            </CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">CSAT Score</CardTitle>
           </CardHeader>
           <CardContent>
             {loadingSla ? (
@@ -221,7 +232,9 @@ function DashboardRoute() {
             <div className="flex items-center justify-between">
               <CardTitle>Recent Ticket Activity</CardTitle>
               <Link to="/tickets">
-                <Button variant="ghost" size="sm">View All</Button>
+                <Button variant="ghost" size="sm">
+                  View All
+                </Button>
               </Link>
             </div>
           </CardHeader>
@@ -233,7 +246,10 @@ function DashboardRoute() {
             ) : myTickets && myTickets.length > 0 ? (
               <div className="space-y-3">
                 {myTickets.slice(0, 5).map((ticket: any) => (
-                  <div key={ticket.id} className="flex items-center justify-between p-3 rounded border">
+                  <div
+                    key={ticket.id}
+                    className="flex items-center justify-between p-3 rounded border"
+                  >
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-xs font-mono text-muted-foreground">
@@ -258,7 +274,8 @@ function DashboardRoute() {
                       </div>
                       <p className="text-sm font-medium truncate">{ticket.subject}</p>
                       <p className="text-xs text-muted-foreground mt-1">
-                        {ticket.contact?.firstName} {ticket.contact?.lastName} · {formatRelativeTime(ticket.createdAt)}
+                        {ticket.contact?.firstName} {ticket.contact?.lastName} ·{" "}
+                        {formatRelativeTime(ticket.createdAt)}
                       </p>
                     </div>
                     <div className="flex items-center gap-2 ml-4">
@@ -284,7 +301,9 @@ function DashboardRoute() {
             <div className="flex items-center justify-between">
               <CardTitle>Chat Queue</CardTitle>
               <Link to="/chat">
-                <Button variant="ghost" size="sm">View</Button>
+                <Button variant="ghost" size="sm">
+                  View
+                </Button>
               </Link>
             </div>
           </CardHeader>
@@ -356,9 +375,7 @@ function DashboardRoute() {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8 text-muted-foreground">
-                No SLA warnings
-              </div>
+              <div className="text-center py-8 text-muted-foreground">No SLA warnings</div>
             )}
           </CardContent>
         </Card>
@@ -387,7 +404,8 @@ function DashboardRoute() {
                   <div key={agent.id} className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center text-xs font-medium">
-                        {agent.firstName?.[0]}{agent.lastName?.[0]}
+                        {agent.firstName?.[0]}
+                        {agent.lastName?.[0]}
                       </div>
                       <div>
                         <div className="text-sm font-medium">
@@ -410,9 +428,7 @@ function DashboardRoute() {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8 text-muted-foreground">
-                No team members found
-              </div>
+              <div className="text-center py-8 text-muted-foreground">No team members found</div>
             )}
           </CardContent>
         </Card>

@@ -1,0 +1,31 @@
+{
+  "name": "@ticket-app/cache",
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./driver": {
+      "default": "./src/driver.ts"
+    },
+    "./redis": {
+      "default": "./src/redis.ts"
+    },
+    "./memory": {
+      "default": "./src/memory.ts"
+    },
+    "./manager": {
+      "default": "./src/manager.ts"
+    }
+  },
+  "scripts": {},
+  "dependencies": {
+    "ioredis": "catalog:",
+    "lru-cache": "^11.0.0"
+  },
+  "devDependencies": {
+    "@ticket-app/config": "workspace:*",
+    "@ticket-app/env": "workspace:*",
+    "typescript": "^5"
+  }
+}

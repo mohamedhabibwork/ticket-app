@@ -1,12 +1,7 @@
 import Stripe from "stripe";
 import { env } from "@ticket-app/env/server";
 import { db } from "@ticket-app/db";
-import {
-  stripeCustomers,
-  stripeSubscriptions,
-  subscriptions,
-  organizations,
-} from "@ticket-app/db/schema";
+import { stripeCustomers } from "@ticket-app/db/schema";
 import { eq } from "drizzle-orm";
 
 export const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
@@ -16,7 +11,7 @@ export const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
 export async function getOrCreateStripeCustomer(
   organizationId: number,
   email: string,
-  name: string
+  name: string,
 ): Promise<string> {
   let customer = await db.query.stripeCustomers.findFirst({
     where: eq(stripeCustomers.organizationId, organizationId),
@@ -80,9 +75,7 @@ export async function updateStripeSubscription(params: {
   priceId?: string;
   seatCount?: number;
 }): Promise<Stripe.Subscription> {
-  const subscription = await stripe.subscriptions.retrieve(
-    params.stripeSubscriptionId
-  );
+  const subscription = await stripe.subscriptions.retrieve(params.stripeSubscriptionId);
 
   const updateParams: Stripe.SubscriptionUpdateParams = {
     items: [],
@@ -101,10 +94,7 @@ export async function updateStripeSubscription(params: {
     }
   }
 
-  const updated = await stripe.subscriptions.update(
-    params.stripeSubscriptionId,
-    updateParams
-  );
+  const updated = await stripe.subscriptions.update(params.stripeSubscriptionId, updateParams);
 
   return updated;
 }
@@ -124,7 +114,7 @@ export async function cancelStripeSubscription(params: {
 
 export async function createBillingPortalSession(
   customerId: string,
-  returnUrl: string
+  returnUrl: string,
 ): Promise<string> {
   const session = await stripe.billingPortal.sessions.create({
     customer: customerId,
@@ -169,7 +159,7 @@ export async function createCheckoutSession(params: {
 }
 
 export async function getPaymentMethod(
-  paymentMethodId: string
+  paymentMethodId: string,
 ): Promise<Stripe.PaymentMethod | null> {
   try {
     return await stripe.paymentMethods.retrieve(paymentMethodId);
@@ -180,7 +170,7 @@ export async function getPaymentMethod(
 
 export async function attachPaymentMethod(
   customerId: string,
-  paymentMethodId: string
+  paymentMethodId: string,
 ): Promise<void> {
   await stripe.paymentMethods.attach(paymentMethodId, {
     customer: customerId,
@@ -189,7 +179,7 @@ export async function attachPaymentMethod(
 
 export async function setDefaultPaymentMethod(
   customerId: string,
-  paymentMethodId: string
+  paymentMethodId: string,
 ): Promise<void> {
   await stripe.customers.update(customerId, {
     invoice_settings: {

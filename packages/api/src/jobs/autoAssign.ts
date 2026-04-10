@@ -7,11 +7,7 @@ import {
   autoAssignQueue,
   type AutoAssignJobData,
 } from "@ticket-app/db/lib/queues";
-
-const connection = {
-  host: process.env.REDIS_URL?.replace("redis://", "").split(":")[0] || "localhost",
-  port: parseInt(process.env.REDIS_URL?.split(":")[2] || "6379"),
-};
+import { getRedis } from "@ticket-app/queue";
 
 export async function executeAutoAssignment(job: Job<AutoAssignJobData>): Promise<void> {
   const { ticketId, teamId } = job.data;
@@ -173,8 +169,8 @@ async function selectAgent(teamId: number, method: string): Promise<number | nul
 }
 
 export function createAutoAssignWorker() {
-  return new Worker<AutoAssignJobData>("ticket:auto_assign", executeAutoAssignment, {
-    connection,
+  return new Worker<AutoAssignJobData>("ticket-auto-assign", executeAutoAssignment, {
+    connection: getRedis(),
     concurrency: 5,
   });
 }

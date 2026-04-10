@@ -51,14 +51,18 @@ export const Route = createFileRoute("/admin/email-templates/")({
 function EmailTemplatesRoute() {
   const [selectedTemplate, setSelectedTemplate] = useState<EmailTemplate | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [isCreating, setIsCreating] = useState(false);
+  const [_isCreating, setIsCreating] = useState(false);
   const [editData, setEditData] = useState<EmailTemplate | null>(null);
   const [previewMode, setPreviewMode] = useState(false);
 
-  const { data: templates, isLoading, refetch } = useQuery(
+  const {
+    data: templates,
+    isLoading,
+    refetch,
+  } = useQuery(
     orpc.emailTemplates.list.queryOptions({
       organizationId: 1,
-    })
+    }),
   );
 
   const createMutation = useMutation(
@@ -68,7 +72,7 @@ function EmailTemplatesRoute() {
         setEditData(null);
         refetch();
       },
-    })
+    }),
   );
 
   const updateMutation = useMutation(
@@ -79,7 +83,7 @@ function EmailTemplatesRoute() {
         setSelectedTemplate(null);
         refetch();
       },
-    })
+    }),
   );
 
   const deleteMutation = useMutation(
@@ -88,7 +92,7 @@ function EmailTemplatesRoute() {
         setSelectedTemplate(null);
         refetch();
       },
-    })
+    }),
   );
 
   const handleCreate = () => {
@@ -148,7 +152,7 @@ function EmailTemplatesRoute() {
     });
   };
 
-  const copyToClipboard = (text: string) => {
+  const _copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
   };
 
@@ -180,7 +184,9 @@ function EmailTemplatesRoute() {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Email Templates</h1>
-          <p className="text-muted-foreground">Manage email templates for auto-replies and notifications</p>
+          <p className="text-muted-foreground">
+            Manage email templates for auto-replies and notifications
+          </p>
         </div>
         <Button onClick={handleCreate}>
           <Plus className="mr-2 h-4 w-4" />
@@ -239,7 +245,9 @@ function EmailTemplatesRoute() {
               <CardHeader>
                 <CardTitle>{editData.id ? "Edit Template" : "New Template"}</CardTitle>
                 <CardDescription>
-                  {editData.id ? "Modify the email template details" : "Create a new email template"}
+                  {editData.id
+                    ? "Modify the email template details"
+                    : "Create a new email template"}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -258,11 +266,15 @@ function EmailTemplatesRoute() {
                     <select
                       id="type"
                       value={editData.type}
-                      onChange={(e) => setEditData({ ...editData, type: e.target.value as EmailTemplate["type"] })}
+                      onChange={(e) =>
+                        setEditData({ ...editData, type: e.target.value as EmailTemplate["type"] })
+                      }
                       className="flex h-8 w-full rounded-none border border-input bg-transparent px-3 py-1 text-xs transition-colors outline-none focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50"
                     >
                       {TEMPLATE_TYPES.map((t) => (
-                        <option key={t.value} value={t.value}>{t.label}</option>
+                        <option key={t.value} value={t.value}>
+                          {t.label}
+                        </option>
                       ))}
                     </select>
                   </div>
@@ -281,11 +293,7 @@ function EmailTemplatesRoute() {
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <Label htmlFor="body">Email Body *</Label>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setPreviewMode(!previewMode)}
-                    >
+                    <Button variant="ghost" size="sm" onClick={() => setPreviewMode(!previewMode)}>
                       <Eye className="mr-2 h-4 w-4" />
                       {previewMode ? "Edit" : "Preview"}
                     </Button>
@@ -335,7 +343,9 @@ function EmailTemplatesRoute() {
                   <Checkbox
                     id="isActive"
                     checked={editData.isActive}
-                    onCheckedChange={(checked) => setEditData({ ...editData, isActive: checked as boolean })}
+                    onCheckedChange={(checked) =>
+                      setEditData({ ...editData, isActive: checked as boolean })
+                    }
                   />
                   <Label htmlFor="isActive" className="font-normal">
                     Active
@@ -346,7 +356,10 @@ function EmailTemplatesRoute() {
                   <Button variant="outline" onClick={handleCancel}>
                     Cancel
                   </Button>
-                  <Button onClick={handleSave} disabled={!editData.name || !editData.subject || !editData.body}>
+                  <Button
+                    onClick={handleSave}
+                    disabled={!editData.name || !editData.subject || !editData.body}
+                  >
                     Save Template
                   </Button>
                 </div>
@@ -389,15 +402,17 @@ function EmailTemplatesRoute() {
                   <Label className="text-muted-foreground">Body</Label>
                   <div className="mt-1 p-4 bg-muted/50 rounded-lg">
                     {selectedTemplate.body.split("\n").map((line, i) => (
-                      <p key={i} className="mb-1">{line || <br />}</p>
+                      <p key={i} className="mb-1">
+                        {line || <br />}
+                      </p>
                     ))}
                   </div>
                 </div>
                 <div>
                   <Label className="text-muted-foreground">Merge Tags Used</Label>
                   <div className="flex flex-wrap gap-2 mt-2">
-                    {AVAILABLE_MERGE_TAGS.filter((mt) => 
-                      selectedTemplate.body.includes(mt.tag)
+                    {AVAILABLE_MERGE_TAGS.filter((mt) =>
+                      selectedTemplate.body.includes(mt.tag),
                     ).map((mt) => (
                       <span
                         key={mt.tag}
@@ -407,9 +422,8 @@ function EmailTemplatesRoute() {
                         {mt.tag}
                       </span>
                     ))}
-                    {AVAILABLE_MERGE_TAGS.filter((mt) => 
-                      !selectedTemplate.body.includes(mt.tag)
-                    ).length === AVAILABLE_MERGE_TAGS.length && (
+                    {AVAILABLE_MERGE_TAGS.filter((mt) => !selectedTemplate.body.includes(mt.tag))
+                      .length === AVAILABLE_MERGE_TAGS.length && (
                       <span className="text-sm text-muted-foreground">No merge tags used</span>
                     )}
                   </div>

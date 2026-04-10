@@ -2,10 +2,22 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { Button } from "@ticket-app/ui/components/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@ticket-app/ui/components/dropdown-menu";
+import { Card, CardContent } from "@ticket-app/ui/components/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@ticket-app/ui/components/dropdown-menu";
 import { Input } from "@ticket-app/ui/components/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@ticket-app/ui/components/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@ticket-app/ui/components/select";
 import { Badge } from "@ticket-app/ui/components/badge";
 import { orpc } from "@/utils/orpc";
 import {
@@ -58,7 +70,11 @@ function WorkflowListRoute() {
   const [triggerFilter, setTriggerFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
-  const { data: workflows, isLoading, refetch } = useQuery({
+  const {
+    data: workflows,
+    isLoading,
+    _refetch,
+  } = useQuery({
     queryKey: ["workflows", triggerFilter, statusFilter],
     queryFn: () =>
       orpc.workflows.list.queryOptions({
@@ -72,7 +88,7 @@ function WorkflowListRoute() {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ["workflows"] });
       },
-    })
+    }),
   );
 
   const toggleActiveMutation = useMutation(
@@ -80,14 +96,12 @@ function WorkflowListRoute() {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ["workflows"] });
       },
-    })
+    }),
   );
 
   const handleDelete = (workflowId: number, workflowName: string) => {
     if (
-      confirm(
-        `Are you sure you want to delete "${workflowName}"? This action cannot be undone.`
-      )
+      confirm(`Are you sure you want to delete "${workflowName}"? This action cannot be undone.`)
     ) {
       deleteMutation.mutate({ id: workflowId, organizationId: 1 });
     }
@@ -106,8 +120,7 @@ function WorkflowListRoute() {
       searchQuery === "" ||
       workflow.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       workflow.description?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesTrigger =
-      triggerFilter === "all" || workflow.trigger === triggerFilter;
+    const matchesTrigger = triggerFilter === "all" || workflow.trigger === triggerFilter;
     return matchesSearch && matchesTrigger;
   });
 
@@ -215,16 +228,10 @@ function WorkflowListRoute() {
                           {TRIGGER_LABELS[workflow.trigger] || workflow.trigger}
                         </Badge>
                       </span>
-                      <span>
-                        {workflow.conditions?.rules?.length || 0} conditions
-                      </span>
-                      <span>
-                        {workflow.actions?.length || 0} actions
-                      </span>
+                      <span>{workflow.conditions?.rules?.length || 0} conditions</span>
+                      <span>{workflow.actions?.length || 0} actions</span>
                       {workflow.lastExecutedAt && (
-                        <span>
-                          Last run: {formatRelativeTime(workflow.lastExecutedAt)}
-                        </span>
+                        <span>Last run: {formatRelativeTime(workflow.lastExecutedAt)}</span>
                       )}
                     </div>
                   </div>

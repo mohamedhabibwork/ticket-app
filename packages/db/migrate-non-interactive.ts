@@ -3,7 +3,7 @@ import { join } from "path";
 import pg from "pg";
 
 const pool = new pg.Pool({
-  connectionString: "postgresql://postgres:password@localhost:5432/postgres",
+  connectionString: "postgresql://postgres:@localhost:5432/ticket",
 });
 
 async function getAppliedMigrations() {

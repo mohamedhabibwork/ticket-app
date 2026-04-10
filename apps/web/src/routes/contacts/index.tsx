@@ -4,10 +4,24 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@ticket-app/ui/components/button";
 import { Card, CardContent } from "@ticket-app/ui/components/card";
 import { Input } from "@ticket-app/ui/components/input";
-import { Label } from "@ticket-app/ui/components/label";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@ticket-app/ui/components/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@ticket-app/ui/components/dropdown-menu";
 import { orpc } from "@/utils/orpc";
-import { Plus, Search, MoreHorizontal, Edit, Merge, Download, User, Mail, Building } from "lucide-react";
+import {
+  Plus,
+  Search,
+  MoreHorizontal,
+  Edit,
+  Merge,
+  Download,
+  User,
+  Mail,
+  Building,
+} from "lucide-react";
 import { Loader2 } from "lucide-react";
 
 export const Route = createFileRoute("/contacts/")({
@@ -24,7 +38,7 @@ function ContactsIndexRoute() {
       organizationId,
       search: search || undefined,
       limit: 50,
-    })
+    }),
   );
 
   const companies = [...new Set(contacts?.map((c) => c.company).filter(Boolean))];

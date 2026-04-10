@@ -1,16 +1,12 @@
 import { Worker, Job, Queue } from "bullmq";
-import { eq, and, isNull, sql } from "drizzle-orm";
+import { eq, and, isNull } from "drizzle-orm";
 
 import { db } from "@ticket-app/db";
-import {
-  ecommerceStores,
-  ecommerceOrders,
-  contacts,
-} from "@ticket-app/db/schema";
+import { ecommerceStores, ecommerceOrders, contacts } from "@ticket-app/db/schema";
 import { getRedis } from "../redis";
 import { env } from "@ticket-app/env/server";
 
-const ECOMMERCE_SYNC_QUEUE = `${env.QUEUE_PREFIX}:ecommerce-sync`;
+const ECOMMERCE_SYNC_QUEUE = `${env.QUEUE_PREFIX}-ecommerce-sync`;
 
 export interface EcommerceSyncJobData {
   storeId: number;
@@ -63,9 +59,13 @@ const ecommerceSyncQueue = new Queue(ECOMMERCE_SYNC_QUEUE, {
 });
 
 export async function addEcommerceSyncJob(storeId: number): Promise<void> {
-  await ecommerceSyncQueue.add("sync-store", { storeId }, {
-    jobId: `ecommerce-sync-${storeId}`,
-  });
+  await ecommerceSyncQueue.add(
+    "sync-store",
+    { storeId },
+    {
+      jobId: `ecommerce-sync-${storeId}`,
+    },
+  );
 }
 
 export async function scheduleEcommerceSyncPoll(intervalMs: number = 300000): Promise<void> {
@@ -75,7 +75,7 @@ export async function scheduleEcommerceSyncPoll(intervalMs: number = 300000): Pr
     {
       repeat: { every: intervalMs },
       jobId: "ecommerce-sync-poll-recurring",
-    }
+    },
   );
 }
 
@@ -89,7 +89,7 @@ export function createEcommerceSyncWorker(): Worker {
         where: and(
           eq(ecommerceStores.id, storeId),
           eq(ecommerceStores.isActive, true),
-          isNull(ecommerceStores.deletedAt)
+          isNull(ecommerceStores.deletedAt),
         ),
       });
 
@@ -144,7 +144,7 @@ export function createEcommerceSyncWorker(): Worker {
     {
       connection: getRedis(),
       concurrency: 2,
-    }
+    },
   );
 }
 
@@ -163,20 +163,24 @@ async function refreshOAuthToken(store: typeof ecommerceStores.$inferSelect): Pr
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          client_id: process.env.SHOPIFY_CLIENT_ID,
-          client_secret: process.env.SHOPIFY_CLIENT_SECRET,
+          client_id: env.SHOPIFY_CLIENT_ID,
+          client_secret: env.SHOPIFY_CLIENT_SECRET,
           refresh_token: store.refreshTokenEnc,
         }),
       });
-      const data = await response.json() as { access_token: string; refresh_token?: string; expires_in?: number };
+      const data = (await response.json()) as {
+        access_token: string;
+        refresh_token?: string;
+        expires_in?: number;
+      };
       newAccessToken = data.access_token;
       newRefreshToken = data.refresh_token;
       newExpiresAt = data.expires_in ? new Date(Date.now() + data.expires_in * 1000) : undefined;
       break;
     }
     case "woocommerce": {
-      const consumerKey = process.env.WOOCOMMERCE_CONSUMER_KEY;
-      const consumerSecret = process.env.WOOCOMMERCE_CONSUMER_SECRET;
+      const consumerKey = env.WOOCOMMERCE_CONSUMER_KEY;
+      const consumerSecret = env.WOOCOMMERCE_CONSUMER_SECRET;
       const credentials = Buffer.from(`${consumerKey}:${consumerSecret}`).toString("base64");
       const response = await fetch(`${store.shopDomain}/wp-json/wc/v3/oauth/token`, {
         method: "POST",
@@ -189,7 +193,7 @@ async function refreshOAuthToken(store: typeof ecommerceStores.$inferSelect): Pr
           refresh_token: store.refreshTokenEnc,
         }),
       });
-      const data = await response.json() as { access_token: string; refresh_token?: string };
+      const data = (await response.json()) as { access_token: string; refresh_token?: string };
       newAccessToken = data.access_token;
       newRefreshToken = data.refresh_token;
       break;
@@ -201,11 +205,15 @@ async function refreshOAuthToken(store: typeof ecommerceStores.$inferSelect): Pr
         body: new URLSearchParams({
           grant_type: "refresh_token",
           refresh_token: store.refreshTokenEnc,
-          client_id: process.env.SALLA_CLIENT_ID,
-          client_secret: process.env.SALLA_CLIENT_SECRET,
+          client_id: env.SALLA_CLIENT_ID,
+          client_secret: env.SALLA_CLIENT_SECRET,
         }),
       });
-      const data = await response.json() as { access_token: string; refresh_token?: string; expires_in: number };
+      const data = (await response.json()) as {
+        access_token: string;
+        refresh_token?: string;
+        expires_in: number;
+      };
       newAccessToken = data.access_token;
       newRefreshToken = data.refresh_token;
       newExpiresAt = new Date(Date.now() + data.expires_in * 1000);
@@ -218,11 +226,15 @@ async function refreshOAuthToken(store: typeof ecommerceStores.$inferSelect): Pr
         body: new URLSearchParams({
           grant_type: "refresh_token",
           refresh_token: store.refreshTokenEnc,
-          client_id: process.env.ZID_CLIENT_ID,
-          client_secret: process.env.ZID_CLIENT_SECRET,
+          client_id: env.ZID_CLIENT_ID,
+          client_secret: env.ZID_CLIENT_SECRET,
         }),
       });
-      const data = await response.json() as { access_token: string; refresh_token?: string; expires_in: number };
+      const data = (await response.json()) as {
+        access_token: string;
+        refresh_token?: string;
+        expires_in: number;
+      };
       newAccessToken = data.access_token;
       newRefreshToken = data.refresh_token;
       newExpiresAt = new Date(Date.now() + data.expires_in * 1000);
@@ -243,7 +255,9 @@ async function refreshOAuthToken(store: typeof ecommerceStores.$inferSelect): Pr
     .where(eq(ecommerceStores.id, store.id));
 }
 
-async function pollEcommerceOrders(store: typeof ecommerceStores.$inferSelect): Promise<EcommerceOrderPayload[]> {
+async function pollEcommerceOrders(
+  store: typeof ecommerceStores.$inferSelect,
+): Promise<EcommerceOrderPayload[]> {
   switch (store.platform.toLowerCase()) {
     case "shopify":
       return pollShopifyOrders(store);
@@ -259,14 +273,16 @@ async function pollEcommerceOrders(store: typeof ecommerceStores.$inferSelect): 
   }
 }
 
-async function pollShopifyOrders(store: typeof ecommerceStores.$inferSelect): Promise<EcommerceOrderPayload[]> {
+async function pollShopifyOrders(
+  store: typeof ecommerceStores.$inferSelect,
+): Promise<EcommerceOrderPayload[]> {
   try {
-    const sinceDate = store.lastSyncAt 
+    const sinceDate = store.lastSyncAt
       ? new Date(store.lastSyncAt.getTime() - 60000).toISOString()
       : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
     const url = `https://${store.shopDomain}/admin/api/2024-01/orders.json?status=any&updated_at_min=${sinceDate}&limit=250`;
-    
+
     const response = await fetch(url, {
       headers: {
         "X-Shopify-Access-Token": store.accessTokenEnc,
@@ -278,7 +294,7 @@ async function pollShopifyOrders(store: typeof ecommerceStores.$inferSelect): Pr
       throw new Error(`Shopify API error: ${response.status}`);
     }
 
-    const data = await response.json() as { orders: any[] };
+    const data = (await response.json()) as { orders: any[] };
     const orders: EcommerceOrderPayload[] = [];
 
     for (const order of data.orders || []) {
@@ -297,20 +313,23 @@ async function pollShopifyOrders(store: typeof ecommerceStores.$inferSelect): Pr
         discountCodes: order.discount_codes?.map((d: any) => d.code) || [],
         customerEmail: order.email,
         customerPhone: order.phone,
-        customerName: order.customer ? `${order.customer.first_name} ${order.customer.last_name}`.trim() : undefined,
+        customerName: order.customer
+          ? `${order.customer.first_name} ${order.customer.last_name}`.trim()
+          : undefined,
         billingAddress: order.billing_address,
         shippingAddress: order.shipping_address,
         shippingMethod: order.shipping_lines?.[0]?.title,
         trackingNumber: order.fulfillments?.[0]?.tracking_number,
         trackingUrl: order.fulfillments?.[0]?.tracking_url,
-        lineItems: order.line_items?.map((item: any) => ({
-          productId: item.product_id?.toString() || "",
-          variantId: item.variant_id?.toString(),
-          name: item.title,
-          quantity: item.quantity,
-          price: item.price,
-          sku: item.sku,
-        })) || [],
+        lineItems:
+          order.line_items?.map((item: any) => ({
+            productId: item.product_id?.toString() || "",
+            variantId: item.variant_id?.toString(),
+            name: item.title,
+            quantity: item.quantity,
+            price: item.price,
+            sku: item.sku,
+          })) || [],
         platformCreatedAt: new Date(order.created_at),
         platformUpdatedAt: new Date(order.updated_at),
       });
@@ -323,14 +342,16 @@ async function pollShopifyOrders(store: typeof ecommerceStores.$inferSelect): Pr
   }
 }
 
-async function pollWooCommerceOrders(store: typeof ecommerceStores.$inferSelect): Promise<EcommerceOrderPayload[]> {
+async function pollWooCommerceOrders(
+  store: typeof ecommerceStores.$inferSelect,
+): Promise<EcommerceOrderPayload[]> {
   try {
-    const sinceDate = store.lastSyncAt 
+    const sinceDate = store.lastSyncAt
       ? new Date(store.lastSyncAt.getTime() - 60000).toISOString()
       : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
     const url = `${store.shopDomain}/wp-json/wc/v3/orders?after=${sinceDate}&per_page=100`;
-    
+
     const response = await fetch(url, {
       headers: {
         Authorization: `Bearer ${store.accessTokenEnc}`,
@@ -341,7 +362,7 @@ async function pollWooCommerceOrders(store: typeof ecommerceStores.$inferSelect)
       throw new Error(`WooCommerce API error: ${response.status}`);
     }
 
-    const data = await response.json() as any[];
+    const data = (await response.json()) as any[];
     const orders: EcommerceOrderPayload[] = [];
 
     for (const order of data) {
@@ -360,22 +381,24 @@ async function pollWooCommerceOrders(store: typeof ecommerceStores.$inferSelect)
         discountCodes: order.coupon_lines?.map((c: any) => c.code) || [],
         customerEmail: order.billing?.email,
         customerPhone: order.billing?.phone,
-        customerName: order.billing?.first_name && order.billing?.last_name 
-          ? `${order.billing.first_name} ${order.billing.last_name}`.trim()
-          : undefined,
+        customerName:
+          order.billing?.first_name && order.billing?.last_name
+            ? `${order.billing.first_name} ${order.billing.last_name}`.trim()
+            : undefined,
         billingAddress: order.billing,
         shippingAddress: order.shipping,
         shippingMethod: order.shipping_lines?.[0]?.method_title,
         trackingNumber: undefined,
         trackingUrl: undefined,
-        lineItems: order.line_items?.map((item: any) => ({
-          productId: item.product_id?.toString() || "",
-          variantId: item.variation_id?.toString(),
-          name: item.name,
-          quantity: item.quantity,
-          price: item.price,
-          sku: item.sku,
-        })) || [],
+        lineItems:
+          order.line_items?.map((item: any) => ({
+            productId: item.product_id?.toString() || "",
+            variantId: item.variation_id?.toString(),
+            name: item.name,
+            quantity: item.quantity,
+            price: item.price,
+            sku: item.sku,
+          })) || [],
         platformCreatedAt: new Date(order.date_created),
         platformUpdatedAt: new Date(order.date_modified),
       });
@@ -388,14 +411,16 @@ async function pollWooCommerceOrders(store: typeof ecommerceStores.$inferSelect)
   }
 }
 
-async function pollSallaOrders(store: typeof ecommerceStores.$inferSelect): Promise<EcommerceOrderPayload[]> {
+async function pollSallaOrders(
+  store: typeof ecommerceStores.$inferSelect,
+): Promise<EcommerceOrderPayload[]> {
   try {
-    const sinceDate = store.lastSyncAt 
+    const sinceDate = store.lastSyncAt
       ? new Date(store.lastSyncAt.getTime() - 60000).toISOString()
       : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
     const url = `https://api.salla.com.sa/v2/orders?created_after=${sinceDate}&limit=100`;
-    
+
     const response = await fetch(url, {
       headers: {
         Authorization: `Bearer ${store.accessTokenEnc}`,
@@ -407,7 +432,7 @@ async function pollSallaOrders(store: typeof ecommerceStores.$inferSelect): Prom
       throw new Error(`Salla API error: ${response.status}`);
     }
 
-    const data = await response.json() as { data: any[] };
+    const data = (await response.json()) as { data: any[] };
     const orders: EcommerceOrderPayload[] = [];
 
     for (const order of data.data || []) {
@@ -432,13 +457,14 @@ async function pollSallaOrders(store: typeof ecommerceStores.$inferSelect): Prom
         shippingMethod: order.shipping_method,
         trackingNumber: order.tracking_number,
         trackingUrl: order.tracking_url,
-        lineItems: order.items?.map((item: any) => ({
-          productId: item.product_id?.toString() || "",
-          name: item.name,
-          quantity: item.quantity,
-          price: item.price,
-          sku: item.sku,
-        })) || [],
+        lineItems:
+          order.items?.map((item: any) => ({
+            productId: item.product_id?.toString() || "",
+            name: item.name,
+            quantity: item.quantity,
+            price: item.price,
+            sku: item.sku,
+          })) || [],
         platformCreatedAt: new Date(order.created_at),
         platformUpdatedAt: new Date(order.updated_at),
       });
@@ -451,14 +477,16 @@ async function pollSallaOrders(store: typeof ecommerceStores.$inferSelect): Prom
   }
 }
 
-async function pollZidOrders(store: typeof ecommerceStores.$inferSelect): Promise<EcommerceOrderPayload[]> {
+async function pollZidOrders(
+  store: typeof ecommerceStores.$inferSelect,
+): Promise<EcommerceOrderPayload[]> {
   try {
-    const sinceDate = store.lastSyncAt 
+    const sinceDate = store.lastSyncAt
       ? new Date(store.lastSyncAt.getTime() - 60000).toISOString()
       : new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
     const url = `https://api.zid.com/v1/orders?created_at_min=${sinceDate}&limit=100`;
-    
+
     const response = await fetch(url, {
       headers: {
         Authorization: `Bearer ${store.accessTokenEnc}`,
@@ -470,7 +498,7 @@ async function pollZidOrders(store: typeof ecommerceStores.$inferSelect): Promis
       throw new Error(`Zid API error: ${response.status}`);
     }
 
-    const data = await response.json() as { orders: any[] };
+    const data = (await response.json()) as { orders: any[] };
     const orders: EcommerceOrderPayload[] = [];
 
     for (const order of data.orders || []) {
@@ -495,14 +523,15 @@ async function pollZidOrders(store: typeof ecommerceStores.$inferSelect): Promis
         shippingMethod: order.shipping_method?.name,
         trackingNumber: order.shipment?.tracking_number,
         trackingUrl: order.shipment?.tracking_url,
-        lineItems: order.items?.map((item: any) => ({
-          productId: item.product_id?.toString() || "",
-          variantId: item.variant_id?.toString(),
-          name: item.name,
-          quantity: item.quantity,
-          price: item.price,
-          sku: item.sku,
-        })) || [],
+        lineItems:
+          order.items?.map((item: any) => ({
+            productId: item.product_id?.toString() || "",
+            variantId: item.variant_id?.toString(),
+            name: item.name,
+            quantity: item.quantity,
+            price: item.price,
+            sku: item.sku,
+          })) || [],
         platformCreatedAt: new Date(order.created_at),
         platformUpdatedAt: new Date(order.updated_at),
       });
@@ -527,51 +556,51 @@ function mapShopifyStatus(financialStatus: string, fulfillmentStatus: string): s
 
 function mapWooCommerceStatus(status: string): string {
   const statusMap: Record<string, string> = {
-    "pending": "pending",
-    "processing": "processing",
+    pending: "pending",
+    processing: "processing",
     "on-hold": "on_hold",
-    "completed": "completed",
-    "cancelled": "cancelled",
-    "refunded": "refunded",
-    "failed": "failed",
+    completed: "completed",
+    cancelled: "cancelled",
+    refunded: "refunded",
+    failed: "failed",
   };
   return statusMap[status] || status;
 }
 
 function mapSallaStatus(status: string): string {
   const statusMap: Record<string, string> = {
-    "pending": "pending",
-    "confirmed": "confirmed",
-    "shipped": "shipped",
-    "delivered": "delivered",
-    "cancelled": "cancelled",
-    "returned": "returned",
+    pending: "pending",
+    confirmed: "confirmed",
+    shipped: "shipped",
+    delivered: "delivered",
+    cancelled: "cancelled",
+    returned: "returned",
   };
   return statusMap[status] || status;
 }
 
 function mapZidStatus(status: string): string {
   const statusMap: Record<string, string> = {
-    "pending": "pending",
-    "paid": "paid",
-    "processing": "processing",
-    "shipped": "shipped",
-    "delivered": "delivered",
-    "cancelled": "cancelled",
-    "returned": "returned",
-    "refunded": "refunded",
+    pending: "pending",
+    paid: "paid",
+    processing: "processing",
+    shipped: "shipped",
+    delivered: "delivered",
+    cancelled: "cancelled",
+    returned: "returned",
+    refunded: "refunded",
   };
   return statusMap[status] || status;
 }
 
 async function processEcommerceOrder(
   store: typeof ecommerceStores.$inferSelect,
-  order: EcommerceOrderPayload
+  order: EcommerceOrderPayload,
 ): Promise<void> {
   const existingOrder = await db.query.ecommerceOrders.findFirst({
     where: and(
       eq(ecommerceOrders.storeId, store.id),
-      eq(ecommerceOrders.platformOrderId, order.platformOrderId)
+      eq(ecommerceOrders.platformOrderId, order.platformOrderId),
     ),
   });
 
@@ -582,7 +611,7 @@ async function processEcommerceOrder(
       where: and(
         eq(contacts.email, order.customerEmail.toLowerCase()),
         eq(contacts.organizationId, store.organizationId),
-        isNull(contacts.deletedAt)
+        isNull(contacts.deletedAt),
       ),
     });
     contactId = contact?.id;
@@ -652,7 +681,7 @@ async function processEcommerceOrder(
 export async function handleEcommerceWebhook(
   platform: string,
   shopDomain: string,
-  payload: Record<string, any>
+  payload: Record<string, any>,
 ): Promise<void> {
   console.log(`Received ${platform} webhook for ${shopDomain}:`, JSON.stringify(payload));
 
@@ -660,7 +689,7 @@ export async function handleEcommerceWebhook(
     where: and(
       eq(ecommerceStores.shopDomain, shopDomain),
       eq(ecommerceStores.platform, platform),
-      eq(ecommerceStores.isActive, true)
+      eq(ecommerceStores.isActive, true),
     ),
   });
 
@@ -688,20 +717,23 @@ export async function handleEcommerceWebhook(
           discountCodes: order.discount_codes?.map((d: any) => d.code) || [],
           customerEmail: order.email,
           customerPhone: order.phone,
-          customerName: order.customer ? `${order.customer.first_name} ${order.customer.last_name}`.trim() : undefined,
+          customerName: order.customer
+            ? `${order.customer.first_name} ${order.customer.last_name}`.trim()
+            : undefined,
           billingAddress: order.billing_address,
           shippingAddress: order.shipping_address,
           shippingMethod: order.shipping_lines?.[0]?.title,
           trackingNumber: order.fulfillments?.[0]?.tracking_number,
           trackingUrl: order.fulfillments?.[0]?.tracking_url,
-          lineItems: order.line_items?.map((item: any) => ({
-            productId: item.product_id?.toString() || "",
-            variantId: item.variant_id?.toString(),
-            name: item.title,
-            quantity: item.quantity,
-            price: item.price,
-            sku: item.sku,
-          })) || [],
+          lineItems:
+            order.line_items?.map((item: any) => ({
+              productId: item.product_id?.toString() || "",
+              variantId: item.variant_id?.toString(),
+              name: item.title,
+              quantity: item.quantity,
+              price: item.price,
+              sku: item.sku,
+            })) || [],
           platformCreatedAt: new Date(order.created_at),
           platformUpdatedAt: new Date(order.updated_at),
         });
@@ -717,13 +749,10 @@ export async function updateOrderStatus(
   platformOrderId: string,
   platform: string,
   shopDomain: string,
-  status: string
+  status: string,
 ): Promise<void> {
   const store = await db.query.ecommerceStores.findFirst({
-    where: and(
-      eq(ecommerceStores.shopDomain, shopDomain),
-      eq(ecommerceStores.platform, platform)
-    ),
+    where: and(eq(ecommerceStores.shopDomain, shopDomain), eq(ecommerceStores.platform, platform)),
   });
 
   if (!store) {
@@ -740,8 +769,8 @@ export async function updateOrderStatus(
     .where(
       and(
         eq(ecommerceOrders.storeId, store.id),
-        eq(ecommerceOrders.platformOrderId, platformOrderId)
-      )
+        eq(ecommerceOrders.platformOrderId, platformOrderId),
+      ),
     );
 }
 

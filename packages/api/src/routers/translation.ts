@@ -17,7 +17,7 @@ export const translationRouter = {
   listConfigs: protectedProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async ({ input, context }) => {
@@ -47,7 +47,7 @@ export const translationRouter = {
   getConfig: protectedProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async ({ input, context }) => {
@@ -78,10 +78,10 @@ export const translationRouter = {
   createConfig: protectedProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         provider: z.enum(["google", "deepl"]).default("google"),
         apiKey: z.string(),
-        createdBy: z.number().optional(),
+        createdBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input, context }) => {
@@ -130,11 +130,11 @@ export const translationRouter = {
   updateConfig: protectedProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         provider: z.enum(["google", "deepl"]).optional(),
         apiKey: z.string().optional(),
-        isEnabled: z.boolean().optional(),
-        updatedBy: z.number().optional(),
+        isEnabled: z.coerce.boolean().optional(),
+        updatedBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input, context }) => {
@@ -184,7 +184,7 @@ export const translationRouter = {
   deleteConfig: protectedProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async ({ input, context }) => {
@@ -216,7 +216,7 @@ export const translationRouter = {
   getDecryptedApiKey: protectedProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async ({ input, context }) => {
@@ -252,7 +252,7 @@ export const translationRouter = {
   getUsageStats: protectedProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async ({ input, context }) => {
@@ -285,7 +285,7 @@ export const translationRouter = {
   clearCache: protectedProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         sourceHash: z.string(),
       }),
     )
@@ -310,7 +310,7 @@ export const translationRouter = {
   translateText: protectedProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         text: z.string(),
         sourceLang: z.string().default("auto"),
         targetLang: z.string(),

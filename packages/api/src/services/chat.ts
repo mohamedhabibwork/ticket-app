@@ -1,5 +1,11 @@
 import { db } from "@ticket-app/db";
-import { chatSessions, chatMessages, tickets, lookups, contacts, ticketMessages } from "@ticket-app/db/schema";
+import {
+  chatSessions,
+  chatMessages,
+  tickets,
+  lookups,
+  ticketMessages,
+} from "@ticket-app/db/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { generateReferenceNumber } from "../lib/reference";
 
@@ -17,10 +23,7 @@ export async function convertChatToTicket(options: ConvertChatToTicketOptions): 
   const { chatSessionId, organizationId, createdBy, priorityId } = options;
 
   const session = await db.query.chatSessions.findFirst({
-    where: and(
-      eq(chatSessions.id, chatSessionId),
-      eq(chatSessions.organizationId, organizationId)
-    ),
+    where: and(eq(chatSessions.id, chatSessionId), eq(chatSessions.organizationId, organizationId)),
     with: {
       messages: {
         orderBy: (chatMessages, { asc }) => [asc(chatMessages.createdAt)],
@@ -43,19 +46,21 @@ export async function convertChatToTicket(options: ConvertChatToTicketOptions): 
     await db.query.lookups.findFirst({
       where: and(
         sql`${lookups.lookupTypeId} = (SELECT id FROM lookup_types WHERE name = 'ticket_status')`,
-        eq(lookups.isDefault, true)
+        eq(lookups.isDefault, true),
       ),
     })
   )?.id;
 
-  const defaultPriorityId = priorityId ?? (
-    await db.query.lookups.findFirst({
-      where: and(
-        sql`${lookups.lookupTypeId} = (SELECT id FROM lookup_types WHERE name = 'ticket_priority')`,
-        eq(lookups.isDefault, true)
-      ),
-    })
-  )?.id;
+  const defaultPriorityId =
+    priorityId ??
+    (
+      await db.query.lookups.findFirst({
+        where: and(
+          sql`${lookups.lookupTypeId} = (SELECT id FROM lookup_types WHERE name = 'ticket_priority')`,
+          eq(lookups.isDefault, true),
+        ),
+      })
+    )?.id;
 
   const channelChatId = (
     await db.query.lookups.findFirst({
@@ -117,12 +122,15 @@ export async function convertChatToTicket(options: ConvertChatToTicketOptions): 
     })
     .where(eq(chatSessions.id, chatSessionId));
 
-  return { ticket, session: { ...session, ticketId: ticket.id, status: "converted" } as typeof session };
+  return {
+    ticket,
+    session: { ...session, ticketId: ticket.id, status: "converted" } as typeof session,
+  };
 }
 
 function buildChatDescriptionHtml(
   messages: Array<{ authorType: string; body: string | null; createdAt: Date }>,
-  preChatData: Record<string, unknown>
+  preChatData: Record<string, unknown>,
 ): string {
   let html = `<div class="chat-transcript">`;
 
@@ -136,7 +144,8 @@ function buildChatDescriptionHtml(
 
   html += `<div class="chat-messages"><h4>Chat Transcript</h4>`;
   for (const msg of messages) {
-    const author = msg.authorType === "agent" ? "Agent" : msg.authorType === "contact" ? "Customer" : "System";
+    const author =
+      msg.authorType === "agent" ? "Agent" : msg.authorType === "contact" ? "Customer" : "System";
     const time = new Date(msg.createdAt).toLocaleString();
     html += `<div class="message ${msg.authorType}">
       <span class="author">${author}</span>
@@ -152,7 +161,7 @@ function buildChatDescriptionHtml(
 export async function endChatSession(
   sessionId: number,
   endedBy: "agent" | "contact" | "system",
-  autoConvertToTicket: boolean = true
+  autoConvertToTicket: boolean = true,
 ): Promise<{
   session: typeof chatSessions.$inferSelect;
   ticket?: typeof tickets.$inferSelect;
@@ -209,16 +218,17 @@ export async function getChatStats(organizationId: number, widgetId?: number) {
   });
 
   const sessionsByStatus = {
-    waiting: allSessions.filter(s => s.status === "waiting").length,
-    active: allSessions.filter(s => s.status === "active").length,
-    ended: allSessions.filter(s => s.status === "ended").length,
-    converted: allSessions.filter(s => s.status === "converted").length,
+    waiting: allSessions.filter((s) => s.status === "waiting").length,
+    active: allSessions.filter((s) => s.status === "active").length,
+    ended: allSessions.filter((s) => s.status === "ended").length,
+    converted: allSessions.filter((s) => s.status === "converted").length,
   };
 
-  const ratedSessions = allSessions.filter(s => s.rating != null);
-  const avgRating = ratedSessions.length > 0
-    ? ratedSessions.reduce((acc, s) => acc + (s.rating ?? 0), 0) / ratedSessions.length
-    : null;
+  const ratedSessions = allSessions.filter((s) => s.rating != null);
+  const avgRating =
+    ratedSessions.length > 0
+      ? ratedSessions.reduce((acc, s) => acc + (s.rating ?? 0), 0) / ratedSessions.length
+      : null;
 
   const totalMessages = await db
     .select({ count: sql<number>`count(*)` })
@@ -229,9 +239,8 @@ export async function getChatStats(organizationId: number, widgetId?: number) {
   return {
     totalSessions: allSessions.length,
     sessionsByStatus,
-    conversionRate: sessionsByStatus.total > 0
-      ? (sessionsByStatus.converted / sessionsByStatus.total) * 100
-      : 0,
+    conversionRate:
+      sessionsByStatus.total > 0 ? (sessionsByStatus.converted / sessionsByStatus.total) * 100 : 0,
     averageRating: avgRating,
     totalMessages: Number(totalMessages[0]?.count ?? 0),
   };

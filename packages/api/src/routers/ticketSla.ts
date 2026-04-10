@@ -9,7 +9,7 @@ import { calculateSLADueDates, isWithinBusinessHours } from "../services/sla";
 
 export const ticketSlaRouter = {
   getByTicket: publicProcedure
-    .input(z.object({ ticketId: z.number() }))
+    .input(z.object({ ticketId: z.coerce.number() }))
     .handler(async ({ input }) => {
       return await db.query.ticketSla.findFirst({
         where: eq(ticketSla.ticketId, input.ticketId),
@@ -30,7 +30,7 @@ export const ticketSlaRouter = {
     }),
 
   createForTicket: publicProcedure
-    .input(z.object({ ticketId: z.number() }))
+    .input(z.object({ ticketId: z.coerce.number() }))
     .handler(async ({ input }) => {
       const ticket = await db.query.tickets.findFirst({
         where: eq(tickets.id, input.ticketId),
@@ -91,64 +91,68 @@ export const ticketSlaRouter = {
         .returning();
     }),
 
-  pause: publicProcedure.input(z.object({ ticketId: z.number() })).handler(async ({ input }) => {
-    return await db
-      .update(ticketSla)
-      .set({
-        pausedAt: new Date(),
-        updatedAt: new Date(),
-      })
-      .where(eq(ticketSla.ticketId, input.ticketId))
-      .returning();
-  }),
+  pause: publicProcedure
+    .input(z.object({ ticketId: z.coerce.number() }))
+    .handler(async ({ input }) => {
+      return await db
+        .update(ticketSla)
+        .set({
+          pausedAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .where(eq(ticketSla.ticketId, input.ticketId))
+        .returning();
+    }),
 
-  resume: publicProcedure.input(z.object({ ticketId: z.number() })).handler(async ({ input }) => {
-    const sla = await db.query.ticketSla.findFirst({
-      where: eq(ticketSla.ticketId, input.ticketId),
-      with: {
-        slaPolicy: true,
-      },
-    });
+  resume: publicProcedure
+    .input(z.object({ ticketId: z.coerce.number() }))
+    .handler(async ({ input }) => {
+      const sla = await db.query.ticketSla.findFirst({
+        where: eq(ticketSla.ticketId, input.ticketId),
+        with: {
+          slaPolicy: true,
+        },
+      });
 
-    if (!sla || !sla.pausedAt) {
-      return null;
-    }
+      if (!sla || !sla.pausedAt) {
+        return null;
+      }
 
-    const pausedDuration = Math.floor((Date.now() - sla.pausedAt.getTime()) / 60000);
+      const pausedDuration = Math.floor((Date.now() - sla.pausedAt.getTime()) / 60000);
 
-    const now = new Date();
-    let newFirstResponseDue = sla.firstResponseDueAt;
-    let newResolutionDue = sla.resolutionDueAt;
+      const now = new Date();
+      let newFirstResponseDue = sla.firstResponseDueAt;
+      let newResolutionDue = sla.resolutionDueAt;
 
-    if (sla.slaPolicy?.businessHoursOnly && sla.slaPolicy.businessHoursConfig) {
-      const businessMinutes = isWithinBusinessHours(
-        sla.pausedAt,
-        now,
-        sla.slaPolicy.businessHoursConfig,
-        sla.slaPolicy.holidays,
-      );
-      newFirstResponseDue = new Date(sla.firstResponseDueAt.getTime() + businessMinutes * 60000);
-      newResolutionDue = new Date(sla.resolutionDueAt.getTime() + businessMinutes * 60000);
-    } else {
-      newFirstResponseDue = new Date(sla.firstResponseDueAt.getTime() + pausedDuration * 60000);
-      newResolutionDue = new Date(sla.resolutionDueAt.getTime() + pausedDuration * 60000);
-    }
+      if (sla.slaPolicy?.businessHoursOnly && sla.slaPolicy.businessHoursConfig) {
+        const businessMinutes = isWithinBusinessHours(
+          sla.pausedAt,
+          now,
+          sla.slaPolicy.businessHoursConfig,
+          sla.slaPolicy.holidays,
+        );
+        newFirstResponseDue = new Date(sla.firstResponseDueAt.getTime() + businessMinutes * 60000);
+        newResolutionDue = new Date(sla.resolutionDueAt.getTime() + businessMinutes * 60000);
+      } else {
+        newFirstResponseDue = new Date(sla.firstResponseDueAt.getTime() + pausedDuration * 60000);
+        newResolutionDue = new Date(sla.resolutionDueAt.getTime() + pausedDuration * 60000);
+      }
 
-    return await db
-      .update(ticketSla)
-      .set({
-        pausedAt: null,
-        pausedDurationMinutes: sla.pausedDurationMinutes + pausedDuration,
-        firstResponseDueAt: newFirstResponseDue,
-        resolutionDueAt: newResolutionDue,
-        updatedAt: new Date(),
-      })
-      .where(eq(ticketSla.ticketId, input.ticketId))
-      .returning();
-  }),
+      return await db
+        .update(ticketSla)
+        .set({
+          pausedAt: null,
+          pausedDurationMinutes: sla.pausedDurationMinutes + pausedDuration,
+          firstResponseDueAt: newFirstResponseDue,
+          resolutionDueAt: newResolutionDue,
+          updatedAt: new Date(),
+        })
+        .where(eq(ticketSla.ticketId, input.ticketId))
+        .returning();
+    }),
 
   markFirstResponseBreached: publicProcedure
-    .input(z.object({ ticketId: z.number() }))
+    .input(z.object({ ticketId: z.coerce.number() }))
     .handler(async ({ input }) => {
       return await db
         .update(ticketSla)
@@ -162,7 +166,7 @@ export const ticketSlaRouter = {
     }),
 
   markResolutionBreached: publicProcedure
-    .input(z.object({ ticketId: z.number() }))
+    .input(z.object({ ticketId: z.coerce.number() }))
     .handler(async ({ input }) => {
       return await db
         .update(ticketSla)
@@ -176,7 +180,7 @@ export const ticketSlaRouter = {
     }),
 
   listBreached: publicProcedure
-    .input(z.object({ organizationId: z.number() }))
+    .input(z.object({ organizationId: z.coerce.number() }))
     .handler(async ({ input }) => {
       return await db
         .select({
@@ -195,7 +199,7 @@ export const ticketSlaRouter = {
     }),
 
   getBreachStatus: publicProcedure
-    .input(z.object({ ticketId: z.number() }))
+    .input(z.object({ ticketId: z.coerce.number() }))
     .handler(async ({ input }) => {
       const sla = await db.query.ticketSla.findFirst({
         where: eq(ticketSla.ticketId, input.ticketId),

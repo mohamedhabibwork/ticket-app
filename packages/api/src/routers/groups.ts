@@ -13,7 +13,7 @@ import {
 
 export const groupsRouter = {
   list: protectedProcedure
-    .input(z.object({ organizationId: z.number() }))
+    .input(z.object({ organizationId: z.coerce.number() }))
     .handler(async ({ input, context }) => {
       const canRead = await hasPermission(
         {
@@ -35,7 +35,7 @@ export const groupsRouter = {
     }),
 
   get: protectedProcedure
-    .input(z.object({ id: z.number(), organizationId: z.number() }))
+    .input(z.object({ id: z.coerce.number(), organizationId: z.coerce.number() }))
     .handler(async ({ input, context }) => {
       const canRead = await hasPermission(
         {
@@ -56,11 +56,11 @@ export const groupsRouter = {
   create: protectedProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         name: z.string().min(1).max(150),
         description: z.string().optional(),
-        parentId: z.number().optional(),
-        createdBy: z.number().optional(),
+        parentId: z.coerce.number().optional(),
+        createdBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input, context }) => {
@@ -92,12 +92,12 @@ export const groupsRouter = {
   update: protectedProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
         name: z.string().min(1).max(150).optional(),
         description: z.string().optional(),
-        parentId: z.number().nullable().optional(),
-        isActive: z.boolean().optional(),
+        parentId: z.coerce.number().nullable().optional(),
+        isActive: z.coerce.boolean().optional(),
       }),
     )
     .handler(async ({ input, context }) => {
@@ -127,7 +127,7 @@ export const groupsRouter = {
     }),
 
   delete: protectedProcedure
-    .input(z.object({ id: z.number(), organizationId: z.number() }))
+    .input(z.object({ id: z.coerce.number(), organizationId: z.coerce.number() }))
     .handler(async ({ input, context }) => {
       const canWrite = await hasPermission(
         {

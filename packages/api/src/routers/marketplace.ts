@@ -16,7 +16,7 @@ export const marketplaceRouter = {
   listAccounts: protectedProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async ({ input, context }) => {
@@ -51,8 +51,8 @@ export const marketplaceRouter = {
   getAccount: protectedProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        id: z.number(),
+        organizationId: z.coerce.number(),
+        id: z.coerce.number(),
       }),
     )
     .handler(async ({ input, context }) => {
@@ -89,7 +89,7 @@ export const marketplaceRouter = {
   connectMarketplace: protectedProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         platform: z.string().default("amazon_seller"),
         accountName: z.string(),
         sellerId: z.string(),
@@ -97,7 +97,7 @@ export const marketplaceRouter = {
         spApiClientId: z.string(),
         spApiClientSecret: z.string(),
         spApiRefreshToken: z.string(),
-        userId: z.number().optional(),
+        userId: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input, context }) => {
@@ -178,14 +178,14 @@ export const marketplaceRouter = {
   updateAccount: protectedProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
         accountName: z.string().optional(),
         spApiClientId: z.string().optional(),
         spApiClientSecret: z.string().optional(),
         spApiRefreshToken: z.string().optional(),
-        isActive: z.boolean().optional(),
-        updatedBy: z.number().optional(),
+        isActive: z.coerce.boolean().optional(),
+        updatedBy: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input, context }) => {
@@ -238,8 +238,8 @@ export const marketplaceRouter = {
   disconnect: protectedProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async ({ input, context }) => {
@@ -275,11 +275,11 @@ export const marketplaceRouter = {
   getMessages: protectedProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        accountId: z.number(),
-        ticketId: z.number().optional(),
-        limit: z.number().default(50),
-        offset: z.number().default(0),
+        organizationId: z.coerce.number(),
+        accountId: z.coerce.number(),
+        ticketId: z.coerce.number().optional(),
+        limit: z.coerce.number().default(50),
+        offset: z.coerce.number().default(0),
       }),
     )
     .handler(async ({ input, context }) => {
@@ -314,8 +314,8 @@ export const marketplaceRouter = {
   markMessageRead: protectedProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        id: z.number(),
+        organizationId: z.coerce.number(),
+        id: z.coerce.number(),
       }),
     )
     .handler(async ({ input, context }) => {
@@ -344,8 +344,8 @@ export const marketplaceRouter = {
   getDecryptedCredentials: protectedProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
       }),
     )
     .handler(async ({ input, context }) => {

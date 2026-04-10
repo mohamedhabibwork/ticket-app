@@ -18,15 +18,15 @@ export const ticketForwardsRouter = {
   create: protectedProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        ticketId: z.number(),
-        messageId: z.number().optional(),
+        organizationId: z.coerce.number(),
+        ticketId: z.coerce.number(),
+        messageId: z.coerce.number().optional(),
         to: z.array(z.string().email()),
         cc: z.array(z.string().email()).optional(),
         bcc: z.array(z.string().email()).optional(),
         subject: z.string().optional(),
         body: z.string(),
-        forwardedBy: z.number(),
+        forwardedBy: z.coerce.number(),
       }),
     )
     .handler(async ({ input, context }) => {
@@ -93,10 +93,10 @@ export const ticketForwardsRouter = {
   list: protectedProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        ticketId: z.number(),
-        limit: z.number().min(1).max(100).default(50),
-        offset: z.number().min(0).default(0),
+        organizationId: z.coerce.number(),
+        ticketId: z.coerce.number(),
+        limit: z.coerce.number().min(1).max(100).default(50),
+        offset: z.coerce.number().min(0).default(0),
       }),
     )
     .handler(async ({ input, context }) => {
@@ -121,7 +121,7 @@ export const ticketForwardsRouter = {
     }),
 
   get: protectedProcedure
-    .input(z.object({ id: z.number(), organizationId: z.number() }))
+    .input(z.object({ id: z.coerce.number(), organizationId: z.coerce.number() }))
     .handler(async ({ input, context }) => {
       const canRead = await hasPermission(
         {

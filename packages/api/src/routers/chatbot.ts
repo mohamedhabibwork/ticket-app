@@ -20,7 +20,7 @@ import {
 
 export const chatbotRouter = {
   listConfigs: protectedProcedure
-    .input(z.object({ organizationId: z.number() }))
+    .input(z.object({ organizationId: z.coerce.number() }))
     .handler(async ({ input, context }) => {
       const canRead = await hasPermission(
         {
@@ -42,7 +42,7 @@ export const chatbotRouter = {
     }),
 
   getConfig: protectedProcedure
-    .input(z.object({ id: z.number(), organizationId: z.number() }))
+    .input(z.object({ id: z.coerce.number(), organizationId: z.coerce.number() }))
     .handler(async ({ input, context }) => {
       const canRead = await hasPermission(
         {
@@ -66,11 +66,11 @@ export const chatbotRouter = {
   createConfig: protectedProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         name: z.string(),
-        isEnabled: z.boolean().default(false),
-        escalationThreshold: z.number().min(1).max(10).default(3),
-        responseDelaySeconds: z.number().min(0).max(60).default(5),
+        isEnabled: z.coerce.boolean().default(false),
+        escalationThreshold: z.coerce.number().min(1).max(10).default(3),
+        responseDelaySeconds: z.coerce.number().min(0).max(60).default(5),
         workingHours: z.record(z.string(), z.unknown()).optional(),
       }),
     )
@@ -104,12 +104,12 @@ export const chatbotRouter = {
   updateConfig: protectedProcedure
     .input(
       z.object({
-        id: z.number(),
-        organizationId: z.number(),
+        id: z.coerce.number(),
+        organizationId: z.coerce.number(),
         name: z.string().optional(),
-        isEnabled: z.boolean().optional(),
-        escalationThreshold: z.number().min(1).max(10).optional(),
-        responseDelaySeconds: z.number().min(0).max(60).optional(),
+        isEnabled: z.coerce.boolean().optional(),
+        escalationThreshold: z.coerce.number().min(1).max(10).optional(),
+        responseDelaySeconds: z.coerce.number().min(0).max(60).optional(),
         workingHours: z.record(z.string(), z.unknown()).optional(),
       }),
     )
@@ -141,7 +141,7 @@ export const chatbotRouter = {
     }),
 
   deleteConfig: protectedProcedure
-    .input(z.object({ id: z.number(), organizationId: z.number() }))
+    .input(z.object({ id: z.coerce.number(), organizationId: z.coerce.number() }))
     .handler(async ({ input, context }) => {
       const canWrite = await hasPermission(
         {
@@ -162,11 +162,11 @@ export const chatbotRouter = {
   configureChatbot: protectedProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         name: z.string(),
-        isEnabled: z.boolean(),
-        escalationThreshold: z.number().min(1).max(10),
-        responseDelaySeconds: z.number().min(0).max(60),
+        isEnabled: z.coerce.boolean(),
+        escalationThreshold: z.coerce.number().min(1).max(10),
+        responseDelaySeconds: z.coerce.number().min(0).max(60),
         workingHours: z.record(z.string(), z.unknown()).optional(),
       }),
     )
@@ -219,11 +219,11 @@ export const chatbotRouter = {
   listSessions: protectedProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        configId: z.number().optional(),
-        contactId: z.number().optional(),
+        organizationId: z.coerce.number(),
+        configId: z.coerce.number().optional(),
+        contactId: z.coerce.number().optional(),
         status: z.string().optional(),
-        limit: z.number().default(50),
+        limit: z.coerce.number().default(50),
       }),
     )
     .handler(async ({ input, context }) => {
@@ -253,7 +253,7 @@ export const chatbotRouter = {
     }),
 
   getSession: protectedProcedure
-    .input(z.object({ id: z.number(), organizationId: z.number() }))
+    .input(z.object({ id: z.coerce.number(), organizationId: z.coerce.number() }))
     .handler(async ({ input, context }) => {
       const canRead = await hasPermission(
         {
@@ -275,7 +275,7 @@ export const chatbotRouter = {
     }),
 
   getSessionWithMessages: protectedProcedure
-    .input(z.object({ id: z.number(), organizationId: z.number() }))
+    .input(z.object({ id: z.coerce.number(), organizationId: z.coerce.number() }))
     .handler(async ({ input, context }) => {
       const canRead = await hasPermission(
         {
@@ -303,11 +303,11 @@ export const chatbotRouter = {
   createSession: protectedProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        configId: z.number(),
-        contactId: z.number(),
-        ticketId: z.number().optional(),
-        agentId: z.number().optional(),
+        organizationId: z.coerce.number(),
+        configId: z.coerce.number(),
+        contactId: z.coerce.number(),
+        ticketId: z.coerce.number().optional(),
+        agentId: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input, context }) => {
@@ -347,8 +347,8 @@ export const chatbotRouter = {
   processMessage: protectedProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        sessionId: z.number(),
+        organizationId: z.coerce.number(),
+        sessionId: z.coerce.number(),
         message: z.string(),
       }),
     )
@@ -387,9 +387,9 @@ export const chatbotRouter = {
   escalateSession: protectedProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        sessionId: z.number(),
-        agentId: z.number().optional(),
+        organizationId: z.coerce.number(),
+        sessionId: z.coerce.number(),
+        agentId: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input, context }) => {
@@ -426,8 +426,8 @@ export const chatbotRouter = {
   endSession: protectedProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        id: z.number(),
+        organizationId: z.coerce.number(),
+        id: z.coerce.number(),
         endReason: z.enum(["resolved", "escalated", "abandoned"]).optional(),
       }),
     )
@@ -459,9 +459,9 @@ export const chatbotRouter = {
   rateSession: protectedProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        id: z.number(),
-        rating: z.number().min(1).max(5),
+        organizationId: z.coerce.number(),
+        id: z.coerce.number(),
+        rating: z.coerce.number().min(1).max(5),
         comment: z.string().optional(),
       }),
     )
@@ -490,7 +490,7 @@ export const chatbotRouter = {
     }),
 
   listMessages: protectedProcedure
-    .input(z.object({ organizationId: z.number(), sessionId: z.number() }))
+    .input(z.object({ organizationId: z.coerce.number(), sessionId: z.coerce.number() }))
     .handler(async ({ input, context }) => {
       const canRead = await hasPermission(
         {
@@ -514,9 +514,9 @@ export const chatbotRouter = {
   searchKB: protectedProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         query: z.string(),
-        limit: z.number().default(5),
+        limit: z.coerce.number().default(5),
       }),
     )
     .handler(async ({ input, context }) => {
@@ -538,8 +538,8 @@ export const chatbotRouter = {
   getAnalytics: protectedProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        days: z.number().default(30),
+        organizationId: z.coerce.number(),
+        days: z.coerce.number().default(30),
       }),
     )
     .handler(async ({ input, context }) => {

@@ -7,7 +7,7 @@ import { mailboxes, emailMessages } from "@ticket-app/db/schema";
 import { getRedis } from "../redis";
 import { env } from "@ticket-app/env/server";
 
-const EMAIL_SEND_QUEUE = `${env.QUEUE_PREFIX}:email-send`;
+const EMAIL_SEND_QUEUE = `${env.QUEUE_PREFIX}-email-send`;
 
 export interface EmailSendJobData {
   mailboxId: number;
@@ -50,13 +50,24 @@ export function createEmailSendWorker(): Worker {
   return new Worker(
     EMAIL_SEND_QUEUE,
     async (job: Job<EmailSendJobData>) => {
-      const { mailboxId, toEmails, ccEmails, bccEmails, subject, bodyHtml, bodyText, inReplyTo, ticketId, mergeTags } = job.data;
+      const {
+        mailboxId,
+        toEmails,
+        ccEmails,
+        bccEmails,
+        subject,
+        bodyHtml,
+        bodyText,
+        inReplyTo,
+        ticketId,
+        mergeTags,
+      } = job.data;
 
       const mailbox = await db.query.mailboxes.findFirst({
         where: and(
           eq(mailboxes.id, mailboxId),
           eq(mailboxes.isActive, true),
-          isNull(mailboxes.deletedAt)
+          isNull(mailboxes.deletedAt),
         ),
         with: { smtpConfig: true },
       });
@@ -131,7 +142,7 @@ export function createEmailSendWorker(): Worker {
     {
       connection: getRedis(),
       concurrency: 5,
-    }
+    },
   );
 }
 
@@ -161,7 +172,21 @@ interface LogSentEmailParams {
 }
 
 async function logSentEmail(params: LogSentEmailParams): Promise<void> {
-  const { organizationId, mailboxId, ticketId, messageId, inReplyTo, fromEmail, fromName, toEmails, ccEmails, bccEmails, subject, bodyHtml, bodyText } = params;
+  const {
+    organizationId,
+    mailboxId,
+    ticketId,
+    messageId,
+    inReplyTo,
+    fromEmail,
+    fromName,
+    toEmails,
+    ccEmails,
+    bccEmails,
+    subject,
+    bodyHtml,
+    bodyText,
+  } = params;
 
   await db
     .insert(emailMessages)

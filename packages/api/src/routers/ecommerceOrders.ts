@@ -9,14 +9,14 @@ export const ecommerceOrdersRouter = {
   list: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        storeId: z.number().optional(),
+        organizationId: z.coerce.number(),
+        storeId: z.coerce.number().optional(),
         status: z.string().optional(),
         financialStatus: z.string().optional(),
         fulfillmentStatus: z.string().optional(),
-        contactId: z.number().optional(),
-        limit: z.number().min(1).max(100).default(50),
-        offset: z.number().min(0).default(0),
+        contactId: z.coerce.number().optional(),
+        limit: z.coerce.number().min(1).max(100).default(50),
+        offset: z.coerce.number().min(0).default(0),
       }),
     )
     .handler(async ({ input }) => {
@@ -67,8 +67,8 @@ export const ecommerceOrdersRouter = {
   get: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        id: z.number(),
+        organizationId: z.coerce.number(),
+        id: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -83,8 +83,8 @@ export const ecommerceOrdersRouter = {
   getByOrderNumber: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        storeId: z.number(),
+        organizationId: z.coerce.number(),
+        storeId: z.coerce.number(),
         orderNumber: z.string(),
       }),
     )
@@ -104,10 +104,10 @@ export const ecommerceOrdersRouter = {
   getByContact: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        contactId: z.number(),
-        limit: z.number().min(1).max(100).default(20),
-        offset: z.number().min(0).default(0),
+        organizationId: z.coerce.number(),
+        contactId: z.coerce.number(),
+        limit: z.coerce.number().min(1).max(100).default(20),
+        offset: z.coerce.number().min(0).default(0),
       }),
     )
     .handler(async ({ input }) => {
@@ -128,9 +128,9 @@ export const ecommerceOrdersRouter = {
   searchByEmail: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         email: z.string().email(),
-        limit: z.number().min(1).max(100).default(20),
+        limit: z.coerce.number().min(1).max(100).default(20),
       }),
     )
     .handler(async ({ input }) => {
@@ -166,9 +166,9 @@ export const ecommerceOrdersRouter = {
   searchByPhone: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         phone: z.string(),
-        limit: z.number().min(1).max(100).default(20),
+        limit: z.coerce.number().min(1).max(100).default(20),
       }),
     )
     .handler(async ({ input }) => {
@@ -206,11 +206,11 @@ export const ecommerceOrdersRouter = {
   getRecent: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        contactId: z.number().optional(),
+        organizationId: z.coerce.number(),
+        contactId: z.coerce.number().optional(),
         email: z.string().email().optional(),
         phone: z.string().optional(),
-        limit: z.number().min(1).max(50).default(10),
+        limit: z.coerce.number().min(1).max(50).default(10),
       }),
     )
     .handler(async ({ input }) => {

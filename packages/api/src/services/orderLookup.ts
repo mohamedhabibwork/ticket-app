@@ -10,13 +10,13 @@ export interface OrderLookupResult {
 
 export async function lookupOrdersByEmail(
   organizationId: number,
-  email: string
+  email: string,
 ): Promise<OrderLookupResult> {
   const storeIds = (
     await db.query.ecommerceStores.findMany({
       where: and(
         eq(ecommerceStores.organizationId, organizationId),
-        isNull(ecommerceStores.deletedAt)
+        isNull(ecommerceStores.deletedAt),
       ),
       columns: { id: true },
     })
@@ -28,9 +28,12 @@ export async function lookupOrdersByEmail(
 
   const orders = await db.query.ecommerceOrders.findMany({
     where: and(
-      sql`${ecommerceOrders.storeId} IN (${sql.join(storeIds.map(id => sql`${id}`), sql`, `)})`,
+      sql`${ecommerceOrders.storeId} IN (${sql.join(
+        storeIds.map((id) => sql`${id}`),
+        sql`, `,
+      )})`,
       eq(ecommerceOrders.customerEmail, email.toLowerCase()),
-      isNull(ecommerceOrders.deletedAt)
+      isNull(ecommerceOrders.deletedAt),
     ),
     orderBy: [desc(ecommerceOrders.createdAt)],
     with: {
@@ -43,7 +46,7 @@ export async function lookupOrdersByEmail(
 
 export async function lookupOrdersByPhone(
   organizationId: number,
-  phone: string
+  phone: string,
 ): Promise<OrderLookupResult> {
   const normalizedPhone = phone.replace(/\D/g, "");
 
@@ -51,7 +54,7 @@ export async function lookupOrdersByPhone(
     await db.query.ecommerceStores.findMany({
       where: and(
         eq(ecommerceStores.organizationId, organizationId),
-        isNull(ecommerceStores.deletedAt)
+        isNull(ecommerceStores.deletedAt),
       ),
       columns: { id: true },
     })
@@ -63,9 +66,12 @@ export async function lookupOrdersByPhone(
 
   const orders = await db.query.ecommerceOrders.findMany({
     where: and(
-      sql`${ecommerceOrders.storeId} IN (${sql.join(storeIds.map(id => sql`${id}`), sql`, `)})`,
+      sql`${ecommerceOrders.storeId} IN (${sql.join(
+        storeIds.map((id) => sql`${id}`),
+        sql`, `,
+      )})`,
       sql`REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(${ecommerceOrders.customerPhone}, '-', ''), ' ', ''), '(', ''), ')', ''), '+', '') LIKE ${`%${normalizedPhone}%`}`,
-      isNull(ecommerceOrders.deletedAt)
+      isNull(ecommerceOrders.deletedAt),
     ),
     orderBy: [desc(ecommerceOrders.createdAt)],
     with: {
@@ -78,13 +84,13 @@ export async function lookupOrdersByPhone(
 
 export async function lookupOrdersByOrderId(
   organizationId: number,
-  orderId: string
+  orderId: string,
 ): Promise<OrderLookupResult> {
   const storeIds = (
     await db.query.ecommerceStores.findMany({
       where: and(
         eq(ecommerceStores.organizationId, organizationId),
-        isNull(ecommerceStores.deletedAt)
+        isNull(ecommerceStores.deletedAt),
       ),
       columns: { id: true },
     })
@@ -96,12 +102,12 @@ export async function lookupOrdersByOrderId(
 
   const orders = await db.query.ecommerceOrders.findMany({
     where: and(
-      sql`${ecommerceOrders.storeId} IN (${sql.join(storeIds.map(id => sql`${id}`), sql`, `)})`,
-      or(
-        eq(ecommerceOrders.platformOrderId, orderId),
-        eq(ecommerceOrders.orderNumber, orderId)
-      ),
-      isNull(ecommerceOrders.deletedAt)
+      sql`${ecommerceOrders.storeId} IN (${sql.join(
+        storeIds.map((id) => sql`${id}`),
+        sql`, `,
+      )})`,
+      or(eq(ecommerceOrders.platformOrderId, orderId), eq(ecommerceOrders.orderNumber, orderId)),
+      isNull(ecommerceOrders.deletedAt),
     ),
     orderBy: [desc(ecommerceOrders.createdAt)],
     with: {
@@ -112,14 +118,9 @@ export async function lookupOrdersByOrderId(
   return { orders, matchedBy: "order_id", query: orderId };
 }
 
-export async function lookupOrdersByContact(
-  contactId: number
-): Promise<OrderLookupResult> {
+export async function lookupOrdersByContact(contactId: number): Promise<OrderLookupResult> {
   const orders = await db.query.ecommerceOrders.findMany({
-    where: and(
-      eq(ecommerceOrders.contactId, contactId),
-      isNull(ecommerceOrders.deletedAt)
-    ),
+    where: and(eq(ecommerceOrders.contactId, contactId), isNull(ecommerceOrders.deletedAt)),
     orderBy: [desc(ecommerceOrders.createdAt)],
     with: {
       store: true,
@@ -131,10 +132,10 @@ export async function lookupOrdersByContact(
 
 export async function lookupOrdersSmart(
   organizationId: number,
-  query: string
+  query: string,
 ): Promise<OrderLookupResult> {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const phoneRegex = /^[\d\s\-\+\(\)]{7,20}$/;
+  const phoneRegex = /^[\d\s\-+()]{7,20}$/;
 
   if (emailRegex.test(query)) {
     return lookupOrdersByEmail(organizationId, query);
@@ -147,10 +148,7 @@ export async function lookupOrdersSmart(
   return lookupOrdersByOrderId(organizationId, query);
 }
 
-export async function linkOrderToContact(
-  orderId: number,
-  contactId: number
-): Promise<void> {
+export async function linkOrderToContact(orderId: number, contactId: number): Promise<void> {
   await db
     .update(ecommerceOrders)
     .set({
@@ -161,17 +159,19 @@ export async function linkOrderToContact(
 }
 
 export async function findOrCreateContactFromOrder(
-  order: Awaited<ReturnType<typeof db.query.ecommerceOrders.findFirst>> & { store?: { organizationId: number } | null }
+  order: Awaited<ReturnType<typeof db.query.ecommerceOrders.findFirst>> & {
+    store?: { organizationId: number } | null;
+  },
 ): Promise<number | null> {
   if (!order) return null;
 
   const existingContact = await db.query.contacts.findFirst({
     where: and(
-      eq(contacts.organizationId, sql`1`), 
+      eq(contacts.organizationId, sql`1`),
       or(
         order.customerEmail ? eq(contacts.email, order.customerEmail) : sql`false`,
-        order.customerPhone ? sql`false` : sql`false`
-      )
+        order.customerPhone ? sql`false` : sql`false`,
+      ),
     ),
   });
 

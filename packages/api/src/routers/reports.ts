@@ -10,11 +10,11 @@ export const reportsRouter = {
   getTicketVolume: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         startDate: z.date().optional(),
         endDate: z.date().optional(),
         groupBy: z.enum(["day", "week", "month"]).default("day"),
-        groupId: z.number().optional(),
+        groupId: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -83,10 +83,10 @@ export const reportsRouter = {
   getAgentPerformance: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         startDate: z.date().optional(),
         endDate: z.date().optional(),
-        groupId: z.number().optional(),
+        groupId: z.coerce.number().optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -153,7 +153,7 @@ export const reportsRouter = {
   getSlaCompliance: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         startDate: z.date().optional(),
         endDate: z.date().optional(),
       }),
@@ -197,7 +197,7 @@ export const reportsRouter = {
   getCsatTrends: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         startDate: z.date().optional(),
         endDate: z.date().optional(),
         interval: z.enum(["day", "week", "month"]).default("day"),
@@ -264,7 +264,7 @@ export const reportsRouter = {
   getResponseTime: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         startDate: z.date().optional(),
         endDate: z.date().optional(),
       }),
@@ -310,7 +310,7 @@ export const reportsRouter = {
   getResolutionRate: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         startDate: z.date().optional(),
         endDate: z.date().optional(),
       }),
@@ -345,7 +345,7 @@ export const reportsRouter = {
   exportReport: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         reportType: z.enum(["ticket_volume", "agent_performance", "sla_compliance", "csat"]),
         format: z.enum(["csv", "pdf"]).default("csv"),
         startDate: z.date().optional(),
@@ -379,8 +379,8 @@ export const reportsRouter = {
   getCustomReport: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
-        id: z.number(),
+        organizationId: z.coerce.number(),
+        id: z.coerce.number(),
       }),
     )
     .handler(async ({ input }) => {
@@ -394,7 +394,7 @@ export const reportsRouter = {
   createCustomReport: publicProcedure
     .input(
       z.object({
-        organizationId: z.number(),
+        organizationId: z.coerce.number(),
         name: z.string().min(1).max(255),
         config: z.object({
           metrics: z.array(z.string()),

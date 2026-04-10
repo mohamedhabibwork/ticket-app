@@ -4,13 +4,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Button } from "@ticket-app/ui/components/button";
 import { Checkbox } from "@ticket-app/ui/components/checkbox";
-import { Label } from "@ticket-app/ui/components/label";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@ticket-app/ui/components/card";
+
+import { Card, CardContent, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
 import { Loader2, ArrowLeft, Mail, Monitor, Bell } from "lucide-react";
 
 export const Route = createFileRoute("/settings/notifications")({
@@ -18,7 +13,7 @@ export const Route = createFileRoute("/settings/notifications")({
 });
 
 function NotificationSettingsRoute() {
-  const queryClient = useQueryClient();
+  const _queryClient = useQueryClient();
 
   const [emailNotifications, setEmailNotifications] = useState(true);
   const [desktopNotifications, setDesktopNotifications] = useState(true);
@@ -33,7 +28,7 @@ function NotificationSettingsRoute() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: async (data: typeof preferences) => {
+    mutationFn: async (_data: typeof preferences) => {
       return true;
     },
     onSuccess: () => {
@@ -171,9 +166,7 @@ function NotificationSettingsRoute() {
                   />
                   <div>
                     <div className="font-medium">{event.label}</div>
-                    <div className="text-sm text-muted-foreground">
-                      {event.description}
-                    </div>
+                    <div className="text-sm text-muted-foreground">{event.description}</div>
                   </div>
                 </label>
               ))}
@@ -182,9 +175,7 @@ function NotificationSettingsRoute() {
 
           <div className="flex justify-end">
             <Button type="submit" disabled={updateMutation.isPending}>
-              {updateMutation.isPending && (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              )}
+              {updateMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               Save Preferences
             </Button>
           </div>
