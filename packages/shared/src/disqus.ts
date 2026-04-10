@@ -60,7 +60,7 @@ export class DisqusClient {
       throw new Error(`Disqus API error: ${response.status} - ${error}`);
     }
 
-    const data = (await response.json()) as { response: T; code?: number; response?: string };
+    const data = (await response.json()) as { response?: T | string; code?: number };
 
     if (data.code !== 0 && data.code !== undefined) {
       throw new Error(`Disqus API error: ${data.code} - ${data.response}`);
@@ -79,7 +79,7 @@ export class DisqusClient {
     const forums = await this.request<DisqusForum[]>("forums/details", {
       forum: shortname,
     });
-    return forums[0];
+    return forums[0] as DisqusForum;
   }
 
   async listPosts(forum: string, since?: Date): Promise<DisqusPost[]> {

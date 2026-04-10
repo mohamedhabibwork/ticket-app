@@ -7,9 +7,9 @@
     "dev": "electrobun dev --watch",
     "dev:hmr": "concurrently \"bun run hmr\" \"bun run start\"",
     "hmr": "turbo -F web dev",
-    "build": "turbo -F web build && electrobun build",
-    "build:stable": "turbo -F web build && electrobun build --env=stable",
-    "build:canary": "turbo -F web build && electrobun build --env=canary",
+    "build": "bun run -F web build && electrobun build",
+    "build:stable": "bun run -F web build && electrobun build --env=stable",
+    "build:canary": "bun run -F web build && electrobun build --env=canary",
     "check-types": "tsc --noEmit"
   },
   "dependencies": {

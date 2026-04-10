@@ -8,6 +8,7 @@ import {
   varchar,
   unique,
   index,
+  integer,
 } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { subscriptions } from "./_billing";
@@ -40,12 +41,12 @@ export const invoices = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },
-  (table) => ({
-    orgIdx: index("invoices_org_idx").on(table.organizationId),
-    orgNumberUnique: unique().on(table.organizationId, table.number),
-    subscriptionIdx: index("invoices_subscription_idx").on(table.subscriptionId),
-    statusIdx: index("invoices_status_idx").on(table.status),
-  }),
+  (table) => [
+    index("invoices_org_idx").on(table.organizationId),
+    unique().on(table.organizationId, table.number),
+    index("invoices_subscription_idx").on(table.subscriptionId),
+    index("invoices_status_idx").on(table.status),
+  ],
 );
 
 export const invoiceItems = pgTable(
@@ -62,9 +63,7 @@ export const invoiceItems = pgTable(
     metadata: jsonb("metadata"),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
-  (table) => ({
-    invoiceIdx: index("invoice_items_invoice_idx").on(table.invoiceId),
-  }),
+  (table) => [index("invoice_items_invoice_idx").on(table.invoiceId)],
 );
 
 export const payments = pgTable(
@@ -86,10 +85,10 @@ export const payments = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },
-  (table) => ({
-    invoiceIdx: index("payments_invoice_idx").on(table.invoiceId),
-    gatewayIdx: index("payments_gateway_idx").on(table.gateway, table.gatewayTransactionId),
-  }),
+  (table) => [
+    index("payments_invoice_idx").on(table.invoiceId),
+    index("payments_gateway_idx").on(table.gateway, table.gatewayTransactionId),
+  ],
 );
 
 export const invoicesRelations = relations(invoices, ({ one, many }) => ({
