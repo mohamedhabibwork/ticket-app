@@ -1,4 +1,3 @@
-import { env } from "@ticket-app/env/server";
 import { createHash, randomBytes } from "crypto";
 
 export interface SamlAttributeMapping {
@@ -60,8 +59,8 @@ export function getDefaultSamlConfig(): SamlConfiguration {
   return {
     enabled: false,
     metadataUrl: "",
-    entityId: `urn:ticket-app:sp:${env.PUBLIC_APP_URL || "localhost"}`,
-    acsUrl: `${env.PUBLIC_APP_URL || "http://localhost:3000"}/sso/acs`,
+    entityId: `urn:ticket-app:sp:localhost`,
+    acsUrl: `http://localhost:3000/sso/acs`,
     attributeMapping: DEFAULT_ATTRIBUTE_MAPPING,
     signRequests: true,
     wantAssertionsSigned: true,
@@ -153,10 +152,10 @@ export function decodeAuthnResponse(
     const assertionMatch = decoded.match(/<saml:Assertion[^>]*>([\s\S]*?)<\/saml:Assertion>/);
 
     if (assertionMatch) {
-      const __assertionXml = assertionMatch[1];
+      const __assertionXml = assertionMatch[1] || "";
       const attributes: Record<string, string | string[]> = {};
 
-      const attributeMatches = _assertionXml.matchAll(
+      const attributeMatches = __assertionXml.matchAll(
         /<saml:Attribute[^>]*Name="([^"]+)"[^>]*>[\s\S]*?<saml:AttributeValue[^>]*>([^<]+)<\/saml:AttributeValue>/g,
       );
       for (const match of attributeMatches) {
@@ -164,19 +163,19 @@ export function decodeAuthnResponse(
         const value = match[2];
         if (attributes[name]) {
           if (Array.isArray(attributes[name])) {
-            (attributes[name] as string[]).push(value);
+            (attributes[name] as string[]).push(value!);
           } else {
-            attributes[name] = [attributes[name] as string, value];
+            attributes[name] = [attributes[name] as string, value!];
           }
         } else {
-          attributes[name] = value;
+          attributes[name] = value!;
         }
       }
 
-      const notBeforeMatch = _assertionXml.match(/NotBefore="([^"]+)"/);
-      const notOnOrAfterMatch = _assertionXml.match(/NotOnOrAfter="([^"]+)"/);
-      const audienceMatch = _assertionXml.match(/<saml:Audience[^>]*>([^<]+)<\/saml:Audience>/);
-      const sessionIndexMatch = _assertionXml.match(/SessionIndex="([^"]+)"/);
+      const notBeforeMatch = __assertionXml.match(/NotBefore="([^"]+)"/);
+      const notOnOrAfterMatch = __assertionXml.match(/NotOnOrAfter="([^"]+)"/);
+      const audienceMatch = __assertionXml.match(/<saml:Audience[^>]*>([^<]+)<\/saml:Audience>/);
+      const sessionIndexMatch = __assertionXml.match(/SessionIndex="([^"]+)"/);
 
       response.assertion = {
         nameID: nameIdMatch[1],
@@ -189,7 +188,7 @@ export function decodeAuthnResponse(
       };
 
       if (config._certificate) {
-        if (!verifyAssertionSignature(__assertionXml, config._certificate)) {
+        if (!__assertionXml || !verifyAssertionSignature(__assertionXml, config._certificate)) {
           response.status = "urn:oasis:names:tc:SAML:2.0:status:Responder";
         }
       }

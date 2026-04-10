@@ -55,7 +55,7 @@ export async function createContext(options: CreateContextOptions) {
   }
 
   return {
-    auth: null,
+    auth: session,
     session,
     headers,
     organizationId: null as string | null,

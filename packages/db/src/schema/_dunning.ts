@@ -64,7 +64,7 @@ export const subscriptionStateChanges = pgTable(
   }),
 );
 
-export const dunningSchedulesRelations = relations(dunningSchedules, () => []);
+export const dunningSchedulesRelations = relations(dunningSchedules, () => ({}));
 
 export const dunningLogsRelations = relations(dunningLogs, ({ one }) => ({
   subscription: one(subscriptions, {

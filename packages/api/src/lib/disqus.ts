@@ -42,10 +42,7 @@ export class DisqusClient {
     this.accessToken = config.accessToken;
   }
 
-  private async request<T>(
-    endpoint: string,
-    params: Record<string, string> = {}
-  ): Promise<T> {
+  private async request<T>(endpoint: string, params: Record<string, string> = {}): Promise<T> {
     const url = new URL(`${DISQUS_API_URL}/${endpoint}.json`);
     url.searchParams.set("api_key", this.apiKey);
     url.searchParams.set("api_secret", this.apiSecret);
@@ -63,10 +60,14 @@ export class DisqusClient {
       throw new Error(`Disqus API error: ${response.status} - ${error}`);
     }
 
-    const data = await response.json() as { response: T; code?: number; response?: string };
+    const data = (await response.json()) as {
+      response: T;
+      code?: number;
+      responseMessage?: string;
+    };
 
     if (data.code !== 0 && data.code !== undefined) {
-      throw new Error(`Disqus API error: ${data.code} - ${data.response}`);
+      throw new Error(`Disqus API error: ${data.code} - ${data.responseMessage}`);
     }
 
     return data.response as T;
@@ -99,18 +100,16 @@ export class DisqusClient {
     return this.request<DisqusPost[]>("posts/list", params);
   }
 
-  async listThreads(forum: string): Promise<Array<{ id: string; identifier: string; title?: string }>> {
+  async listThreads(
+    forum: string,
+  ): Promise<Array<{ id: string; identifier: string; title?: string }>> {
     return this.request<Array<{ id: string; identifier: string; title?: string }>>("threads/list", {
       forum,
       limit: "100",
     });
   }
 
-  async createPost(
-    threadId: string,
-    message: string,
-    authorEmail?: string
-  ): Promise<DisqusPost> {
+  async createPost(threadId: string, message: string, authorEmail?: string): Promise<DisqusPost> {
     return this.request<DisqusPost>("posts/create", {
       thread: threadId,
       message,

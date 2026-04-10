@@ -92,18 +92,18 @@ export async function decodeLicenseJWT(token: string): Promise<JWTPayload | null
 
     const [headerB64, payloadB64, signatureB64] = parts;
 
-    const header = JSON.parse(base64UrlDecode(headerB64).toString("utf8"));
+    const header = JSON.parse(base64UrlDecode(headerB64!).toString("utf8"));
     if (header.alg !== "RS256") {
       console.error(`[License] Unexpected algorithm: ${header.alg}`);
       return null;
     }
 
-    const payload: JWTPayload = JSON.parse(base64UrlDecode(payloadB64).toString("utf8"));
+    const payload: JWTPayload = JSON.parse(base64UrlDecode(payloadB64!).toString("utf8"));
     const publicKey = await getPublicKey();
 
     if (publicKey) {
-      const payloadStr = `${headerB64}.${payloadB64}`;
-      const isValid = verifyRS256(payloadStr, signatureB64, publicKey);
+      const payloadStr = `${headerB64!}.${payloadB64!}`;
+      const isValid = verifyRS256(payloadStr, signatureB64!, publicKey);
 
       if (!isValid) {
         console.error("[License] Invalid JWT signature");

@@ -32,6 +32,7 @@ interface ChartProps extends React.ComponentProps<"div"> {
   showGrid?: boolean;
   showXAxis?: boolean;
   showYAxis?: boolean;
+  _showYAxis?: boolean;
 }
 
 function Chart({

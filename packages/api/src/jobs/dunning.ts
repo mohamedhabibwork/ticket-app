@@ -64,28 +64,22 @@ async function retryStripePayment(
 
   const subscription = await db.query.subscriptions.findFirst({
     where: eq(subscriptions.id, subscriptionId),
-    with: {
-      stripeSubscription: true,
-    },
   });
 
-  if (!subscription?.stripeSubscription?.stripeSubscriptionId) {
+  if (!subscription?.stripeSubscriptionId) {
     return { success: false, gatewayResponse: { error: "No Stripe subscription found" } };
   }
 
   try {
-    const paymentIntents = await stripe.invoices.listPaymentIntents(
-      subscription.stripeSubscription.stripeSubscriptionId,
-    );
+    // Retrieve invoice with payment_intent expanded
+    const invoiceWithPaymentIntent = await stripe.invoices.retrieve(invoice.stripeInvoiceId, {
+      expand: ["payment_intent"],
+    });
 
-    if (paymentIntents.data.length > 0) {
-      const paymentIntent = paymentIntents.data[0];
-      if (
-        paymentIntent.status === "requires_payment_method" ||
-        paymentIntent.status === "requires_action"
-      ) {
-        await stripe.paymentIntents.confirm(paymentIntent.id);
-      }
+    const paymentIntent = invoiceWithPaymentIntent.payment_intent;
+
+    if (paymentIntent && paymentIntent.status === "requires_payment_method") {
+      await stripe.paymentIntents.confirm(paymentIntent.id);
     }
 
     return { success: true, gatewayResponse: { message: "Payment retry initiated" } };

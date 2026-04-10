@@ -41,7 +41,7 @@ export interface ParsedEmail {
   isSpam: boolean;
 }
 
-const emailFetchQueue = new Queue(EMAIL_FETCH_QUEUE, {
+const emailFetchQueue = new Queue<EmailFetchJobData>(EMAIL_FETCH_QUEUE, {
   connection: getRedis(),
   defaultJobOptions: {
     attempts: 3,
@@ -65,14 +65,11 @@ export async function addEmailFetchJob(mailboxId: number): Promise<void> {
 }
 
 export async function scheduleEmailFetchPoll(intervalMs: number = 120000): Promise<void> {
-  await emailFetchQueue.add(
-    "poll-all-mailboxes",
-    {},
-    {
-      repeat: { every: intervalMs },
-      jobId: "email-fetch-poll-recurring",
-    },
-  );
+  // Cast to EmailFetchJobData since this recurring job doesn't need a specific mailboxId
+  await emailFetchQueue.add("poll-all-mailboxes", { mailboxId: -1 } as EmailFetchJobData, {
+    repeat: { every: intervalMs },
+    jobId: "email-fetch-poll-recurring",
+  });
 }
 
 export function createEmailFetchWorker(): Worker {
@@ -155,9 +152,14 @@ interface ImapConfig {
   lastSyncAt: Date | null;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ImapModule = any;
+
 async function pollImapMailbox(config: ImapConfig): Promise<ParsedEmail[]> {
-  const Imap = (await import("imap")).default;
-  const { simpleParser } = await import("mailparser");
+  const ImapModule = (await import("imap")) as ImapModule;
+  const mailparserModule = await import("mailparser");
+  const Imap = ImapModule.default;
+  const simpleParser = mailparserModule.simpleParser;
 
   return new Promise((resolve, reject) => {
     const imap = new Imap({
@@ -193,9 +195,9 @@ async function pollImapMailbox(config: ImapConfig): Promise<ParsedEmail[]> {
             struct: true,
           });
 
-          fetch.on("message", (msg: any) => {
-            msg.on("body", (stream: any) => {
-              simpleParser(stream, (err: Error | null, parsed: any) => {
+          fetch.on("message", (msg: ImapModule) => {
+            msg.on("body", (stream: ImapModule) => {
+              simpleParser(stream, (err: Error | null, parsed: ImapModule) => {
                 if (err || !parsed) return;
 
                 const spamScore = calculateSpamScore(parsed);
@@ -204,16 +206,18 @@ async function pollImapMailbox(config: ImapConfig): Promise<ParsedEmail[]> {
                 const emailMessage: ParsedEmail = {
                   messageId: parsed.messageId || `unknown-${Date.now()}`,
                   inReplyTo: parsed.inReplyTo || undefined,
-                  fromEmail: parsed.from?.value[0]?.address || "",
-                  fromName: parsed.from?.value[0]?.name,
-                  toEmails: parsed.to?.value.map((t: any) => t.address || "") || [],
-                  ccEmails: parsed.cc?.value.map((c: any) => c.address || "") || undefined,
+                  fromEmail: parsed.from?.value?.[0]?.address || "",
+                  fromName: parsed.from?.value?.[0]?.name,
+                  toEmails: parsed.to?.value?.map((t: ImapModule) => t.address || "") || [],
+                  ccEmails: parsed.cc?.value?.map((c: ImapModule) => c.address || "") || undefined,
                   subject: parsed.subject || "",
-                  bodyHtml: (parsed.html as string) || undefined,
+                  bodyHtml: parsed.html || undefined,
                   bodyText: parsed.textAsString || undefined,
                   sentAt: parsed.date || new Date(),
                   receivedAt: parsed.date || new Date(),
-                  rawHeaders: Object.fromEntries(parsed.headers.entries()),
+                  rawHeaders: parsed.headers
+                    ? Object.fromEntries(parsed.headers.entries())
+                    : undefined,
                   attachments: parseAttachments(parsed),
                   spamScore,
                   isSpam,
@@ -245,6 +249,7 @@ async function pollImapMailbox(config: ImapConfig): Promise<ParsedEmail[]> {
   });
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function parseAttachments(parsed: any): Array<{
   filename: string;
   mimeType: string;
@@ -265,10 +270,11 @@ function parseAttachments(parsed: any): Array<{
   return attachments;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function calculateSpamScore(parsed: any): number {
   let score = 0;
   const subject = (parsed.subject || "").toLowerCase();
-  const body = ((parsed.text as string) || "").toLowerCase();
+  const body = (parsed.text || "").toLowerCase();
 
   const spamKeywords = [
     "viagra",
@@ -291,7 +297,7 @@ function calculateSpamScore(parsed: any): number {
     if (body.includes(keyword)) score += 0.5;
   }
 
-  if (parsed.from?.value[0]?.address?.includes("noreply")) score += 0.5;
+  if (parsed.from?.value?.[0]?.address?.includes("noreply")) score += 0.5;
   if (!parsed.text && parsed.html) score += 1;
 
   return score;
@@ -301,7 +307,7 @@ async function processEmailToTicket(
   organizationId: number,
   mailboxId: number,
   email: ParsedEmail,
-): Promise<{ ticket: any; isReply: boolean }> {
+): Promise<{ ticket: unknown; isReply: boolean }> {
   const existingEmailMessage = await db.query.emailMessages.findFirst({
     where: and(
       eq(emailMessages.messageId, email.messageId),
@@ -338,6 +344,9 @@ async function processEmailToTicket(
         lastName: email.fromName?.split(" ").slice(1).join(" ") || null,
       })
       .returning();
+    if (!newContact) {
+      throw new Error("Failed to create contact");
+    }
     contact = newContact;
   }
 
@@ -363,6 +372,10 @@ async function processEmailToTicket(
       spamScore: email.spamScore?.toString(),
     })
     .returning();
+
+  if (!savedEmailMessage) {
+    throw new Error("Failed to save email message");
+  }
 
   let parentTicketId: number | undefined;
   let isReply = false;
@@ -420,12 +433,16 @@ async function processEmailToTicket(
       descriptionHtml: email.bodyHtml,
       channelId: channelLookup?.id,
       contactId: contact.id,
-      statusId: defaultStatusId,
-      priorityId: defaultPriorityId,
+      statusId: defaultStatusId!,
+      priorityId: defaultPriorityId!,
       parentTicketId,
       isSpam: email.isSpam,
     })
     .returning();
+
+  if (!ticket) {
+    throw new Error("Failed to create ticket");
+  }
 
   await db
     .update(emailMessages)

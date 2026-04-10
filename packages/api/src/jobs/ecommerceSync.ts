@@ -136,7 +136,7 @@ export function scheduleEcommerceSyncEvery15Minutes() {
     { storeId: 0, forceFullSync: false },
     {
       repeat: {
-        interval: 15 * 60 * 1000,
+        every: 15 * 60 * 1000,
       },
       jobId: "ecommerce-sync-all-stores-recurring",
     },

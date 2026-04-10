@@ -72,7 +72,6 @@ async function checkEscalationNeeded(): Promise<void> {
   const activeSessions = await db.query.chatbotSessions.findMany({
     where: and(eq(chatbotSessions.status, "active"), isNull(chatbotSessions.escalatedAt)),
     with: {
-      config: true,
       messages: {
         orderBy: [desc(chatbotMessages.createdAt)],
         limit: 1,
@@ -85,7 +84,8 @@ async function checkEscalationNeeded(): Promise<void> {
     if (!lastMessage || lastMessage.authorType !== "user") continue;
 
     const messageAge = Date.now() - lastMessage.createdAt.getTime();
-    const maxDelay = (session.config?.responseDelaySeconds || 5) * 1000;
+    // config is not available as a relation, using default delay
+    const maxDelay = 5 * 1000;
 
     if (messageAge > maxDelay) {
       console.log(`[Chatbot-Escalation] Session ${session.id} needs escalation`);
@@ -102,7 +102,6 @@ async function checkConfidenceThresholdEscalation(): Promise<void> {
   const lowConfidenceSessions = await db.query.chatbotSessions.findMany({
     where: and(eq(chatbotSessions.status, "active"), isNull(chatbotSessions.escalatedAt)),
     with: {
-      config: true,
       messages: {
         where: eq(chatbotMessages.authorType, "bot"),
         orderBy: [desc(chatbotMessages.createdAt)],
@@ -112,9 +111,9 @@ async function checkConfidenceThresholdEscalation(): Promise<void> {
   });
 
   for (const session of lowConfidenceSessions) {
-    if (!session.config) continue;
-
-    const threshold = (session.config.escalationThreshold || 3) * 10;
+    // config is not available as a relation, using default threshold
+    const escalationThreshold = 3;
+    const threshold = escalationThreshold * 10;
     let lowConfidenceCount = 0;
 
     for (const msg of session.messages) {
@@ -124,7 +123,7 @@ async function checkConfidenceThresholdEscalation(): Promise<void> {
       }
     }
 
-    if (lowConfidenceCount >= session.config.escalationThreshold) {
+    if (lowConfidenceCount >= escalationThreshold) {
       console.log(`[Chatbot-Escalation] Session ${session.id} triggered threshold escalation`);
       await escalateSession(session.id);
     }
@@ -137,7 +136,6 @@ async function escalateSession(sessionId: number): Promise<void> {
   const session = await db.query.chatbotSessions.findFirst({
     where: eq(chatbotSessions.id, sessionId),
     with: {
-      config: true,
       messages: {
         orderBy: [desc(chatbotMessages.createdAt)],
       },

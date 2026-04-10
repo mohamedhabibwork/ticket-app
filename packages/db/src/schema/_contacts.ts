@@ -191,7 +191,7 @@ export const contactNotesRelations = relations(contactNotes, ({ one }) => ({
   }),
 }));
 
-export const tagCategoriesRelations = relations(tagCategories, ({ one, _many }) => ({
+export const tagCategoriesRelations = relations(tagCategories, ({ one }) => ({
   organization: one(organizations, {
     fields: [tagCategories.organizationId],
     references: [organizations.id],

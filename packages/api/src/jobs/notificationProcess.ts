@@ -5,18 +5,11 @@ import { db } from "@ticket-app/db";
 import { getRedis } from "@ticket-app/queue";
 import { notifications, users } from "@ticket-app/db/schema";
 import type { NotificationJobData } from "@ticket-app/db/lib/queues";
-import {
-  getUserNotificationPreferences,
-  markNotificationAsRead,
-  NOTIFICATION_TYPES,
-} from "../services/notifications";
-import { TemplateData } from "../services/notificationTemplates";
+import { getUserNotificationPreferences, markNotificationAsRead } from "../services/notifications";
+import type { TemplateData } from "../services/notificationTemplates";
 import { sendSlackNotification } from "../services/slack";
-import {
-  sendNotificationEmailIfImportant,
-  queueEmailDigest,
-  NotificationEmailData,
-} from "../services/notificationEmail";
+import { sendNotificationEmailIfImportant, queueEmailDigest } from "../services/notificationEmail";
+import type { NotificationEmailData } from "../services/notificationEmailTemplates";
 
 export const NOTIFICATION_PROCESS_QUEUE = "notification-process";
 
@@ -106,11 +99,7 @@ async function handleProcessNotification(
   }
 
   if (prefs.channels.slack) {
-    await sendSlackNotification(
-      userIdNum,
-      type as keyof typeof NOTIFICATION_TYPES,
-      metadata as TemplateData,
-    );
+    await sendSlackNotification(userIdNum, type as NotificationType, metadata as TemplateData);
   }
 
   if (prefs.channels.email) {
@@ -146,7 +135,7 @@ async function handleProcessNotification(
     const organizationId = (metadata?.organizationId as number) || user.organizationId;
     await sendNotificationEmailIfImportant(
       userIdNum,
-      type as keyof typeof NOTIFICATION_TYPES,
+      type as NotificationType,
       emailData,
       organizationId,
     );

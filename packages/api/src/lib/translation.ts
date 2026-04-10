@@ -27,7 +27,7 @@ async function translateWithGoogle(
   text: string,
   sourceLang: string,
   targetLang: string,
-  apiKey: string
+  apiKey: string,
 ): Promise<TranslateResult> {
   const response = await fetch(`${GOOGLE_TRANSLATE_URL}?key=${apiKey}`, {
     method: "POST",
@@ -45,15 +45,15 @@ async function translateWithGoogle(
     throw new Error(`Google Translate API error: ${response.status} - ${error}`);
   }
 
-  const data = await response.json() as {
+  const data = (await response.json()) as {
     data: {
       translations: Array<{ translatedText: string; detectedSourceLanguage?: string }>;
     };
   };
 
   return {
-    translatedText: data.data.translations[0].translatedText,
-    detectedSourceLang: data.data.translations[0].detectedSourceLanguage,
+    translatedText: data.data.translations[0]?.translatedText ?? "",
+    detectedSourceLang: data.data.translations[0]?.detectedSourceLanguage,
     provider: "google",
   };
 }
@@ -62,7 +62,7 @@ async function translateWithDeepL(
   text: string,
   sourceLang: string,
   targetLang: string,
-  apiKey: string
+  apiKey: string,
 ): Promise<TranslateResult> {
   const response = await fetch(DEEPL_URL, {
     method: "POST",
@@ -84,13 +84,13 @@ async function translateWithDeepL(
     throw new Error(`DeepL API error: ${response.status} - ${error}`);
   }
 
-  const data = await response.json() as {
+  const data = (await response.json()) as {
     translations: Array<{ detected_source_language?: string; text: string }>;
   };
 
   return {
-    translatedText: data.translations[0].text,
-    detectedSourceLang: data.translations[0].detected_source_language?.toLowerCase(),
+    translatedText: data.translations[0]?.text ?? "",
+    detectedSourceLang: data.translations[0]?.detected_source_language?.toLowerCase(),
     provider: "deepl",
   };
 }
@@ -107,7 +107,7 @@ export async function translateText(options: TranslateOptions): Promise<Translat
   const cached = await db.query.translationCache.findFirst({
     where: and(
       eq(translationCache.sourceHash, textHash),
-      eq(translationCache.targetLanguage, targetLang)
+      eq(translationCache.targetLanguage, targetLang),
     ),
   });
 
@@ -121,7 +121,7 @@ export async function translateText(options: TranslateOptions): Promise<Translat
   const config = await db.query.translationConfigs.findFirst({
     where: and(
       eq(translationConfigs.organizationId, organizationId),
-      eq(translationConfigs.isEnabled, true)
+      eq(translationConfigs.isEnabled, true),
     ),
   });
 
@@ -150,7 +150,7 @@ export async function translateText(options: TranslateOptions): Promise<Translat
           where: and(
             eq(translationConfigs.organizationId, organizationId),
             eq(translationConfigs.provider, "deepl"),
-            eq(translationConfigs.isEnabled, true)
+            eq(translationConfigs.isEnabled, true),
           ),
         });
 

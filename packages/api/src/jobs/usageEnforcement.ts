@@ -17,7 +17,7 @@ const connection = {
 };
 
 export type UsageCheckJobData = {
-  organizationId: number;
+  organizationId?: number;
 };
 
 export const usageCheckQueue = new Queue<UsageCheckJobData>(USAGE_CHECK_QUEUE, {
@@ -30,7 +30,7 @@ export const usageCheckQueue = new Queue<UsageCheckJobData>(USAGE_CHECK_QUEUE, {
 });
 
 interface OrganizationUsage {
-  organizationId: number;
+  organizationId?: number;
   agentCount: number;
   contactCount: number;
   ticketCount: number;

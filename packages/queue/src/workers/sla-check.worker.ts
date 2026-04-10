@@ -1,4 +1,4 @@
-import { Worker, Job, Queue, type RepeatedJob } from "bullmq";
+import { Worker, Job, Queue } from "bullmq";
 import { eq, and, isNull, lte, gte, or } from "drizzle-orm";
 import { db } from "@ticket-app/db";
 import { slaPolicyTargets, ticketSla, tickets } from "@ticket-app/db/schema";
@@ -30,7 +30,7 @@ export interface HolidayConfig {
   name: string;
 }
 
-const slaCheckQueue = new Queue(SlaCheckJobData, {
+const slaCheckQueue = new Queue<SlaCheckJobData>(SLA_CHECK_QUEUE, {
   connection: getRedis(),
   defaultJobOptions: {
     attempts: 3,
@@ -54,11 +54,12 @@ export async function addSlaCheckJob(
   });
 }
 
-export async function scheduleSlaCheck(intervalMinutes: number = 1): Promise<RepeatedJob> {
-  const existing = await slaCheckQueue.getRepeatedJobs();
+export async function scheduleSlaCheck(intervalMinutes: number = 1): Promise<Job<SlaCheckJobData>> {
+  const existing = await slaCheckQueue.getRepeatableJobs();
   for (const job of existing) {
     if (job.name === "sla-check") {
-      await job.remove();
+      // Use removeRepeatableByKey to remove the job
+      await slaCheckQueue.removeRepeatableByKey(job.key);
     }
   }
 
@@ -111,17 +112,19 @@ async function checkAllSlaTimers(): Promise<void> {
         with: {
           organization: true,
           priority: true,
+          status: true,
         },
       },
       slaPolicy: true,
     },
   });
 
-  for (const ticketSla of activeTicketSlas) {
+  for (const ticketSlaItem of activeTicketSlas) {
     try {
-      await processTicketSla(ticketSla, now);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await processTicketSla(ticketSlaItem as any);
     } catch (error) {
-      console.error(`[SLA-Check] Error processing SLA ${ticketSla.id}:`, error);
+      console.error(`[SLA-Check] Error processing SLA ${ticketSlaItem.id}:`, error);
     }
   }
 
@@ -146,6 +149,7 @@ async function checkAllSlaTimers(): Promise<void> {
         with: {
           contact: true,
           assignedAgent: true,
+          status: true,
         },
       },
     },
@@ -159,10 +163,12 @@ async function checkAllSlaTimers(): Promise<void> {
 }
 
 async function processTicketSla(
-  ticketSla: typeof import("@ticket-app/db/schema").ticketSla.$inferSelect & {
+  ticketSlaData: typeof ticketSla.$inferSelect & {
     ticket: {
-      organization: { id: number; name: string };
-      priority: { id: number; name: string };
+      id: number;
+      createdAt: Date;
+      firstResponseAt: Date | null;
+      status: { name: string } | null;
     };
     slaPolicy: {
       businessHoursOnly: boolean;
@@ -170,30 +176,32 @@ async function processTicketSla(
       holidays: HolidayConfig[] | null;
     };
   },
-  now: Date,
 ): Promise<void> {
-  const { ticket, slaPolicy } = ticketSla;
+  const { ticket, slaPolicy } = ticketSlaData;
 
   if (ticket.status?.name === "resolved" || ticket.status?.name === "closed") {
     console.log(`[SLA-Check] Ticket ${ticket.id} is resolved/closed, skipping`);
     return;
   }
 
-  let firstResponseDue = ticketSla.firstResponseDueAt;
-  let resolutionDue = ticketSla.resolutionDueAt;
+  let firstResponseDue = ticketSlaData.firstResponseDueAt;
+  let resolutionDue = ticketSlaData.resolutionDueAt;
 
-  if (slaPolicy.businessHoursOnly && slaPolicy.businessHoursConfig) {
+  const businessHoursConfig = slaPolicy.businessHoursConfig as BusinessHoursConfig | null;
+  const holidays = (slaPolicy.holidays as HolidayConfig[] | null) || [];
+
+  if (slaPolicy.businessHoursOnly && businessHoursConfig) {
     const effectiveFirstResponseDue = calculateBusinessHoursEnd(
       ticket.createdAt,
-      getFirstResponseMinutes(ticketSla),
-      slaPolicy.businessHoursConfig,
-      slaPolicy.holidays || [],
+      getFirstResponseMinutes(ticketSlaData),
+      businessHoursConfig,
+      holidays,
     );
     const effectiveResolutionDue = calculateBusinessHoursEnd(
       ticket.createdAt,
-      getResolutionMinutes(ticketSla),
-      slaPolicy.businessHoursConfig,
-      slaPolicy.holidays || [],
+      getResolutionMinutes(ticketSlaData),
+      businessHoursConfig,
+      holidays,
     );
     firstResponseDue = effectiveFirstResponseDue;
     resolutionDue = effectiveResolutionDue;
@@ -204,13 +212,13 @@ async function processTicketSla(
   let firstResponseBreachedAt: Date | null = null;
   let resolutionBreachedAt: Date | null = null;
 
-  if (!ticket.firstResponseAt && now > firstResponseDue) {
+  if (!ticket.firstResponseAt && new Date() > firstResponseDue) {
     firstResponseBreached = true;
     firstResponseBreachedAt = firstResponseDue;
     console.log(`[SLA-Check] First response breached for ticket ${ticket.id}`);
   }
 
-  if (ticket.status?.name !== "resolved" && now > resolutionDue) {
+  if (ticket.status?.name !== "resolved" && new Date() > resolutionDue) {
     resolutionBreached = true;
     resolutionBreachedAt = resolutionDue;
     console.log(`[SLA-Check] Resolution breached for ticket ${ticket.id}`);
@@ -224,11 +232,11 @@ async function processTicketSla(
         resolutionBreached,
         firstResponseBreachedAt: firstResponseBreachedAt,
         resolutionBreachedAt: resolutionBreachedAt,
-        updatedAt: now,
+        updatedAt: new Date(),
       })
-      .where(eq(ticketSla.id, ticketSla.id));
+      .where(eq(ticketSla.id, ticketSlaData.id));
 
-    await triggerEscalation(ticket.id, ticketSla, {
+    await triggerEscalation(ticket.id, ticketSlaData, {
       firstResponseBreached,
       resolutionBreached,
     });
@@ -239,35 +247,45 @@ async function checkSlaBreach(slaId: number): Promise<void> {
   const sla = await db.query.ticketSla.findFirst({
     where: eq(ticketSla.id, slaId),
     with: {
-      ticket: true,
+      ticket: {
+        with: {
+          status: true,
+        },
+      },
       slaPolicy: true,
     },
   });
 
   if (!sla) return;
-  await processTicketSla(sla, new Date());
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await processTicketSla(sla as any);
 }
 
 async function checkTicketSlaBreach(ticketId: number): Promise<void> {
   const sla = await db.query.ticketSla.findFirst({
     where: eq(ticketSla.ticketId, ticketId),
     with: {
-      ticket: true,
+      ticket: {
+        with: {
+          status: true,
+        },
+      },
       slaPolicy: true,
     },
   });
 
   if (!sla) return;
-  await processTicketSla(sla, new Date());
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await processTicketSla(sla as any);
 }
 
 async function triggerEscalation(
   ticketId: number,
-  ticketSla: { slaPolicyId: number },
+  ticketSlaData: { slaPolicyId: number },
   breachInfo: { firstResponseBreached: boolean; resolutionBreached: boolean },
 ): Promise<void> {
   const policyTargets = await db.query.slaPolicyTargets.findMany({
-    where: eq(slaPolicyTargets.slaPolicyId, ticketSla.slaPolicyId),
+    where: eq(slaPolicyTargets.slaPolicyId, ticketSlaData.slaPolicyId),
     with: {
       escalateAgent: true,
       escalateTeam: true,
@@ -298,8 +316,8 @@ async function triggerEscalation(
 async function sendSlaWarningNotification(
   sla: typeof import("@ticket-app/db/schema").ticketSla.$inferSelect & {
     ticket: {
-      contact: { email: string; firstName: string } | null;
-      assignedAgent: { email: string; firstName: string } | null;
+      contact: { email: string | null; firstName: string | null } | null;
+      assignedAgent: { email: string | null; firstName: string | null } | null;
     };
   },
 ): Promise<void> {

@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-const _captchaVerifySchema = z.object({
+const __captchaVerifySchema = z.object({
   secret: z.string(),
   response: z.string(),
   remoteip: z.string().optional(),

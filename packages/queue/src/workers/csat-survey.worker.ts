@@ -28,7 +28,7 @@ const defaultConfig: CsatSurveyConfig = {
   reminderEnabled: true,
 };
 
-const csatSurveyQueue = new Queue(CsatSurveyJobData, {
+const csatSurveyQueue = new Queue<CsatSurveyJobData>(CSAT_SURVEY_QUEUE, {
   connection: getRedis(),
   defaultJobOptions: {
     attempts: 3,
@@ -64,7 +64,6 @@ export async function scheduleCsatSurveys(): Promise<void> {
     ),
     with: {
       contact: true,
-      sla: true,
     },
   });
 
@@ -91,7 +90,7 @@ export async function scheduleCsatSurveys(): Promise<void> {
   reminderDate.setDate(reminderDate.getDate() - defaultConfig.reminderAfterDays);
 
   for (const survey of pendingSurveys) {
-    if (defaultConfig.reminderEnabled && survey.sentAt < reminderDate && !survey.sentAt) {
+    if (defaultConfig.reminderEnabled && survey.sentAt < reminderDate && !survey.respondedAt) {
       await addCsatSurveyJob({ type: "send-reminder", surveyId: survey.id }, { delay: 0 });
     }
   }
@@ -163,18 +162,23 @@ async function sendSurvey(ticketId: number): Promise<void> {
     .insert(csatSurveys)
     .values({
       ticketId: ticket.id,
-      sentTo: ticket.contact.email,
+      sentTo: ticket.contact.email ?? "",
       sentAt: new Date(),
       expiresAt,
     })
     .returning();
+
+  if (!survey) {
+    console.error(`[CSAT] Failed to create survey for ticket ${ticketId}`);
+    return;
+  }
 
   const surveyUrl = `${env.APP_URL || "http://localhost:3000"}/csat/${survey.uuid}`;
   const subject = `How was your experience with Ticket #${ticket.referenceNumber}?`;
 
   const emailData: EmailSendJobData = {
     mailboxId: ticket.mailboxId || 1,
-    toEmails: [ticket.contact.email],
+    toEmails: [ticket.contact.email ?? ""],
     subject,
     bodyHtml: generateSurveyEmailHtml(ticket, surveyUrl),
     bodyText: generateSurveyEmailText(ticket, surveyUrl),
@@ -325,7 +329,7 @@ export async function getCsatStats(organizationId: number): Promise<{
   const distribution: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
   for (const rating of ratings) {
     if (rating >= 1 && rating <= 5) {
-      distribution[rating]++;
+      distribution[rating] = (distribution[rating] ?? 0) + 1;
     }
   }
 
