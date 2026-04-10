@@ -50,7 +50,7 @@ export async function createNotification(
     },
   });
 
-  return notification;
+  return notification as any;
 }
 
 export async function createTeamNotification(
@@ -59,7 +59,7 @@ export async function createTeamNotification(
   params: Omit<CreateNotificationParams, "userId" | "organizationId">,
 ): Promise<void> {
   const teamMembers = await db.query.teamMembers.findMany({
-    where: eq(db.query.teamMembers.baseTable.teamId, teamId),
+    where: eq(teamMembers.teamId, teamId),
     with: { user: true },
   });
 
@@ -144,7 +144,7 @@ export async function getUserNotificationPreferences(
 
   if (!user) return null;
 
-  const _channels = await db.query.notificationChannels.findMany({
+  const _channelsUnused = await db.query.notificationChannels.findMany({
     where: eq(notificationChannels.userId, userId),
   });
 
@@ -167,11 +167,12 @@ export async function getUserNotificationPreferences(
     },
   };
 
-  if (!user.metadata || typeof user.metadata !== "object") {
+  const userAny = user as any;
+  if (!userAny.metadata || typeof user.metadata !== "object") {
     return defaultPrefs;
   }
 
-  const metadata = user.metadata as Record<string, unknown>;
+  const metadata = userAny.metadata as Record<string, unknown>;
 
   return {
     emailDigest: (metadata.emailDigest as boolean) ?? defaultPrefs.emailDigest,
@@ -193,7 +194,7 @@ export async function updateUserNotificationPreferences(
 
   if (!user) return;
 
-  const existingMeta = (user.metadata as Record<string, unknown>) || {};
+  const existingMeta = (userAny.metadata as Record<string, unknown>) || {};
   const updatedMeta = { ...existingMeta, ...prefs };
 
   await db.update(users).set({ metadata: updatedMeta }).where(eq(users.id, userId));
@@ -228,11 +229,12 @@ export async function getSlackWebhookUrl(organizationId: number): Promise<string
     where: eq(organizations.id, organizationId),
   });
 
-  if (!org || !org.metadata || typeof org.metadata !== "object") {
+  const orgAny = org as any;
+  if (!orgAny || !orgAny.metadata || typeof org.metadata !== "object") {
     return null;
   }
 
-  const metadata = org.metadata as Record<string, unknown>;
+  const metadata = orgAny.metadata as Record<string, unknown>;
   return (metadata.slackWebhookUrl as string) || null;
 }
 
@@ -246,7 +248,7 @@ export async function setSlackWebhookUrl(
 
   if (!org) return;
 
-  const existingMeta = (org.metadata as Record<string, unknown>) || {};
+  const existingMeta = (orgAny.metadata as Record<string, unknown>) || {};
   await db
     .update(organizations)
     .set({ metadata: { ...existingMeta, slackWebhookUrl: webhookUrl } })
@@ -268,5 +270,5 @@ export async function deleteOldNotifications(
     .delete(notifications)
     .where(and(eq(notifications.userId, userId), eq(notifications.isRead, true)));
 
-  return result.rowCount;
+  return result.rowCount ?? 0;
 }

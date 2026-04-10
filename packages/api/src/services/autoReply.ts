@@ -12,14 +12,14 @@ export interface AutoReplyData {
 }
 
 export async function getAutoReply(
-  mailboxId: number
+  mailboxId: number,
 ): Promise<{ subject: string; bodyHtml: string } | null> {
   const mailbox = await db.query.mailboxes.findFirst({
     where: and(
       eq(mailboxes.id, mailboxId),
       eq(mailboxes.autoReplyEnabled, true),
       eq(mailboxes.isActive, true),
-      isNull(mailboxes.deletedAt)
+      isNull(mailboxes.deletedAt),
     ),
   });
 
@@ -35,7 +35,7 @@ export async function getAutoReply(
 
 export function buildAutoReplyEmail(
   data: AutoReplyData,
-  template: { subject: string; bodyHtml: string }
+  template: { subject: string; bodyHtml: string },
 ): { subject: string; bodyHtml: string } {
   let subject = template.subject
     .replace(/\{reference\}/g, data.ticketReference)

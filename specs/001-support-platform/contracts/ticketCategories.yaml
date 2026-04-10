@@ -12,16 +12,16 @@ paths:
       tags: [Ticket Categories]
       security: [cookieAuth: [], bearerAuth: []]
       parameters:
-        - $ref: '#/components/parameters/organizationId'
+        - $ref: "#/components/parameters/organizationId"
       responses:
-        '200':
+        "200":
           description: Category list
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/ticketCategory'
+                  $ref: "#/components/schemas/ticketCategory"
 
     post:
       operationId: createTicketCategory
@@ -33,14 +33,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ticketCategoryCreate'
+              $ref: "#/components/schemas/ticketCategoryCreate"
       responses:
-        '201':
+        "201":
           description: Category created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ticketCategory'
+                $ref: "#/components/schemas/ticketCategory"
 
   /ticket-categories/{categoryId}:
     get:
@@ -55,12 +55,12 @@ paths:
           schema:
             type: number
       responses:
-        '200':
+        "200":
           description: Category details
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ticketCategory'
+                $ref: "#/components/schemas/ticketCategory"
 
     patch:
       operationId: updateTicketCategory
@@ -78,9 +78,9 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ticketCategoryUpdate'
+              $ref: "#/components/schemas/ticketCategoryUpdate"
       responses:
-        '200':
+        "200":
           description: Category updated
 
     delete:
@@ -95,7 +95,7 @@ paths:
           schema:
             type: number
       responses:
-        '200':
+        "200":
           description: Category deleted
 
 components:

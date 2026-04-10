@@ -79,7 +79,7 @@ export async function getShopifyConfig(storeId: number): Promise<ShopifyConfig |
 export async function shopifyApiRequest<T>(
   config: ShopifyConfig,
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
 ): Promise<T> {
   const url = `https://${config.shopDomain}/admin/api/${SHOPIFY_API_VERSION}/${endpoint}`;
 
@@ -107,7 +107,7 @@ export async function fetchShopifyOrders(
     created_at_min?: string;
     updated_at_min?: string;
     status?: string;
-  } = {}
+  } = {},
 ): Promise<ShopifyOrder[]> {
   const searchParams = new URLSearchParams();
   searchParams.set("limit", String(params.limit || 250));
@@ -117,7 +117,7 @@ export async function fetchShopifyOrders(
 
   const data = await shopifyApiRequest<{ orders: ShopifyOrder[] }>(
     config,
-    `orders.json?${searchParams.toString()}`
+    `orders.json?${searchParams.toString()}`,
   );
 
   return data.orders;
@@ -125,13 +125,10 @@ export async function fetchShopifyOrders(
 
 export async function fetchShopifyOrder(
   config: ShopifyConfig,
-  orderId: string
+  orderId: string,
 ): Promise<ShopifyOrder | null> {
   try {
-    const data = await shopifyApiRequest<{ order: ShopifyOrder }>(
-      config,
-      `orders/${orderId}.json`
-    );
+    const data = await shopifyApiRequest<{ order: ShopifyOrder }>(config, `orders/${orderId}.json`);
     return data.order;
   } catch {
     return null;
@@ -140,7 +137,7 @@ export async function fetchShopifyOrder(
 
 export function transformShopifyOrder(
   storeId: number,
-  shopifyOrder: ShopifyOrder
+  shopifyOrder: ShopifyOrder,
 ): Omit<typeof ecommerceOrders.$inferInsert, "id" | "uuid" | "createdAt" | "updatedAt"> {
   const lineItems = shopifyOrder.line_items.map((item) => ({
     productId: item.product_id,
@@ -201,9 +198,10 @@ export function transformShopifyOrder(
     discountCodes: shopifyOrder.discount_codes,
     customerEmail: shopifyOrder.email?.toLowerCase() || null,
     customerPhone: shopifyOrder.phone?.replace(/\D/g, "") || null,
-    customerName: [shopifyOrder.shipping_address?.first_name, shopifyOrder.shipping_address?.last_name]
-      .filter(Boolean)
-      .join(" ") || null,
+    customerName:
+      [shopifyOrder.shipping_address?.first_name, shopifyOrder.shipping_address?.last_name]
+        .filter(Boolean)
+        .join(" ") || null,
     billingAddress,
     shippingAddress,
     shippingMethod: null,
@@ -217,7 +215,7 @@ export function transformShopifyOrder(
 
 export async function syncShopifyStoreOrders(
   storeId: number,
-  sinceDate?: Date
+  sinceDate?: Date,
 ): Promise<{ synced: number; errors: string[] }> {
   const config = await getShopifyConfig(storeId);
   if (!config) {

@@ -68,19 +68,19 @@ function MailboxRoutingRoute() {
   const { data: mailbox, isLoading } = useQuery(
     orpc.mailboxes.get.queryOptions({
       id: mailboxId,
-    })
+    }),
   );
 
   const { data: rules, refetch } = useQuery(
     orpc.mailboxes.getRoutingRules.queryOptions({
       mailboxId,
-    })
+    }),
   );
 
   const { data: teams } = useQuery(
     orpc.teams.list.queryOptions({
       organizationId: 1,
-    })
+    }),
   );
 
   const [editingRule, setEditingRule] = useState<RoutingRule | null>(null);
@@ -93,7 +93,7 @@ function MailboxRoutingRoute() {
         setIsCreating(false);
         refetch();
       },
-    })
+    }),
   );
 
   const updateRuleMutation = useMutation(
@@ -102,7 +102,7 @@ function MailboxRoutingRoute() {
         setEditingRule(null);
         refetch();
       },
-    })
+    }),
   );
 
   const deleteRuleMutation = useMutation(
@@ -111,13 +111,13 @@ function MailboxRoutingRoute() {
         setEditingRule(null);
         refetch();
       },
-    })
+    }),
   );
 
   const reorderMutation = useMutation(
     orpc.mailboxes.reorderRoutingRules.mutationOptions({
       onSuccess: () => refetch(),
-    })
+    }),
   );
 
   const handleSaveRule = () => {
@@ -192,7 +192,7 @@ function MailboxRoutingRoute() {
     });
   };
 
-  const updateCondition = (index: number, updates: Partial<typeof editingRule.conditions[0]>) => {
+  const updateCondition = (index: number, updates: Partial<(typeof editingRule.conditions)[0]>) => {
     if (!editingRule) return;
     setEditingRule({
       ...editingRule,
@@ -216,7 +216,7 @@ function MailboxRoutingRoute() {
     });
   };
 
-  const updateAction = (index: number, updates: Partial<typeof editingRule.actions[0]>) => {
+  const updateAction = (index: number, updates: Partial<(typeof editingRule.actions)[0]>) => {
     if (!editingRule) return;
     setEditingRule({
       ...editingRule,
@@ -244,9 +244,7 @@ function MailboxRoutingRoute() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold">Routing Rules</h1>
-            <p className="text-muted-foreground">
-              Configure email routing for {mailbox?.name}
-            </p>
+            <p className="text-muted-foreground">Configure email routing for {mailbox?.name}</p>
           </div>
           {!isCreating && (
             <Button onClick={() => startEditing()}>
@@ -278,7 +276,9 @@ function MailboxRoutingRoute() {
               <Checkbox
                 id="isActive"
                 checked={editingRule.isActive}
-                onCheckedChange={(checked) => setEditingRule({ ...editingRule, isActive: checked as boolean })}
+                onCheckedChange={(checked) =>
+                  setEditingRule({ ...editingRule, isActive: checked as boolean })
+                }
               />
               <Label htmlFor="isActive" className="font-normal">
                 Active
@@ -291,7 +291,12 @@ function MailboxRoutingRoute() {
                 <div className="flex items-center gap-2">
                   <select
                     value={editingRule.conditionOperator}
-                    onChange={(e) => setEditingRule({ ...editingRule, conditionOperator: e.target.value as "and" | "or" })}
+                    onChange={(e) =>
+                      setEditingRule({
+                        ...editingRule,
+                        conditionOperator: e.target.value as "and" | "or",
+                      })
+                    }
                     className="h-8 rounded-none border border-input bg-transparent px-2 text-xs"
                   >
                     <option value="and">AND</option>
@@ -311,7 +316,9 @@ function MailboxRoutingRoute() {
                     className="h-8 w-[150px] rounded-none border border-input bg-transparent px-2 text-xs"
                   >
                     {CONDITION_FIELDS.map((f) => (
-                      <option key={f.value} value={f.value}>{f.label}</option>
+                      <option key={f.value} value={f.value}>
+                        {f.label}
+                      </option>
                     ))}
                   </select>
                   <select
@@ -320,7 +327,9 @@ function MailboxRoutingRoute() {
                     className="h-8 w-[130px] rounded-none border border-input bg-transparent px-2 text-xs"
                   >
                     {OPERATORS.map((o) => (
-                      <option key={o.value} value={o.value}>{o.label}</option>
+                      <option key={o.value} value={o.value}>
+                        {o.label}
+                      </option>
                     ))}
                   </select>
                   <Input
@@ -352,7 +361,9 @@ function MailboxRoutingRoute() {
                     className="h-8 w-[150px] rounded-none border border-input bg-transparent px-2 text-xs"
                   >
                     {ACTION_TYPES.map((a) => (
-                      <option key={a.value} value={a.value}>{a.label}</option>
+                      <option key={a.value} value={a.value}>
+                        {a.label}
+                      </option>
                     ))}
                   </select>
                   {action.type === "assign_team" ? (
@@ -363,7 +374,9 @@ function MailboxRoutingRoute() {
                     >
                       <option value="">Select team</option>
                       {teams?.map((team) => (
-                        <option key={team.id} value={String(team.id)}>{team.name}</option>
+                        <option key={team.id} value={String(team.id)}>
+                          {team.name}
+                        </option>
                       ))}
                     </select>
                   ) : (
@@ -391,7 +404,10 @@ function MailboxRoutingRoute() {
               >
                 Cancel
               </Button>
-              <Button onClick={handleSaveRule} disabled={!editingRule.name || updateRuleMutation.isPending}>
+              <Button
+                onClick={handleSaveRule}
+                disabled={!editingRule.name || updateRuleMutation.isPending}
+              >
                 <Save className="mr-2 h-4 w-4" />
                 Save Rule
               </Button>
@@ -444,11 +460,7 @@ function MailboxRoutingRoute() {
                     >
                       <span className="text-xs">↓</span>
                     </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => startEditing(rule)}
-                    >
+                    <Button variant="ghost" size="icon" onClick={() => startEditing(rule)}>
                       <Edit2 className="h-4 w-4" />
                     </Button>
                     <Button

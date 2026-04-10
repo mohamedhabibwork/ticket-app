@@ -207,7 +207,7 @@ export const usersRouter = {
       if (input.roleIds && input.roleIds.length > 0) {
         await db.insert(userRoles).values(
           input.roleIds.map((roleId) => ({
-            userId: newUser.id,
+            userId: newUser?.id ?? 0,
             roleId,
           })),
         );
@@ -216,7 +216,7 @@ export const usersRouter = {
       if (subscription) {
         await db.insert(seats).values({
           subscriptionId: subscription.id,
-          userId: newUser.id,
+          userId: newUser?.id ?? 0,
           role: "agent",
           addedAt: new Date(),
         });
@@ -646,7 +646,7 @@ export const usersRouter = {
           ticketViewScope: input.ticketViewScope,
           isActive: input.isActive,
           updatedAt: new Date(),
-        })
+        } as any)
         .where(eq(roles.id, input.id))
         .returning();
       return updated;
@@ -719,7 +719,7 @@ export const usersRouter = {
       const resetExpiresAt = new Date(Date.now() + 60 * 60 * 1000);
 
       const { createPasswordReset } = await import("../services/passwordResetService");
-      const _reset = await createPasswordReset({
+      await createPasswordReset({
         userId: input.userId,
         token: resetToken,
         expiresAt: resetExpiresAt,
@@ -1098,18 +1098,18 @@ export const usersRouter = {
         {
           action: "API_KEY_CREATE",
           resourceType: "api_key",
-          resourceId: newKey.id.toString(),
+          resourceId: newKey?.id?.toString() ?? "0",
           metadata: { name: input.name, scopes: input.scopes },
         },
       );
 
       return {
-        id: newKey.id,
-        uuid: newKey.uuid,
-        name: newKey.name,
-        keyPrefix: newKey.keyPrefix,
+        id: newKey?.id ?? 0,
+        uuid: newKey?.uuid ?? "",
+        name: newKey?.name ?? "",
+        keyPrefix: newKey?.keyPrefix ?? "",
         key: keyData,
-        scopes: newKey.scopes,
+        scopes: newKey?.scopes ?? [],
         expiresAt: newKey.expiresAt,
         createdAt: newKey.createdAt,
       };
@@ -1228,7 +1228,7 @@ export const usersRouter = {
           userAgent: input.userAgent,
         },
         {
-          action: "USER_ROLE_UPDATE",
+          action: "USER_ROLE_UPDATE" as any,
           resourceType: "user",
           resourceId: input.userId.toString(),
           changes: trackChanges({ roles: oldRoleIds }, { roles: input.roleIds.sort() }),

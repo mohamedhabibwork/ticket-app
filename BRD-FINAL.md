@@ -1,13 +1,14 @@
 # Business Requirements Document (BRD)
+
 ## Unified Customer Support & Ticket Management Platform
 
-| Field | Value |
-|---|---|
-| **Document Version** | 2.0.0 |
-| **Status** | Draft |
-| **Prepared By** | Mohamed Habib |
-| **Date** | 2026-04-08 |
-| **Classification** | Confidential |
+| Field                | Value         |
+| -------------------- | ------------- |
+| **Document Version** | 2.0.0         |
+| **Status**           | Draft         |
+| **Prepared By**      | Mohamed Habib |
+| **Date**             | 2026-04-08    |
+| **Classification**   | Confidential  |
 
 ---
 
@@ -78,6 +79,7 @@ Businesses operating across multiple channels (email, social media, eCommerce, w
 ### 2.2 Business Objectives
 
 **Platform**
+
 - Consolidate all customer communication channels into one platform
 - Reduce average ticket resolution time by at least 30%
 - Enable SLA enforcement and automated escalation
@@ -87,6 +89,7 @@ Businesses operating across multiple channels (email, social media, eCommerce, w
 - Deliver measurable agent performance reporting
 
 **Billing**
+
 - Generate predictable recurring revenue via monthly and annual subscription plans
 - Minimize churn via proactive dunning, grace periods, and in-app upgrade prompts
 - Enable upselling through visible plan limit indicators and contextual upgrade prompts
@@ -96,28 +99,28 @@ Businesses operating across multiple channels (email, social media, eCommerce, w
 
 ### 2.3 Success Metrics
 
-| Metric | Target |
-|---|---|
-| First Response Time | < 2 hours (configurable per SLA) |
-| Ticket Resolution Rate | > 90% within SLA |
-| Customer Satisfaction (CSAT) | > 4.0 / 5.0 |
-| Agent Utilization | Visible via dashboard |
-| System Uptime | 99.9% |
-| Trial-to-Paid Conversion | > 25% |
-| Monthly Churn Rate | < 3% |
+| Metric                       | Target                           |
+| ---------------------------- | -------------------------------- |
+| First Response Time          | < 2 hours (configurable per SLA) |
+| Ticket Resolution Rate       | > 90% within SLA                 |
+| Customer Satisfaction (CSAT) | > 4.0 / 5.0                      |
+| Agent Utilization            | Visible via dashboard            |
+| System Uptime                | 99.9%                            |
+| Trial-to-Paid Conversion     | > 25%                            |
+| Monthly Churn Rate           | < 3%                             |
 
 ---
 
 ## 3. Stakeholders
 
-| Role | Responsibility |
-|---|---|
-| Platform Owner / Tenant Admin | Manages the entire workspace, billing, and configuration |
-| Support Agent | Handles tickets, replies to customers, manages tasks |
-| Team Lead / Supervisor | Monitors agents, assigns tickets, reviews performance |
-| End Customer | Submits requests via forms, email, chat, or social media |
-| System Administrator | Manages security, integrations, and system health |
-| eCommerce Manager | Integrates store data for order-aware support |
+| Role                           | Responsibility                                                     |
+| ------------------------------ | ------------------------------------------------------------------ |
+| Platform Owner / Tenant Admin  | Manages the entire workspace, billing, and configuration           |
+| Support Agent                  | Handles tickets, replies to customers, manages tasks               |
+| Team Lead / Supervisor         | Monitors agents, assigns tickets, reviews performance              |
+| End Customer                   | Submits requests via forms, email, chat, or social media           |
+| System Administrator           | Manages security, integrations, and system health                  |
+| eCommerce Manager              | Integrates store data for order-aware support                      |
 | Platform Admin (SaaS Operator) | Manages all tenants, plans, billing console, and revenue reporting |
 
 ---
@@ -490,12 +493,12 @@ Businesses operating across multiple channels (email, social media, eCommerce, w
 
 The platform offers four base plan tiers. All plan configurations are managed by platform admins and stored in the database (no hardcoding).
 
-| Tier | Target | Billing Model |
-|---|---|---|
-| **Free** | Individuals / evaluation | Forever free, hard feature caps |
-| **Starter** | Small teams (1–5 agents) | Per-seat, monthly or annual |
-| **Professional** | Growing teams (up to 25 agents) | Per-seat, monthly or annual |
-| **Enterprise** | Large organizations | Custom pricing, annual contract |
+| Tier             | Target                          | Billing Model                   |
+| ---------------- | ------------------------------- | ------------------------------- |
+| **Free**         | Individuals / evaluation        | Forever free, hard feature caps |
+| **Starter**      | Small teams (1–5 agents)        | Per-seat, monthly or annual     |
+| **Professional** | Growing teams (up to 25 agents) | Per-seat, monthly or annual     |
+| **Enterprise**   | Large organizations             | Custom pricing, annual contract |
 
 **Requirements:**
 
@@ -514,39 +517,39 @@ Every plan defines feature flags and numeric limits enforced at runtime. All val
 
 **Feature Flags:**
 
-| Feature | Free | Starter | Professional | Enterprise |
-|---|---|---|---|---|
-| Email channel | ✓ | ✓ | ✓ | ✓ |
-| Live chat (Binaka) | ✗ | ✓ | ✓ | ✓ |
-| Social media channels | ✗ | ✗ | ✓ | ✓ |
-| eCommerce integration | ✗ | ✗ | ✓ | ✓ |
-| Workflow automation | ✗ | ✓ | ✓ | ✓ |
-| Knowledgebase | ✗ | ✓ | ✓ | ✓ |
-| Custom roles | ✗ | ✗ | ✓ | ✓ |
-| SLA policies | ✗ | ✓ | ✓ | ✓ |
-| CSAT surveys | ✗ | ✓ | ✓ | ✓ |
-| Custom domain | ✗ | ✗ | ✓ | ✓ |
-| White-label branding | ✗ | ✗ | ✗ | ✓ |
-| API access | ✗ | ✓ | ✓ | ✓ |
-| SSO / SAML | ✗ | ✗ | ✗ | ✓ |
-| IP whitelisting | ✗ | ✗ | ✗ | ✓ |
-| Priority support | ✗ | ✗ | ✓ | ✓ |
-| Advanced reports | ✗ | ✗ | ✓ | ✓ |
+| Feature               | Free | Starter | Professional | Enterprise |
+| --------------------- | ---- | ------- | ------------ | ---------- |
+| Email channel         | ✓    | ✓       | ✓            | ✓          |
+| Live chat (Binaka)    | ✗    | ✓       | ✓            | ✓          |
+| Social media channels | ✗    | ✗       | ✓            | ✓          |
+| eCommerce integration | ✗    | ✗       | ✓            | ✓          |
+| Workflow automation   | ✗    | ✓       | ✓            | ✓          |
+| Knowledgebase         | ✗    | ✓       | ✓            | ✓          |
+| Custom roles          | ✗    | ✗       | ✓            | ✓          |
+| SLA policies          | ✗    | ✓       | ✓            | ✓          |
+| CSAT surveys          | ✗    | ✓       | ✓            | ✓          |
+| Custom domain         | ✗    | ✗       | ✓            | ✓          |
+| White-label branding  | ✗    | ✗       | ✗            | ✓          |
+| API access            | ✗    | ✓       | ✓            | ✓          |
+| SSO / SAML            | ✗    | ✗       | ✗            | ✓          |
+| IP whitelisting       | ✗    | ✗       | ✗            | ✓          |
+| Priority support      | ✗    | ✗       | ✓            | ✓          |
+| Advanced reports      | ✗    | ✗       | ✓            | ✓          |
 
 **Numeric Limits (`-1` = Unlimited):**
 
-| Limit | Free | Starter | Professional | Enterprise |
-|---|---|---|---|---|
-| Max agents (seats) | 1 | 5 | 25 | -1 |
-| Max mailboxes | 1 | 3 | 10 | -1 |
-| Max forms | 1 | 5 | 20 | -1 |
-| Max workflows | 0 | 10 | 50 | -1 |
-| Max saved replies | 10 | 50 | 200 | -1 |
-| Max KB articles | 0 | 50 | 500 | -1 |
-| Max social accounts | 0 | 0 | 5 | -1 |
-| Max eCommerce stores | 0 | 0 | 3 | -1 |
-| Storage (GB) | 1 | 5 | 20 | Custom |
-| Max attachment MB | 5 | 20 | 50 | Custom |
+| Limit                | Free | Starter | Professional | Enterprise |
+| -------------------- | ---- | ------- | ------------ | ---------- |
+| Max agents (seats)   | 1    | 5       | 25           | -1         |
+| Max mailboxes        | 1    | 3       | 10           | -1         |
+| Max forms            | 1    | 5       | 20           | -1         |
+| Max workflows        | 0    | 10      | 50           | -1         |
+| Max saved replies    | 10   | 50      | 200          | -1         |
+| Max KB articles      | 0    | 50      | 500          | -1         |
+| Max social accounts  | 0    | 0       | 5            | -1         |
+| Max eCommerce stores | 0    | 0       | 3            | -1         |
+| Storage (GB)         | 1    | 5       | 20           | Custom     |
+| Max attachment MB    | 5    | 20      | 50           | Custom     |
 
 > When a hard limit is reached, the action is blocked and an upgrade prompt is shown.
 
@@ -556,14 +559,14 @@ Every plan defines feature flags and numeric limits enforced at runtime. All val
 
 Add-ons allow organizations to expand specific limits beyond their plan without upgrading the full tier.
 
-| Add-On | Unit | Applies To |
-|---|---|---|
-| Extra Agent Seat | Per seat / month | Starter, Professional |
-| Extra Storage | Per 10 GB / month | All paid plans |
-| Extra Mailbox | Per mailbox / month | Starter, Professional |
-| Extra Social Account | Per account / month | Professional |
-| Extra eCommerce Store | Per store / month | Professional |
-| Priority Support Pack | Flat / month | Starter |
+| Add-On                | Unit                | Applies To            |
+| --------------------- | ------------------- | --------------------- |
+| Extra Agent Seat      | Per seat / month    | Starter, Professional |
+| Extra Storage         | Per 10 GB / month   | All paid plans        |
+| Extra Mailbox         | Per mailbox / month | Starter, Professional |
+| Extra Social Account  | Per account / month | Professional          |
+| Extra eCommerce Store | Per store / month   | Professional          |
+| Priority Support Pack | Flat / month        | Starter               |
 
 **Requirements:**
 
@@ -579,13 +582,13 @@ Add-ons allow organizations to expand specific limits beyond their plan without 
 
 **States:**
 
-| State | Description |
-|---|---|
+| State      | Description                                    |
+| ---------- | ---------------------------------------------- |
 | `trialing` | Free trial period; full plan features unlocked |
-| `active` | Paid subscription in good standing |
-| `past_due` | Payment failed; grace period active |
-| `paused` | Paused by platform admin (Enterprise only) |
-| `canceled` | Subscription ended; org downgraded to Free |
+| `active`   | Paid subscription in good standing             |
+| `past_due` | Payment failed; grace period active            |
+| `paused`   | Paused by platform admin (Enterprise only)     |
+| `canceled` | Subscription ended; org downgraded to Free     |
 
 ```
 trialing → active → past_due → canceled
@@ -635,11 +638,11 @@ trialing → active → past_due → canceled
 
 **Coupon Types:**
 
-| Type | Description |
-|---|---|
-| Percentage | e.g., 20% off for 3 months |
-| Fixed amount | e.g., SAR 200 off first invoice |
-| Free trial extension | e.g., +14 days added to trial |
+| Type                 | Description                     |
+| -------------------- | ------------------------------- |
+| Percentage           | e.g., 20% off for 3 months      |
+| Fixed amount         | e.g., SAR 200 off first invoice |
+| Free trial extension | e.g., +14 days added to trial   |
 
 **Requirements:**
 
@@ -685,17 +688,17 @@ trialing → active → past_due → canceled
 
 **Tracked Metrics:**
 
-| Metric | How Measured |
-|---|---|
-| Agent seats | Count of active users |
-| Storage used (GB) | Sum of all attachment sizes in object storage |
-| Ticket volume | Count of tickets in current cycle (informational only, not billed) |
-| Mailboxes | Count of active mailboxes |
-| Workflows | Count of active workflows |
-| Forms | Count of active forms |
-| Social accounts | Count of connected social accounts |
-| KB articles | Count of published articles |
-| eCommerce stores | Count of active integrations |
+| Metric            | How Measured                                                       |
+| ----------------- | ------------------------------------------------------------------ |
+| Agent seats       | Count of active users                                              |
+| Storage used (GB) | Sum of all attachment sizes in object storage                      |
+| Ticket volume     | Count of tickets in current cycle (informational only, not billed) |
+| Mailboxes         | Count of active mailboxes                                          |
+| Workflows         | Count of active workflows                                          |
+| Forms             | Count of active forms                                              |
+| Social accounts   | Count of connected social accounts                                 |
+| KB articles       | Count of published articles                                        |
+| eCommerce stores  | Count of active integrations                                       |
 
 **Enforcement Rules:**
 
@@ -748,35 +751,35 @@ Accessible to Organization Owner role only:
 
 **Billing Notifications:**
 
-| Event | Channel | Recipient |
-|---|---|---|
-| Trial starting | Email | Owner |
-| Trial expiring in 72h | Email + In-app | Owner |
-| Trial expiring in 24h | Email + In-app | Owner |
-| Trial expired (no card) | Email + In-app | Owner |
-| Subscription activated | Email | Owner |
-| Invoice generated | Email | Billing contact |
-| Payment successful | Email | Billing contact |
-| Payment failed (attempt 1) | Email + In-app | Owner |
-| Payment failed (attempt 2, +3d) | Email + In-app | Owner |
-| Payment failed (attempt 3, +7d) | Email + In-app | Owner |
+| Event                              | Channel        | Recipient          |
+| ---------------------------------- | -------------- | ------------------ |
+| Trial starting                     | Email          | Owner              |
+| Trial expiring in 72h              | Email + In-app | Owner              |
+| Trial expiring in 24h              | Email + In-app | Owner              |
+| Trial expired (no card)            | Email + In-app | Owner              |
+| Subscription activated             | Email          | Owner              |
+| Invoice generated                  | Email          | Billing contact    |
+| Payment successful                 | Email          | Billing contact    |
+| Payment failed (attempt 1)         | Email + In-app | Owner              |
+| Payment failed (attempt 2, +3d)    | Email + In-app | Owner              |
+| Payment failed (attempt 3, +7d)    | Email + In-app | Owner              |
 | Account downgraded (grace expired) | Email + In-app | Owner + All admins |
-| Subscription canceled | Email | Owner |
-| Plan upgraded | Email + In-app | Owner |
-| Plan downgraded (scheduled) | Email | Owner |
-| Upcoming renewal (7 days prior) | Email | Billing contact |
-| Seat limit reached | In-app | Owner + Admins |
-| Storage at 80% | In-app | Owner |
-| Storage at 100% | Email + In-app | Owner |
+| Subscription canceled              | Email          | Owner              |
+| Plan upgraded                      | Email + In-app | Owner              |
+| Plan downgraded (scheduled)        | Email          | Owner              |
+| Upcoming renewal (7 days prior)    | Email          | Billing contact    |
+| Seat limit reached                 | In-app         | Owner + Admins     |
+| Storage at 80%                     | In-app         | Owner              |
+| Storage at 100%                    | Email + In-app | Owner              |
 
 **Dunning Schedule:**
 
-| Attempt | When | Action |
-|---|---|---|
-| 1 | Immediately on failure | Notify owner; subscription stays `active` |
-| 2 | +3 days | Retry charge; subscription moves to `past_due` |
-| 3 | +7 days | Retry charge; final warning email |
-| 4 | +7 days (grace end) | No retry; downgrade to Free |
+| Attempt | When                   | Action                                         |
+| ------- | ---------------------- | ---------------------------------------------- |
+| 1       | Immediately on failure | Notify owner; subscription stays `active`      |
+| 2       | +3 days                | Retry charge; subscription moves to `past_due` |
+| 3       | +7 days                | Retry charge; final warning email              |
+| 4       | +7 days (grace end)    | No retry; downgrade to Free                    |
 
 All dunning steps and results are logged in `dunning_logs`.
 
@@ -816,55 +819,56 @@ Reports available to platform admins, all exportable to CSV:
 
 ## 7. Non-Functional Requirements
 
-| Category | Requirement |
-|---|---|
-| **Performance** | API response time < 300ms (p95) under normal load |
-| **Scalability** | Horizontal scaling; supports 10,000+ concurrent agents per deployment |
-| **Availability** | 99.9% SLA; planned maintenance during low-traffic windows with advance notice |
-| **Security** | TLS 1.2+ for all traffic; AES-256 data at rest; SOC 2 Type II alignment |
-| **Data Retention** | Ticket data retained for minimum 5 years; configurable per tenant |
-| **Localization** | Full RTL support for Arabic; all UI strings externalized for i18n |
-| **Accessibility** | WCAG 2.1 Level AA for end-customer portal |
-| **Backup** | Automated daily database backups; point-in-time recovery to 7 days |
-| **Audit** | Full audit trail on all data mutations; tamper-evident logs |
-| **File Storage** | Attachments stored in S3-compatible object storage; max file size configurable |
-| **Idempotency** | All payment processing endpoints must be idempotent (retry-safe via idempotency keys) |
+| Category                | Requirement                                                                                             |
+| ----------------------- | ------------------------------------------------------------------------------------------------------- |
+| **Performance**         | API response time < 300ms (p95) under normal load                                                       |
+| **Scalability**         | Horizontal scaling; supports 10,000+ concurrent agents per deployment                                   |
+| **Availability**        | 99.9% SLA; planned maintenance during low-traffic windows with advance notice                           |
+| **Security**            | TLS 1.2+ for all traffic; AES-256 data at rest; SOC 2 Type II alignment                                 |
+| **Data Retention**      | Ticket data retained for minimum 5 years; configurable per tenant                                       |
+| **Localization**        | Full RTL support for Arabic; all UI strings externalized for i18n                                       |
+| **Accessibility**       | WCAG 2.1 Level AA for end-customer portal                                                               |
+| **Backup**              | Automated daily database backups; point-in-time recovery to 7 days                                      |
+| **Audit**               | Full audit trail on all data mutations; tamper-evident logs                                             |
+| **File Storage**        | Attachments stored in S3-compatible object storage; max file size configurable                          |
+| **Idempotency**         | All payment processing endpoints must be idempotent (retry-safe via idempotency keys)                   |
 | **Webhook Reliability** | Gateway webhooks processed with at-least-once delivery; idempotency guards prevent duplicate processing |
-| **PCI Compliance** | No raw card data ever touches platform servers; tokenization at gateway |
-| **Currency Precision** | All monetary amounts stored as BIGINT in smallest unit; conversion handled at presentation layer |
-| **Multi-Currency** | Invoice displayed in org's billing currency; MRR reports normalized to USD |
-| **Billing Performance** | Invoice PDF generation < 3 seconds; billing portal page load < 500ms |
-| **Concurrency** | Subscription state changes use database-level row locking to prevent race conditions |
+| **PCI Compliance**      | No raw card data ever touches platform servers; tokenization at gateway                                 |
+| **Currency Precision**  | All monetary amounts stored as BIGINT in smallest unit; conversion handled at presentation layer        |
+| **Multi-Currency**      | Invoice displayed in org's billing currency; MRR reports normalized to USD                              |
+| **Billing Performance** | Invoice PDF generation < 3 seconds; billing portal page load < 500ms                                    |
+| **Concurrency**         | Subscription state changes use database-level row locking to prevent race conditions                    |
 
 ---
 
 ## 8. Integration Requirements
 
-| Integration | Type | Purpose |
-|---|---|---|
-| Gmail / Outlook | OAuth 2.0 | Mailbox connection |
-| Facebook Graph API | OAuth 2.0 | Pages, Messenger, Instagram |
-| Twitter/X API v2 | OAuth 2.0 | Mentions and DMs |
-| WhatsApp Business API | Webhook + REST | Inbound/outbound messaging |
-| Shopify Admin API | API Key | eCommerce order data |
-| WooCommerce REST API | API Key | eCommerce order data |
-| Salla API | OAuth 2.0 | Saudi eCommerce |
-| Zid API | OAuth 2.0 | Saudi eCommerce |
-| Google reCAPTCHA v3 | Client-side | Form spam prevention |
-| hCaptcha | Client-side | Alternative CAPTCHA |
-| Stripe | Webhook + REST | Primary payment gateway |
-| PayTabs | Webhook + REST | MENA payment gateway fallback |
-| SMTP (generic) | Credentials | Custom mail server |
-| Webhook (outbound) | HTTP POST | Workflow action |
-| Slack | OAuth 2.0 | Agent notifications |
-| ZATCA API | REST | Saudi VAT number validation |
-| VIES | SOAP/REST | EU VAT number validation |
+| Integration           | Type           | Purpose                       |
+| --------------------- | -------------- | ----------------------------- |
+| Gmail / Outlook       | OAuth 2.0      | Mailbox connection            |
+| Facebook Graph API    | OAuth 2.0      | Pages, Messenger, Instagram   |
+| Twitter/X API v2      | OAuth 2.0      | Mentions and DMs              |
+| WhatsApp Business API | Webhook + REST | Inbound/outbound messaging    |
+| Shopify Admin API     | API Key        | eCommerce order data          |
+| WooCommerce REST API  | API Key        | eCommerce order data          |
+| Salla API             | OAuth 2.0      | Saudi eCommerce               |
+| Zid API               | OAuth 2.0      | Saudi eCommerce               |
+| Google reCAPTCHA v3   | Client-side    | Form spam prevention          |
+| hCaptcha              | Client-side    | Alternative CAPTCHA           |
+| Stripe                | Webhook + REST | Primary payment gateway       |
+| PayTabs               | Webhook + REST | MENA payment gateway fallback |
+| SMTP (generic)        | Credentials    | Custom mail server            |
+| Webhook (outbound)    | HTTP POST      | Workflow action               |
+| Slack                 | OAuth 2.0      | Agent notifications           |
+| ZATCA API             | REST           | Saudi VAT number validation   |
+| VIES                  | SOAP/REST      | EU VAT number validation      |
 
 ---
 
 ## 9. Business Rules
 
 **Platform:**
+
 - A ticket can belong to only one mailbox at a time but can be re-assigned to another mailbox.
 - Deleting a contact does not delete their tickets (soft delete + anonymization).
 - SLA timers pause when ticket status is "Pending" or "On Hold".
@@ -876,6 +880,7 @@ Reports available to platform admins, all exportable to CSV:
 - CSAT surveys expire 7 days after being sent if not responded to.
 
 **Billing:**
+
 - An organization may only have one active subscription at a time.
 - Billings (plans, seats) are managed at organization level, not user level.
 - Switching billing cycles (monthly ↔ annual) is treated as a plan change: current cycle is settled, new cycle begins.
@@ -906,41 +911,41 @@ Reports available to platform admins, all exportable to CSV:
 
 ## 11. Glossary
 
-| Term | Definition |
-|---|---|
-| Tenant / Organization | A customer of the platform operating their own isolated workspace |
-| Agent | A support team member responding to tickets |
-| Contact | An end customer who submits tickets |
-| Mailbox | An email address connected to the platform for inbound/outbound email |
-| Ticket | A single customer request tracked through its full lifecycle |
-| SLA | Service Level Agreement — time targets for response and resolution |
-| CSAT | Customer Satisfaction Score — collected via post-resolution survey |
-| Saved Reply | A pre-written reply template inserted by agents |
-| Workflow | An automation rule that triggers actions based on ticket events |
-| Binaka | The platform's branded embeddable live chat widget |
-| Knowledgebase | A self-service article library for end customers |
-| Channel | A communication medium (email, chat, social, form) |
-| Lookup | A configurable enum value stored in the centralized lookup system |
-| Subscription | An organization's active billing agreement for a plan tier |
-| Seat | One active agent user consuming a billing unit |
-| Add-On | A purchasable extension to plan limits without a full tier upgrade |
-| MRR | Monthly Recurring Revenue |
-| ARR | Annual Recurring Revenue |
-| Dunning | The process of retrying failed payments and notifying the organization |
-| Proration | Adjusting a charge proportionally based on time used within a billing cycle |
-| Grace Period | Time after payment failure during which full access is retained |
-| VAT | Value Added Tax — applicable per GCC country billing address |
-| ARPU | Average Revenue Per User — MRR divided by active seats |
-| LTV | Lifetime Value — ARPU multiplied by average subscription duration |
+| Term                  | Definition                                                                  |
+| --------------------- | --------------------------------------------------------------------------- |
+| Tenant / Organization | A customer of the platform operating their own isolated workspace           |
+| Agent                 | A support team member responding to tickets                                 |
+| Contact               | An end customer who submits tickets                                         |
+| Mailbox               | An email address connected to the platform for inbound/outbound email       |
+| Ticket                | A single customer request tracked through its full lifecycle                |
+| SLA                   | Service Level Agreement — time targets for response and resolution          |
+| CSAT                  | Customer Satisfaction Score — collected via post-resolution survey          |
+| Saved Reply           | A pre-written reply template inserted by agents                             |
+| Workflow              | An automation rule that triggers actions based on ticket events             |
+| Binaka                | The platform's branded embeddable live chat widget                          |
+| Knowledgebase         | A self-service article library for end customers                            |
+| Channel               | A communication medium (email, chat, social, form)                          |
+| Lookup                | A configurable enum value stored in the centralized lookup system           |
+| Subscription          | An organization's active billing agreement for a plan tier                  |
+| Seat                  | One active agent user consuming a billing unit                              |
+| Add-On                | A purchasable extension to plan limits without a full tier upgrade          |
+| MRR                   | Monthly Recurring Revenue                                                   |
+| ARR                   | Annual Recurring Revenue                                                    |
+| Dunning               | The process of retrying failed payments and notifying the organization      |
+| Proration             | Adjusting a charge proportionally based on time used within a billing cycle |
+| Grace Period          | Time after payment failure during which full access is retained             |
+| VAT                   | Value Added Tax — applicable per GCC country billing address                |
+| ARPU                  | Average Revenue Per User — MRR divided by active seats                      |
+| LTV                   | Lifetime Value — ARPU multiplied by average subscription duration           |
 
 ---
 
 # Part II — SaaS Billing, Plans & Subscription Management
 
-| Field | Value |
-|---|---|
-| **Section Version** | 1.0.0 |
-| **Date** | 2026-04-08 |
+| Field               | Value      |
+| ------------------- | ---------- |
+| **Section Version** | 1.0.0      |
+| **Date**            | 2026-04-08 |
 
 ---
 
@@ -973,12 +978,12 @@ Reports available to platform admins, all exportable to CSV:
 
 The platform offers four base plan tiers. All plan configurations are managed by platform admins and stored in the database — no hardcoding.
 
-| Tier | Target | Billing Model |
-|---|---|---|
-| **Free** | Individuals / evaluation | Forever free, hard feature caps |
-| **Starter** | Small teams (1–5 agents) | Per-seat, monthly or annual |
-| **Professional** | Growing teams (up to 25 agents) | Per-seat, monthly or annual |
-| **Enterprise** | Large organizations | Custom pricing, annual contract |
+| Tier             | Target                          | Billing Model                   |
+| ---------------- | ------------------------------- | ------------------------------- |
+| **Free**         | Individuals / evaluation        | Forever free, hard feature caps |
+| **Starter**      | Small teams (1–5 agents)        | Per-seat, monthly or annual     |
+| **Professional** | Growing teams (up to 25 agents) | Per-seat, monthly or annual     |
+| **Enterprise**   | Large organizations             | Custom pricing, annual contract |
 
 ### 19.2 Plan Requirements
 
@@ -998,39 +1003,39 @@ Every plan defines a set of feature flags and numeric limits enforced at runtime
 
 ### 20.1 Feature Flags (Boolean)
 
-| Feature | Free | Starter | Professional | Enterprise |
-|---|---|---|---|---|
-| Email channel | ✓ | ✓ | ✓ | ✓ |
-| Live chat (Binaka) | ✗ | ✓ | ✓ | ✓ |
-| Social media channels | ✗ | ✗ | ✓ | ✓ |
-| eCommerce integration | ✗ | ✗ | ✓ | ✓ |
-| Workflow automation | ✗ | ✓ | ✓ | ✓ |
-| Knowledgebase | ✗ | ✓ | ✓ | ✓ |
-| Custom roles | ✗ | ✗ | ✓ | ✓ |
-| SLA policies | ✗ | ✓ | ✓ | ✓ |
-| CSAT surveys | ✗ | ✓ | ✓ | ✓ |
-| Custom domain | ✗ | ✗ | ✓ | ✓ |
-| White-label branding | ✗ | ✗ | ✗ | ✓ |
-| API access | ✗ | ✓ | ✓ | ✓ |
-| SSO / SAML | ✗ | ✗ | ✗ | ✓ |
-| IP whitelisting | ✗ | ✗ | ✗ | ✓ |
-| Priority support | ✗ | ✗ | ✓ | ✓ |
-| Advanced reports | ✗ | ✗ | ✓ | ✓ |
+| Feature               | Free | Starter | Professional | Enterprise |
+| --------------------- | ---- | ------- | ------------ | ---------- |
+| Email channel         | ✓    | ✓       | ✓            | ✓          |
+| Live chat (Binaka)    | ✗    | ✓       | ✓            | ✓          |
+| Social media channels | ✗    | ✗       | ✓            | ✓          |
+| eCommerce integration | ✗    | ✗       | ✓            | ✓          |
+| Workflow automation   | ✗    | ✓       | ✓            | ✓          |
+| Knowledgebase         | ✗    | ✓       | ✓            | ✓          |
+| Custom roles          | ✗    | ✗       | ✓            | ✓          |
+| SLA policies          | ✗    | ✓       | ✓            | ✓          |
+| CSAT surveys          | ✗    | ✓       | ✓            | ✓          |
+| Custom domain         | ✗    | ✗       | ✓            | ✓          |
+| White-label branding  | ✗    | ✗       | ✗            | ✓          |
+| API access            | ✗    | ✓       | ✓            | ✓          |
+| SSO / SAML            | ✗    | ✗       | ✗            | ✓          |
+| IP whitelisting       | ✗    | ✗       | ✗            | ✓          |
+| Priority support      | ✗    | ✗       | ✓            | ✓          |
+| Advanced reports      | ✗    | ✗       | ✓            | ✓          |
 
 ### 20.2 Numeric Limits
 
-| Limit | Free | Starter | Professional | Enterprise |
-|---|---|---|---|---|
-| Max agents (seats) | 1 | 5 | 25 | Unlimited |
-| Max mailboxes | 1 | 3 | 10 | Unlimited |
-| Max forms | 1 | 5 | 20 | Unlimited |
-| Max workflows | 0 | 10 | 50 | Unlimited |
-| Max saved replies | 10 | 50 | 200 | Unlimited |
-| Max KB articles | 0 | 50 | 500 | Unlimited |
-| Max social accounts | 0 | 0 | 5 | Unlimited |
-| Max eCommerce stores | 0 | 0 | 3 | Unlimited |
-| Storage (GB) | 1 | 5 | 20 | Custom |
-| Max attachment MB | 5 | 20 | 50 | Custom |
+| Limit                | Free | Starter | Professional | Enterprise |
+| -------------------- | ---- | ------- | ------------ | ---------- |
+| Max agents (seats)   | 1    | 5       | 25           | Unlimited  |
+| Max mailboxes        | 1    | 3       | 10           | Unlimited  |
+| Max forms            | 1    | 5       | 20           | Unlimited  |
+| Max workflows        | 0    | 10      | 50           | Unlimited  |
+| Max saved replies    | 10   | 50      | 200          | Unlimited  |
+| Max KB articles      | 0    | 50      | 500          | Unlimited  |
+| Max social accounts  | 0    | 0       | 5            | Unlimited  |
+| Max eCommerce stores | 0    | 0       | 3            | Unlimited  |
+| Storage (GB)         | 1    | 5       | 20           | Custom     |
+| Max attachment MB    | 5    | 20      | 50           | Custom     |
 
 > **Enforcement:** When a limit is reached, the action is blocked and the user is shown an upgrade prompt. Unlimited is stored as `-1` in the database.
 
@@ -1040,14 +1045,14 @@ Every plan defines a set of feature flags and numeric limits enforced at runtime
 
 Add-ons allow organizations to expand specific limits beyond their plan without upgrading the full tier.
 
-| Add-On | Unit | Applies To |
-|---|---|---|
-| Extra Agent Seat | Per seat / month | Starter, Professional |
-| Extra Storage | Per 10 GB / month | All paid plans |
-| Extra Mailbox | Per mailbox / month | Starter, Professional |
-| Extra Social Account | Per account / month | Professional |
-| Extra eCommerce Store | Per store / month | Professional |
-| Priority Support Pack | Flat / month | Starter |
+| Add-On                | Unit                | Applies To            |
+| --------------------- | ------------------- | --------------------- |
+| Extra Agent Seat      | Per seat / month    | Starter, Professional |
+| Extra Storage         | Per 10 GB / month   | All paid plans        |
+| Extra Mailbox         | Per mailbox / month | Starter, Professional |
+| Extra Social Account  | Per account / month | Professional          |
+| Extra eCommerce Store | Per store / month   | Professional          |
+| Priority Support Pack | Flat / month        | Starter               |
 
 **Requirements:**
 
@@ -1068,13 +1073,13 @@ trialing → active → past_due → canceled
                  ↘ paused (Enterprise only, on request)
 ```
 
-| State | Description |
-|---|---|
-| `trialing` | Free trial period; full plan features unlocked |
-| `active` | Paid subscription in good standing |
-| `past_due` | Payment failed; grace period active |
-| `paused` | Subscription paused by platform admin (Enterprise) |
-| `canceled` | Subscription ended; org downgraded to Free |
+| State      | Description                                        |
+| ---------- | -------------------------------------------------- |
+| `trialing` | Free trial period; full plan features unlocked     |
+| `active`   | Paid subscription in good standing                 |
+| `past_due` | Payment failed; grace period active                |
+| `paused`   | Subscription paused by platform admin (Enterprise) |
+| `canceled` | Subscription ended; org downgraded to Free         |
 
 ### 22.2 Lifecycle Events
 
@@ -1131,10 +1136,10 @@ Each invoice must display: invoice number, issue date, due date, billing period,
 
 ### 25.1 Coupon Types
 
-| Type | Description |
-|---|---|
-| Percentage | e.g., 20% off for 3 months |
-| Fixed amount | e.g., $50 off first invoice |
+| Type                 | Description                   |
+| -------------------- | ----------------------------- |
+| Percentage           | e.g., 20% off for 3 months    |
+| Fixed amount         | e.g., $50 off first invoice   |
 | Free trial extension | e.g., +14 days added to trial |
 
 ### 25.2 Requirements
@@ -1177,17 +1182,17 @@ Each invoice must display: invoice number, issue date, due date, billing period,
 
 ### 28.1 Tracked Metrics
 
-| Metric | How Measured |
-|---|---|
-| Agent seats | Count of active users |
-| Storage used (GB) | Sum of all attachment sizes in object storage |
-| Ticket volume | Count of tickets in current cycle (informational only) |
-| Mailboxes | Count of active mailboxes |
-| Workflows | Count of active workflows |
-| Forms | Count of active forms |
-| Social accounts | Count of connected social accounts |
-| KB articles | Count of published articles |
-| eCommerce stores | Count of active integrations |
+| Metric            | How Measured                                           |
+| ----------------- | ------------------------------------------------------ |
+| Agent seats       | Count of active users                                  |
+| Storage used (GB) | Sum of all attachment sizes in object storage          |
+| Ticket volume     | Count of tickets in current cycle (informational only) |
+| Mailboxes         | Count of active mailboxes                              |
+| Workflows         | Count of active workflows                              |
+| Forms             | Count of active forms                                  |
+| Social accounts   | Count of connected social accounts                     |
+| KB articles       | Count of published articles                            |
+| eCommerce stores  | Count of active integrations                           |
 
 ### 28.2 Enforcement Rules
 
@@ -1252,35 +1257,35 @@ Accessible to organization Owner role only. The portal provides:
 
 ### 32.1 Billing Notifications
 
-| Event | Channel | Recipient |
-|---|---|---|
-| Trial starting | Email | Owner |
-| Trial expiring in 72h | Email + In-app | Owner |
-| Trial expiring in 24h | Email + In-app | Owner |
-| Trial expired (no card) | Email + In-app | Owner |
-| Subscription activated | Email | Owner |
-| Invoice generated | Email | Billing contact |
-| Payment successful | Email | Billing contact |
-| Payment failed (attempt 1) | Email + In-app | Owner |
-| Payment failed (attempt 2, +3d) | Email + In-app | Owner |
-| Payment failed (attempt 3, +7d) | Email + In-app | Owner |
+| Event                              | Channel        | Recipient          |
+| ---------------------------------- | -------------- | ------------------ |
+| Trial starting                     | Email          | Owner              |
+| Trial expiring in 72h              | Email + In-app | Owner              |
+| Trial expiring in 24h              | Email + In-app | Owner              |
+| Trial expired (no card)            | Email + In-app | Owner              |
+| Subscription activated             | Email          | Owner              |
+| Invoice generated                  | Email          | Billing contact    |
+| Payment successful                 | Email          | Billing contact    |
+| Payment failed (attempt 1)         | Email + In-app | Owner              |
+| Payment failed (attempt 2, +3d)    | Email + In-app | Owner              |
+| Payment failed (attempt 3, +7d)    | Email + In-app | Owner              |
 | Account downgraded (grace expired) | Email + In-app | Owner + All admins |
-| Subscription canceled | Email | Owner |
-| Plan upgraded | Email + In-app | Owner |
-| Plan downgraded (scheduled) | Email | Owner |
-| Upcoming renewal (7 days prior) | Email | Billing contact |
-| Seat limit reached | In-app | Owner + Admins |
-| Storage at 80% | In-app | Owner |
-| Storage at 100% | Email + In-app | Owner |
+| Subscription canceled              | Email          | Owner              |
+| Plan upgraded                      | Email + In-app | Owner              |
+| Plan downgraded (scheduled)        | Email          | Owner              |
+| Upcoming renewal (7 days prior)    | Email          | Billing contact    |
+| Seat limit reached                 | In-app         | Owner + Admins     |
+| Storage at 80%                     | In-app         | Owner              |
+| Storage at 100%                    | Email + In-app | Owner              |
 
 ### 32.2 Dunning Schedule
 
-| Attempt | When | Action |
-|---|---|---|
-| 1 | Immediately | Notify owner; subscription remains `active` |
-| 2 | +3 days | Retry charge; notify owner; subscription moves to `past_due` |
-| 3 | +7 days | Retry charge; final warning email |
-| 4 | +7 days (grace end) | No retry; subscription downgraded to Free |
+| Attempt | When                | Action                                                       |
+| ------- | ------------------- | ------------------------------------------------------------ |
+| 1       | Immediately         | Notify owner; subscription remains `active`                  |
+| 2       | +3 days             | Retry charge; notify owner; subscription moves to `past_due` |
+| 3       | +7 days             | Retry charge; final warning email                            |
+| 4       | +7 days (grace end) | No retry; subscription downgraded to Free                    |
 
 All dunning steps and results are logged in `dunning_logs`.
 
@@ -1339,13 +1344,13 @@ All reports exportable to CSV.
 
 ## 36. Billing Non-Functional Requirements
 
-| Category | Requirement |
-|---|---|
-| **Idempotency** | All payment processing endpoints must be idempotent (retry-safe via idempotency keys) |
+| Category                | Requirement                                                                                             |
+| ----------------------- | ------------------------------------------------------------------------------------------------------- |
+| **Idempotency**         | All payment processing endpoints must be idempotent (retry-safe via idempotency keys)                   |
 | **Webhook Reliability** | Gateway webhooks processed with at-least-once delivery; idempotency guards prevent duplicate processing |
-| **Auditability** | Every billing state change recorded with actor, timestamp, and before/after values |
-| **PCI Compliance** | No raw card data ever touches platform servers; tokenization at gateway |
-| **Currency Precision** | All monetary amounts stored as BIGINT in smallest unit; conversion handled at presentation layer |
-| **Multi-Currency** | Invoice displayed in org's billing currency; MRR reports normalized to a base currency (USD) |
-| **Performance** | Invoice PDF generation < 3 seconds; billing portal page load < 500ms |
-| **Concurrency** | Subscription state changes use database-level row locking to prevent race conditions |
+| **Auditability**        | Every billing state change recorded with actor, timestamp, and before/after values                      |
+| **PCI Compliance**      | No raw card data ever touches platform servers; tokenization at gateway                                 |
+| **Currency Precision**  | All monetary amounts stored as BIGINT in smallest unit; conversion handled at presentation layer        |
+| **Multi-Currency**      | Invoice displayed in org's billing currency; MRR reports normalized to a base currency (USD)            |
+| **Performance**         | Invoice PDF generation < 3 seconds; billing portal page load < 500ms                                    |
+| **Concurrency**         | Subscription state changes use database-level row locking to prevent race conditions                    |

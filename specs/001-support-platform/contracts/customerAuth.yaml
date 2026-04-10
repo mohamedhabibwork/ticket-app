@@ -16,7 +16,7 @@ paths:
           schema:
             type: string
       responses:
-        '302':
+        "302":
           description: Redirect to Google
 
   /customer-auth/google/callback:
@@ -34,12 +34,12 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: Authentication successful
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/customerSession'
+                $ref: "#/components/schemas/customerSession"
 
   /customer-auth/facebook:
     get:
@@ -52,7 +52,7 @@ paths:
           schema:
             type: string
       responses:
-        '302':
+        "302":
           description: Redirect to Facebook
 
   /customer-auth/facebook/callback:
@@ -66,12 +66,12 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: Authentication successful
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/customerSession'
+                $ref: "#/components/schemas/customerSession"
 
   /customer-auth/apple:
     get:
@@ -84,7 +84,7 @@ paths:
           schema:
             type: string
       responses:
-        '302':
+        "302":
           description: Redirect to Apple
 
   /customer-auth/apple/callback:
@@ -104,12 +104,12 @@ paths:
                 state:
                   type: string
       responses:
-        '200':
+        "200":
           description: Authentication successful
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/customerSession'
+                $ref: "#/components/schemas/customerSession"
 
   /customer-auth/session:
     get:
@@ -118,12 +118,12 @@ paths:
       tags: [Customer Auth]
       security: [cookieAuth: []]
       responses:
-        '200':
+        "200":
           description: Session details
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/customerSession'
+                $ref: "#/components/schemas/customerSession"
 
     delete:
       operationId: logoutCustomer
@@ -131,7 +131,7 @@ paths:
       tags: [Customer Auth]
       security: [cookieAuth: []]
       responses:
-        '200':
+        "200":
           description: Logged out
 
 components:

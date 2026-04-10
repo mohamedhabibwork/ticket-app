@@ -89,9 +89,7 @@ export function PlanUpgrade({ currentPlan, availablePlans, onSuccess }: PlanUpgr
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-gray-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto p-6">
             <h2 className="text-xl font-bold mb-2">Choose Your Plan</h2>
-            <p className="text-gray-500 mb-6">
-              Select the plan that best fits your team's needs
-            </p>
+            <p className="text-gray-500 mb-6">Select the plan that best fits your team's needs</p>
 
             <div className="flex gap-4 mb-6">
               <button
@@ -131,9 +129,7 @@ export function PlanUpgrade({ currentPlan, availablePlans, onSuccess }: PlanUpgr
                   <div
                     key={plan.id}
                     className={`relative border rounded-lg p-4 ${
-                      isCurrentPlan
-                        ? "border-blue-500 ring-2 ring-blue-500/20"
-                        : "border-gray-200"
+                      isCurrentPlan ? "border-blue-500 ring-2 ring-blue-500/20" : "border-gray-200"
                     }`}
                   >
                     {isCurrentPlan && (
@@ -149,9 +145,12 @@ export function PlanUpgrade({ currentPlan, availablePlans, onSuccess }: PlanUpgr
 
                     <div className="mb-4">
                       <span className="text-2xl font-bold">
-                        ${((billingCycle === "annual"
-                          ? Number(plan.priceYearly) / 100
-                          : Number(plan.priceMonthly) / 100) / 12).toFixed(0)}
+                        $
+                        {(
+                          (billingCycle === "annual"
+                            ? Number(plan.priceYearly) / 100
+                            : Number(plan.priceMonthly) / 100) / 12
+                        ).toFixed(0)}
                       </span>
                       <span className="text-gray-500">/month</span>
                       <p className="text-xs text-gray-500 mt-1">

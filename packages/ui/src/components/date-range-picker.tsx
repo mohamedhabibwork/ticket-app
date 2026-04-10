@@ -197,14 +197,19 @@ function DateRangePicker({
   }, [isOpen]);
 
   return (
-    <div ref={containerRef} data-slot="date-range-picker" className={cn("relative", className)} {...props}>
+    <div
+      ref={containerRef}
+      data-slot="date-range-picker"
+      className={cn("relative", className)}
+      {...props}
+    >
       <button
         type="button"
         onClick={() => !disabled && setIsOpen(!isOpen)}
         disabled={disabled}
         className={cn(
           "flex h-8 w-full min-w-0 items-center justify-between rounded-none border border-input bg-transparent px-2.5 py-1 text-xs transition-colors outline-none focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
-          isOpen && "ring-1 ring-ring/50"
+          isOpen && "ring-1 ring-ring/50",
         )}
       >
         <span className={cn("flex items-center gap-2", !value?.start && "text-muted-foreground")}>
@@ -223,7 +228,13 @@ function DateRangePicker({
             className="ml-2 rounded-sm hover:bg-muted p-0.5"
             role="button"
           >
-            <svg className="size-3" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2">
+            <svg
+              className="size-3"
+              viewBox="0 0 12 12"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            >
               <path d="M3 3l6 6M9 3l-6 6" />
             </svg>
           </span>
@@ -281,14 +292,17 @@ function DateRangePicker({
                       isToday(date) && "bg-muted font-medium",
                       isSameDay(date, selectedRange.start) && "bg-primary text-primary-foreground",
                       isSameDay(date, selectedRange.end) && "bg-primary text-primary-foreground",
-                      isInRange(date) && !isSameDay(date, selectedRange.start) && !isSameDay(date, selectedRange.end) && "bg-primary/10"
+                      isInRange(date) &&
+                        !isSameDay(date, selectedRange.start) &&
+                        !isSameDay(date, selectedRange.end) &&
+                        "bg-primary/10",
                     )}
                   >
                     {date.getDate()}
                   </button>
                 ) : (
                   <span key={idx} className="size-7" />
-                )
+                ),
               )}
             </div>
           </div>

@@ -13,10 +13,9 @@ export default function KBSearchScreen() {
   const [searchQuery, setSearchQuery] = useState("");
   const mutedColor = useThemeColor("muted");
 
-  const searchResults = useQuery(
-    orpc.kbArticles.search.queryOptions({ query: searchQuery }),
-    { enabled: searchQuery.trim().length > 0 },
-  );
+  const searchResults = useQuery(orpc.kbArticles.search.queryOptions({ query: searchQuery }), {
+    enabled: searchQuery.trim().length > 0,
+  });
 
   const handleSearchChange = (text: string) => {
     setSearchQuery(text);
@@ -66,9 +65,7 @@ export default function KBSearchScreen() {
                   <Surface variant="secondary" className="p-4 rounded-lg">
                     <View className="flex-row items-center gap-3 mb-2">
                       <Ionicons name="document-text-outline" size={18} color={mutedColor} />
-                      <Text className="text-foreground font-medium flex-1">
-                        {article.title}
-                      </Text>
+                      <Text className="text-foreground font-medium flex-1">{article.title}</Text>
                     </View>
                     <Text className="text-muted text-sm" numberOfLines={2}>
                       {article.excerpt || article.content?.substring(0, 100)}

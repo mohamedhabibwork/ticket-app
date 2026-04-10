@@ -6,10 +6,13 @@ import { mailboxes, emailMessages } from "@ticket-app/db/schema/_mailboxes";
 import { addEmailSendJob } from "../jobs/emailSend";
 import {
   getUserNotificationPreferences,
-  NotificationType,
+  type NotificationType,
   NOTIFICATION_TYPES,
 } from "./notifications";
-import { buildNotificationEmailPayload, NotificationEmailData } from "./notificationEmailTemplates";
+import {
+  buildNotificationEmailPayload,
+  type NotificationEmailData,
+} from "./notificationEmailTemplates";
 import crypto from "crypto";
 
 const IMPORTANT_NOTIFICATION_TYPES = [
@@ -49,15 +52,15 @@ async function getOrganizationBranding(organizationId: number): Promise<{
 } | null> {
   const org = await db.query.organizations.findFirst({
     where: eq(organizations.id, organizationId),
-    with: { branding: true },
+    with: { brandingConfig: true },
   });
 
   if (!org) return null;
 
   return {
     name: org.name,
-    logoUrl: org.branding?.emailLogoUrl || org.branding?.logoUrl,
-    primaryColor: org.branding?.emailHeaderColor || org.branding?.primaryColor,
+    logoUrl: org.brandingConfig?.emailLogoUrl || org.brandingConfig?.logoUrl,
+    primaryColor: org.brandingConfig?.emailHeaderColor || org.brandingConfig?.primaryColor,
   };
 }
 

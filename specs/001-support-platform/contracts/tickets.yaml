@@ -12,7 +12,7 @@ paths:
       tags: [Tickets]
       security: [cookieAuth: [], bearerAuth: []]
       parameters:
-        - $ref: '#/components/parameters/organizationId'
+        - $ref: "#/components/parameters/organizationId"
         - name: status
           in: query
           schema:
@@ -55,12 +55,12 @@ paths:
             default: 20
             maximum: 100
       responses:
-        '200':
+        "200":
           description: Paginated ticket list
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ticketList'
+                $ref: "#/components/schemas/ticketList"
 
     post:
       operationId: createTicket
@@ -72,14 +72,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ticketCreate'
+              $ref: "#/components/schemas/ticketCreate"
       responses:
-        '201':
+        "201":
           description: Ticket created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ticket'
+                $ref: "#/components/schemas/ticket"
 
   /tickets/{ticketId}:
     get:
@@ -88,7 +88,7 @@ paths:
       tags: [Tickets]
       security: [cookieAuth: [], bearerAuth: []]
       parameters:
-        - $ref: '#/components/parameters/organizationId'
+        - $ref: "#/components/parameters/organizationId"
         - name: ticketId
           in: path
           required: true
@@ -96,12 +96,12 @@ paths:
             type: string
             format: uuid
       responses:
-        '200':
+        "200":
           description: Ticket details
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ticketDetail'
+                $ref: "#/components/schemas/ticketDetail"
 
     patch:
       operationId: updateTicket
@@ -109,7 +109,7 @@ paths:
       tags: [Tickets]
       security: [cookieAuth: [], bearerAuth: []]
       parameters:
-        - $ref: '#/components/parameters/organizationId'
+        - $ref: "#/components/parameters/organizationId"
         - name: ticketId
           in: path
           required: true
@@ -121,14 +121,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ticketUpdate'
+              $ref: "#/components/schemas/ticketUpdate"
       responses:
-        '200':
+        "200":
           description: Ticket updated
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ticket'
+                $ref: "#/components/schemas/ticket"
 
   /tickets/{ticketId}/messages:
     get:
@@ -137,7 +137,7 @@ paths:
       tags: [Tickets]
       security: [cookieAuth: [], bearerAuth: []]
       parameters:
-        - $ref: '#/components/parameters/organizationId'
+        - $ref: "#/components/parameters/organizationId"
         - name: ticketId
           in: path
           required: true
@@ -145,14 +145,14 @@ paths:
             type: string
             format: uuid
       responses:
-        '200':
+        "200":
           description: Message list
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/ticketMessage'
+                  $ref: "#/components/schemas/ticketMessage"
 
     post:
       operationId: createTicketMessage
@@ -160,7 +160,7 @@ paths:
       tags: [Tickets]
       security: [cookieAuth: [], bearerAuth: []]
       parameters:
-        - $ref: '#/components/parameters/organizationId'
+        - $ref: "#/components/parameters/organizationId"
         - name: ticketId
           in: path
           required: true
@@ -172,14 +172,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ticketMessageCreate'
+              $ref: "#/components/schemas/ticketMessageCreate"
       responses:
-        '201':
+        "201":
           description: Message created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ticketMessage'
+                $ref: "#/components/schemas/ticketMessage"
 
   /tickets/{ticketId}/merge:
     post:
@@ -188,7 +188,7 @@ paths:
       tags: [Tickets]
       security: [cookieAuth: [], bearerAuth: []]
       parameters:
-        - $ref: '#/components/parameters/organizationId'
+        - $ref: "#/components/parameters/organizationId"
         - name: ticketId
           in: path
           required: true
@@ -207,7 +207,7 @@ paths:
                   type: string
                   format: uuid
       responses:
-        '200':
+        "200":
           description: Tickets merged
 
   /tickets/{ticketId}/lock:
@@ -217,7 +217,7 @@ paths:
       tags: [Tickets]
       security: [cookieAuth: [], bearerAuth: []]
       parameters:
-        - $ref: '#/components/parameters/organizationId'
+        - $ref: "#/components/parameters/organizationId"
         - name: ticketId
           in: path
           required: true
@@ -225,7 +225,7 @@ paths:
             type: string
             format: uuid
       responses:
-        '200':
+        "200":
           description: Ticket locked
 
     delete:
@@ -234,7 +234,7 @@ paths:
       tags: [Tickets]
       security: [cookieAuth: [], bearerAuth: []]
       parameters:
-        - $ref: '#/components/parameters/organizationId'
+        - $ref: "#/components/parameters/organizationId"
         - name: ticketId
           in: path
           required: true
@@ -242,7 +242,7 @@ paths:
             type: string
             format: uuid
       responses:
-        '200':
+        "200":
           description: Ticket unlocked
 
 components:
@@ -266,16 +266,16 @@ components:
 
   schemas:
     ticket:
-      $ref: './schemas/ticket.yaml'
+      $ref: "./schemas/ticket.yaml"
     ticketDetail:
-      $ref: './schemas/ticketDetail.yaml'
+      $ref: "./schemas/ticketDetail.yaml"
     ticketCreate:
-      $ref: './schemas/ticketCreate.yaml'
+      $ref: "./schemas/ticketCreate.yaml"
     ticketUpdate:
-      $ref: './schemas/ticketUpdate.yaml'
+      $ref: "./schemas/ticketUpdate.yaml"
     ticketMessage:
-      $ref: './schemas/ticketMessage.yaml'
+      $ref: "./schemas/ticketMessage.yaml"
     ticketMessageCreate:
-      $ref: './schemas/ticketMessageCreate.yaml'
+      $ref: "./schemas/ticketMessageCreate.yaml"
     ticketList:
-      $ref: './schemas/ticketList.yaml'
+      $ref: "./schemas/ticketList.yaml"

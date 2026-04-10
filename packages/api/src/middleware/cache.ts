@@ -56,7 +56,7 @@ export function responseCacheMiddleware(options: CacheOptions = {}) {
 
   return async function cacheHandler(
     context: Context,
-    operation: { name?: string },
+    _operation: { name?: string },
     handler: () => Promise<unknown>,
   ): Promise<unknown> {
     if (skipCache(context)) {

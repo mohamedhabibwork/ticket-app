@@ -1,11 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@ticket-app/ui/components/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
 import { Button } from "@ticket-app/ui/components/button";
 import { Loader2, GitMerge, ArrowUpRight } from "lucide-react";
 
@@ -38,21 +33,24 @@ function MergedTicketsRoute() {
     orpc.tickets.list.queryOptions({
       organizationId,
       limit: 100,
-    })
+    }),
   );
 
   const isMergedTickets = mergedTickets?.filter((t) => t.isMerged) || [];
 
-  const mergedGroups = isMergedTickets.reduce((acc, ticket) => {
-    const masterId = ticket.parentTicketId;
-    if (masterId) {
-      if (!acc[masterId]) {
-        acc[masterId] = [];
+  const mergedGroups = isMergedTickets.reduce(
+    (acc, ticket) => {
+      const masterId = ticket.parentTicketId;
+      if (masterId) {
+        if (!acc[masterId]) {
+          acc[masterId] = [];
+        }
+        acc[masterId].push(ticket);
       }
-      acc[masterId].push(ticket);
-    }
-    return acc;
-  }, {} as Record<number, typeof isMergedTickets>);
+      return acc;
+    },
+    {} as Record<number, typeof isMergedTickets>,
+  );
 
   return (
     <div className="container mx-auto max-w-6xl px-4 py-6">
@@ -61,9 +59,7 @@ function MergedTicketsRoute() {
           <GitMerge className="h-5 w-5 text-primary" />
           <h1 className="text-2xl font-bold">Merged Tickets</h1>
         </div>
-        <p className="text-muted-foreground">
-          View tickets that have been merged together
-        </p>
+        <p className="text-muted-foreground">View tickets that have been merged together</p>
       </div>
 
       {isLoading ? (
@@ -96,9 +92,7 @@ function MergedTicketsRoute() {
                       </Button>
                     </Link>
                   </div>
-                  {masterTicket.subject && (
-                    <p className="text-sm mt-2">{masterTicket.subject}</p>
-                  )}
+                  {masterTicket.subject && <p className="text-sm mt-2">{masterTicket.subject}</p>}
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">

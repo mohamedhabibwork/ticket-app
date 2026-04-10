@@ -250,14 +250,14 @@ export function formatForSlack(
         ...block,
         text: {
           ...block.text,
-          text: interpolateTemplate(block.text.text, data),
+          text: interpolateTemplate(block.text?.text ?? "", data),
         },
       };
     }
     if (block.type === "context" && "elements" in block) {
       return {
         ...block,
-        elements: block.elements.map((el: { type: string; text: string }) => ({
+        elements: (block.elements ?? []).map((el: { type: string; text: string }) => ({
           ...el,
           text: interpolateTemplate(el.text, data),
         })),

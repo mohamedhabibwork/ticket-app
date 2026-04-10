@@ -2,15 +2,22 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Button } from "@ticket-app/ui/components/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@ticket-app/ui/components/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
 import { Input } from "@ticket-app/ui/components/input";
 import { Label } from "@ticket-app/ui/components/label";
-import { Loader2, ArrowLeft, Lock, Unlock, Forward, Languages, Calendar, AlertTriangle, Trash2, Eye, EyeOff } from "lucide-react";
+import {
+  Loader2,
+  ArrowLeft,
+  Lock,
+  Unlock,
+  Forward,
+  Languages,
+  Calendar,
+  AlertTriangle,
+  Trash2,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -72,65 +79,75 @@ function TicketDetailRoute() {
     orpc.tickets.getTimeline.queryOptions({
       id: ticketId,
       includePrivate: true,
-    })
+    }),
   );
 
   const { data: translationConfig } = useQuery(
     orpc.translation.getConfig.queryOptions({
       organizationId,
-    })
+    }),
   );
 
   const { data: calendarConnections } = useQuery(
     orpc.calendar.listConnections.queryOptions({
       userId: 1,
-    })
+    }),
   );
 
   const lockMutation = useMutation(
     orpc.tickets.lock.mutationOptions({
       onSuccess: () => {
-        queryClient.invalidateQueries(orpc.tickets.getTimeline.queryOptions({ id: ticketId, includePrivate: true }));
+        queryClient.invalidateQueries(
+          orpc.tickets.getTimeline.queryOptions({ id: ticketId, includePrivate: true }),
+        );
       },
-    })
+    }),
   );
 
   const unlockMutation = useMutation(
     orpc.tickets.unlock.mutationOptions({
       onSuccess: () => {
-        queryClient.invalidateQueries(orpc.tickets.getTimeline.queryOptions({ id: ticketId, includePrivate: true }));
+        queryClient.invalidateQueries(
+          orpc.tickets.getTimeline.queryOptions({ id: ticketId, includePrivate: true }),
+        );
       },
-    })
+    }),
   );
 
   const lockThreadMutation = useMutation(
     orpc.ticketMessages.lockThread.mutationOptions({
       onSuccess: () => {
-        queryClient.invalidateQueries(orpc.tickets.getTimeline.queryOptions({ id: ticketId, includePrivate: true }));
+        queryClient.invalidateQueries(
+          orpc.tickets.getTimeline.queryOptions({ id: ticketId, includePrivate: true }),
+        );
         toast.success("Thread locked");
       },
       onError: (error) => {
         toast.error(`Failed to lock thread: ${error.message}`);
       },
-    })
+    }),
   );
 
   const unlockThreadMutation = useMutation(
     orpc.ticketMessages.unlockThread.mutationOptions({
       onSuccess: () => {
-        queryClient.invalidateQueries(orpc.tickets.getTimeline.queryOptions({ id: ticketId, includePrivate: true }));
+        queryClient.invalidateQueries(
+          orpc.tickets.getTimeline.queryOptions({ id: ticketId, includePrivate: true }),
+        );
         toast.success("Thread unlocked");
       },
       onError: (error) => {
         toast.error(`Failed to unlock thread: ${error.message}`);
       },
-    })
+    }),
   );
 
   const omitThreadMutation = useMutation(
     orpc.ticketMessages.omitThread.mutationOptions({
       onSuccess: () => {
-        queryClient.invalidateQueries(orpc.tickets.getTimeline.queryOptions({ id: ticketId, includePrivate: true }));
+        queryClient.invalidateQueries(
+          orpc.tickets.getTimeline.queryOptions({ id: ticketId, includePrivate: true }),
+        );
         toast.success("Thread omitted");
         setShowOmitDialog(false);
         setOmitMessageId(null);
@@ -139,7 +156,7 @@ function TicketDetailRoute() {
       onError: (error) => {
         toast.error(`Failed to omit thread: ${error.message}`);
       },
-    })
+    }),
   );
 
   const translateMutation = useMutation(
@@ -155,7 +172,7 @@ function TicketDetailRoute() {
         toast.error(`Translation failed: ${error.message}`);
         setTranslatingMessageId(null);
       },
-    })
+    }),
   );
 
   const createCalendarEventMutation = useMutation(
@@ -170,7 +187,7 @@ function TicketDetailRoute() {
       onError: (error) => {
         toast.error(`Failed to create event: ${error.message}`);
       },
-    })
+    }),
   );
 
   const handleLock = () => {
@@ -230,10 +247,11 @@ function TicketDetailRoute() {
 
   const isFromAmazon = ticket?.channel?.name === "amazon_seller";
 
-  const visibleMessages = ticket?.messages?.filter((msg) => {
-    if (msg.deletedAt && !showDeletedThreads) return false;
-    return true;
-  }) || [];
+  const visibleMessages =
+    ticket?.messages?.filter((msg) => {
+      if (msg.deletedAt && !showDeletedThreads) return false;
+      return true;
+    }) || [];
 
   if (isLoading) {
     return (
@@ -270,9 +288,7 @@ function TicketDetailRoute() {
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-xl font-bold">{ticket.subject}</h1>
-              {ticket.isLocked && (
-                <Lock className="h-4 w-4 text-amber-500" />
-              )}
+              {ticket.isLocked && <Lock className="h-4 w-4 text-amber-500" />}
             </div>
             <div className="flex items-center gap-2 mt-1">
               <span className="text-sm font-mono text-muted-foreground">
@@ -303,7 +319,11 @@ function TicketDetailRoute() {
             size="sm"
             onClick={() => setShowDeletedThreads(!showDeletedThreads)}
           >
-            {showDeletedThreads ? <EyeOff className="h-4 w-4 mr-2" /> : <Eye className="h-4 w-4 mr-2" />}
+            {showDeletedThreads ? (
+              <EyeOff className="h-4 w-4 mr-2" />
+            ) : (
+              <Eye className="h-4 w-4 mr-2" />
+            )}
             {showDeletedThreads ? "Hide Deleted" : "Show Deleted"}
           </Button>
           {ticket.isLocked ? (
@@ -335,10 +355,10 @@ function TicketDetailRoute() {
                       message.isPrivate
                         ? "bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800"
                         : message.isLocked
-                        ? "bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-700"
-                        : message.deletedAt
-                        ? "bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 opacity-60"
-                        : "bg-muted/50"
+                          ? "bg-gray-100 dark:bg-gray-900 border border-gray-300 dark:border-gray-700"
+                          : message.deletedAt
+                            ? "bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 opacity-60"
+                            : "bg-muted/50"
                     }`}
                   >
                     <div className="flex items-center justify-between mb-2">
@@ -378,7 +398,12 @@ function TicketDetailRoute() {
                           <DropdownMenuContent align="end">
                             {translationConfig && (
                               <DropdownMenuItem
-                                onClick={() => handleTranslate(message.id, message.bodyText || message.bodyHtml || "")}
+                                onClick={() =>
+                                  handleTranslate(
+                                    message.id,
+                                    message.bodyText || message.bodyHtml || "",
+                                  )
+                                }
                                 disabled={translatingMessageId === message.id}
                               >
                                 <Languages className="h-4 w-4 mr-2" />
@@ -432,9 +457,7 @@ function TicketDetailRoute() {
                   </div>
                 ))
               ) : (
-                <p className="text-muted-foreground text-center py-8">
-                  No messages yet
-                </p>
+                <p className="text-muted-foreground text-center py-8">No messages yet</p>
               )}
 
               {ticket.forwards && ticket.forwards.length > 0 && (
@@ -492,7 +515,8 @@ function TicketDetailRoute() {
             <Card className="border-amber-200 dark:border-amber-800">
               <CardContent className="p-4">
                 <p className="text-sm text-amber-600 dark:text-amber-400 text-center">
-                  This ticket is locked for reply. Other agents cannot reply while you are working on it.
+                  This ticket is locked for reply. Other agents cannot reply while you are working
+                  on it.
                 </p>
               </CardContent>
             </Card>
@@ -503,13 +527,17 @@ function TicketDetailRoute() {
               <TicketReply
                 ticketId={ticketId}
                 onSuccess={() => {
-                  queryClient.invalidateQueries(orpc.tickets.getTimeline.queryOptions({ id: ticketId, includePrivate: true }));
+                  queryClient.invalidateQueries(
+                    orpc.tickets.getTimeline.queryOptions({ id: ticketId, includePrivate: true }),
+                  );
                 }}
               />
               <TicketNote
                 ticketId={ticketId}
                 onSuccess={() => {
-                  queryClient.invalidateQueries(orpc.tickets.getTimeline.queryOptions({ id: ticketId, includePrivate: true }));
+                  queryClient.invalidateQueries(
+                    orpc.tickets.getTimeline.queryOptions({ id: ticketId, includePrivate: true }),
+                  );
                 }}
               />
             </div>
@@ -557,16 +585,12 @@ function TicketDetailRoute() {
               )}
               <div>
                 <p className="text-sm text-muted-foreground">Created</p>
-                <p className="text-sm">
-                  {formatRelativeTime(ticket.createdAt)}
-                </p>
+                <p className="text-sm">{formatRelativeTime(ticket.createdAt)}</p>
               </div>
               {ticket.firstResponseAt && (
                 <div>
                   <p className="text-sm text-muted-foreground">First Response</p>
-                  <p className="text-sm">
-                    {formatRelativeTime(ticket.firstResponseAt)}
-                  </p>
+                  <p className="text-sm">{formatRelativeTime(ticket.firstResponseAt)}</p>
                 </div>
               )}
             </CardContent>
@@ -607,7 +631,8 @@ function TicketDetailRoute() {
                     <div key={follower.id} className="flex items-center gap-2">
                       <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
                         <span className="text-xs font-medium">
-                          {follower.firstName?.[0]}{follower.lastName?.[0]}
+                          {follower.firstName?.[0]}
+                          {follower.lastName?.[0]}
                         </span>
                       </div>
                       <div>
@@ -670,7 +695,9 @@ function TicketDetailRoute() {
                     <span className="text-sm text-muted-foreground">SLA Deadline</span>
                     <span className="text-sm font-medium text-amber-600">
                       {ticket.createdAt
-                        ? new Date(new Date(ticket.createdAt).getTime() + 72 * 60 * 60 * 1000).toLocaleString()
+                        ? new Date(
+                            new Date(ticket.createdAt).getTime() + 72 * 60 * 60 * 1000,
+                          ).toLocaleString()
                         : "Unknown"}
                     </span>
                   </div>
@@ -742,7 +769,8 @@ function TicketDetailRoute() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <p className="text-sm text-muted-foreground">
-              This will hide this thread from the conversation. Please provide a reason for the audit log.
+              This will hide this thread from the conversation. Please provide a reason for the
+              audit log.
             </p>
             <div className="space-y-2">
               <Label htmlFor="omitReason">Reason *</Label>

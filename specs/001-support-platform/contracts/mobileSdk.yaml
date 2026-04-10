@@ -12,14 +12,14 @@ paths:
       tags: [Mobile SDK]
       security: [cookieAuth: [], bearerAuth: []]
       parameters:
-        - $ref: '#/components/parameters/organizationId'
+        - $ref: "#/components/parameters/organizationId"
       responses:
-        '200':
+        "200":
           description: Config details
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/mobileSdkConfig'
+                $ref: "#/components/schemas/mobileSdkConfig"
 
     patch:
       operationId: updateMobileSdkConfig
@@ -27,15 +27,15 @@ paths:
       tags: [Mobile SDK]
       security: [cookieAuth: [], bearerAuth: []]
       parameters:
-        - $ref: '#/components/parameters/organizationId'
+        - $ref: "#/components/parameters/organizationId"
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/mobileSdkConfigUpdate'
+              $ref: "#/components/schemas/mobileSdkConfigUpdate"
       responses:
-        '200':
+        "200":
           description: Config updated
 
   /mobile-sdk/tokens:
@@ -48,9 +48,9 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/pushTokenRegister'
+              $ref: "#/components/schemas/pushTokenRegister"
       responses:
-        '200':
+        "200":
           description: Token registered
 
     delete:
@@ -68,7 +68,7 @@ paths:
                 token:
                   type: string
         responses:
-          '200':
+          "200":
             description: Token unregistered
 
   /mobile-sdk/send:
@@ -82,9 +82,9 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/pushNotificationSend'
+              $ref: "#/components/schemas/pushNotificationSend"
       responses:
-        '200':
+        "200":
           description: Notification sent
           content:
             application/json:
@@ -103,7 +103,7 @@ paths:
       tags: [Mobile SDK]
       security: [cookieAuth: [], bearerAuth: []]
       parameters:
-        - $ref: '#/components/parameters/organizationId'
+        - $ref: "#/components/parameters/organizationId"
         - name: contactId
           in: query
           schema:
@@ -114,14 +114,14 @@ paths:
             type: string
             enum: [sent, delivered, failed]
       responses:
-        '200':
+        "200":
           description: Log list
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/pushNotificationLog'
+                  $ref: "#/components/schemas/pushNotificationLog"
 
 components:
   securitySchemes:

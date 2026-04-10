@@ -73,7 +73,7 @@ export const ticketSlaRouter = {
         now,
         target.firstResponseMinutes,
         target.resolutionMinutes,
-        slaPolicy.businessHoursOnly ? slaPolicy.businessHoursConfig : null,
+        slaPolicy.businessHoursOnly ? (slaPolicy.businessHoursConfig as any) : null,
         slaPolicy.holidays,
       );
 
@@ -128,8 +128,8 @@ export const ticketSlaRouter = {
         const businessMinutes = isWithinBusinessHours(
           sla.pausedAt,
           now,
-          sla.slaPolicy.businessHoursConfig,
-          sla.slaPolicy.holidays,
+          sla.slaPolicy.businessHoursConfig as any,
+          sla.slaPolicy.holidays as any,
         );
         newFirstResponseDue = new Date(sla.firstResponseDueAt.getTime() + businessMinutes * 60000);
         newResolutionDue = new Date(sla.resolutionDueAt.getTime() + businessMinutes * 60000);

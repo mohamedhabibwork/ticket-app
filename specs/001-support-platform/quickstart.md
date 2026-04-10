@@ -126,16 +126,16 @@ ticket-app/
 
 ## Key Technologies
 
-| Layer | Technology |
-|-------|------------|
-| Backend | Hono 4.x + ORPC |
-| Frontend | React 19 + Vite + TanStack Router |
-| Database | PostgreSQL 16+ with Drizzle ORM |
-| ORM | Drizzle 0.45.x |
-| Auth | Session-based with bcrypt + OAuth |
-| Queues | BullMQ with Redis |
-| File Storage | S3-compatible object storage |
-| Payments | Stripe + PayTabs |
+| Layer        | Technology                        |
+| ------------ | --------------------------------- |
+| Backend      | Hono 4.x + ORPC                   |
+| Frontend     | React 19 + Vite + TanStack Router |
+| Database     | PostgreSQL 16+ with Drizzle ORM   |
+| ORM          | Drizzle 0.45.x                    |
+| Auth         | Session-based with bcrypt + OAuth |
+| Queues       | BullMQ with Redis                 |
+| File Storage | S3-compatible object storage      |
+| Payments     | Stripe + PayTabs                  |
 
 ---
 
@@ -170,6 +170,7 @@ bun build
 After implementing Phase 12 features, validate each component:
 
 #### T149: Dark Mode Support
+
 ```bash
 # Verify theme.tsx is loaded in the app
 # Check that useTheme() hook provides theme switching
@@ -177,6 +178,7 @@ After implementing Phase 12 features, validate each component:
 ```
 
 #### T150: RTL Layout Support
+
 ```bash
 # Test with Arabic locale (ar)
 # Verify CSS logical properties (margin-inline-start, etc.)
@@ -184,6 +186,7 @@ After implementing Phase 12 features, validate each component:
 ```
 
 #### T151: White-Label Branding
+
 ```bash
 # Verify branding.tsx loads organization branding config
 # Check custom colors, logos, and CSS are applied
@@ -191,6 +194,7 @@ After implementing Phase 12 features, validate each component:
 ```
 
 #### T152: Custom Domain Resolution
+
 ```bash
 # Test custom domain middleware in apps/server/src/middleware/customDomain.ts
 # Verify subdomain extraction works
@@ -198,6 +202,7 @@ After implementing Phase 12 features, validate each component:
 ```
 
 #### T153: Audit Logging
+
 ```bash
 # Check audit logs are created for sensitive actions
 # Verify audit middleware captures userId, ipAddress, userAgent
@@ -205,6 +210,7 @@ After implementing Phase 12 features, validate each component:
 ```
 
 #### T154: API Rate Limiting
+
 ```bash
 # Test rate limiting with different tiers (standard: 1000/min, enterprise: 5000/min)
 # Verify X-RateLimit-* headers are returned
@@ -212,6 +218,7 @@ After implementing Phase 12 features, validate each component:
 ```
 
 #### T155: Structured Logging
+
 ```bash
 # Verify JSON log format in server logs
 # Check request/response logging with trace IDs
@@ -219,6 +226,7 @@ After implementing Phase 12 features, validate each component:
 ```
 
 #### T156: Metrics Collection
+
 ```bash
 # Test metrics endpoint returns valid JSON
 # Verify http_requests_total counter increments
@@ -226,6 +234,7 @@ After implementing Phase 12 features, validate each component:
 ```
 
 #### T157: Distributed Tracing
+
 ```bash
 # Verify traceparent header is propagated
 # Check trace ID appears in logs
@@ -233,6 +242,7 @@ After implementing Phase 12 features, validate each component:
 ```
 
 #### T158: 2FA Enforcement
+
 ```bash
 # Test admin.enforce2FA mutation
 # Verify check2FAEnforced query returns correct status
@@ -240,6 +250,7 @@ After implementing Phase 12 features, validate each component:
 ```
 
 #### T159-T160: Admin Billing & Reports
+
 ```bash
 # Verify admin/billing page loads
 # Check admin/reports page displays revenue data
@@ -247,6 +258,7 @@ After implementing Phase 12 features, validate each component:
 ```
 
 #### T161: Database Indexes
+
 ```bash
 # Run EXPLAIN ANALYZE on common queries
 # Verify indexes are used for:
@@ -257,6 +269,7 @@ After implementing Phase 12 features, validate each component:
 ```
 
 #### T162: Zod Validation
+
 ```bash
 # Test invalid inputs are rejected with proper errors
 # Verify all router inputs have Zod schemas

@@ -17,7 +17,7 @@ paths:
           schema:
             type: string
       responses:
-        '302':
+        "302":
           description: Redirect to Google
 
   /calendar/connect/callback:
@@ -32,12 +32,12 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: Calendar connected
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/calendarConnection'
+                $ref: "#/components/schemas/calendarConnection"
 
   /calendar/connections:
     get:
@@ -46,14 +46,14 @@ paths:
       tags: [Calendar]
       security: [cookieAuth: [], bearerAuth: []]
       responses:
-        '200':
+        "200":
           description: Connection list
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/calendarConnection'
+                  $ref: "#/components/schemas/calendarConnection"
 
     delete:
       operationId: disconnectCalendar
@@ -66,7 +66,7 @@ paths:
           schema:
             type: number
       responses:
-        '200':
+        "200":
           description: Disconnected
 
   /calendar/events:
@@ -87,14 +87,14 @@ paths:
             type: string
             format: date-time
       responses:
-        '200':
+        "200":
           description: Event list
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/calendarEvent'
+                  $ref: "#/components/schemas/calendarEvent"
 
     post:
       operationId: createCalendarEvent
@@ -106,14 +106,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/calendarEventCreate'
+              $ref: "#/components/schemas/calendarEventCreate"
       responses:
-        '201':
+        "201":
           description: Event created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/calendarEvent'
+                $ref: "#/components/schemas/calendarEvent"
 
 components:
   securitySchemes:

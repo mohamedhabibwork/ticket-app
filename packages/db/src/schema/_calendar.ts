@@ -33,7 +33,7 @@ export const agentCalendarConnections = pgTable(
   },
   (table) => ({
     userIdx: index("agent_calendar_connections_user_idx").on(table.userId),
-  })
+  }),
 );
 
 export const ticketCalendarEvents = pgTable(
@@ -65,18 +65,21 @@ export const ticketCalendarEvents = pgTable(
     ticketIdx: index("ticket_calendar_events_ticket_idx").on(table.ticketId),
     providerEventIdx: index("ticket_calendar_events_provider_idx").on(
       table.agentCalendarConnectionId,
-      table.providerEventId
+      table.providerEventId,
     ),
-  })
+  }),
 );
 
-export const agentCalendarConnectionsRelations = relations(agentCalendarConnections, ({ one, many }) => ({
-  user: one(users, {
-    fields: [agentCalendarConnections.userId],
-    references: [users.id],
+export const agentCalendarConnectionsRelations = relations(
+  agentCalendarConnections,
+  ({ one, many }) => ({
+    user: one(users, {
+      fields: [agentCalendarConnections.userId],
+      references: [users.id],
+    }),
+    ticketEvents: many(ticketCalendarEvents),
   }),
-  ticketEvents: many(ticketCalendarEvents),
-}));
+);
 
 export const ticketCalendarEventsRelations = relations(ticketCalendarEvents, ({ one }) => ({
   ticket: one(tickets, {

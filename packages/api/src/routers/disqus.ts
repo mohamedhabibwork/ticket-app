@@ -261,7 +261,7 @@ export const disqusRouter = {
         .update(disqusAccounts)
         .set({
           deletedAt: new Date(),
-          isActive: false,
+          status: "inactive",
           updatedAt: new Date(),
         })
         .where(
@@ -352,7 +352,7 @@ export const disqusRouter = {
           accessToken: account.accessTokenEnc ? decryptToken(account.accessTokenEnc) : undefined,
         });
 
-        await client.getForumDetails(account.forumId);
+        await client.getForumDetails(account.forumShortname);
         return { success: true };
       } catch (error) {
         return {

@@ -11,17 +11,7 @@ export interface LocaleConfig {
   numberFormat?: Intl.NumberFormatOptions;
 }
 
-const RTL_LOCALES = new Set([
-  "ar",
-  "he",
-  "fa",
-  "ur",
-  "ps",
-  "sd",
-  "yi",
-  "ku",
-  "ckb",
-]);
+const RTL_LOCALES = new Set(["ar", "he", "fa", "ur", "ps", "sd", "yi", "ku", "ckb"]);
 
 const LOCALE_CONFIGS: Record<string, LocaleConfig> = {
   en: { locale: "en", direction: "ltr" },
@@ -84,7 +74,7 @@ export function formatDate(date: Date | string, locale: string = "en"): string {
 export function formatNumber(
   value: number,
   locale: string = "en",
-  options?: Intl.NumberFormatOptions
+  options?: Intl.NumberFormatOptions,
 ): string {
   const config = getLocaleConfig(locale);
   return new Intl.NumberFormat(config.locale, options).format(value);
@@ -93,7 +83,7 @@ export function formatNumber(
 export function getLogicalProperty(
   property: "margin" | "padding" | "border",
   side: "start" | "end",
-  value: string
+  value: string,
 ): string {
   const logicalMap: Record<string, Record<string, string>> = {
     margin: { start: "margin-inline-start", end: "margin-inline-end" },

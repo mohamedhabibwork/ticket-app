@@ -1,7 +1,14 @@
 import { Hono } from "hono";
 
 import { db } from "@ticket-app/db";
-import { emailMessages, mailboxes, contacts, tickets, ticketMessages, lookups } from "@ticket-app/db/schema";
+import {
+  emailMessages,
+  mailboxes,
+  contacts,
+  tickets,
+  ticketMessages,
+  lookups,
+} from "@ticket-app/db/schema";
 import { eq, and, isNull, sql } from "drizzle-orm";
 
 const emailWebhook = new Hono();
@@ -10,25 +17,14 @@ emailWebhook.post("/inbound", async (c) => {
   try {
     const body = await c.req.json();
 
-    const {
-      mailboxId,
-      messageId,
-      inReplyTo,
-      from,
-      to,
-      cc,
-      subject,
-      html,
-      text,
-      headers,
-      date,
-    } = body;
+    const { mailboxId, messageId, inReplyTo, from, to, cc, subject, html, text, headers, date } =
+      body;
 
     const mailbox = await db.query.mailboxes.findFirst({
       where: and(
         eq(mailboxes.id, mailboxId),
         eq(mailboxes.isActive, true),
-        isNull(mailboxes.deletedAt)
+        isNull(mailboxes.deletedAt),
       ),
     });
 
@@ -37,10 +33,7 @@ emailWebhook.post("/inbound", async (c) => {
     }
 
     const existingMessage = await db.query.emailMessages.findFirst({
-      where: and(
-        eq(emailMessages.messageId, messageId),
-        eq(emailMessages.mailboxId, mailboxId)
-      ),
+      where: and(eq(emailMessages.messageId, messageId), eq(emailMessages.mailboxId, mailboxId)),
     });
 
     if (existingMessage) {
@@ -50,7 +43,7 @@ emailWebhook.post("/inbound", async (c) => {
     const channelLookup = await db.query.lookups.findFirst({
       where: and(
         eq(lookups.lookupTypeId, sql`(SELECT id FROM lookup_types WHERE name = 'channel')`),
-        sql`${lookups.metadata}->>'slug' = 'email'`
+        sql`${lookups.metadata}->>'slug' = 'email'`,
       ),
     });
 
@@ -58,7 +51,7 @@ emailWebhook.post("/inbound", async (c) => {
       where: and(
         eq(contacts.email, from.email.toLowerCase()),
         eq(contacts.organizationId, mailbox.organizationId),
-        isNull(contacts.deletedAt)
+        isNull(contacts.deletedAt),
       ),
     });
 
@@ -86,7 +79,11 @@ emailWebhook.post("/inbound", async (c) => {
         fromEmail: from.email.toLowerCase(),
         fromName: from.name,
         toEmails: Array.isArray(to) ? to.map((e: string) => e.toLowerCase()) : [to.toLowerCase()],
-        ccEmails: cc ? (Array.isArray(cc) ? cc.map((e: string) => e.toLowerCase()) : [cc.toLowerCase()]) : null,
+        ccEmails: cc
+          ? Array.isArray(cc)
+            ? cc.map((e: string) => e.toLowerCase())
+            : [cc.toLowerCase()]
+          : null,
         subject,
         bodyHtml: html,
         bodyText: text,
@@ -103,7 +100,7 @@ emailWebhook.post("/inbound", async (c) => {
       const parentEmail = await db.query.emailMessages.findFirst({
         where: and(
           eq(emailMessages.messageId, inReplyTo),
-          eq(emailMessages.organizationId, mailbox.organizationId)
+          eq(emailMessages.organizationId, mailbox.organizationId),
         ),
       });
 
@@ -117,7 +114,7 @@ emailWebhook.post("/inbound", async (c) => {
       await db.query.lookups.findFirst({
         where: and(
           eq(lookups.lookupTypeId, sql`(SELECT id FROM lookup_types WHERE name = 'ticket_status')`),
-          eq(lookups.isDefault, true)
+          eq(lookups.isDefault, true),
         ),
       })
     )?.id;
@@ -125,8 +122,11 @@ emailWebhook.post("/inbound", async (c) => {
     const defaultPriorityId = (
       await db.query.lookups.findFirst({
         where: and(
-          eq(lookups.lookupTypeId, sql`(SELECT id FROM lookup_types WHERE name = 'ticket_priority')`),
-          eq(lookups.isDefault, true)
+          eq(
+            lookups.lookupTypeId,
+            sql`(SELECT id FROM lookup_types WHERE name = 'ticket_priority')`,
+          ),
+          eq(lookups.isDefault, true),
         ),
       })
     )?.id;
@@ -137,7 +137,7 @@ emailWebhook.post("/inbound", async (c) => {
       .select({ count: sql<number>`COUNT(*)::int` })
       .from(tickets)
       .where(
-        sql`${tickets.organizationId} = ${mailbox.organizationId} AND ${tickets.referenceNumber} LIKE ${prefix}%`
+        sql`${tickets.organizationId} = ${mailbox.organizationId} AND ${tickets.referenceNumber} LIKE ${prefix}%`,
       );
     const sequence = (countResult[0]?.count ?? 0) + 1;
     const referenceNumber = `${prefix}${sequence.toString().padStart(6, "0")}`;

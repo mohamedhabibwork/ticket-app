@@ -11,7 +11,17 @@ import { Button } from "@ticket-app/ui/components/button";
 import { Input } from "@ticket-app/ui/components/input";
 import { Label } from "@ticket-app/ui/components/label";
 import { Textarea } from "@ticket-app/ui/components/textarea";
-import { Save, RotateCcw, Upload, Mail, Globe, Twitter, Facebook, Linkedin, Instagram } from "lucide-react";
+import {
+  Save,
+  RotateCcw,
+  Upload,
+  Mail,
+  Globe,
+  Twitter,
+  Facebook,
+  Linkedin,
+  Instagram,
+} from "lucide-react";
 
 export const Route = createFileRoute("/admin/branding/email")({
   component: EmailTemplateCustomizationRoute,
@@ -76,7 +86,9 @@ function EmailTemplateCustomizationRoute() {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Email Template Customization</h1>
-          <p className="text-muted-foreground">Customize email templates with your brand identity</p>
+          <p className="text-muted-foreground">
+            Customize email templates with your brand identity
+          </p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={handleReset}>
@@ -106,7 +118,11 @@ function EmailTemplateCustomizationRoute() {
                     style={{ borderColor: branding.borderColor }}
                   >
                     {previewLogo ? (
-                      <img src={previewLogo} alt="Header Logo" className="max-h-12 object-contain" />
+                      <img
+                        src={previewLogo}
+                        alt="Header Logo"
+                        className="max-h-12 object-contain"
+                      />
                     ) : (
                       <Mail className="h-8 w-8 text-muted-foreground" />
                     )}
@@ -189,9 +205,7 @@ function EmailTemplateCustomizationRoute() {
                 <Textarea
                   id="footerText"
                   value={branding.footerText}
-                  onChange={(e) =>
-                    setBranding((prev) => ({ ...prev, footerText: e.target.value }))
-                  }
+                  onChange={(e) => setBranding((prev) => ({ ...prev, footerText: e.target.value }))}
                   placeholder="Enter footer text..."
                   rows={3}
                 />
@@ -274,7 +288,11 @@ function EmailTemplateCustomizationRoute() {
                   style={{ backgroundColor: branding.headerBackgroundColor }}
                 >
                   {previewLogo ? (
-                    <img src={previewLogo} alt="Logo" className="h-10 object-contain brightness invert" />
+                    <img
+                      src={previewLogo}
+                      alt="Logo"
+                      className="h-10 object-contain brightness invert"
+                    />
                   ) : (
                     <Globe className="h-8 w-8 text-white" />
                   )}
@@ -291,15 +309,10 @@ function EmailTemplateCustomizationRoute() {
                   </div>
                 </div>
 
-                <div
-                  className="px-6 py-4 border-t"
-                  style={{ borderColor: branding.borderColor }}
-                >
+                <div className="px-6 py-4 border-t" style={{ borderColor: branding.borderColor }}>
                   <p className="text-xs text-gray-500 mb-3">{branding.footerText}</p>
                   <div className="flex gap-3">
-                    {branding.socialLinks.twitter && (
-                      <Twitter className="h-4 w-4 text-gray-400" />
-                    )}
+                    {branding.socialLinks.twitter && <Twitter className="h-4 w-4 text-gray-400" />}
                     {branding.socialLinks.facebook && (
                       <Facebook className="h-4 w-4 text-gray-400" />
                     )}

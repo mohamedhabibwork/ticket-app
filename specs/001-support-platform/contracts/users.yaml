@@ -27,7 +27,7 @@ paths:
                   type: string
                   format: uuid
       responses:
-        '200':
+        "200":
           description: Login successful
           headers:
             Set-Cookie:
@@ -36,8 +36,8 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/userSession'
-        '401':
+                $ref: "#/components/schemas/userSession"
+        "401":
           description: Invalid credentials
 
   /auth/logout:
@@ -47,7 +47,7 @@ paths:
       tags: [Auth]
       security: [cookieAuth: []]
       responses:
-        '204':
+        "204":
           description: Logged out
 
   /auth/2fa/setup:
@@ -68,7 +68,7 @@ paths:
                   type: string
                   enum: [totp, email_otp]
       responses:
-        '200':
+        "200":
           description: 2FA setup initiated
           content:
             application/json:
@@ -100,7 +100,7 @@ paths:
                 code:
                   type: string
       responses:
-        '200':
+        "200":
           description: 2FA verified
 
   /users:
@@ -110,7 +110,7 @@ paths:
       tags: [Users]
       security: [cookieAuth: [], bearerAuth: []]
       parameters:
-        - $ref: '#/components/parameters/organizationId'
+        - $ref: "#/components/parameters/organizationId"
         - name: roleId
           in: query
           schema:
@@ -121,14 +121,14 @@ paths:
           schema:
             type: boolean
       responses:
-        '200':
+        "200":
           description: User list
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/user'
+                  $ref: "#/components/schemas/user"
 
     post:
       operationId: createUser
@@ -140,14 +140,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/userCreate'
+              $ref: "#/components/schemas/userCreate"
       responses:
-        '201':
+        "201":
           description: User created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/user'
+                $ref: "#/components/schemas/user"
 
   /users/{userId}:
     get:
@@ -156,7 +156,7 @@ paths:
       tags: [Users]
       security: [cookieAuth: [], bearerAuth: []]
       parameters:
-        - $ref: '#/components/parameters/organizationId'
+        - $ref: "#/components/parameters/organizationId"
         - name: userId
           in: path
           required: true
@@ -164,12 +164,12 @@ paths:
             type: string
             format: uuid
       responses:
-        '200':
+        "200":
           description: User details
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/userDetail'
+                $ref: "#/components/schemas/userDetail"
 
     patch:
       operationId: updateUser
@@ -177,7 +177,7 @@ paths:
       tags: [Users]
       security: [cookieAuth: [], bearerAuth: []]
       parameters:
-        - $ref: '#/components/parameters/organizationId'
+        - $ref: "#/components/parameters/organizationId"
         - name: userId
           in: path
           required: true
@@ -189,14 +189,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/userUpdate'
+              $ref: "#/components/schemas/userUpdate"
       responses:
-        '200':
+        "200":
           description: User updated
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/user'
+                $ref: "#/components/schemas/user"
 
     delete:
       operationId: deleteUser
@@ -204,7 +204,7 @@ paths:
       tags: [Users]
       security: [cookieAuth: [], bearerAuth: []]
       parameters:
-        - $ref: '#/components/parameters/organizationId'
+        - $ref: "#/components/parameters/organizationId"
         - name: userId
           in: path
           required: true
@@ -212,7 +212,7 @@ paths:
             type: string
             format: uuid
       responses:
-        '204':
+        "204":
           description: User deleted
 
   /roles:
@@ -222,16 +222,16 @@ paths:
       tags: [Roles]
       security: [cookieAuth: [], bearerAuth: []]
       parameters:
-        - $ref: '#/components/parameters/organizationId'
+        - $ref: "#/components/parameters/organizationId"
       responses:
-        '200':
+        "200":
           description: Role list
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/role'
+                  $ref: "#/components/schemas/role"
 
   /teams:
     get:
@@ -240,16 +240,16 @@ paths:
       tags: [Teams]
       security: [cookieAuth: [], bearerAuth: []]
       parameters:
-        - $ref: '#/components/parameters/organizationId'
+        - $ref: "#/components/parameters/organizationId"
       responses:
-        '200':
+        "200":
           description: Team list
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/team'
+                  $ref: "#/components/schemas/team"
 
     post:
       operationId: createTeam
@@ -261,14 +261,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/teamCreate'
+              $ref: "#/components/schemas/teamCreate"
       responses:
-        '201':
+        "201":
           description: Team created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/team'
+                $ref: "#/components/schemas/team"
 
   /teams/{teamId}/members:
     post:
@@ -277,7 +277,7 @@ paths:
       tags: [Teams]
       security: [cookieAuth: [], bearerAuth: []]
       parameters:
-        - $ref: '#/components/parameters/organizationId'
+        - $ref: "#/components/parameters/organizationId"
         - name: teamId
           in: path
           required: true
@@ -299,7 +299,7 @@ paths:
                   type: boolean
                   default: false
       responses:
-        '201':
+        "201":
           description: Member added
 
 components:
@@ -323,18 +323,18 @@ components:
 
   schemas:
     user:
-      $ref: './schemas/user.yaml'
+      $ref: "./schemas/user.yaml"
     userDetail:
-      $ref: './schemas/userDetail.yaml'
+      $ref: "./schemas/userDetail.yaml"
     userCreate:
-      $ref: './schemas/userCreate.yaml'
+      $ref: "./schemas/userCreate.yaml"
     userUpdate:
-      $ref: './schemas/userUpdate.yaml'
+      $ref: "./schemas/userUpdate.yaml"
     userSession:
-      $ref: './schemas/userSession.yaml'
+      $ref: "./schemas/userSession.yaml"
     role:
-      $ref: './schemas/role.yaml'
+      $ref: "./schemas/role.yaml"
     team:
-      $ref: './schemas/team.yaml'
+      $ref: "./schemas/team.yaml"
     teamCreate:
-      $ref: './schemas/teamCreate.yaml'
+      $ref: "./schemas/teamCreate.yaml"

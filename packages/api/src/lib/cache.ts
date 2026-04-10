@@ -94,11 +94,7 @@ export const cache = {
     }
   },
 
-  async getOrSet<T>(
-    key: string,
-    ttlSeconds: number,
-    fetcher: () => Promise<T>
-  ): Promise<T> {
+  async getOrSet<T>(key: string, ttlSeconds: number, fetcher: () => Promise<T>): Promise<T> {
     const cached = await this.get<T>(key);
     if (cached !== null) {
       return cached;

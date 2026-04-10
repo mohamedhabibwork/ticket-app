@@ -104,7 +104,11 @@ function BrandingSettingsRoute() {
                 <div className="flex items-center gap-4">
                   <div className="h-12 w-48 border rounded-lg flex items-center justify-center bg-muted/50 overflow-hidden">
                     {previewLogo ? (
-                      <img src={previewLogo} alt="Header Logo" className="max-h-10 object-contain" />
+                      <img
+                        src={previewLogo}
+                        alt="Header Logo"
+                        className="max-h-10 object-contain"
+                      />
                     ) : (
                       <Globe className="h-8 w-8 text-muted-foreground" />
                     )}
@@ -224,7 +228,11 @@ function BrandingSettingsRoute() {
                   style={{ backgroundColor: settings.primaryColor }}
                 >
                   {previewLogo ? (
-                    <img src={previewLogo} alt="Logo" className="h-8 object-contain brightness invert" />
+                    <img
+                      src={previewLogo}
+                      alt="Logo"
+                      className="h-8 object-contain brightness invert"
+                    />
                   ) : (
                     <Globe className="h-6 w-6 text-white" />
                   )}
@@ -232,9 +240,18 @@ function BrandingSettingsRoute() {
                 </div>
                 <div className="p-4 bg-background">
                   <div className="space-y-2">
-                    <div className="h-4 rounded" style={{ backgroundColor: `${settings.primaryColor}20` }} />
-                    <div className="h-3 w-3/4 rounded" style={{ backgroundColor: `${settings.primaryColor}15` }} />
-                    <div className="h-3 w-1/2 rounded" style={{ backgroundColor: `${settings.primaryColor}10` }} />
+                    <div
+                      className="h-4 rounded"
+                      style={{ backgroundColor: `${settings.primaryColor}20` }}
+                    />
+                    <div
+                      className="h-3 w-3/4 rounded"
+                      style={{ backgroundColor: `${settings.primaryColor}15` }}
+                    />
+                    <div
+                      className="h-3 w-1/2 rounded"
+                      style={{ backgroundColor: `${settings.primaryColor}10` }}
+                    />
                     <div
                       className="h-8 mt-4 rounded flex items-center justify-center text-white text-sm"
                       style={{ backgroundColor: settings.primaryColor }}

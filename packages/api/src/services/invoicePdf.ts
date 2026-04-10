@@ -62,7 +62,7 @@ export function formatDate(date: Date, locale: string = "en"): string {
 
 export function isRtlLocale(locale: string): boolean {
   const rtlLocales = ["ar", "he", "fa", "ur"];
-  return rtlLocales.includes(locale.split("-")[0].toLowerCase());
+  return rtlLocales.includes((locale.split("-")[0] || "").toLowerCase());
 }
 
 export function generateInvoiceHtml(data: InvoicePdfData): string {

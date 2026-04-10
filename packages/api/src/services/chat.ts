@@ -70,7 +70,10 @@ export async function convertChatToTicket(options: ConvertChatToTicketOptions): 
 
   const subject = `Chat Session ${session.uuid.slice(0, 8)}`;
 
-  const descriptionHtml = buildChatDescriptionHtml(chatMessagesHistory, session.preChatData);
+  const descriptionHtml = buildChatDescriptionHtml(
+    chatMessagesHistory,
+    session.preChatData as Record<string, unknown>,
+  );
 
   const referenceNumber = await generateReferenceNumber(organizationId);
 
@@ -92,7 +95,7 @@ export async function convertChatToTicket(options: ConvertChatToTicketOptions): 
 
   const initialMessage = `Chat session converted. Pre-chat data: ${JSON.stringify(session.preChatData || {})}`;
   await db.insert(ticketMessages).values({
-    ticketId: ticket.id,
+    ticketId: ticket!.id,
     authorType: "system",
     messageType: "activity",
     bodyHtml: `<p>${initialMessage}</p>`,
@@ -102,7 +105,7 @@ export async function convertChatToTicket(options: ConvertChatToTicketOptions): 
 
   for (const msg of chatMessagesHistory) {
     await db.insert(ticketMessages).values({
-      ticketId: ticket.id,
+      ticketId: ticket!.id,
       authorType: msg.authorType,
       authorUserId: msg.authorUserId,
       authorContactId: msg.authorContactId,
@@ -116,7 +119,7 @@ export async function convertChatToTicket(options: ConvertChatToTicketOptions): 
   await db
     .update(chatSessions)
     .set({
-      ticketId: ticket.id,
+      ticketId: ticket!.id,
       status: "converted",
       updatedAt: new Date(),
     })
@@ -124,7 +127,7 @@ export async function convertChatToTicket(options: ConvertChatToTicketOptions): 
 
   return {
     ticket,
-    session: { ...session, ticketId: ticket.id, status: "converted" } as typeof session,
+    session: { ...session, ticketId: ticket!.id, status: "converted" } as typeof session,
   };
 }
 
@@ -175,7 +178,7 @@ export async function endChatSession(
   }
 
   const widget = await db.query.chatWidgets.findFirst({
-    where: eq(db.query.chatWidgets.fields.id, session.widgetId),
+    where: eq(chatWidgets.id, session.widgetId),
   });
 
   const autoTicketConversion = widget?.autoTicketConversion ?? true;
@@ -203,7 +206,7 @@ export async function endChatSession(
     ticket = result.ticket;
   }
 
-  return { session: updatedSession, ticket };
+  return { session: updatedSession!, ticket };
 }
 
 export async function getChatStats(organizationId: number, widgetId?: number) {
@@ -222,6 +225,7 @@ export async function getChatStats(organizationId: number, widgetId?: number) {
     active: allSessions.filter((s) => s.status === "active").length,
     ended: allSessions.filter((s) => s.status === "ended").length,
     converted: allSessions.filter((s) => s.status === "converted").length,
+    total: allSessions.length,
   };
 
   const ratedSessions = allSessions.filter((s) => s.rating != null);

@@ -1,7 +1,14 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { orpc } from "../../utils/orpc";
-import { Package, ChevronDown, ChevronUp, ExternalLink, RefreshCw, ShoppingCart } from "lucide-react";
+import {
+  Package,
+  ChevronDown,
+  ChevronUp,
+  ExternalLink,
+  RefreshCw,
+  ShoppingCart,
+} from "lucide-react";
 
 interface Order {
   id: number;
@@ -46,7 +53,11 @@ export function OrderPanel({ contactId, email, phone, organizationId, onLookup }
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
 
-  const { data: orders = [], isLoading, refetch } = useQuery({
+  const {
+    data: orders = [],
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ["ecommerce-orders", contactId, email, phone, organizationId],
     queryFn: async () => {
       if (contactId) {
@@ -161,9 +172,7 @@ export function OrderPanel({ contactId, email, phone, organizationId, onLookup }
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Package className="w-5 h-5 text-gray-500" />
-            <h3 className="font-semibold text-gray-900 dark:text-white">
-              Order History
-            </h3>
+            <h3 className="font-semibold text-gray-900 dark:text-white">Order History</h3>
             {orders.length > 0 && (
               <span className="px-2 py-0.5 bg-gray-100 dark:bg-gray-700 rounded-full text-xs">
                 {orders.length}
@@ -207,9 +216,7 @@ export function OrderPanel({ contactId, email, phone, organizationId, onLookup }
         ) : orders.length === 0 ? (
           <div className="p-8 text-center">
             <Package className="w-10 h-10 mx-auto text-gray-400 mb-3" />
-            <p className="text-gray-500 dark:text-gray-400 text-sm">
-              No orders found
-            </p>
+            <p className="text-gray-500 dark:text-gray-400 text-sm">No orders found</p>
             <p className="text-gray-400 text-xs mt-1">
               Orders from connected stores will appear here
             </p>
@@ -262,22 +269,13 @@ export function OrderPanel({ contactId, email, phone, organizationId, onLookup }
                           </h4>
                           <div className="space-y-2">
                             {lineItems.map((item: any, idx: number) => (
-                              <div
-                                key={idx}
-                                className="flex items-center justify-between text-sm"
-                              >
+                              <div key={idx} className="flex items-center justify-between text-sm">
                                 <div>
-                                  <p className="text-gray-900 dark:text-white">
-                                    {item.title}
-                                  </p>
+                                  <p className="text-gray-900 dark:text-white">{item.title}</p>
                                   {item.variantTitle && (
-                                    <p className="text-gray-500 text-xs">
-                                      {item.variantTitle}
-                                    </p>
+                                    <p className="text-gray-500 text-xs">{item.variantTitle}</p>
                                   )}
-                                  <p className="text-gray-500 text-xs">
-                                    Qty: {item.quantity}
-                                  </p>
+                                  <p className="text-gray-500 text-xs">Qty: {item.quantity}</p>
                                 </div>
                                 <p className="text-gray-900 dark:text-white">
                                   {formatCurrency(item.price, order.currency)}
@@ -292,9 +290,7 @@ export function OrderPanel({ contactId, email, phone, organizationId, onLookup }
                         {order.shippingMethod && (
                           <div>
                             <p className="text-gray-500">Shipping</p>
-                            <p className="text-gray-900 dark:text-white">
-                              {order.shippingMethod}
-                            </p>
+                            <p className="text-gray-900 dark:text-white">{order.shippingMethod}</p>
                           </div>
                         )}
                         {order.trackingNumber && (

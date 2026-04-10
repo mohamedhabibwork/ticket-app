@@ -90,36 +90,24 @@ export function SeatManagement({ subscription, onUpdate }: SeatManagementProps) 
             {isUnlimited ? "" : ` / ${maxAgents}`}
           </div>
           {isAtLimit && (
-            <p className="text-xs text-amber-600 mt-1 flex items-center">
-              ⚠️ Seat limit reached
-            </p>
+            <p className="text-xs text-amber-600 mt-1 flex items-center">⚠️ Seat limit reached</p>
           )}
         </div>
 
         <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-          <h3 className="text-sm font-medium text-gray-500 mb-1">
-            Available Seats
-          </h3>
-          <div className="text-2xl font-bold">
-            {isUnlimited ? "∞" : seatsAvailable}
-          </div>
+          <h3 className="text-sm font-medium text-gray-500 mb-1">Available Seats</h3>
+          <div className="text-2xl font-bold">{isUnlimited ? "∞" : seatsAvailable}</div>
           {!isUnlimited && (
             <p className="text-xs text-gray-500 mt-1">
-              {seatsAvailable > 0
-                ? `${seatsAvailable} seats remaining`
-                : "No seats available"}
+              {seatsAvailable > 0 ? `${seatsAvailable} seats remaining` : "No seats available"}
             </p>
           )}
         </div>
 
         <div className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-          <h3 className="text-sm font-medium text-gray-500 mb-1">
-            Subscription Seats
-          </h3>
+          <h3 className="text-sm font-medium text-gray-500 mb-1">Subscription Seats</h3>
           <div className="text-2xl font-bold">{subscription.seatCount}</div>
-          <p className="text-xs text-gray-500 mt-1">
-            Paid seat allocation
-          </p>
+          <p className="text-xs text-gray-500 mt-1">Paid seat allocation</p>
         </div>
       </div>
 
@@ -127,9 +115,7 @@ export function SeatManagement({ subscription, onUpdate }: SeatManagementProps) 
         <div className="p-4 border-b flex items-center justify-between">
           <div>
             <h3 className="font-semibold">Team Members</h3>
-            <p className="text-sm text-gray-500">
-              Manage who has access to your support workspace
-            </p>
+            <p className="text-sm text-gray-500">Manage who has access to your support workspace</p>
           </div>
           <button
             onClick={() => setIsAddOpen(true)}
@@ -171,9 +157,7 @@ export function SeatManagement({ subscription, onUpdate }: SeatManagementProps) 
                       </span>
                     </td>
                     <td className="py-3 text-gray-500">
-                      {seat.addedAt
-                        ? new Date(seat.addedAt).toLocaleDateString()
-                        : "N/A"}
+                      {seat.addedAt ? new Date(seat.addedAt).toLocaleDateString() : "N/A"}
                     </td>
                     <td className="py-3 text-right">
                       <button
@@ -191,9 +175,7 @@ export function SeatManagement({ subscription, onUpdate }: SeatManagementProps) 
           ) : (
             <div className="text-center py-8">
               <div className="text-4xl mb-4">👥</div>
-              <p className="text-gray-500 mb-4">
-                No team members added yet
-              </p>
+              <p className="text-gray-500 mb-4">No team members added yet</p>
               <button
                 onClick={() => setIsAddOpen(true)}
                 disabled={isAtLimit}
@@ -260,12 +242,8 @@ export function SeatManagement({ subscription, onUpdate }: SeatManagementProps) 
           <div className="flex items-center gap-3">
             <span className="text-2xl">⚠️</span>
             <div>
-              <p className="font-medium text-amber-800">
-                Seat Limit Reached
-              </p>
-              <p className="text-sm text-amber-700">
-                Upgrade your plan to add more team members
-              </p>
+              <p className="font-medium text-amber-800">Seat Limit Reached</p>
+              <p className="text-sm text-amber-700">Upgrade your plan to add more team members</p>
             </div>
           </div>
           <button className="px-4 py-2 border border-amber-300 rounded bg-white">

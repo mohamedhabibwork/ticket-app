@@ -1,6 +1,6 @@
 import { db } from "@ticket-app/db";
 import { invoices, invoiceItems } from "@ticket-app/db/schema";
-import { eq, and, desc, sql, isNull } from "drizzle-orm";
+import { eq, and, desc, sql } from "drizzle-orm";
 import * as z from "zod";
 
 import { publicProcedure } from "../index";
@@ -19,7 +19,7 @@ export const invoicesRouter = {
 
       const [invoicesList, totalResult] = await Promise.all([
         db.query.invoices.findMany({
-          where: and(eq(invoices.organizationId, input.organizationId), isNull(invoices.deletedAt)),
+          where: and(eq(invoices.organizationId, input.organizationId)),
           with: {
             items: true,
             subscription: {
@@ -125,7 +125,7 @@ export const invoicesRouter = {
       }
 
       const org = await db.query.organizations.findFirst({
-        where: eq(sql`id = ${input.organizationId}`),
+        where: eq(sql`id`, input.organizationId) as any,
       });
 
       const orgSlug = org?.slug || "org";
@@ -156,7 +156,7 @@ export const invoicesRouter = {
       if (input.items.length > 0) {
         await db.insert(invoiceItems).values(
           input.items.map((item) => ({
-            invoiceId: invoice.id,
+            invoiceId: invoice!.id,
             description: item.description,
             quantity: item.quantity,
             unitPrice: item.unitPrice,
@@ -166,7 +166,7 @@ export const invoicesRouter = {
       }
 
       return await db.query.invoices.findFirst({
-        where: eq(invoices.id, invoice.id),
+        where: eq(invoices.id, invoice!.id),
         with: {
           items: true,
           subscription: {

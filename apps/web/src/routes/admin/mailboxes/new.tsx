@@ -42,7 +42,7 @@ function AddMailboxRoute() {
   const { data: teams } = useQuery(
     orpc.teams.list.queryOptions({
       organizationId: 1,
-    })
+    }),
   );
 
   const createMutation = useMutation(
@@ -50,7 +50,7 @@ function AddMailboxRoute() {
       onSuccess: (data) => {
         navigate({ to: "/admin/mailboxes/$id", params: { id: String(data.id) } });
       },
-    })
+    }),
   );
 
   const validateForm = () => {
@@ -83,7 +83,11 @@ function AddMailboxRoute() {
       organizationId: 1,
       name: formData.name,
       email: formData.email,
-      connectionType: formData.connectionType as "imap_smtp" | "gmail_oauth" | "outlook_oauth" | "pop3_smtp",
+      connectionType: formData.connectionType as
+        | "imap_smtp"
+        | "gmail_oauth"
+        | "outlook_oauth"
+        | "pop3_smtp",
       defaultTeamId: formData.defaultTeamId,
       autoReplyEnabled: formData.autoReplyEnabled,
       autoReplySubject: formData.autoReplySubject || undefined,
@@ -157,7 +161,12 @@ function AddMailboxRoute() {
               <select
                 id="defaultTeam"
                 value={formData.defaultTeamId ?? ""}
-                onChange={(e) => setFormData({ ...formData, defaultTeamId: e.target.value ? Number(e.target.value) : undefined })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    defaultTeamId: e.target.value ? Number(e.target.value) : undefined,
+                  })
+                }
                 className="flex h-8 w-full rounded-none border border-input bg-transparent px-3 py-1 text-xs transition-colors outline-none focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50"
               >
                 <option value="">No default team</option>
@@ -181,7 +190,9 @@ function AddMailboxRoute() {
               <Checkbox
                 id="autoReplyEnabled"
                 checked={formData.autoReplyEnabled}
-                onCheckedChange={(checked) => setFormData({ ...formData, autoReplyEnabled: checked as boolean })}
+                onCheckedChange={(checked) =>
+                  setFormData({ ...formData, autoReplyEnabled: checked as boolean })
+                }
               />
               <Label htmlFor="autoReplyEnabled" className="font-normal">
                 Enable auto-reply
@@ -198,7 +209,9 @@ function AddMailboxRoute() {
                     onChange={(e) => setFormData({ ...formData, autoReplySubject: e.target.value })}
                     placeholder="Thank you for contacting us"
                   />
-                  {errors.autoReplySubject && <p className="text-xs text-destructive">{errors.autoReplySubject}</p>}
+                  {errors.autoReplySubject && (
+                    <p className="text-xs text-destructive">{errors.autoReplySubject}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -211,11 +224,14 @@ function AddMailboxRoute() {
                     rows={4}
                     className="flex w-full min-w-0 rounded-none border border-input bg-transparent px-3 py-1 text-xs transition-colors outline-none focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50"
                   />
-                  {errors.autoReplyBody && <p className="text-xs text-destructive">{errors.autoReplyBody}</p>}
+                  {errors.autoReplyBody && (
+                    <p className="text-xs text-destructive">{errors.autoReplyBody}</p>
+                  )}
                 </div>
 
                 <p className="text-xs text-muted-foreground">
-                  You can use merge tags: {"{{contact.first_name}}"}, {"{{ticket.reference_number}}"}, {"{{mailbox.name}}"}
+                  You can use merge tags: {"{{contact.first_name}}"},{" "}
+                  {"{{ticket.reference_number}}"}, {"{{mailbox.name}}"}
                 </p>
               </>
             )}

@@ -13,10 +13,7 @@ export function securityHeaders() {
     c.res.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
 
     if (env.NODE_ENV === "production") {
-      c.res.headers.set(
-        "Strict-Transport-Security",
-        "max-age=31536000; includeSubDomains",
-      );
+      c.res.headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
     }
   };
 }
@@ -34,10 +31,7 @@ export function corsMiddleware() {
     if (origin && env.CORS_ORIGIN.split(",").some((o) => o.trim() === origin)) {
       c.res.headers.set("Access-Control-Allow-Origin", origin);
       c.res.headers.set("Access-Control-Allow-Credentials", "true");
-      c.res.headers.set(
-        "Access-Control-Allow-Methods",
-        "GET, POST, PUT, PATCH, DELETE, OPTIONS",
-      );
+      c.res.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
       c.res.headers.set(
         "Access-Control-Allow-Headers",
         "Content-Type, Authorization, X-Requested-With",

@@ -1,10 +1,7 @@
 import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import {
-  Card,
-  CardContent,
-} from "@ticket-app/ui/components/card";
+import { Card, CardContent } from "@ticket-app/ui/components/card";
 import { Button } from "@ticket-app/ui/components/button";
 import { Input } from "@ticket-app/ui/components/input";
 import { Loader2, Plus, FileText, Edit, Eye, Trash2, Inbox, Copy } from "lucide-react";
@@ -40,16 +37,20 @@ function FormListRoute() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
 
-  const { data: forms, isLoading, refetch } = useQuery(
+  const {
+    data: forms,
+    isLoading,
+    refetch,
+  } = useQuery(
     orpc.forms.list.queryOptions({
       organizationId: 1,
-    })
+    }),
   );
 
   const deleteMutation = useMutation(
     orpc.forms.delete?.mutationOptions({
       onSuccess: () => refetch(),
-    })
+    }),
   );
 
   const filteredForms = forms?.filter((form) => {
@@ -137,7 +138,9 @@ function FormListRoute() {
                       {getStatusBadge(form.isPublished)}
                     </div>
                     {form.description && (
-                      <p className="text-sm text-muted-foreground line-clamp-1">{form.description}</p>
+                      <p className="text-sm text-muted-foreground line-clamp-1">
+                        {form.description}
+                      </p>
                     )}
                     <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
                       <span>{form.fields?.length || 0} fields</span>
@@ -160,11 +163,7 @@ function FormListRoute() {
                         <Eye className="h-4 w-4" />
                       </Button>
                     </Link>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => copyEmbedCode(form.id)}
-                    >
+                    <Button variant="ghost" size="icon" onClick={() => copyEmbedCode(form.id)}>
                       <Copy className="h-4 w-4" />
                     </Button>
                     <Link to={`/admin/forms/${form.id}/submissions`}>

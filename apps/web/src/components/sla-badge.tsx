@@ -40,7 +40,9 @@ export function SlaBadge({ status, size = "md", showLabels = true }: SlaBadgePro
           size === "sm" ? "text-xs" : size === "lg" ? "text-base" : "text-sm"
         }`}
       >
-        <AlertTriangle className={size === "sm" ? "w-3 h-3" : size === "lg" ? "w-5 h-5" : "w-4 h-4"} />
+        <AlertTriangle
+          className={size === "sm" ? "w-3 h-3" : size === "lg" ? "w-5 h-5" : "w-4 h-4"}
+        />
         {showLabels && (
           <span>
             {status.firstResponseBreached && "First Response Breached"}
@@ -53,12 +55,8 @@ export function SlaBadge({ status, size = "md", showLabels = true }: SlaBadgePro
   }
 
   const now = new Date();
-  const firstResponseDue = status.firstResponseDueAt
-    ? new Date(status.firstResponseDueAt)
-    : null;
-  const resolutionDue = status.resolutionDueAt
-    ? new Date(status.resolutionDueAt)
-    : null;
+  const firstResponseDue = status.firstResponseDueAt ? new Date(status.firstResponseDueAt) : null;
+  const resolutionDue = status.resolutionDueAt ? new Date(status.resolutionDueAt) : null;
 
   const getTimeRemaining = () => {
     if (!firstResponseDue && !resolutionDue) return null;
@@ -90,7 +88,9 @@ export function SlaBadge({ status, size = "md", showLabels = true }: SlaBadgePro
           size === "sm" ? "text-xs" : size === "lg" ? "text-base" : "text-sm"
         }`}
       >
-        <AlertTriangle className={size === "sm" ? "w-3 h-3" : size === "lg" ? "w-5 h-5" : "w-4 h-4"} />
+        <AlertTriangle
+          className={size === "sm" ? "w-3 h-3" : size === "lg" ? "w-5 h-5" : "w-4 h-4"}
+        />
         {showLabels && <span>{timeRemaining}</span>}
       </div>
     );

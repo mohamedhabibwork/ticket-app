@@ -75,9 +75,7 @@ export default function UserManagementScreen() {
     <Container>
       <View className="px-4 py-4">
         <View className="flex-row items-center justify-between mb-4">
-          <Text className="text-2xl font-semibold text-foreground tracking-tight">
-            Users
-          </Text>
+          <Text className="text-2xl font-semibold text-foreground tracking-tight">Users</Text>
           <Button variant="primary" size="sm" onPress={() => setShowInviteModal(true)}>
             <Ionicons name="person-add-outline" size={18} color={foregroundColor} />
             <Text className="text-foreground font-medium ml-1">Invite</Text>
@@ -101,7 +99,11 @@ export default function UserManagementScreen() {
               />
             </TextField>
             <View className="flex-row gap-2">
-              <Button variant="secondary" onPress={() => setShowInviteModal(false)} className="flex-1">
+              <Button
+                variant="secondary"
+                onPress={() => setShowInviteModal(false)}
+                className="flex-1"
+              >
                 Cancel
               </Button>
               <Button

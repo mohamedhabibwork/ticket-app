@@ -34,7 +34,9 @@ export const lookups = pgTable(
       .references(() => lookupTypes.id)
       .notNull(),
     parentId: bigint("parent_id", { mode: "number" }).references((): any => lookups.id),
-    organizationId: bigint("organization_id", { mode: "number" }).references((): any => organizations.id),
+    organizationId: bigint("organization_id", { mode: "number" }).references(
+      (): any => organizations.id,
+    ),
     name: varchar("name", { length: 100 }).notNull(),
     label: varchar("label", { length: 150 }).notNull(),
     labelAr: varchar("label_ar", { length: 150 }),
@@ -52,10 +54,10 @@ export const lookups = pgTable(
   (table) => ({
     lookupTypeOrgIdx: index("lookups_lookup_type_org_idx").on(
       table.lookupTypeId,
-      table.organizationId
+      table.organizationId,
     ),
     parentIdx: index("lookups_parent_idx").on(table.parentId),
-  })
+  }),
 );
 
 export const lookupTypesRelations = relations(lookupTypes, ({ many }) => ({

@@ -1,7 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Button } from "@ticket-app/ui/components/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@ticket-app/ui/components/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@ticket-app/ui/components/card";
 import { Badge } from "@ticket-app/ui/components/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@ticket-app/ui/components/tabs";
 import { orpc } from "@/utils/orpc";
@@ -83,7 +89,7 @@ function WorkflowDetailRoute() {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ["workflow", workflowId] });
       },
-    })
+    }),
   );
 
   const handleToggleActive = () => {
@@ -142,9 +148,7 @@ function WorkflowDetailRoute() {
           <div className="flex items-center gap-4">
             <div
               className={`rounded-full p-3 ${
-                workflow.isActive
-                  ? "bg-green-100 text-green-700"
-                  : "bg-muted text-muted-foreground"
+                workflow.isActive ? "bg-green-100 text-green-700" : "bg-muted text-muted-foreground"
               }`}
             >
               <Zap className="h-6 w-6" />
@@ -228,9 +232,7 @@ function WorkflowDetailRoute() {
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Actions</p>
-                  <p className="font-medium">
-                    {workflow.actions?.length || 0} actions
-                  </p>
+                  <p className="font-medium">{workflow.actions?.length || 0} actions</p>
                 </div>
               </div>
             </CardContent>
@@ -278,9 +280,7 @@ function WorkflowDetailRoute() {
           <Card>
             <CardHeader>
               <CardTitle>Conditions</CardTitle>
-              <CardDescription>
-                Rules that determine when this workflow should run
-              </CardDescription>
+              <CardDescription>Rules that determine when this workflow should run</CardDescription>
             </CardHeader>
             <CardContent>
               {workflow.conditions?.rules?.length === 0 ? (
@@ -291,7 +291,9 @@ function WorkflowDetailRoute() {
               ) : (
                 <div className="space-y-3">
                   <div className="flex items-center gap-2 mb-4">
-                    <Badge variant="outline">Match {workflow.conditions?.operator?.toUpperCase()}</Badge>
+                    <Badge variant="outline">
+                      Match {workflow.conditions?.operator?.toUpperCase()}
+                    </Badge>
                   </div>
                   {workflow.conditions?.rules?.map((rule: any, index: number) => (
                     <div key={index} className="flex items-center gap-2 rounded-lg border p-3">
@@ -311,9 +313,7 @@ function WorkflowDetailRoute() {
           <Card>
             <CardHeader>
               <CardTitle>Actions</CardTitle>
-              <CardDescription>
-                What happens when the workflow conditions are met
-              </CardDescription>
+              <CardDescription>What happens when the workflow conditions are met</CardDescription>
             </CardHeader>
             <CardContent>
               {workflow.actions?.length === 0 ? (
@@ -326,9 +326,7 @@ function WorkflowDetailRoute() {
                   {workflow.actions.map((action: any, index: number) => (
                     <div key={index} className="flex items-center gap-2 rounded-lg border p-3">
                       <span className="text-xs text-muted-foreground">#{index + 1}</span>
-                      <Badge variant="secondary">
-                        {ACTION_LABELS[action.type] || action.type}
-                      </Badge>
+                      <Badge variant="secondary">{ACTION_LABELS[action.type] || action.type}</Badge>
                       <code className="flex-1 text-sm bg-muted px-2 py-1 rounded text-xs overflow-hidden text-ellipsis">
                         {JSON.stringify(action.params)}
                       </code>
@@ -375,9 +373,7 @@ function WorkflowDetailRoute() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium">
-                            Ticket #{log.ticketId}
-                          </span>
+                          <span className="text-sm font-medium">Ticket #{log.ticketId}</span>
                           <Badge variant="outline" className="text-xs">
                             {log.trigger}
                           </Badge>

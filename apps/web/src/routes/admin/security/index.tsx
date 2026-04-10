@@ -11,7 +11,13 @@ import { Button } from "@ticket-app/ui/components/button";
 import { Input } from "@ticket-app/ui/components/input";
 import { Label } from "@ticket-app/ui/components/label";
 import { Checkbox } from "@ticket-app/ui/components/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@ticket-app/ui/components/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@ticket-app/ui/components/select";
 import { Save, RotateCcw, Shield, Clock, Key, FileText, AlertTriangle } from "lucide-react";
 
 export const Route = createFileRoute("/admin/security/")({
@@ -83,7 +89,9 @@ function SecuritySettingsRoute() {
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Security Settings</h1>
-          <p className="text-muted-foreground">Manage password policies, sessions, and security features</p>
+          <p className="text-muted-foreground">
+            Manage password policies, sessions, and security features
+          </p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={handleReset}>

@@ -16,14 +16,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/marketplaceConnect'
+              $ref: "#/components/schemas/marketplaceConnect"
       responses:
-        '200':
+        "200":
           description: Marketplace connected
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/marketplaceAccount'
+                $ref: "#/components/schemas/marketplaceAccount"
 
   /marketplace/accounts:
     get:
@@ -32,14 +32,14 @@ paths:
       tags: [Marketplace]
       security: [cookieAuth: [], bearerAuth: []]
       responses:
-        '200':
+        "200":
           description: Account list
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/marketplaceAccount'
+                  $ref: "#/components/schemas/marketplaceAccount"
 
     delete:
       operationId: disconnectMarketplace
@@ -52,7 +52,7 @@ paths:
           schema:
             type: number
       responses:
-        '200':
+        "200":
           description: Disconnected
 
   /marketplace/messages:
@@ -71,14 +71,14 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: Message list
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/marketplaceMessage'
+                  $ref: "#/components/schemas/marketplaceMessage"
 
   /marketplace/sync:
     post:
@@ -92,7 +92,7 @@ paths:
           schema:
             type: number
       responses:
-        '200':
+        "200":
           description: Sync started
 
 components:

@@ -62,7 +62,7 @@ export const ticketForwardsRouter = {
           subject: input.subject,
           body: input.body,
           createdBy: input.forwardedBy,
-        })
+        } as any)
         .returning();
 
       const messageId = `forward-${randomBytes(8).toString("hex")}@ticket-app`;
@@ -82,10 +82,10 @@ export const ticketForwardsRouter = {
           bodyHtml: input.body,
           sentAt: new Date(),
           receivedAt: new Date(),
-        })
+        } as any)
         .returning();
 
-      await addEmailSendJob(emailMessage.id);
+      await addEmailSendJob(emailMessage?.id);
 
       return forward;
     }),
@@ -114,7 +114,7 @@ export const ticketForwardsRouter = {
 
       return await db.query.ticketForwards.findMany({
         where: eq(ticketForwards.ticketId, input.ticketId),
-        orderBy: [desc(ticketForwards.createdAt)],
+        orderBy: [desc(ticketForwards.id)],
         limit: input.limit,
         offset: input.offset,
       });

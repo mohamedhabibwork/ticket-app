@@ -39,17 +39,17 @@ const _PAYTABS_REGION_MAP: Record<string, string> = {
 
 export class PaytabsService {
   private serverKey: string;
-  private clientKey: string;
+  private _clientKey: string;
   private baseUrl: string;
 
   constructor() {
     this.serverKey = env.PAYTABS_SERVER_KEY;
-    this.clientKey = env.PAYTABS_CLIENT_KEY;
+    this._clientKey = env.PAYTABS_CLIENT_KEY;
     this.baseUrl = env.PAYTABS_BASE_URL || "https://secure.paytabs.com";
   }
 
   async initializePayment(
-    organizationId: number,
+    organizationId_: number,
     params: PaytabsPaymentInit,
   ): Promise<PaytabsPaymentResult> {
     const response = await fetch(`${this.baseUrl}/payment/request`, {
@@ -96,7 +96,7 @@ export class PaytabsService {
       }),
     });
 
-    const result = await response.json();
+    const result = (await response.json()) as any;
 
     if (result.response_code !== "4000") {
       throw new Error(result.result || "PayTabs payment initialization failed");
@@ -121,7 +121,7 @@ export class PaytabsService {
       }),
     });
 
-    const result = await response.json();
+    const result = (await response.json()) as any;
 
     return {
       transactionId: result.tran_ref,
@@ -138,7 +138,7 @@ export class PaytabsService {
   }
 
   async createToken(
-    organizationId: number,
+    organizationId_: number,
     params: PaytabsCreateToken,
   ): Promise<PaytabsTokenResult> {
     const response = await fetch(`${this.baseUrl}/payment/token`, {
@@ -161,7 +161,7 @@ export class PaytabsService {
       }),
     });
 
-    const result = await response.json();
+    const result = (await response.json()) as any;
 
     if (result.response_code !== "4000") {
       throw new Error(result.result || "PayTabs token creation failed");
@@ -193,7 +193,7 @@ export class PaytabsService {
       }),
     });
 
-    const result = await response.json();
+    const result = (await response.json()) as any;
 
     return {
       success: result.response_code === "2800",

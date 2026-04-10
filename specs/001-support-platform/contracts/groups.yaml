@@ -12,16 +12,16 @@ paths:
       tags: [Groups]
       security: [cookieAuth: [], bearerAuth: []]
       parameters:
-        - $ref: '#/components/parameters/organizationId'
+        - $ref: "#/components/parameters/organizationId"
       responses:
-        '200':
+        "200":
           description: Group list
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/group'
+                  $ref: "#/components/schemas/group"
 
     post:
       operationId: createGroup
@@ -33,14 +33,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/groupCreate'
+              $ref: "#/components/schemas/groupCreate"
       responses:
-        '201':
+        "201":
           description: Group created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/group'
+                $ref: "#/components/schemas/group"
 
   /groups/{groupId}:
     get:
@@ -55,12 +55,12 @@ paths:
           schema:
             type: number
       responses:
-        '200':
+        "200":
           description: Group details
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/group'
+                $ref: "#/components/schemas/group"
 
     patch:
       operationId: updateGroup
@@ -78,9 +78,9 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/groupUpdate'
+              $ref: "#/components/schemas/groupUpdate"
       responses:
-        '200':
+        "200":
           description: Group updated
 
     delete:
@@ -95,7 +95,7 @@ paths:
           schema:
             type: number
       responses:
-        '200':
+        "200":
           description: Group deleted
 
 components:

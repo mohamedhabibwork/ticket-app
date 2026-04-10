@@ -43,7 +43,7 @@ export const tasks = pgTable(
   (table) => ({
     orgIdx: index("tasks_org_idx").on(table.organizationId),
     ticketIdx: index("tasks_ticket_idx").on(table.ticketId),
-  })
+  }),
 );
 
 export const taskAssignees = pgTable(
@@ -60,7 +60,7 @@ export const taskAssignees = pgTable(
   },
   (table) => ({
     taskUserUnique: unique().on(table.taskId, table.userId),
-  })
+  }),
 );
 
 export const taskChecklistItems = pgTable(
@@ -79,7 +79,7 @@ export const taskChecklistItems = pgTable(
   },
   (table) => ({
     taskIdx: index("task_checklist_items_task_idx").on(table.taskId),
-  })
+  }),
 );
 
 export const tasksRelations = relations(tasks, ({ one, many }) => ({

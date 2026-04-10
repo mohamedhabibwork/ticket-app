@@ -1,10 +1,10 @@
 import { db } from "@ticket-app/db";
-import { ecommerceOrders } from "@ticket-app/db/schema";
+import { ecommerceStores, ecommerceOrders } from "@ticket-app/db/schema";
 import { and, eq, isNull, like, or } from "drizzle-orm";
-import { syncShopifyStoreOrders, getShopifyOrders } from "./ecommerce/shopify";
-import { syncWooCommerceStoreOrders, getWooCommerceOrders } from "./ecommerce/woocommerce";
-import { syncSallaStoreOrders, getSallaOrders } from "./ecommerce/salla";
-import { syncZidStoreOrders, getZidOrders } from "./ecommerce/zid";
+import { syncShopifyStoreOrders, fetchShopifyOrders } from "./ecommerce/shopify";
+import { syncWooCommerceStoreOrders, fetchWooCommerceOrders } from "./ecommerce/woocommerce";
+import { syncSallaStoreOrders, fetchSallaOrders } from "./ecommerce/salla";
+import { syncZidStoreOrders, fetchZidOrders } from "./ecommerce/zid";
 
 export interface OrderFilters {
   status?: string;
@@ -30,15 +30,15 @@ export async function fetchStoreOrders(
 
   const { status, limit = 50, offset = 0 } = options;
 
-  switch (store.platform.toLowerCase()) {
+  switch (store.platform?.toLowerCase()) {
     case "shopify":
-      return getShopifyOrders(store, { status, limit, offset });
+      return fetchShopifyOrders(store, { status, limit, offset });
     case "woocommerce":
-      return getWooCommerceOrders(store, { status, limit, offset });
+      return fetchWooCommerceOrders(store, { status, limit, offset });
     case "salla":
-      return getSallaOrders(store, { status, limit, offset });
+      return fetchSallaOrders(store, { status, limit, offset });
     case "zid":
-      return getZidOrders(store, { status, limit, offset });
+      return fetchZidOrders(store, { status, limit, offset });
     default:
       throw new Error(`Unsupported platform: ${store.platform}`);
   }
@@ -89,18 +89,18 @@ export async function syncStoreOrders(
 
   let syncedCount = 0;
 
-  switch (store.platform.toLowerCase()) {
+  switch (store.platform?.toLowerCase()) {
     case "shopify":
-      syncedCount = await syncShopifyStoreOrders(store, forceFullSync);
+      syncedCount = (await syncShopifyStoreOrders(store, forceFullSync)).synced;
       break;
     case "woocommerce":
-      syncedCount = await syncWooCommerceStoreOrders(store, forceFullSync);
+      syncedCount = (await syncWooCommerceStoreOrders(store, forceFullSync)).synced;
       break;
     case "salla":
-      syncedCount = await syncSallaStoreOrders(store, forceFullSync);
+      syncedCount = (await syncSallaStoreOrders(store, forceFullSync)).synced;
       break;
     case "zid":
-      syncedCount = await syncZidStoreOrders(store, forceFullSync);
+      syncedCount = (await syncZidStoreOrders(store, forceFullSync)).synced;
       break;
     default:
       throw new Error(`Unsupported platform: ${store.platform}`);

@@ -251,7 +251,7 @@ export const chatMessagesRouter = {
       const { publishChatMessage } = await import("../services/chatPubSub");
       await publishChatMessage({
         sessionId: input.sessionId,
-        message,
+        message: message ?? null,
       });
 
       return message;

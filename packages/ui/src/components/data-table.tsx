@@ -84,8 +84,7 @@ function DataTable<T extends Record<string, unknown>>({
   const handleSort = (column: Column<T>) => {
     if (!column.sortable || !onSort) return;
 
-    const newDirection =
-      sortKey === column.key && sortDirection === "asc" ? "desc" : "asc";
+    const newDirection = sortKey === column.key && sortDirection === "asc" ? "desc" : "asc";
     onSort(column.key, newDirection);
   };
 
@@ -97,12 +96,10 @@ function DataTable<T extends Record<string, unknown>>({
           .map((c) => {
             const value = row[c.key];
             const cellValue =
-              typeof value === "string" && value.includes(",")
-                ? `"${value}"`
-                : value;
+              typeof value === "string" && value.includes(",") ? `"${value}"` : value;
             return cellValue;
           })
-          .join(",")
+          .join(","),
       );
 
       const csvContent = [headers, ...rows].join("\n");
@@ -160,7 +157,7 @@ function DataTable<T extends Record<string, unknown>>({
                   key={column.key}
                   className={cn(
                     "px-3 py-2 text-left font-medium text-muted-foreground",
-                    column.sortable && "cursor-pointer select-none hover:bg-muted"
+                    column.sortable && "cursor-pointer select-none hover:bg-muted",
                   )}
                   style={{ width: column.width }}
                   onClick={() => handleSort(column)}
@@ -184,16 +181,9 @@ function DataTable<T extends Record<string, unknown>>({
           <tbody>
             {loading ? (
               <tr>
-                <td
-                  colSpan={columns.length + (selectable ? 1 : 0)}
-                  className="h-32 text-center"
-                >
+                <td colSpan={columns.length + (selectable ? 1 : 0)} className="h-32 text-center">
                   <div className="flex items-center justify-center gap-2 text-muted-foreground">
-                    <svg
-                      className="size-5 animate-spin"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                    >
+                    <svg className="size-5 animate-spin" viewBox="0 0 24 24" fill="none">
                       <circle
                         className="opacity-25"
                         cx="12"
@@ -232,7 +222,7 @@ function DataTable<T extends Record<string, unknown>>({
                     data-selected={isSelected}
                     className={cn(
                       "border-b transition-colors",
-                      isSelected ? "bg-primary/5" : "hover:bg-muted/50"
+                      isSelected ? "bg-primary/5" : "hover:bg-muted/50",
                     )}
                   >
                     {selectable && (
@@ -240,18 +230,14 @@ function DataTable<T extends Record<string, unknown>>({
                         <input
                           type="checkbox"
                           checked={isSelected}
-                          onChange={(e) =>
-                            handleSelectRow(rowKey, e.target.checked)
-                          }
+                          onChange={(e) => handleSelectRow(rowKey, e.target.checked)}
                           className="size-4 rounded-none border-input"
                         />
                       </td>
                     )}
                     {columns.map((column) => (
                       <td key={column.key} className="px-3 py-2">
-                        {column.render
-                          ? column.render(row)
-                          : String(row[column.key] ?? "")}
+                        {column.render ? column.render(row) : String(row[column.key] ?? "")}
                       </td>
                     ))}
                   </tr>
@@ -265,21 +251,15 @@ function DataTable<T extends Record<string, unknown>>({
       {pagination && (
         <div className="flex items-center justify-between border-t px-4 py-3">
           <span className="text-xs text-muted-foreground">
-            {Math.min(
-              (pagination.page - 1) * pagination.pageSize + 1,
-              pagination.totalCount
-            )}
-            -
-            {Math.min(pagination.page * pagination.pageSize, pagination.totalCount)}{" "}
-            of {pagination.totalCount}
+            {Math.min((pagination.page - 1) * pagination.pageSize + 1, pagination.totalCount)}-
+            {Math.min(pagination.page * pagination.pageSize, pagination.totalCount)} of{" "}
+            {pagination.totalCount}
           </span>
 
           <div className="flex items-center gap-2">
             <select
               value={pagination.pageSize}
-              onChange={(e) =>
-                pagination.onPageSizeChange?.(Number(e.target.value))
-              }
+              onChange={(e) => pagination.onPageSizeChange?.(Number(e.target.value))}
               className="h-7 rounded-none border border-input bg-transparent px-2 text-xs outline-none focus:border-ring focus:ring-1 focus:ring-ring/50"
             >
               {[10, 25, 50, 100].map((size) => (
@@ -296,26 +276,34 @@ function DataTable<T extends Record<string, unknown>>({
                 disabled={pagination.page === 1}
                 className="inline-flex size-7 items-center justify-center rounded-none text-xs transition-colors hover:bg-muted disabled:pointer-events-none disabled:opacity-50"
               >
-                <svg className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg
+                  className="size-4"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
                   <path d="M15 18l-6-6 6-6" />
                 </svg>
               </button>
 
               <span className="px-2 text-xs">
-                Page {pagination.page} of{" "}
-                {Math.ceil(pagination.totalCount / pagination.pageSize)}
+                Page {pagination.page} of {Math.ceil(pagination.totalCount / pagination.pageSize)}
               </span>
 
               <button
                 type="button"
                 onClick={() => pagination.onPageChange(pagination.page + 1)}
-                disabled={
-                  pagination.page >=
-                  Math.ceil(pagination.totalCount / pagination.pageSize)
-                }
+                disabled={pagination.page >= Math.ceil(pagination.totalCount / pagination.pageSize)}
                 className="inline-flex size-7 items-center justify-center rounded-none text-xs transition-colors hover:bg-muted disabled:pointer-events-none disabled:opacity-50"
               >
-                <svg className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <svg
+                  className="size-4"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
                   <path d="M9 18l6-6-6-6" />
                 </svg>
               </button>

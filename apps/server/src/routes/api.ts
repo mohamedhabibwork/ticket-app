@@ -40,7 +40,7 @@ api.post("/tickets", async (c) => {
         where: and(
           eq(contacts.email, email.toLowerCase()),
           eq(contacts.organizationId, organizationId),
-          isNull(contacts.deletedAt)
+          isNull(contacts.deletedAt),
         ),
       });
 
@@ -65,19 +65,24 @@ api.post("/tickets", async (c) => {
       await db.query.lookups.findFirst({
         where: and(
           eq(lookups.lookupTypeId, sql`(SELECT id FROM lookup_types WHERE name = 'ticket_status')`),
-          eq(lookups.isDefault, true)
+          eq(lookups.isDefault, true),
         ),
       })
     )?.id;
 
-    const defaultPriorityId = priorityId || (
-      await db.query.lookups.findFirst({
-        where: and(
-          eq(lookups.lookupTypeId, sql`(SELECT id FROM lookup_types WHERE name = 'ticket_priority')`),
-          eq(lookups.isDefault, true)
-        ),
-      })
-    )?.id;
+    const defaultPriorityId =
+      priorityId ||
+      (
+        await db.query.lookups.findFirst({
+          where: and(
+            eq(
+              lookups.lookupTypeId,
+              sql`(SELECT id FROM lookup_types WHERE name = 'ticket_priority')`,
+            ),
+            eq(lookups.isDefault, true),
+          ),
+        })
+      )?.id;
 
     const year = new Date().getFullYear();
     const prefix = `TKT-${year}-`;
@@ -85,7 +90,7 @@ api.post("/tickets", async (c) => {
       .select({ count: sql<number>`COUNT(*)::int` })
       .from(tickets)
       .where(
-        sql`${tickets.organizationId} = ${organizationId} AND ${tickets.referenceNumber} LIKE ${prefix}%`
+        sql`${tickets.organizationId} = ${organizationId} AND ${tickets.referenceNumber} LIKE ${prefix}%`,
       );
     const sequence = (countResult[0]?.count ?? 0) + 1;
     const referenceNumber = `${prefix}${sequence.toString().padStart(6, "0")}`;
@@ -140,7 +145,7 @@ api.get("/tickets/:reference", async (c) => {
       where: and(
         eq(tickets.referenceNumber, reference),
         eq(tickets.organizationId, parseInt(organizationId)),
-        isNull(tickets.deletedAt)
+        isNull(tickets.deletedAt),
       ),
       with: {
         status: true,

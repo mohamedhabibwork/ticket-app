@@ -44,13 +44,13 @@ export function SavedReplyPicker({
     orpc.savedReplies.list.queryOptions({
       organizationId,
       userId,
-    })
+    }),
   );
 
   const { data: folders } = useQuery(
     orpc.savedReplies.listFolders.queryOptions({
       organizationId,
-    })
+    }),
   );
 
   const filteredReplies = replies?.filter((reply) => {
@@ -124,14 +124,10 @@ export function SavedReplyPicker({
                   <div className="flex-1 min-w-0">
                     <p className="font-medium truncate">{reply.name}</p>
                     {reply.shortcuts && (
-                      <p className="text-xs text-muted-foreground">
-                        /{reply.shortcuts}
-                      </p>
+                      <p className="text-xs text-muted-foreground">/{reply.shortcuts}</p>
                     )}
                     {reply.subject && (
-                      <p className="text-sm text-muted-foreground truncate mt-1">
-                        {reply.subject}
-                      </p>
+                      <p className="text-sm text-muted-foreground truncate mt-1">{reply.subject}</p>
                     )}
                     {reply.bodyText && (
                       <p className="text-xs text-muted-foreground line-clamp-2 mt-1">
@@ -144,9 +140,7 @@ export function SavedReplyPicker({
             ))}
           </div>
         ) : (
-          <p className="text-center py-8 text-muted-foreground">
-            No saved replies found
-          </p>
+          <p className="text-center py-8 text-muted-foreground">No saved replies found</p>
         )}
       </CardContent>
     </Card>

@@ -1,6 +1,6 @@
 import { db } from "@ticket-app/db";
 import { emailMessages, tickets } from "@ticket-app/db/schema";
-import { eq, and, gte, lte, sql } from "drizzle-orm";
+import { eq, and, gte, lte, sql, isNotNull, avg } from "drizzle-orm";
 
 export interface EmailStatistics {
   totalEmails: number;
@@ -35,14 +35,30 @@ export async function getEmailStatistics(
     .from(emailMessages)
     .where(and(...conditions));
 
+  const ticketConditions = [eq(tickets.mailboxId, mailboxId)];
+  if (startDate) {
+    ticketConditions.push(gte(tickets.createdAt, new Date(startDate)));
+  }
+  if (endDate) {
+    ticketConditions.push(lte(tickets.createdAt, new Date(endDate)));
+  }
+
   const ticketStats = await db
     .select({
       ticketsCreated: sql<number>`count(*)::int`,
-      ticketsReplied: sql<number>`count(*)::int filter (where ${tickets.statusId} is not null)`,
+      ticketsReplied: sql<number>`count(*)::int filter (where ${tickets.firstResponseAt} is not null)`,
     })
     .from(tickets)
-    .innerJoin(emailMessages, eq(tickets.id, emailMessages.ticketId))
-    .where(and(eq(tickets.mailboxId, mailboxId), ...conditions));
+    .where(and(...ticketConditions));
+
+  const responseTimeStats = await db
+    .select({
+      avgResponseTimeMs: avg(
+        sql`EXTRACT(EPOCH FROM (${tickets.firstResponseAt} - ${tickets.createdAt}))::int * 1000`,
+      ),
+    })
+    .from(tickets)
+    .where(and(...ticketConditions, isNotNull(tickets.firstResponseAt)));
 
   return {
     totalEmails: stats[0]?.totalEmails ?? 0,
@@ -50,6 +66,6 @@ export async function getEmailStatistics(
     outboundEmails: stats[0]?.outboundEmails ?? 0,
     ticketsCreated: ticketStats[0]?.ticketsCreated ?? 0,
     ticketsReplied: ticketStats[0]?.ticketsReplied ?? 0,
-    avgResponseTimeMs: 0, // TODO: Calculate from ticket response times
+    avgResponseTimeMs: Number(responseTimeStats[0]?.avgResponseTimeMs) || 0,
   };
 }

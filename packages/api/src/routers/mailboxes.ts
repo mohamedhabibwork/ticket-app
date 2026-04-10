@@ -258,7 +258,7 @@ export const mailboxesRouter = {
         throw new Error("Mailbox not found");
       }
 
-      const { encryptPassword } = await import("../lib/crypto");
+      const { encryptToken } = await import("../lib/crypto");
 
       const [config] = await db
         .insert(mailboxImapConfigs)
@@ -267,7 +267,7 @@ export const mailboxesRouter = {
           host: input.host,
           port: input.port,
           username: input.username,
-          passwordEnc: encryptPassword(input.password),
+          passwordEnc: encryptToken(input.password),
           useSsl: input.useSsl,
         })
         .onConflictDoUpdate({
@@ -276,7 +276,7 @@ export const mailboxesRouter = {
             host: input.host,
             port: input.port,
             username: input.username,
-            passwordEnc: encryptPassword(input.password),
+            passwordEnc: encryptToken(input.password),
             useSsl: input.useSsl,
             updatedAt: new Date(),
           },
@@ -309,7 +309,7 @@ export const mailboxesRouter = {
         throw new Error("Mailbox not found");
       }
 
-      const { encryptPassword } = await import("../lib/crypto");
+      const { encryptToken } = await import("../lib/crypto");
 
       const [config] = await db
         .insert(mailboxSmtpConfigs)
@@ -318,8 +318,7 @@ export const mailboxesRouter = {
           host: input.host,
           port: input.port,
           username: input.username,
-          passwordEnc: encryptPassword(input.password),
-          useSsl: input.useSsl,
+          passwordEnc: encryptToken(input.password),
           useTls: input.useTls,
           fromName: input.fromName,
         })
@@ -329,8 +328,7 @@ export const mailboxesRouter = {
             host: input.host,
             port: input.port,
             username: input.username,
-            passwordEnc: encryptPassword(input.password),
-            useSsl: input.useSsl,
+            passwordEnc: encryptToken(input.password),
             useTls: input.useTls,
             fromName: input.fromName,
             updatedAt: new Date(),
@@ -413,7 +411,7 @@ export const mailboxesRouter = {
           email: input.email.toLowerCase(),
           name: input.name,
           isDefault: input.isDefault,
-        })
+        } as any)
         .returning();
 
       return alias;
@@ -567,7 +565,7 @@ export const mailboxesRouter = {
           mailboxId: input.id,
           organizationId: input.organizationId,
           expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
-        },
+        } as any,
         600,
       );
 
@@ -589,7 +587,7 @@ export const mailboxesRouter = {
         throw new Error("Invalid or expired state");
       }
 
-      const stateData = storedState as { mailboxId: number; organizationId: number };
+      const stateData = storedState as unknown as { mailboxId: number; organizationId: number };
       await sessions.delete(`gmail_oauth_state:${input.state}`);
 
       const mailbox = await db.query.mailboxes.findFirst({
@@ -630,7 +628,12 @@ export const mailboxesRouter = {
         refresh_token: string;
         expires_in: number;
         token_type: string;
-      } = await tokenResponse.json();
+      } = (await tokenResponse.json()) as {
+        access_token: string;
+        refresh_token: string;
+        expires_in: number;
+        token_type: string;
+      };
 
       const expiresAt = new Date(Date.now() + tokens.expires_in * 1000);
       const encryptedAccessToken = encryptToken(tokens.access_token);

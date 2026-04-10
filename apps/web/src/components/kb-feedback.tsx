@@ -22,20 +22,12 @@ export function KbFeedback({ articleId, locale = "en", className }: KbFeedbackPr
     orpc.kbArticles.submitFeedback.mutationOptions({
       onSuccess: () => {
         setHasSubmitted(true);
-        toast.success(
-          locale === "ar"
-            ? "شكراً على ملاحظاتك!"
-            : "Thanks for your feedback!"
-        );
+        toast.success(locale === "ar" ? "شكراً على ملاحظاتك!" : "Thanks for your feedback!");
       },
       onError: () => {
-        toast.error(
-          locale === "ar"
-            ? "فشل في إرسال الملاحظات"
-            : "Failed to submit feedback"
-        );
+        toast.error(locale === "ar" ? "فشل في إرسال الملاحظات" : "Failed to submit feedback");
       },
-    })
+    }),
   );
 
   const handleRate = (rating: "helpful" | "not_helpful") => {
@@ -75,9 +67,7 @@ export function KbFeedback({ articleId, locale = "en", className }: KbFeedbackPr
     <div className={className}>
       <div className="rounded-lg border bg-card p-4">
         <p className="mb-3 text-sm font-medium">
-          {locale === "ar"
-            ? "هل كانت هذه المقالة مفيدة؟"
-            : "Was this article helpful?"}
+          {locale === "ar" ? "هل كانت هذه المقالة مفيدة؟" : "Was this article helpful?"}
         </p>
 
         {!showComment ? (
@@ -114,18 +104,10 @@ export function KbFeedback({ articleId, locale = "en", className }: KbFeedbackPr
               rows={3}
             />
             <div className="flex gap-2">
-              <Button
-                size="sm"
-                onClick={handleCommentSubmit}
-                disabled={submitFeedback.isPending}
-              >
+              <Button size="sm" onClick={handleCommentSubmit} disabled={submitFeedback.isPending}>
                 {locale === "ar" ? "إرسال" : "Submit"}
               </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowComment(false)}
-              >
+              <Button variant="ghost" size="sm" onClick={() => setShowComment(false)}>
                 {locale === "ar" ? "إلغاء" : "Cancel"}
               </Button>
             </div>

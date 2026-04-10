@@ -2,11 +2,23 @@ import { useState, useEffect } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@ticket-app/ui/components/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@ticket-app/ui/components/card";
 import { Input } from "@ticket-app/ui/components/input";
 import { Label } from "@ticket-app/ui/components/label";
 import { Checkbox } from "@ticket-app/ui/components/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@ticket-app/ui/components/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@ticket-app/ui/components/select";
 import { orpc } from "@/utils/orpc";
 import { ArrowLeft, Save, Clock, AlertTriangle, Plus, X } from "lucide-react";
 
@@ -69,7 +81,9 @@ function CreateSlaPolicyRoute() {
 
   const [holidays, setHolidays] = useState<{ date: string; name: string }[]>([]);
   const [targets, setTargets] = useState<any[]>(DEFAULT_TARGETS);
-  const [escalationActions, setEscalationActions] = useState<Record<string, { escalateAgentId?: number; escalateTeamId?: number }>>({});
+  const [escalationActions, setEscalationActions] = useState<
+    Record<string, { escalateAgentId?: number; escalateTeamId?: number }>
+  >({});
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -79,9 +93,24 @@ function CreateSlaPolicyRoute() {
       const lowPriority = priorities.find((p: any) => p.name.toLowerCase() === "low");
 
       setTargets([
-        { priorityId: highPriority?.id, priorityName: "High", firstResponseMinutes: 60, resolutionMinutes: 240 },
-        { priorityId: mediumPriority?.id, priorityName: "Medium", firstResponseMinutes: 240, resolutionMinutes: 1440 },
-        { priorityId: lowPriority?.id, priorityName: "Low", firstResponseMinutes: 480, resolutionMinutes: 2880 },
+        {
+          priorityId: highPriority?.id,
+          priorityName: "High",
+          firstResponseMinutes: 60,
+          resolutionMinutes: 240,
+        },
+        {
+          priorityId: mediumPriority?.id,
+          priorityName: "Medium",
+          firstResponseMinutes: 240,
+          resolutionMinutes: 1440,
+        },
+        {
+          priorityId: lowPriority?.id,
+          priorityName: "Low",
+          firstResponseMinutes: 480,
+          resolutionMinutes: 2880,
+        },
       ]);
     }
   }, [priorities]);
@@ -111,7 +140,7 @@ function CreateSlaPolicyRoute() {
       onError: (error) => {
         setErrors({ submit: error.message });
       },
-    })
+    }),
   );
 
   const validateForm = () => {
@@ -196,9 +225,7 @@ function CreateSlaPolicyRoute() {
               <Clock className="h-5 w-5" />
               Policy Details
             </CardTitle>
-            <CardDescription>
-              Basic information about the SLA policy
-            </CardDescription>
+            <CardDescription>Basic information about the SLA policy</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
@@ -210,9 +237,7 @@ function CreateSlaPolicyRoute() {
                 placeholder="e.g., Standard Support"
                 hasError={!!errors.name}
               />
-              {errors.name && (
-                <p className="text-xs text-destructive">{errors.name}</p>
-              )}
+              {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="description">Description</Label>
@@ -231,15 +256,21 @@ function CreateSlaPolicyRoute() {
                   checked={formData.isDefault}
                   onCheckedChange={(checked) => setFormData({ ...formData, isDefault: !!checked })}
                 />
-                <Label htmlFor="isDefault" className="cursor-pointer">Set as default policy</Label>
+                <Label htmlFor="isDefault" className="cursor-pointer">
+                  Set as default policy
+                </Label>
               </div>
               <div className="flex items-center gap-2">
                 <Checkbox
                   id="businessHoursOnly"
                   checked={formData.businessHoursOnly}
-                  onCheckedChange={(checked) => setFormData({ ...formData, businessHoursOnly: !!checked })}
+                  onCheckedChange={(checked) =>
+                    setFormData({ ...formData, businessHoursOnly: !!checked })
+                  }
                 />
-                <Label htmlFor="businessHoursOnly" className="cursor-pointer">Business hours only</Label>
+                <Label htmlFor="businessHoursOnly" className="cursor-pointer">
+                  Business hours only
+                </Label>
               </div>
             </div>
           </CardContent>
@@ -249,9 +280,7 @@ function CreateSlaPolicyRoute() {
           <Card>
             <CardHeader>
               <CardTitle>Business Hours Configuration</CardTitle>
-              <CardDescription>
-                Define when support is available
-              </CardDescription>
+              <CardDescription>Define when support is available</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
@@ -280,7 +309,13 @@ function CreateSlaPolicyRoute() {
                                 ...businessHours,
                                 schedule: [
                                   ...businessHours.schedule,
-                                  { day: day.value, startHour: 9, startMinute: 0, endHour: 17, endMinute: 0 },
+                                  {
+                                    day: day.value,
+                                    startHour: 9,
+                                    startMinute: 0,
+                                    endHour: 17,
+                                    endMinute: 0,
+                                  },
                                 ],
                               });
                             } else {
@@ -306,7 +341,9 @@ function CreateSlaPolicyRoute() {
                               setBusinessHours({
                                 ...businessHours,
                                 schedule: businessHours.schedule.map((s) =>
-                                  s.day === day.value ? { ...s, startHour: parseInt(e.target.value) || 0 } : s
+                                  s.day === day.value
+                                    ? { ...s, startHour: parseInt(e.target.value) || 0 }
+                                    : s,
                                 ),
                               });
                             }}
@@ -322,7 +359,9 @@ function CreateSlaPolicyRoute() {
                               setBusinessHours({
                                 ...businessHours,
                                 schedule: businessHours.schedule.map((s) =>
-                                  s.day === day.value ? { ...s, startMinute: parseInt(e.target.value) || 0 } : s
+                                  s.day === day.value
+                                    ? { ...s, startMinute: parseInt(e.target.value) || 0 }
+                                    : s,
                                 ),
                               });
                             }}
@@ -338,7 +377,9 @@ function CreateSlaPolicyRoute() {
                               setBusinessHours({
                                 ...businessHours,
                                 schedule: businessHours.schedule.map((s) =>
-                                  s.day === day.value ? { ...s, endHour: parseInt(e.target.value) || 0 } : s
+                                  s.day === day.value
+                                    ? { ...s, endHour: parseInt(e.target.value) || 0 }
+                                    : s,
                                 ),
                               });
                             }}
@@ -354,7 +395,9 @@ function CreateSlaPolicyRoute() {
                               setBusinessHours({
                                 ...businessHours,
                                 schedule: businessHours.schedule.map((s) =>
-                                  s.day === day.value ? { ...s, endMinute: parseInt(e.target.value) || 0 } : s
+                                  s.day === day.value
+                                    ? { ...s, endMinute: parseInt(e.target.value) || 0 }
+                                    : s,
                                 ),
                               });
                             }}
@@ -376,9 +419,7 @@ function CreateSlaPolicyRoute() {
               <AlertTriangle className="h-5 w-5" />
               Holidays
             </CardTitle>
-            <CardDescription>
-              Define company holidays when SLA timers should pause
-            </CardDescription>
+            <CardDescription>Define company holidays when SLA timers should pause</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
@@ -442,7 +483,13 @@ function CreateSlaPolicyRoute() {
                           type="number"
                           min="1"
                           value={target.firstResponseMinutes}
-                          onChange={(e) => updateTarget(index, "firstResponseMinutes", parseInt(e.target.value) || 0)}
+                          onChange={(e) =>
+                            updateTarget(
+                              index,
+                              "firstResponseMinutes",
+                              parseInt(e.target.value) || 0,
+                            )
+                          }
                           className="w-24"
                         />
                       </td>
@@ -451,7 +498,9 @@ function CreateSlaPolicyRoute() {
                           type="number"
                           min="1"
                           value={target.resolutionMinutes}
-                          onChange={(e) => updateTarget(index, "resolutionMinutes", parseInt(e.target.value) || 0)}
+                          onChange={(e) =>
+                            updateTarget(index, "resolutionMinutes", parseInt(e.target.value) || 0)
+                          }
                           className="w-24"
                         />
                       </td>
@@ -466,9 +515,7 @@ function CreateSlaPolicyRoute() {
         <Card>
           <CardHeader>
             <CardTitle>Escalation Actions</CardTitle>
-            <CardDescription>
-              Define what happens when SLA is breached
-            </CardDescription>
+            <CardDescription>Define what happens when SLA is breached</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -479,8 +526,12 @@ function CreateSlaPolicyRoute() {
                     <div className="space-y-2">
                       <Label htmlFor={`agent-${target.priorityName}`}>Escalate to Agent</Label>
                       <Select
-                        value={escalationActions[target.priorityName]?.escalateAgentId?.toString() || ""}
-                        onValueChange={(value) => updateEscalation(target.priorityName, "escalateAgentId", value)}
+                        value={
+                          escalationActions[target.priorityName]?.escalateAgentId?.toString() || ""
+                        }
+                        onValueChange={(value) =>
+                          updateEscalation(target.priorityName, "escalateAgentId", value)
+                        }
                       >
                         <SelectTrigger id={`agent-${target.priorityName}`}>
                           <SelectValue placeholder="Select agent" />
@@ -498,8 +549,12 @@ function CreateSlaPolicyRoute() {
                     <div className="space-y-2">
                       <Label htmlFor={`team-${target.priorityName}`}>Escalate to Team</Label>
                       <Select
-                        value={escalationActions[target.priorityName]?.escalateTeamId?.toString() || ""}
-                        onValueChange={(value) => updateEscalation(target.priorityName, "escalateTeamId", value)}
+                        value={
+                          escalationActions[target.priorityName]?.escalateTeamId?.toString() || ""
+                        }
+                        onValueChange={(value) =>
+                          updateEscalation(target.priorityName, "escalateTeamId", value)
+                        }
                       >
                         <SelectTrigger id={`team-${target.priorityName}`}>
                           <SelectValue placeholder="Select team" />

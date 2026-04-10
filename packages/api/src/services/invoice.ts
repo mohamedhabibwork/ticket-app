@@ -30,8 +30,8 @@ export async function generateInvoiceNumber(organizationId: number): Promise<str
   let sequence = 1;
   if (lastInvoice?.number) {
     const parts = lastInvoice.number.split("-");
-    const lastYear = parseInt(parts[2]);
-    const lastSeq = parseInt(parts[parts.length - 1]);
+    const lastYear = parseInt(parts[2] || "0");
+    const lastSeq = parseInt(parts[parts.length - 1] || "0");
 
     if (lastYear === year) {
       sequence = lastSeq + 1;
@@ -97,7 +97,7 @@ export async function createInvoice(
   if (params.items.length > 0) {
     await db.insert(invoiceItems).values(
       params.items.map((item) => ({
-        invoiceId: invoice.id,
+        invoiceId: invoice!.id,
         description: item.description,
         quantity: item.quantity,
         unitPrice: item.unitPrice,

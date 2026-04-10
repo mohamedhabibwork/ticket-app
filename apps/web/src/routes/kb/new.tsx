@@ -6,12 +6,7 @@ import { Button } from "@ticket-app/ui/components/button";
 import { Input } from "@ticket-app/ui/components/input";
 import { Label } from "@ticket-app/ui/components/label";
 import { Textarea } from "@ticket-app/ui/components/textarea";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@ticket-app/ui/components/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -46,7 +41,7 @@ function CreateKbArticleRoute() {
   const { data: categories } = useQuery(
     orpc.kbCategories.list.queryOptions({
       organizationId,
-    })
+    }),
   );
 
   const createMutation = useMutation(
@@ -63,7 +58,7 @@ function CreateKbArticleRoute() {
       onError: (error) => {
         toast.error(`Failed to create article: ${error.message}`);
       },
-    })
+    }),
   );
 
   const handleTitleChange = (value: string) => {
@@ -182,7 +177,12 @@ function CreateKbArticleRoute() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start" className="w-full max-h-60 overflow-y-auto">
-                      <DropdownMenuItem onClick={() => { setCategoryId(null); setShowCategoryDropdown(false); }}>
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setCategoryId(null);
+                          setShowCategoryDropdown(false);
+                        }}
+                      >
                         None
                       </DropdownMenuItem>
                       {categories?.map((category) => (
@@ -271,11 +271,7 @@ function CreateKbArticleRoute() {
           </Card>
 
           <div className="flex justify-end gap-3">
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => navigate({ to: "/kb" })}
-            >
+            <Button type="button" variant="ghost" onClick={() => navigate({ to: "/kb" })}>
               Cancel
             </Button>
             <Button
@@ -285,16 +281,12 @@ function CreateKbArticleRoute() {
               disabled={createMutation.isPending}
             >
               <Save className="h-4 w-4 mr-2" />
-              {createMutation.isPending ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : null}
+              {createMutation.isPending ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : null}
               Save Draft
             </Button>
             <Button type="submit" disabled={createMutation.isPending}>
               <Eye className="h-4 w-4 mr-2" />
-              {createMutation.isPending && (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              )}
+              {createMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               Publish
             </Button>
           </div>

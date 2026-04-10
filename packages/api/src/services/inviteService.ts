@@ -1,5 +1,6 @@
+import { ORPCError } from "@orpc/client";
 import { db } from "@ticket-app/db";
-import { users } from "@ticket-app/db/schema";
+import { users, invitations, invitationRoles } from "@ticket-app/db/schema";
 import { eq, and, isNull } from "drizzle-orm";
 
 export interface CreateInviteParams {
@@ -27,7 +28,6 @@ export interface Invite {
 }
 
 export async function createInvite(params: CreateInviteParams): Promise<Invite> {
-  // Check if user already exists
   const existingUser = await db.query.users.findFirst({
     where: and(
       eq(users.email, params.email.toLowerCase()),
@@ -40,34 +40,42 @@ export async function createInvite(params: CreateInviteParams): Promise<Invite> 
     throw new Error("User with this email already exists");
   }
 
-  // Create invitation record - table may need to be created
+  const [result] = await db
+    .insert(invitations)
+    .values({
+      organizationId: params.organizationId,
+      email: params.email.toLowerCase(),
+      token: params.token,
+      expiresAt: params.expiresAt,
+      invitedBy: params.invitedBy,
+      firstName: params.firstName,
+      lastName: params.lastName,
+    })
+    .returning();
 
-  // TODO: Create invitation record - table may need to be created
+  if (!result) {
+    throw new ORPCError("NOT_FOUND", { message: "Failed to create invite" });
+  }
 
-  // For now, return a mock invite object
-  const invite: Invite = {
-    id: Date.now(), // Temporary ID
-    organizationId: params.organizationId,
-    email: params.email.toLowerCase(),
-    token: params.token,
-    expiresAt: params.expiresAt,
-    invitedBy: params.invitedBy,
-    firstName: params.firstName,
-    lastName: params.lastName,
+  if (params.roleIds && params.roleIds.length > 0) {
+    await db.insert(invitationRoles).values(
+      params.roleIds.map((roleId) => ({
+        invitationId: result.id,
+        roleId,
+      })),
+    );
+  }
+
+  return {
+    id: result.id,
+    organizationId: result.organizationId,
+    email: result.email,
+    token: result.token,
+    expiresAt: result.expiresAt,
+    invitedBy: result.invitedBy,
+    firstName: result.firstName ?? undefined,
+    lastName: result.lastName ?? undefined,
     roleIds: params.roleIds,
-    createdAt: new Date(),
+    createdAt: result.createdAt,
   };
-
-  // TODO: Insert into invitations table when schema is created
-  // const [result] = await db.insert(invitations).values({
-  //   organizationId: params.organizationId,
-  //   email: params.email.toLowerCase(),
-  //   token: params.token,
-  //   expiresAt: params.expiresAt,
-  //   invitedBy: params.invitedBy,
-  //   firstName: params.firstName,
-  //   lastName: params.lastName,
-  // }).returning();
-
-  return invite;
 }

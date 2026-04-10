@@ -2,7 +2,13 @@ import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation } from "@tanstack/react-query";
 import { Button } from "@ticket-app/ui/components/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@ticket-app/ui/components/card";
 import { Input } from "@ticket-app/ui/components/input";
 import { Label } from "@ticket-app/ui/components/label";
 import { Checkbox } from "@ticket-app/ui/components/checkbox";
@@ -98,7 +104,7 @@ function CreateRoleRoute() {
       onError: (error) => {
         setErrors({ submit: error.message });
       },
-    })
+    }),
   );
 
   const validateForm = () => {
@@ -170,9 +176,7 @@ function CreateRoleRoute() {
           </Link>
         </Button>
         <h1 className="text-3xl font-bold">Create Role</h1>
-        <p className="text-muted-foreground mt-1">
-          Define a new role and its permissions
-        </p>
+        <p className="text-muted-foreground mt-1">Define a new role and its permissions</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -182,9 +186,7 @@ function CreateRoleRoute() {
               <Shield className="h-5 w-5" />
               Role Details
             </CardTitle>
-            <CardDescription>
-              Basic information about the role
-            </CardDescription>
+            <CardDescription>Basic information about the role</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
@@ -196,9 +198,7 @@ function CreateRoleRoute() {
                 placeholder="e.g., Support Supervisor"
                 hasError={!!errors.name}
               />
-              {errors.name && (
-                <p className="text-xs text-destructive">{errors.name}</p>
-              )}
+              {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="description">Description</Label>
@@ -216,9 +216,7 @@ function CreateRoleRoute() {
         <Card>
           <CardHeader>
             <CardTitle>Permissions</CardTitle>
-            <CardDescription>
-              Select the permissions this role should have
-            </CardDescription>
+            <CardDescription>Select the permissions this role should have</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

@@ -33,9 +33,7 @@ function FileUpload({
   ...props
 }: FileUploadProps) {
   const [isDragging, setIsDragging] = React.useState(false);
-  const [files, setFiles] = React.useState<FilePreview[]>(
-    value.map((f) => ({ file: f }))
-  );
+  const [files, setFiles] = React.useState<FilePreview[]>(value.map((f) => ({ file: f })));
   const [uploading, setUploading] = React.useState(false);
   const inputRef = React.useRef<HTMLInputElement>(null);
 
@@ -98,9 +96,7 @@ function FileUpload({
     }
 
     if (validFiles.length > 0) {
-      const updatedFiles = multiple
-        ? [...files, ...validFiles]
-        : validFiles.slice(0, 1);
+      const updatedFiles = multiple ? [...files, ...validFiles] : validFiles.slice(0, 1);
 
       setFiles(updatedFiles);
       onChange?.(updatedFiles.map((f) => f.file));
@@ -134,17 +130,13 @@ function FileUpload({
     setUploading(true);
     try {
       for (let i = 0; i < files.length; i++) {
-        setFiles((prev) =>
-          prev.map((f, idx) => (idx === i ? { ...f, progress: 0 } : f))
-        );
+        setFiles((prev) => prev.map((f, idx) => (idx === i ? { ...f, progress: 0 } : f)));
 
         const xhr = new XMLHttpRequest();
         xhr.upload.onprogress = (e) => {
           if (e.lengthComputable) {
             const progress = Math.round((e.loaded / e.total) * 100);
-            setFiles((prev) =>
-              prev.map((f, idx) => (idx === i ? { ...f, progress } : f))
-            );
+            setFiles((prev) => prev.map((f, idx) => (idx === i ? { ...f, progress } : f)));
           }
         };
 
@@ -167,7 +159,7 @@ function FileUpload({
         className={cn(
           "flex min-h-32 cursor-pointer flex-col items-center justify-center gap-2 rounded-none border-2 border-dashed border-input bg-transparent p-4 text-xs transition-colors",
           isDragging && "border-primary bg-primary/5",
-          disabled && "cursor-not-allowed opacity-50"
+          disabled && "cursor-not-allowed opacity-50",
         )}
       >
         <input
@@ -181,8 +173,7 @@ function FileUpload({
         />
         <UploadIcon className="size-8 text-muted-foreground" />
         <span className="text-muted-foreground">
-          Drag and drop files here, or{" "}
-          <span className="text-primary underline">browse</span>
+          Drag and drop files here, or <span className="text-primary underline">browse</span>
         </span>
         <span className="text-[10px] text-muted-foreground">
           Max size: {formatSize(maxSize)}
@@ -210,9 +201,7 @@ function FileUpload({
               )}
 
               <div className="flex-1 min-w-0">
-                <div className="truncate text-xs font-medium">
-                  {fileData.file.name}
-                </div>
+                <div className="truncate text-xs font-medium">{fileData.file.name}</div>
                 <div className="text-[10px] text-muted-foreground">
                   {formatSize(fileData.file.size)}
                 </div>
@@ -227,9 +216,7 @@ function FileUpload({
                 )}
 
                 {fileData.error && (
-                  <div className="mt-1 text-[10px] text-destructive">
-                    {fileData.error}
-                  </div>
+                  <div className="mt-1 text-[10px] text-destructive">{fileData.error}</div>
                 )}
               </div>
 

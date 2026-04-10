@@ -132,7 +132,7 @@ export const tasksRouter = {
           ticketId: input.ticketId,
           title: input.title,
           description: input.description,
-          statusId: defaultStatusId,
+          statusId: defaultStatusId as any,
           priorityId: input.priorityId,
           dueAt: input.dueAt,
           createdBy: input.createdBy,
@@ -142,7 +142,7 @@ export const tasksRouter = {
       if (input.assignedUserIds && input.assignedUserIds.length > 0) {
         await db.insert(taskAssignees).values(
           input.assignedUserIds.map((userId) => ({
-            taskId: task.id,
+            taskId: (task as any).id,
             userId,
           })),
         );

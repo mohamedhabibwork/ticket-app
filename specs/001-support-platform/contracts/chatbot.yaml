@@ -12,14 +12,14 @@ paths:
       tags: [Chatbot]
       security: [cookieAuth: [], bearerAuth: []]
       parameters:
-        - $ref: '#/components/parameters/organizationId'
+        - $ref: "#/components/parameters/organizationId"
       responses:
-        '200':
+        "200":
           description: Config details
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/chatbotConfig'
+                $ref: "#/components/schemas/chatbotConfig"
 
     patch:
       operationId: updateChatbotConfig
@@ -27,15 +27,15 @@ paths:
       tags: [Chatbot]
       security: [cookieAuth: [], bearerAuth: []]
       parameters:
-        - $ref: '#/components/parameters/organizationId'
+        - $ref: "#/components/parameters/organizationId"
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/chatbotConfigUpdate'
+              $ref: "#/components/schemas/chatbotConfigUpdate"
       responses:
-        '200':
+        "200":
           description: Config updated
 
   /chatbot/sessions:
@@ -55,14 +55,14 @@ paths:
             type: string
             enum: [active, escalated, completed]
       responses:
-        '200':
+        "200":
           description: Session list
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/chatbotSession'
+                  $ref: "#/components/schemas/chatbotSession"
 
   /chatbot/sessions/{sessionId}/messages:
     get:
@@ -77,14 +77,14 @@ paths:
           schema:
             type: number
       responses:
-        '200':
+        "200":
           description: Message list
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/chatbotMessage'
+                  $ref: "#/components/schemas/chatbotMessage"
 
     post:
       operationId: createChatbotMessage
@@ -95,14 +95,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/chatbotMessageCreate'
+              $ref: "#/components/schemas/chatbotMessageCreate"
       responses:
-        '200':
+        "200":
           description: Bot response
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/chatbotMessage'
+                $ref: "#/components/schemas/chatbotMessage"
 
   /chatbot/sessions/{sessionId}/escalate:
     post:
@@ -128,7 +128,7 @@ paths:
                 assignedAgentId:
                   type: number
       responses:
-        '200':
+        "200":
           description: Session escalated
 
   /chatbot/sessions/{sessionId}/rate:
@@ -151,7 +151,7 @@ paths:
                 feedback:
                   type: string
       responses:
-        '200':
+        "200":
           description: Rating recorded
 
 components:

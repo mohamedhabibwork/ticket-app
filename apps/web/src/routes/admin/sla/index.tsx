@@ -2,9 +2,21 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@ticket-app/ui/components/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@ticket-app/ui/components/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@ticket-app/ui/components/dropdown-menu";
 import { Badge } from "@ticket-app/ui/components/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@ticket-app/ui/components/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@ticket-app/ui/components/select";
 import { orpc } from "@/utils/orpc";
 import { MoreHorizontal, Plus, Edit, Trash2, Clock, Star, Filter } from "lucide-react";
 import { useState } from "react";
@@ -32,7 +44,7 @@ function SlaPoliciesListRoute() {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ["sla-policies"] });
       },
-    })
+    }),
   );
 
   const setDefaultMutation = useMutation(
@@ -40,11 +52,15 @@ function SlaPoliciesListRoute() {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ["sla-policies"] });
       },
-    })
+    }),
   );
 
   const handleDelete = (policyId: number, policyName: string) => {
-    if (confirm(`Are you sure you want to delete the SLA policy "${policyName}"? This action cannot be undone.`)) {
+    if (
+      confirm(
+        `Are you sure you want to delete the SLA policy "${policyName}"? This action cannot be undone.`,
+      )
+    ) {
       deleteMutation.mutate({ id: policyId });
     }
   };
@@ -69,8 +85,8 @@ function SlaPoliciesListRoute() {
 
   const filteredPolicies = policies?.filter((policy) => {
     if (priorityFilter === "all") return true;
-    return policy.targets?.some((target) =>
-      target.priority?.name.toLowerCase() === priorityFilter.toLowerCase()
+    return policy.targets?.some(
+      (target) => target.priority?.name.toLowerCase() === priorityFilter.toLowerCase(),
     );
   });
 
@@ -197,8 +213,10 @@ function SlaPoliciesListRoute() {
                           {policy.targets.map((target: any) => (
                             <tr key={target.id} className="border-t">
                               <td className="px-3 py-2">
-                                <span className={`px-1.5 py-0.5 rounded text-xs ${getPriorityBadgeColor(target.priority?.name || '')}`}>
-                                  {target.priority?.name || 'Unknown'}
+                                <span
+                                  className={`px-1.5 py-0.5 rounded text-xs ${getPriorityBadgeColor(target.priority?.name || "")}`}
+                                >
+                                  {target.priority?.name || "Unknown"}
                                 </span>
                               </td>
                               <td className="px-3 py-2">

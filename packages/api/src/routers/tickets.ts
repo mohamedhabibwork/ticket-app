@@ -277,7 +277,7 @@ export const ticketsRouter = {
         })
         .returning();
 
-      if (input.descriptionHtml || input.descriptionText) {
+      if (ticket && (input.descriptionHtml || input.descriptionText)) {
         await createMessage({
           ticketId: ticket.id,
           authorType: input.contactId ? AuthorType.CONTACT : AuthorType.AGENT,
@@ -290,24 +290,26 @@ export const ticketsRouter = {
         });
       }
 
-      if (input.ccEmails && input.ccEmails.length > 0) {
+      if (ticket && input.ccEmails && input.ccEmails.length > 0) {
         await db.insert(ticketCc).values(
           input.ccEmails.map((email) => ({
-            ticketId: ticket.id,
+            ticketId: ticket?.id ?? 0,
             email: email.toLowerCase(),
           })),
         );
       }
 
-      await initializeSLA(ticket.id, input.organizationId);
+      await initializeSLA(ticket?.id ?? 0, input.organizationId);
 
-      await logTicketCreated({
-        ticketId: ticket.id,
-        organizationId: input.organizationId,
-        userId: input.createdBy,
-        subject: input.subject,
-        referenceNumber,
-      });
+      if (ticket) {
+        await logTicketCreated({
+          ticketId: ticket.id,
+          organizationId: input.organizationId,
+          userId: input.createdBy,
+          subject: input.subject,
+          referenceNumber: ticket.referenceNumber,
+        });
+      }
 
       return ticket;
     }),

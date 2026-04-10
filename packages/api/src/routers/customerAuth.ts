@@ -76,14 +76,14 @@ export const customerAuthRouter = {
         }),
       });
 
-      const tokenData = await tokenRes.json();
+      const tokenData = (await tokenRes.json()) as any;
       const accessToken = tokenData.access_token;
 
       const userRes = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
 
-      const userData = await userRes.json();
+      const userData = (await userRes.json()) as any;
       return await linkOrCreateCustomer("google", userData.id, userData.email, userData.name);
     }),
 
@@ -112,14 +112,14 @@ export const customerAuthRouter = {
         `https://graph.facebook.com/v18.0/oauth/access_token?client_id=${env.FACEBOOK_CLIENT_ID}&client_secret=${env.FACEBOOK_CLIENT_SECRET}&code=${input.code}&redirect_uri=${input.redirectUri}`,
       );
 
-      const tokenData = await tokenRes.json();
+      const tokenData = (await tokenRes.json()) as any;
       const accessToken = tokenData.access_token;
 
       const userRes = await fetch(
         `https://graph.facebook.com/me?fields=id,email,name&access_token=${accessToken}`,
       );
 
-      const userData = await userRes.json();
+      const userData = (await userRes.json()) as any;
       return await linkOrCreateCustomer("facebook", userData.id, userData.email, userData.name);
     }),
 

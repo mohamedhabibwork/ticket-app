@@ -14,7 +14,7 @@ interface ZidOrder {
   order_number: string;
   merchant_order_id: string;
   status: ZidOrderStatus;
- payment: ZidPayment;
+  payment: ZidPayment;
   shipping: ZidShipping;
   items: ZidOrderItem[];
   created_at: string;
@@ -120,7 +120,7 @@ export async function getZidConfig(storeId: number): Promise<ZidConfig | null> {
 export async function zidApiRequest<T>(
   config: ZidConfig,
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
 ): Promise<T> {
   const url = `https://${config.shopDomain}/api/${ZID_API_VERSION}/${endpoint}`;
 
@@ -148,7 +148,7 @@ export async function fetchZidOrders(
     page?: number;
     sort?: string;
     status?: ZidOrderStatus;
-  } = {}
+  } = {},
 ): Promise<ZidOrder[]> {
   const searchParams = new URLSearchParams();
   searchParams.set("limit", String(params.limit || 100));
@@ -158,21 +158,15 @@ export async function fetchZidOrders(
 
   const data = await zidApiRequest<{ data: ZidOrder[] }>(
     config,
-    `orders?${searchParams.toString()}`
+    `orders?${searchParams.toString()}`,
   );
 
   return data.data || [];
 }
 
-export async function fetchZidOrder(
-  config: ZidConfig,
-  orderId: string
-): Promise<ZidOrder | null> {
+export async function fetchZidOrder(config: ZidConfig, orderId: string): Promise<ZidOrder | null> {
   try {
-    const data = await zidApiRequest<{ data: ZidOrder }>(
-      config,
-      `orders/${orderId}`
-    );
+    const data = await zidApiRequest<{ data: ZidOrder }>(config, `orders/${orderId}`);
     return data.data || null;
   } catch {
     return null;
@@ -181,7 +175,7 @@ export async function fetchZidOrder(
 
 export function transformZidOrder(
   storeId: number,
-  zidOrder: ZidOrder
+  zidOrder: ZidOrder,
 ): Omit<typeof ecommerceOrders.$inferInsert, "id" | "uuid" | "createdAt" | "updatedAt"> {
   const lineItems = zidOrder.items.map((item) => ({
     productId: String(item.product_id),
@@ -243,9 +237,8 @@ export function transformZidOrder(
     discountCodes: [],
     customerEmail: zidOrder.customer.email?.toLowerCase() || null,
     customerPhone: zidOrder.customer.phone?.replace(/\D/g, "") || null,
-    customerName: [zidOrder.customer.first_name, zidOrder.customer.last_name]
-      .filter(Boolean)
-      .join(" ") || null,
+    customerName:
+      [zidOrder.customer.first_name, zidOrder.customer.last_name].filter(Boolean).join(" ") || null,
     billingAddress,
     shippingAddress,
     shippingMethod: zidOrder.shipping.carrier,
@@ -259,7 +252,7 @@ export function transformZidOrder(
 
 export async function syncZidStoreOrders(
   storeId: number,
-  sinceDate?: Date
+  sinceDate?: Date,
 ): Promise<{ synced: number; errors: string[] }> {
   const config = await getZidConfig(storeId);
   if (!config) {
@@ -274,7 +267,7 @@ export async function syncZidStoreOrders(
 
     const sinceTimestamp = sinceDate?.getTime() || Date.now() - 30 * 24 * 60 * 60 * 1000;
     const relevantOrders = orders.filter(
-      (order) => new Date(order.created_at).getTime() >= sinceTimestamp
+      (order) => new Date(order.created_at).getTime() >= sinceTimestamp,
     );
 
     let synced = 0;
@@ -301,9 +294,7 @@ export async function syncZidStoreOrders(
         }
         synced++;
       } catch (err) {
-        errors.push(
-          `Order ${order.id}: ${err instanceof Error ? err.message : "Unknown error"}`
-        );
+        errors.push(`Order ${order.id}: ${err instanceof Error ? err.message : "Unknown error"}`);
       }
     }
 

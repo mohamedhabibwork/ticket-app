@@ -23,11 +23,11 @@ Multi-tenant white-label SaaS platform consolidating customer communication from
 
 **Status**: No gates — Constitution file (`.specify/memory/constitution.md`) is a template with no filled-in principles.
 
-| Gate | Status | Notes |
-|------|--------|-------|
+| Gate                | Status       | Notes                         |
+| ------------------- | ------------ | ----------------------------- |
 | Architecture review | Not required | No constitution gates defined |
-| Security review | Not required | No security gates defined |
-| Performance review | Not required | No performance gates defined |
+| Security review     | Not required | No security gates defined     |
+| Performance review  | Not required | No performance gates defined  |
 
 No violations require justification.
 
@@ -99,6 +99,7 @@ packages/
 ## Implementation Phases
 
 ### Phase 1: Foundation (Weeks 1-4)
+
 1. **Database schema** — Complete Drizzle schema from ERD (60+ tables)
 2. **Authentication** — Email/password, OAuth (Google), sessions, 2FA
 3. **Organization & Multi-tenancy** — Row-level isolation via `organization_id`
@@ -106,6 +107,7 @@ packages/
 5. **Core API infrastructure** — ORPC setup, middleware, error handling
 
 ### Phase 2: Ticket Core (Weeks 5-8)
+
 1. **Ticket CRUD** — Create, read, update, delete tickets with reference numbers
 2. **Ticket timeline** — Messages, notes, activity log
 3. **Contacts** — Contact management, duplicate detection
@@ -113,18 +115,21 @@ packages/
 5. **Attachments** — S3 storage, presigned URLs
 
 ### Phase 3: Channels (Weeks 9-12)
+
 1. **Email integration** — IMAP/SMTP, Gmail OAuth, email threading
 2. **Form builder** — Drag-and-drop, conditional logic, CAPTCHA
 3. **Social media** — Facebook, Instagram, Twitter, WhatsApp OAuth
 4. **Live chat (Binaka)** — WebSocket, pre-chat form, chat sessions
 
 ### Phase 4: Automation & Intelligence (Weeks 13-16)
+
 1. **SLA policies** — Timer calculation, breach detection, escalation
 2. **Workflow automation** — Rule engine with triggers/conditions/actions
 3. **Knowledgebase** — Articles, categories, search, feedback
 4. **Saved replies** — Folders, merge tags, usage tracking
 
 ### Phase 5: Billing (Weeks 17-20)
+
 1. **Plans & subscriptions** — Free, Starter, Professional, Enterprise
 2. **Seat management** — Real-time count, limit enforcement
 3. **Invoices** — Auto-generation, sequential numbering, Arabic PDF
@@ -132,6 +137,7 @@ packages/
 5. **Tax & VAT** — GCC country rates, Arabic invoice formatting
 
 ### Phase 6: Polish & Launch (Weeks 21-24)
+
 1. **White-label** — Custom domain, branding, RTL
 2. **Reports** — Ticket volume, agent performance, CSAT, SLA compliance
 3. **Observability** — Structured logs, metrics, distributed tracing
@@ -144,10 +150,10 @@ No constitution violations to justify.
 
 ## Open Questions (Needs Clarification)
 
-| Item | Question | Impact |
-|------|----------|--------|
-| Q1 | Is there a preferred S3 provider (R2, S3, MinIO)? | Storage configuration |
-| Q2 | Will WhatsApp BSP account be provided? | WhatsApp integration |
-| Q3 | Should we implement SAML directly or via library (Passport)? | Auth complexity |
-| Q4 | Is Elasticsearch needed for initial launch or PostgreSQL sufficient? | Search architecture |
-| Q5 | What is the maximum expected concurrent chat sessions? | WebSocket scaling |
+| Item | Question                                                             | Impact                |
+| ---- | -------------------------------------------------------------------- | --------------------- |
+| Q1   | Is there a preferred S3 provider (R2, S3, MinIO)?                    | Storage configuration |
+| Q2   | Will WhatsApp BSP account be provided?                               | WhatsApp integration  |
+| Q3   | Should we implement SAML directly or via library (Passport)?         | Auth complexity       |
+| Q4   | Is Elasticsearch needed for initial launch or PostgreSQL sufficient? | Search architecture   |
+| Q5   | What is the maximum expected concurrent chat sessions?               | WebSocket scaling     |

@@ -26,7 +26,7 @@ export function TicketNote({ ticketId, onSuccess }: TicketNoteProps) {
         setBody("");
         onSuccess?.();
       },
-    })
+    }),
   );
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -50,9 +50,7 @@ export function TicketNote({ ticketId, onSuccess }: TicketNoteProps) {
           <StickyNote className="h-5 w-5" />
           Internal Note
         </CardTitle>
-        <CardDescription>
-          Add a private note visible only to agents
-        </CardDescription>
+        <CardDescription>Add a private note visible only to agents</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">

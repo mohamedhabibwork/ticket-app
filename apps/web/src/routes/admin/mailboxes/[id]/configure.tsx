@@ -27,7 +27,7 @@ function MailboxConfigureRoute() {
   const { data: mailbox, isLoading } = useQuery(
     orpc.mailboxes.get.queryOptions({
       id: mailboxId,
-    })
+    }),
   );
 
   const [showPassword, setShowPassword] = useState(false);
@@ -67,7 +67,7 @@ function MailboxConfigureRoute() {
       onSuccess: () => {
         navigate({ to: "/admin/mailboxes/$id", params: { id } });
       },
-    })
+    }),
   );
 
   const testConnectionMutation = useMutation(
@@ -79,7 +79,7 @@ function MailboxConfigureRoute() {
           alert(`Connection failed: ${result.error}`);
         }
       },
-    })
+    }),
   );
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -134,13 +134,9 @@ function MailboxConfigureRoute() {
             <CardDescription>Connect using Google OAuth for secure access</CardDescription>
           </CardHeader>
           <CardContent>
-            <Button onClick={handleGmailOAuth}>
-              Connect with Google
-            </Button>
+            <Button onClick={handleGmailOAuth}>Connect with Google</Button>
             {mailbox.oauthStatus && (
-              <p className="text-sm text-muted-foreground mt-2">
-                Status: {mailbox.oauthStatus}
-              </p>
+              <p className="text-sm text-muted-foreground mt-2">Status: {mailbox.oauthStatus}</p>
             )}
           </CardContent>
         </Card>
@@ -209,7 +205,9 @@ function MailboxConfigureRoute() {
               <Checkbox
                 id="imapSsl"
                 checked={formData.imapSsl}
-                onCheckedChange={(checked) => setFormData({ ...formData, imapSsl: checked as boolean })}
+                onCheckedChange={(checked) =>
+                  setFormData({ ...formData, imapSsl: checked as boolean })
+                }
               />
               <Label htmlFor="imapSsl" className="font-normal">
                 Use SSL/TLS
@@ -280,7 +278,9 @@ function MailboxConfigureRoute() {
               <Checkbox
                 id="smtpSsl"
                 checked={formData.smtpSsl}
-                onCheckedChange={(checked) => setFormData({ ...formData, smtpSsl: checked as boolean })}
+                onCheckedChange={(checked) =>
+                  setFormData({ ...formData, smtpSsl: checked as boolean })
+                }
               />
               <Label htmlFor="smtpSsl" className="font-normal">
                 Use SSL/TLS

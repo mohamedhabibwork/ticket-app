@@ -30,10 +30,7 @@ interface TriggerOptions {
 }
 
 export const workflowTriggers = {
-  async onTicketCreated(
-    ticket: TicketData,
-    options: TriggerOptions = {}
-  ): Promise<void> {
+  async onTicketCreated(ticket: TicketData, options: TriggerOptions = {}): Promise<void> {
     if (options.triggeredBy === "workflow") {
       return;
     }
@@ -44,7 +41,7 @@ export const workflowTriggers = {
   async onTicketUpdated(
     ticket: TicketData,
     previousTicket: Partial<TicketData>,
-    options: TriggerOptions = {}
+    options: TriggerOptions = {},
   ): Promise<void> {
     if (options.triggeredBy === "workflow") {
       return;
@@ -84,7 +81,7 @@ export const workflowTriggers = {
   async triggerWorkflows(
     triggerType: WorkflowTriggerType,
     ticket: TicketData,
-    additionalPayload?: Record<string, unknown>
+    additionalPayload?: Record<string, unknown>,
   ): Promise<void> {
     const activeWorkflows = await db
       .select()
@@ -93,8 +90,8 @@ export const workflowTriggers = {
         and(
           eq(workflows.organizationId, ticket.organizationId),
           eq(workflows.isActive, true),
-          eq(workflows.trigger, triggerType)
-        )
+          eq(workflows.trigger, triggerType),
+        ),
       );
 
     for (const workflow of activeWorkflows) {
@@ -119,7 +116,7 @@ export const workflowTriggers = {
 
   async triggerTimeElapsedWorkflows(
     ticket: TicketData,
-    elapsedType: "first_response" | "next_response" | "resolution"
+    elapsedType: "first_response" | "next_response" | "resolution",
   ): Promise<void> {
     await this.triggerWorkflows("time_elapsed", ticket, { elapsedType });
   },
@@ -127,7 +124,7 @@ export const workflowTriggers = {
 
 export async function getWorkflowsByTrigger(
   organizationId: number,
-  triggerType: WorkflowTriggerType
+  triggerType: WorkflowTriggerType,
 ) {
   return await db
     .select()
@@ -136,8 +133,8 @@ export async function getWorkflowsByTrigger(
       and(
         eq(workflows.organizationId, organizationId),
         eq(workflows.isActive, true),
-        eq(workflows.trigger, triggerType)
-      )
+        eq(workflows.trigger, triggerType),
+      ),
     );
 }
 

@@ -54,7 +54,9 @@ Respond only with valid JSON.`;
 
       const { text } = await generateText({
         model,
-        prompt: `${prompt}\n\nRespond only with valid JSON.`,
+        prompt: `${prompt}
+
+Respond only with valid JSON.`,
       });
 
       try {
@@ -91,7 +93,9 @@ Return a JSON object with:
 
       const { text } = await generateText({
         model,
-        prompt: `${prompt}\n\nRespond only with valid JSON.`,
+        prompt: `${prompt}
+
+Respond only with valid JSON.`,
       });
 
       try {
@@ -139,7 +143,9 @@ Return a JSON object with:
 
       const { text } = await generateText({
         model,
-        prompt: `${prompt}\n\nRespond only with valid JSON.`,
+        prompt: `${prompt}
+
+Respond only with valid JSON.`,
       });
 
       try {
@@ -175,7 +181,9 @@ Return a JSON array of article suggestions with:
 
       const { text } = await generateText({
         model,
-        prompt: `${prompt}\n\nRespond only with valid JSON array.`,
+        prompt: `${prompt}
+
+Respond only with valid JSON array.`,
       });
 
       try {
@@ -230,7 +238,9 @@ Respond only with valid JSON.`;
 
       const { text } = await generateText({
         model,
-        prompt: `${prompt}\n\nRespond only with valid JSON.`,
+        prompt: `${prompt}
+
+Respond only with valid JSON.`,
       });
 
       try {

@@ -106,7 +106,7 @@ export class AmazonSPAPIClient {
       throw new Error(`Amazon token refresh error: ${response.status} - ${error}`);
     }
 
-    const data = await response.json() as {
+    const data = (await response.json()) as {
       access_token: string;
       refresh_token?: string;
       expires_in: number;
@@ -119,11 +119,7 @@ export class AmazonSPAPIClient {
     return this.accessToken;
   }
 
-  private async request<T>(
-    endpoint: string,
-    method: string = "GET",
-    body?: object
-  ): Promise<T> {
+  private async request<T>(endpoint: string, method: string = "GET", body?: object): Promise<T> {
     const accessToken = await this.ensureAccessToken();
 
     const url = `${AMAZON_SP_API_BASE}${endpoint}`;
@@ -151,16 +147,14 @@ export class AmazonSPAPIClient {
     const data = await this.request<{
       payload: { orders: AmazonOrder[] };
     }>(
-      `/orders/v0/orders?MarketplaceIds=${this.marketplaceId}&CreatedAfter=${startDate.toISOString()}`
+      `/orders/v0/orders?MarketplaceIds=${this.marketplaceId}&CreatedAfter=${startDate.toISOString()}`,
     );
     return data.payload?.orders || [];
   }
 
   async getOrder(orderId: string): Promise<AmazonOrder | null> {
     try {
-      const data = await this.request<{ payload: AmazonOrder }>(
-        `/orders/v0/orders/${orderId}`
-      );
+      const data = await this.request<{ payload: AmazonOrder }>(`/orders/v0/orders/${orderId}`);
       return data.payload;
     } catch {
       return null;
@@ -169,17 +163,15 @@ export class AmazonSPAPIClient {
 
   async getOrderItems(orderId: string): Promise<AmazonOrderItem[]> {
     const data = await this.request<{ payload: { OrderItems: AmazonOrderItem[] } }>(
-      `/orders/v0/orders/${orderId}/orderItems`
+      `/orders/v0/orders/${orderId}/orderItems`,
     );
     return data.payload?.OrderItems || [];
   }
 
-  async getMessagingMessages(
-    orderId: string
-  ): Promise<AmazonMessage[]> {
+  async getMessagingMessages(orderId: string): Promise<AmazonMessage[]> {
     try {
       const data = await this.request<{ payload: AmazonMessage[] }>(
-        `/messaging/v1/orders/${orderId}/messages`
+        `/messaging/v1/orders/${orderId}/messages`,
       );
       return data.payload || [];
     } catch {
@@ -187,12 +179,10 @@ export class AmazonSPAPIClient {
     }
   }
 
-  async getSolicitations(
-    orderId: string
-  ): Promise<Array<{ messageId: string; content: string }>> {
+  async getSolicitations(orderId: string): Promise<Array<{ messageId: string; content: string }>> {
     try {
       const data = await this.request<{ payload: Array<{ messageId: string; content: string }> }>(
-        `/messaging/v1/orders/${orderId}/solicitations`
+        `/messaging/v1/orders/${orderId}/solicitations`,
       );
       return data.payload || [];
     } catch {

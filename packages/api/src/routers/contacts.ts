@@ -444,12 +444,12 @@ export const contactsRouter = {
 
       const mergedData = {
         email: strategy.email.value?.toLowerCase(),
-        phone: strategy.phone.value,
-        firstName: strategy.firstName.value,
-        lastName: strategy.lastName.value,
-        company: strategy.company.value,
-        language: strategy.language.value,
-        timezone: strategy.timezone.value,
+        phone: strategy.phone?.value ?? null,
+        firstName: strategy.firstName?.value ?? null,
+        lastName: strategy.lastName?.value ?? null,
+        company: strategy.company?.value ?? null,
+        language: strategy.language?.value ?? null,
+        timezone: strategy.timezone?.value ?? null,
         metadata: {
           ...((target.metadata || {}) as object),
           ...((source.metadata || {}) as object),
@@ -585,7 +585,7 @@ export const contactsRouter = {
       return {
         success: true,
         originalContactId: input.sourceId,
-        newContactId: newContact.id,
+        newContactId: newContact?.id ?? 0,
       };
     }),
 
@@ -1115,12 +1115,12 @@ export const contactsRouter = {
 
         const mergedData = {
           email: strategy.email.value?.toLowerCase() || target.email,
-          phone: strategy.phone.value || target.phone,
-          firstName: strategy.firstName.value || target.firstName,
-          lastName: strategy.lastName.value || target.lastName,
-          company: strategy.company.value || target.company,
-          language: strategy.language.value || target.language,
-          timezone: strategy.timezone.value || target.timezone,
+          phone: strategy.phone?.value ?? target.phone,
+          firstName: strategy.firstName?.value ?? target.firstName,
+          lastName: strategy.lastName?.value ?? target.lastName,
+          company: strategy.company?.value ?? target.company,
+          language: strategy.language?.value ?? target.language,
+          timezone: strategy.timezone?.value ?? target.timezone,
           metadata: {
             ...((target.metadata || {}) as object),
             ...((source.metadata || {}) as object),

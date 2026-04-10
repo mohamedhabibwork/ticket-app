@@ -57,12 +57,8 @@ export default function TicketRepliesScreen() {
     <Container>
       <View className="flex-1">
         <View className="p-4 border-b border-border">
-          <Text className="text-lg font-semibold text-foreground">
-            {ticket.data?.subject}
-          </Text>
-          <Text className="text-muted text-sm">
-            {messages.data?.length || 0} messages
-          </Text>
+          <Text className="text-lg font-semibold text-foreground">{ticket.data?.subject}</Text>
+          <Text className="text-muted text-sm">{messages.data?.length || 0} messages</Text>
         </View>
 
         <ScrollView className="flex-1 p-4" contentContainerClassName="gap-3">
@@ -88,9 +84,7 @@ export default function TicketRepliesScreen() {
                 </Text>
               </View>
               <Divider className="my-2" />
-              <Text className="text-foreground text-sm leading-relaxed">
-                {message.body}
-              </Text>
+              <Text className="text-foreground text-sm leading-relaxed">{message.body}</Text>
             </Surface>
           ))}
 

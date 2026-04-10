@@ -1,6 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@ticket-app/ui/components/card";
 import { Loader2 } from "lucide-react";
 
 import { orpc } from "@/utils/orpc";
@@ -34,7 +40,7 @@ function KbCategoriesList() {
     orpc.kbCategories.list.queryOptions({
       organizationId: 1,
       isPublished: true,
-    })
+    }),
   );
 
   if (categories.isLoading) {
@@ -64,9 +70,7 @@ function KbCategoriesList() {
                 {category.name}
               </Link>
             </CardTitle>
-            {category.description && (
-              <CardDescription>{category.description}</CardDescription>
-            )}
+            {category.description && <CardDescription>{category.description}</CardDescription>}
           </CardHeader>
           <CardContent>
             <div className="text-sm text-muted-foreground">

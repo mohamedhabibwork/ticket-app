@@ -16,12 +16,7 @@ interface FormData {
   priorityId?: number;
 }
 
-export function TicketForm({
-  organizationId,
-  onSuccess,
-  onError,
-  redirectUrl,
-}: TicketFormProps) {
+export function TicketForm({ organizationId, onSuccess, onError, redirectUrl }: TicketFormProps) {
   const [formData, setFormData] = useState<FormData>({
     email: "",
     firstName: "",
@@ -108,7 +103,7 @@ export function TicketForm({
   };
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -158,14 +153,20 @@ export function TicketForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="w-full max-w-md mx-auto p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md">
+    <form
+      onSubmit={handleSubmit}
+      className="w-full max-w-md mx-auto p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md"
+    >
       <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
         Submit a Support Request
       </h2>
 
       <div className="space-y-4">
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label
+            htmlFor="email"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+          >
             Email <span className="text-red-500">*</span>
           </label>
           <input
@@ -184,7 +185,10 @@ export function TicketForm({
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label htmlFor="firstName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label
+              htmlFor="firstName"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            >
               First Name
             </label>
             <input
@@ -197,7 +201,10 @@ export function TicketForm({
             />
           </div>
           <div>
-            <label htmlFor="lastName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            <label
+              htmlFor="lastName"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+            >
               Last Name
             </label>
             <input
@@ -212,7 +219,10 @@ export function TicketForm({
         </div>
 
         <div>
-          <label htmlFor="subject" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label
+            htmlFor="subject"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+          >
             Subject <span className="text-red-500">*</span>
           </label>
           <input
@@ -230,7 +240,10 @@ export function TicketForm({
         </div>
 
         <div>
-          <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label
+            htmlFor="description"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+          >
             Description <span className="text-red-500">*</span>
           </label>
           <textarea

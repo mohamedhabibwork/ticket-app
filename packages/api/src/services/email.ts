@@ -77,7 +77,7 @@ export async function refreshGmailAccessToken(
     return null;
   }
 
-  const tokens: GmailOAuthTokens = await response.json();
+  const tokens = (await response.json()) as GmailOAuthTokens;
   const newExpiresAt = new Date(Date.now() + tokens.expires_in * 1000);
 
   await db
@@ -232,7 +232,7 @@ export async function processEmailToTicket(
       subject: email.subject || "(No Subject)",
       descriptionHtml: email.bodyHtml,
       channelId: channelLookup?.id,
-      contactId: contact.id,
+      contactId: contact?.id,
       statusId: defaultStatusId,
       priorityId: defaultPriorityId,
       parentTicketId,
@@ -241,16 +241,16 @@ export async function processEmailToTicket(
 
   await db
     .update(emailMessages)
-    .set({ ticketId: ticket.id })
-    .where(eq(emailMessages.id, savedEmailMessage.id));
+    .set({ ticketId: ticket!.id })
+    .where(eq(emailMessages.id, savedEmailMessage!.id));
 
   await db
     .insert(ticketMessages)
     .values({
       ticketId: ticket.id,
-      emailMessageId: savedEmailMessage.id,
+      emailMessageId: savedEmailMessage!.id,
       authorType: "contact",
-      authorContactId: contact.id,
+      authorContactId: contact?.id,
       messageType: "email",
       bodyHtml: email.bodyHtml,
       bodyText: email.bodyText,

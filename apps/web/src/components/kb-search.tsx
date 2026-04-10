@@ -32,8 +32,8 @@ export function KbSearch({
       },
       {
         enabled: query.length >= 2,
-      }
-    )
+      },
+    ),
   );
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -57,7 +57,9 @@ export function KbSearch({
           type="text"
           value={query}
           onChange={handleInputChange}
-          placeholder={placeholder || (locale === "ar" ? "ابحث في المقالات..." : "Search articles...")}
+          placeholder={
+            placeholder || (locale === "ar" ? "ابحث في المقالات..." : "Search articles...")
+          }
           className="w-full rounded-lg border border-input bg-background px-4 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         />
         {showResults && searchQuery.data && searchQuery.data.length > 0 && (

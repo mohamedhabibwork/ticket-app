@@ -1,12 +1,4 @@
-import {
-  pgTable,
-  bigint,
-  boolean,
-  timestamp,
-  uuid,
-  varchar,
-  unique,
-} from "drizzle-orm/pg-core";
+import { pgTable, bigint, boolean, timestamp, uuid, varchar, unique } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { organizations } from "./_organizations";
 import { users } from "./_users";
@@ -31,7 +23,7 @@ export const channels = pgTable(
   },
   (table) => ({
     orgTypeUnique: unique().on(table.organizationId, table.type),
-  })
+  }),
 );
 
 export const channelsRelations = relations(channels, ({ one }) => ({

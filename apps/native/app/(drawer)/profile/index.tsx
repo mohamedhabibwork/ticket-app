@@ -32,9 +32,7 @@ export default function ProfileScreen() {
   return (
     <Container onRefresh={handleRefresh} refreshing={isLoading}>
       <View className="p-4">
-        <Text className="text-2xl font-semibold text-foreground tracking-tight mb-4">
-          Profile
-        </Text>
+        <Text className="text-2xl font-semibold text-foreground tracking-tight mb-4">Profile</Text>
 
         <Surface variant="secondary" className="p-4 rounded-lg mb-4">
           <View className="items-center mb-4">

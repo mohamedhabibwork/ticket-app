@@ -13,10 +13,15 @@ export interface ViewerPresence {
   joinedAt: string;
 }
 
-export async function joinTicket(ticketId: number, userId: number, userName: string, avatarUrl?: string): Promise<void> {
+export async function joinTicket(
+  ticketId: number,
+  userId: number,
+  userName: string,
+  avatarUrl?: string,
+): Promise<void> {
   const key = `presence:ticket:${ticketId}`;
   const viewerKey = `presence:viewer:${ticketId}:${userId}`;
-  
+
   const presence: ViewerPresence = {
     ticketId,
     userId,
@@ -24,7 +29,7 @@ export async function joinTicket(ticketId: number, userId: number, userName: str
     avatarUrl,
     joinedAt: new Date().toISOString(),
   };
-  
+
   await redis.setex(viewerKey, PRESENCE_TTL, JSON.stringify(presence));
   await redis.sadd(key, userId.toString());
 }
@@ -32,7 +37,7 @@ export async function joinTicket(ticketId: number, userId: number, userName: str
 export async function leaveTicket(ticketId: number, userId: number): Promise<void> {
   const key = `presence:ticket:${ticketId}`;
   const viewerKey = `presence:viewer:${ticketId}:${userId}`;
-  
+
   await redis.del(viewerKey);
   await redis.srem(key, userId.toString());
 }
@@ -40,7 +45,7 @@ export async function leaveTicket(ticketId: number, userId: number): Promise<voi
 export async function heartbeat(ticketId: number, userId: number): Promise<boolean> {
   const viewerKey = `presence:viewer:${ticketId}:${userId}`;
   const exists = await redis.exists(viewerKey);
-  
+
   if (exists) {
     await redis.expire(viewerKey, PRESENCE_TTL);
     return true;
@@ -51,9 +56,9 @@ export async function heartbeat(ticketId: number, userId: number): Promise<boole
 export async function getTicketViewers(ticketId: number): Promise<ViewerPresence[]> {
   const key = `presence:ticket:${ticketId}`;
   const userIds = await redis.smembers(key);
-  
+
   if (userIds.length === 0) return [];
-  
+
   const viewers: ViewerPresence[] = [];
   for (const userId of userIds) {
     const viewerKey = `presence:viewer:${ticketId}:${userId}`;
@@ -64,7 +69,7 @@ export async function getTicketViewers(ticketId: number): Promise<ViewerPresence
       await redis.srem(key, userId);
     }
   }
-  
+
   return viewers;
 }
 

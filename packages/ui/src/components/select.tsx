@@ -29,15 +29,13 @@ function SelectTrigger({
       data-searchable={searchable}
       className={cn(
         "flex h-8 w-full min-w-0 items-center justify-between rounded-none border border-input bg-transparent px-2.5 py-1 text-xs transition-colors outline-none focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-1 aria-invalid:ring-destructive/20 dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&>svg]:pointer-events-none [&>svg]:shrink-0 [&>svg:not([class*='size-'])]:size-4",
-        className
+        className,
       )}
       {...props}
     >
       {children}
       <span className="flex items-center gap-1">
-        {loading && (
-          <LoaderIcon className="size-3.5 animate-spin text-muted-foreground" />
-        )}
+        {loading && <LoaderIcon className="size-3.5 animate-spin text-muted-foreground" />}
         {clearable && !loading && (
           <button
             type="button"
@@ -82,7 +80,7 @@ function SelectContent({
         data-searchable={searchable}
         className={cn(
           "z-50 max-h-96 w-(--anchor-width) min-w-32 origin-(--transform-origin) overflow-x-hidden overflow-y-auto rounded-none bg-popover text-popover-foreground shadow-md ring-1 ring-foreground/10 duration-100 outline-none data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95",
-          className
+          className,
         )}
         {...props}
       >
@@ -112,7 +110,7 @@ function SelectItem({ className, children, ...props }: SelectPrimitive.Item.Prop
       data-slot="select-item"
       className={cn(
         "relative flex cursor-default items-center gap-2 rounded-none py-2 pr-8 pl-2 text-xs outline-hidden select-none focus:bg-accent focus:text-accent-foreground data-disabled:pointer-events-none data-disabled:opacity-50 [&>svg]:pointer-events-none [&>svg]:shrink-0 [&>svg:not([class*='size-'])]:size-4",
-        className
+        className,
       )}
       {...props}
     >

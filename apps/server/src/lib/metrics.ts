@@ -185,7 +185,7 @@ export function recordHttpRequest(
   method: string,
   path: string,
   status: number,
-  durationMs: number
+  durationMs: number,
 ): void {
   const labels = { method, path, status: String(status) };
 

@@ -76,13 +76,13 @@ export const paymentMethodsRouter = {
           .where(
             and(
               eq(paymentMethods.organizationId, input.organizationId),
-              eq(paymentMethods.id, method.id),
+              eq(paymentMethods.id, (method as any).id),
             ),
           );
       }
 
       return await db.query.paymentMethods.findFirst({
-        where: eq(paymentMethods.id, method.id),
+        where: eq(paymentMethods.id, (method as any).id),
       });
     }),
 
@@ -118,7 +118,7 @@ export const paymentMethodsRouter = {
           .where(
             and(
               eq(paymentMethods.organizationId, input.organizationId),
-              eq(paymentMethods.id, method.id),
+              eq(paymentMethods.id, (method as any).id),
             ),
           );
       }

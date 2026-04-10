@@ -72,11 +72,14 @@ async function retryStripePayment(
 
   try {
     // Retrieve invoice with payment_intent expanded
-    const invoiceWithPaymentIntent = await stripe.invoices.retrieve(invoice.stripeInvoiceId, {
-      expand: ["payment_intent"],
-    });
+    const invoiceWithPaymentIntent = await stripe.invoices.retrieve(
+      (invoice as any).stripeInvoiceId,
+      {
+        expand: ["payment_intent"],
+      },
+    );
 
-    const paymentIntent = invoiceWithPaymentIntent.payment_intent;
+    const paymentIntent = invoiceWithPaymentIntent.payment_intent as any;
 
     if (paymentIntent && paymentIntent.status === "requires_payment_method") {
       await stripe.paymentIntents.confirm(paymentIntent.id);
@@ -152,7 +155,7 @@ Please update your payment method immediately to avoid service interruption.`,
     },
   };
 
-  const template = emailTemplates[attemptNumber] || emailTemplates[1];
+  const template = emailTemplates[attemptNumber] ?? emailTemplates[1]!;
 
   await addEmailJob({
     to: org.name,

@@ -101,7 +101,11 @@ export function ImageGallery({ images, initialIndex = 0, onClose }: ImageGallery
             }`}
           >
             <img
-              src={img.thumbnailKey ? `/api/files/${img.id}/thumbnail` : `/api/files/${img.id}/download`}
+              src={
+                img.thumbnailKey
+                  ? `/api/files/${img.id}/thumbnail`
+                  : `/api/files/${img.id}/download`
+              }
               alt=""
               className="h-full w-full object-cover"
             />
@@ -129,7 +133,11 @@ export function GalleryGrid({ images, onImageClick }: GalleryGridProps) {
           className="aspect-square overflow-hidden rounded border"
         >
           <img
-            src={image.thumbnailKey ? `/api/files/${image.id}/thumbnail` : `/api/files/${image.id}/download`}
+            src={
+              image.thumbnailKey
+                ? `/api/files/${image.id}/thumbnail`
+                : `/api/files/${image.id}/download`
+            }
             alt={image.filename}
             className="h-full w-full object-cover hover:opacity-90"
           />

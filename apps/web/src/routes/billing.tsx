@@ -40,9 +40,7 @@ export default function BillingPage() {
       <div className="container mx-auto py-8">
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-2">No Subscription Found</h1>
-          <p className="text-gray-500 mb-4">
-            You don't have an active subscription yet.
-          </p>
+          <p className="text-gray-500 mb-4">You don't have an active subscription yet.</p>
           <PlanUpgrade
             currentPlan={null}
             availablePlans={plans || []}
@@ -66,11 +64,11 @@ export default function BillingPage() {
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-bold">Billing & Subscription</h1>
-          <p className="text-gray-500 mt-1">
-            Manage your subscription, seats, and invoices
-          </p>
+          <p className="text-gray-500 mt-1">Manage your subscription, seats, and invoices</p>
         </div>
-        <span className={`px-3 py-1 rounded-full text-sm font-medium ${statusColors[subscription.status] || "bg-gray-100"}`}>
+        <span
+          className={`px-3 py-1 rounded-full text-sm font-medium ${statusColors[subscription.status] || "bg-gray-100"}`}
+        >
           {subscription.status?.toUpperCase() || "N/A"}
         </span>
       </div>
@@ -106,9 +104,7 @@ export default function BillingPage() {
               : "N/A"}
           </div>
           <p className="text-sm text-gray-500 mt-1">
-            {subscription.cancelAtPeriodEnd
-              ? "Cancels at period end"
-              : "Renews automatically"}
+            {subscription.cancelAtPeriodEnd ? "Cancels at period end" : "Renews automatically"}
           </p>
         </div>
       </div>
@@ -180,10 +176,7 @@ export default function BillingPage() {
           )}
 
           {activeTab === "seats" && (
-            <SeatManagement
-              subscription={subscription}
-              onUpdate={() => window.location.reload()}
-            />
+            <SeatManagement subscription={subscription} onUpdate={() => window.location.reload()} />
           )}
 
           {activeTab === "invoices" && (
@@ -212,27 +205,25 @@ export default function BillingPage() {
                           ${(Number(invoice.total) / 100).toFixed(2)} {invoice.currency}
                         </td>
                         <td className="py-3">
-                          <span className={`px-2 py-1 rounded text-xs ${
-                            invoice.status === "paid"
-                              ? "bg-green-100 text-green-800"
-                              : "bg-gray-100 text-gray-800"
-                          }`}>
+                          <span
+                            className={`px-2 py-1 rounded text-xs ${
+                              invoice.status === "paid"
+                                ? "bg-green-100 text-green-800"
+                                : "bg-gray-100 text-gray-800"
+                            }`}
+                          >
                             {invoice.status}
                           </span>
                         </td>
                         <td className="py-3 text-right">
-                          <button className="text-blue-600 hover:underline text-sm">
-                            PDF
-                          </button>
+                          <button className="text-blue-600 hover:underline text-sm">PDF</button>
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               ) : (
-                <div className="text-center py-8 text-gray-500">
-                  No invoices yet
-                </div>
+                <div className="text-center py-8 text-gray-500">No invoices yet</div>
               )}
             </div>
           )}
@@ -277,9 +268,7 @@ export default function BillingPage() {
                   <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                     💳
                   </div>
-                  <p className="text-gray-500 mb-4">
-                    No payment methods added yet
-                  </p>
+                  <p className="text-gray-500 mb-4">No payment methods added yet</p>
                   <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
                     Add Payment Method
                   </button>

@@ -70,7 +70,14 @@ export async function convertFormToTicket(
     where: and(eq(formFields.formId, data.formId), eq(formFields.isActive, true)),
   });
 
-  const visibleFieldIds = getVisibleFields(formFieldsList, data.fields);
+  const visibleFieldIds = getVisibleFields(
+    formFieldsList as Array<{
+      id: number;
+      showWhen: FieldConditionalLogic | null;
+      hideWhen: FieldConditionalLogic | null;
+    }>,
+    data.fields,
+  );
   const visibleFields = formFieldsList.filter((f) => visibleFieldIds.has(f.id));
 
   for (const field of visibleFields) {
@@ -85,11 +92,11 @@ export async function convertFormToTicket(
   if (form.captchaEnabled && data.captchaToken) {
     const captchaSecret =
       process.env[
-        form.captchaProvider === "recaptcha_v3" ? "RECAPTCHA_V3_SECRET" : "HCAPTCHA_SECRET"
+        (form as any).captchaProvider === "recaptcha_v3" ? "RECAPTCHA_V3_SECRET" : "HCAPTCHA_SECRET"
       ];
     if (captchaSecret) {
       const result = await verifyCaptcha(
-        (form.captchaProvider as CaptchaProvider) || "hcaptcha",
+        ((form as any).captchaProvider as CaptchaProvider) || "hcaptcha",
         captchaSecret,
         data.captchaToken,
         data.ipAddress,
@@ -124,7 +131,7 @@ export async function convertFormToTicket(
       contact = newContact;
     }
 
-    contactId = contact.id;
+    contactId = contact!.id;
   }
 
   const [submission] = await db
@@ -142,7 +149,7 @@ export async function convertFormToTicket(
     const field = visibleFields.find((f) => f.id === parseInt(fieldId));
     if (field) {
       await db.insert(formSubmissionValues).values({
-        submissionId: submission.id,
+        submissionId: submission!.id,
         fieldId: field.id,
         value,
       });
@@ -223,19 +230,19 @@ export async function convertFormToTicket(
       contactId,
       statusId: defaultStatusId,
       priorityId: defaultPriorityId,
-      formSubmissionId: submission.id,
+      formSubmissionId: submission!.id,
     })
     .returning();
 
   await db
     .update(formSubmissions)
-    .set({ ticketId: ticket.id })
-    .where(eq(formSubmissions.id, submission.id));
+    .set({ ticketId: ticket!.id })
+    .where(eq(formSubmissions.id, submission!.id));
 
   await db
     .insert(ticketMessages)
     .values({
-      ticketId: ticket.id,
+      ticketId: ticket!.id,
       authorType: contactId ? "contact" : "system",
       authorContactId: contactId,
       messageType: "form_submission",

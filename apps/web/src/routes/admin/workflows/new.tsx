@@ -2,11 +2,23 @@ import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { Button } from "@ticket-app/ui/components/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@ticket-app/ui/components/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@ticket-app/ui/components/card";
 import { Input } from "@ticket-app/ui/components/input";
 import { Label } from "@ticket-app/ui/components/label";
 import { Textarea } from "@ticket-app/ui/components/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@ticket-app/ui/components/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@ticket-app/ui/components/select";
 import { Checkbox } from "@ticket-app/ui/components/checkbox";
 import { orpc } from "@/utils/orpc";
 import { ArrowLeft, Zap, Save } from "lucide-react";
@@ -40,7 +52,7 @@ function NewWorkflowRoute() {
           search: { workflowId: data.id },
         });
       },
-    })
+    }),
   );
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -88,9 +100,7 @@ function NewWorkflowRoute() {
           </div>
           <div>
             <h1 className="text-2xl font-bold">Create New Workflow</h1>
-            <p className="text-muted-foreground">
-              Define the basic information for your workflow
-            </p>
+            <p className="text-muted-foreground">Define the basic information for your workflow</p>
           </div>
         </div>
       </div>
@@ -174,10 +184,7 @@ function NewWorkflowRoute() {
             <Save className="mr-2 h-4 w-4" />
             Save & Open in Builder
           </Button>
-          <Button
-            type="submit"
-            disabled={!name.trim() || createMutation.isPending}
-          >
+          <Button type="submit" disabled={!name.trim() || createMutation.isPending}>
             Create Workflow
           </Button>
         </div>

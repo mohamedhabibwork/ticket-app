@@ -36,23 +36,27 @@ export const Route = createFileRoute("/admin/social/instagram")({
 function InstagramConnectionRoute() {
   const [messageToTicket, setMessageToTicket] = useState(true);
 
-  const { data: accounts, isLoading, refetch } = useQuery(
+  const {
+    data: accounts,
+    isLoading,
+    refetch,
+  } = useQuery(
     orpc.socialAccounts.list.queryOptions({
       organizationId: 1,
       platform: "instagram",
-    })
+    }),
   );
 
   const disconnectMutation = useMutation(
     orpc.socialAccounts.disconnect.mutationOptions({
       onSuccess: () => refetch(),
-    })
+    }),
   );
 
   const refreshMutation = useMutation(
     orpc.socialAccounts.refreshToken.mutationOptions({
       onSuccess: () => refetch(),
-    })
+    }),
   );
 
   const handleOAuthFlow = () => {
@@ -62,7 +66,7 @@ function InstagramConnectionRoute() {
     window.location.href = `https://www.facebook.com/v18.0/dialog/oauth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${scope}`;
   };
 
-  const connectedAccounts = accounts?.filter(a => a.isActive) || [];
+  const connectedAccounts = accounts?.filter((a) => a.isActive) || [];
 
   return (
     <div className="container mx-auto max-w-4xl px-4 py-6">
@@ -79,7 +83,9 @@ function InstagramConnectionRoute() {
           </div>
           <div>
             <h1 className="text-2xl font-bold">Instagram</h1>
-            <p className="text-muted-foreground">Connect Instagram Business accounts for message support</p>
+            <p className="text-muted-foreground">
+              Connect Instagram Business accounts for message support
+            </p>
           </div>
         </div>
       </div>
@@ -98,18 +104,27 @@ function InstagramConnectionRoute() {
             ) : connectedAccounts.length > 0 ? (
               <div className="space-y-3">
                 {connectedAccounts.map((account) => (
-                  <div key={account.id} className="flex items-center justify-between p-3 rounded bg-green-50 dark:bg-green-950/20">
+                  <div
+                    key={account.id}
+                    className="flex items-center justify-between p-3 rounded bg-green-50 dark:bg-green-950/20"
+                  >
                     <div className="flex items-center gap-3">
                       <CheckCircle className="h-5 w-5 text-green-600" />
                       <div>
-                        <p className="font-medium">@{account.platformUsername || "instagram_business"}</p>
-                        <p className="text-xs text-muted-foreground">Connected {formatRelativeTime(account.updatedAt)}</p>
+                        <p className="font-medium">
+                          @{account.platformUsername || "instagram_business"}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Connected {formatRelativeTime(account.updatedAt)}
+                        </p>
                       </div>
                     </div>
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => disconnectMutation.mutate({ id: account.id, organizationId: 1 })}
+                      onClick={() =>
+                        disconnectMutation.mutate({ id: account.id, organizationId: 1 })
+                      }
                       disabled={disconnectMutation.isPending}
                     >
                       Disconnect
@@ -124,7 +139,8 @@ function InstagramConnectionRoute() {
             )}
             <div className="p-3 rounded bg-amber-50 dark:bg-amber-950/20">
               <p className="text-sm text-amber-800 dark:text-amber-200">
-                <strong>Note:</strong> Instagram connection requires a linked Facebook Page with messaging permissions enabled.
+                <strong>Note:</strong> Instagram connection requires a linked Facebook Page with
+                messaging permissions enabled.
               </p>
             </div>
             <Button onClick={handleOAuthFlow} className="w-full" variant="outline">
@@ -164,14 +180,21 @@ function InstagramConnectionRoute() {
           {connectedAccounts.length > 0 ? (
             <div className="space-y-4">
               {connectedAccounts.map((account) => (
-                <div key={account.id} className="flex items-center justify-between p-4 border rounded">
+                <div
+                  key={account.id}
+                  className="flex items-center justify-between p-4 border rounded"
+                >
                   <div className="flex items-center gap-4">
                     <div className="rounded-full bg-gradient-to-br from-purple-100 to-pink-100 p-2">
                       <Instagram className="h-4 w-4 text-purple-600" />
                     </div>
                     <div>
-                      <p className="font-medium">@{account.platformUsername || "instagram_business"}</p>
-                      <p className="text-xs text-muted-foreground font-mono">{account.platformAccountId}</p>
+                      <p className="font-medium">
+                        @{account.platformUsername || "instagram_business"}
+                      </p>
+                      <p className="text-xs text-muted-foreground font-mono">
+                        {account.platformAccountId}
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -185,7 +208,9 @@ function InstagramConnectionRoute() {
                       onClick={() => refreshMutation.mutate({ id: account.id, organizationId: 1 })}
                       disabled={refreshMutation.isPending}
                     >
-                      <RefreshCw className={`h-4 w-4 ${refreshMutation.isPending ? "animate-spin" : ""}`} />
+                      <RefreshCw
+                        className={`h-4 w-4 ${refreshMutation.isPending ? "animate-spin" : ""}`}
+                      />
                     </Button>
                   </div>
                 </div>

@@ -7,16 +7,16 @@
 
 ## Schema Conventions
 
-| Convention | Value |
-|------------|-------|
-| Primary Key (internal) | `BIGSERIAL` |
-| Primary Key (public-facing) | `UUID` via `gen_random_uuid()` |
-| Timestamps | `TIMESTAMPTZ`, always UTC |
-| Soft Delete | `deleted_at TIMESTAMPTZ NULL` |
-| Audit Columns | `created_by`, `updated_by`, `deleted_by` → `BIGINT REFERENCES users(id)` |
-| Enum Replacement | Centralized `lookup_types` + `lookups` system |
-| Monetary Amounts | `BIGINT` in smallest currency unit |
-| Naming | `snake_case` |
+| Convention                  | Value                                                                    |
+| --------------------------- | ------------------------------------------------------------------------ |
+| Primary Key (internal)      | `BIGSERIAL`                                                              |
+| Primary Key (public-facing) | `UUID` via `gen_random_uuid()`                                           |
+| Timestamps                  | `TIMESTAMPTZ`, always UTC                                                |
+| Soft Delete                 | `deleted_at TIMESTAMPTZ NULL`                                            |
+| Audit Columns               | `created_by`, `updated_by`, `deleted_by` → `BIGINT REFERENCES users(id)` |
+| Enum Replacement            | Centralized `lookup_types` + `lookups` system                            |
+| Monetary Amounts            | `BIGINT` in smallest currency unit                                       |
+| Naming                      | `snake_case`                                                             |
 
 ---
 
@@ -27,7 +27,16 @@
 ```typescript
 // packages/db/src/schema/_lookups.ts
 
-import { pgTable, bigint, boolean, integer, text, timestamp, uuid, jsonb } from "drizzle-orm/pg-core";
+import {
+  pgTable,
+  bigint,
+  boolean,
+  integer,
+  text,
+  timestamp,
+  uuid,
+  jsonb,
+} from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
 export const lookupTypes = pgTable("lookup_types", {
@@ -44,7 +53,9 @@ export const lookupTypes = pgTable("lookup_types", {
 export const lookups = pgTable("lookups", {
   id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
   uuid: uuid("uuid").defaultRandom().notNull().unique(),
-  lookupTypeId: bigint("lookup_type_id", { mode: "number" }).references(() => lookupTypes.id).notNull(),
+  lookupTypeId: bigint("lookup_type_id", { mode: "number" })
+    .references(() => lookupTypes.id)
+    .notNull(),
   parentId: bigint("parent_id", { mode: "number" }).references(() => lookups.id),
   organizationId: bigint("organization_id", { mode: "number" }).references(() => organizations.id),
   name: varchar("name", { length: 100 }).notNull(),
@@ -62,7 +73,7 @@ export const lookups = pgTable("lookups", {
   updatedBy: bigint("updated_by", { mode: "number" }).references(() => users.id),
 });
 
-// Seed lookup_types: ticket_status, ticket_priority, task_status, task_priority, 
+// Seed lookup_types: ticket_status, ticket_priority, task_status, task_priority,
 // article_status, channel_type, social_platform, ecommerce_platform, widget_position,
 // form_field_type, workflow_trigger, workflow_action_type, sla_breach_action, contact_type, agent_role
 ```
@@ -96,24 +107,33 @@ export const organizations = pgTable("organizations", {
   deletedBy: bigint("deleted_by", { mode: "number" }).references(() => users.id),
 });
 
-export const organizationSettings = pgTable("organization_settings", {
-  id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
-  uuid: uuid("uuid").defaultRandom().notNull().unique(),
-  organizationId: bigint("organization_id", { mode: "number" }).references(() => organizations.id).notNull(),
-  key: varchar("key", { length: 150 }).notNull(),
-  value: text("value"),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
-  createdBy: bigint("created_by", { mode: "number" }).references(() => users.id),
-  updatedBy: bigint("updated_by", { mode: "number" }).references(() => users.id),
-}, (table) => ({
-  orgKeyUnique: unique().on(table.organizationId, table.key),
-}));
+export const organizationSettings = pgTable(
+  "organization_settings",
+  {
+    id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
+    uuid: uuid("uuid").defaultRandom().notNull().unique(),
+    organizationId: bigint("organization_id", { mode: "number" })
+      .references(() => organizations.id)
+      .notNull(),
+    key: varchar("key", { length: 150 }).notNull(),
+    value: text("value"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: bigint("created_by", { mode: "number" }).references(() => users.id),
+    updatedBy: bigint("updated_by", { mode: "number" }).references(() => users.id),
+  },
+  (table) => ({
+    orgKeyUnique: unique().on(table.organizationId, table.key),
+  }),
+);
 
 export const brandingConfigs = pgTable("branding_configs", {
   id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
   uuid: uuid("uuid").defaultRandom().notNull().unique(),
-  organizationId: bigint("organization_id", { mode: "number" }).references(() => organizations.id).notNull().unique(),
+  organizationId: bigint("organization_id", { mode: "number" })
+    .references(() => organizations.id)
+    .notNull()
+    .unique(),
   logoUrl: text("logo_url"),
   faviconUrl: text("favicon_url"),
   primaryColor: varchar("primary_color", { length: 7 }),
@@ -138,7 +158,10 @@ export const brandingConfigs = pgTable("branding_configs", {
 export const themes = pgTable("themes", {
   id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
   uuid: uuid("uuid").defaultRandom().notNull().unique(),
-  userId: bigint("user_id", { mode: "number" }).references(() => users.id).notNull().unique(),
+  userId: bigint("user_id", { mode: "number" })
+    .references(() => users.id)
+    .notNull()
+    .unique(),
   mode: varchar("mode", { length: 20 }).default("light").notNull(), // light/dark/system
   density: varchar("density", { length: 20 }).default("comfortable").notNull(),
   sidebarCollapsed: boolean("sidebar_collapsed").default(false).notNull(),
@@ -154,53 +177,65 @@ export const themes = pgTable("themes", {
 ```typescript
 // packages/db/src/schema/_users.ts
 
-export const users = pgTable("users", {
-  id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
-  uuid: uuid("uuid").defaultRandom().notNull().unique(),
-  organizationId: bigint("organization_id", { mode: "number" }).references(() => organizations.id).notNull(),
-  email: varchar("email", { length: 255 }).notNull(),
-  emailVerifiedAt: timestamp("email_verified_at", { withTimezone: true }),
-  passwordHash: varchar("password_hash", { length: 255 }),
-  firstName: varchar("first_name", { length: 100 }).notNull(),
-  lastName: varchar("last_name", { length: 100 }).notNull(),
-  displayName: varchar("display_name", { length: 200 }),
-  avatarUrl: text("avatar_url"),
-  phone: varchar("phone", { length: 30 }),
-  bio: text("bio"),
-  signatureHtml: text("signature_html"),
-  locale: varchar("locale", { length: 10 }).default("en").notNull(),
-  timezone: varchar("timezone", { length: 50 }).default("UTC").notNull(),
-  isActive: boolean("is_active").default(true).notNull(),
-  isPlatformAdmin: boolean("is_platform_admin").default(false).notNull(),
-  availabilityStatus: varchar("availability_status", { length: 30 }).default("online").notNull(),
-  lastSeenAt: timestamp("last_seen_at", { withTimezone: true }),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
-  deletedAt: timestamp("deleted_at", { withTimezone: true }),
-  createdBy: bigint("created_by", { mode: "number" }).references(() => users.id),
-  updatedBy: bigint("updated_by", { mode: "number" }).references(() => users.id),
-  deletedBy: bigint("deleted_by", { mode: "number" }).references(() => users.id),
-}, (table) => ({
-  orgEmailUnique: unique().on(table.organizationId, table.email),
-}));
+export const users = pgTable(
+  "users",
+  {
+    id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
+    uuid: uuid("uuid").defaultRandom().notNull().unique(),
+    organizationId: bigint("organization_id", { mode: "number" })
+      .references(() => organizations.id)
+      .notNull(),
+    email: varchar("email", { length: 255 }).notNull(),
+    emailVerifiedAt: timestamp("email_verified_at", { withTimezone: true }),
+    passwordHash: varchar("password_hash", { length: 255 }),
+    firstName: varchar("first_name", { length: 100 }).notNull(),
+    lastName: varchar("last_name", { length: 100 }).notNull(),
+    displayName: varchar("display_name", { length: 200 }),
+    avatarUrl: text("avatar_url"),
+    phone: varchar("phone", { length: 30 }),
+    bio: text("bio"),
+    signatureHtml: text("signature_html"),
+    locale: varchar("locale", { length: 10 }).default("en").notNull(),
+    timezone: varchar("timezone", { length: 50 }).default("UTC").notNull(),
+    isActive: boolean("is_active").default(true).notNull(),
+    isPlatformAdmin: boolean("is_platform_admin").default(false).notNull(),
+    availabilityStatus: varchar("availability_status", { length: 30 }).default("online").notNull(),
+    lastSeenAt: timestamp("last_seen_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+    createdBy: bigint("created_by", { mode: "number" }).references(() => users.id),
+    updatedBy: bigint("updated_by", { mode: "number" }).references(() => users.id),
+    deletedBy: bigint("deleted_by", { mode: "number" }).references(() => users.id),
+  },
+  (table) => ({
+    orgEmailUnique: unique().on(table.organizationId, table.email),
+  }),
+);
 
-export const roles = pgTable("roles", {
-  id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
-  uuid: uuid("uuid").defaultRandom().notNull().unique(),
-  organizationId: bigint("organization_id", { mode: "number" }).references(() => organizations.id).notNull(),
-  name: varchar("name", { length: 100 }).notNull(),
-  slug: varchar("slug", { length: 100 }).notNull(),
-  description: text("description"),
-  isSystem: boolean("is_system").default(false).notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
-  deletedAt: timestamp("deleted_at", { withTimezone: true }),
-  createdBy: bigint("created_by", { mode: "number" }).references(() => users.id),
-  updatedBy: bigint("updated_by", { mode: "number" }).references(() => users.id),
-  deletedBy: bigint("deleted_by", { mode: "number" }).references(() => users.id),
-}, (table) => ({
-  orgSlugUnique: unique().on(table.organizationId, table.slug),
-}));
+export const roles = pgTable(
+  "roles",
+  {
+    id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
+    uuid: uuid("uuid").defaultRandom().notNull().unique(),
+    organizationId: bigint("organization_id", { mode: "number" })
+      .references(() => organizations.id)
+      .notNull(),
+    name: varchar("name", { length: 100 }).notNull(),
+    slug: varchar("slug", { length: 100 }).notNull(),
+    description: text("description"),
+    isSystem: boolean("is_system").default(false).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+    createdBy: bigint("created_by", { mode: "number" }).references(() => users.id),
+    updatedBy: bigint("updated_by", { mode: "number" }).references(() => users.id),
+    deletedBy: bigint("deleted_by", { mode: "number" }).references(() => users.id),
+  },
+  (table) => ({
+    orgSlugUnique: unique().on(table.organizationId, table.slug),
+  }),
+);
 
 export const permissions = pgTable("permissions", {
   id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
@@ -211,30 +246,48 @@ export const permissions = pgTable("permissions", {
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });
 
-export const rolePermissions = pgTable("role_permissions", {
-  id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
-  roleId: bigint("role_id", { mode: "number" }).references(() => roles.id).notNull(),
-  permissionId: bigint("permission_id", { mode: "number" }).references(() => permissions.id).notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-  createdBy: bigint("created_by", { mode: "number" }).references(() => users.id),
-}, (table) => ({
-  rolePermissionUnique: unique().on(table.roleId, table.permissionId),
-}));
+export const rolePermissions = pgTable(
+  "role_permissions",
+  {
+    id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
+    roleId: bigint("role_id", { mode: "number" })
+      .references(() => roles.id)
+      .notNull(),
+    permissionId: bigint("permission_id", { mode: "number" })
+      .references(() => permissions.id)
+      .notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: bigint("created_by", { mode: "number" }).references(() => users.id),
+  },
+  (table) => ({
+    rolePermissionUnique: unique().on(table.roleId, table.permissionId),
+  }),
+);
 
-export const userRoles = pgTable("user_roles", {
-  id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
-  userId: bigint("user_id", { mode: "number" }).references(() => users.id).notNull(),
-  roleId: bigint("role_id", { mode: "number" }).references(() => roles.id).notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-  createdBy: bigint("created_by", { mode: "number" }).references(() => users.id),
-}, (table) => ({
-  userRoleUnique: unique().on(table.userId, table.roleId),
-}));
+export const userRoles = pgTable(
+  "user_roles",
+  {
+    id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
+    userId: bigint("user_id", { mode: "number" })
+      .references(() => users.id)
+      .notNull(),
+    roleId: bigint("role_id", { mode: "number" })
+      .references(() => roles.id)
+      .notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: bigint("created_by", { mode: "number" }).references(() => users.id),
+  },
+  (table) => ({
+    userRoleUnique: unique().on(table.userId, table.roleId),
+  }),
+);
 
 export const teams = pgTable("teams", {
   id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
   uuid: uuid("uuid").defaultRandom().notNull().unique(),
-  organizationId: bigint("organization_id", { mode: "number" }).references(() => organizations.id).notNull(),
+  organizationId: bigint("organization_id", { mode: "number" })
+    .references(() => organizations.id)
+    .notNull(),
   name: varchar("name", { length: 150 }).notNull(),
   description: text("description"),
   autoAssignMethod: varchar("auto_assign_method", { length: 30 }).default("round_robin").notNull(),
@@ -247,21 +300,31 @@ export const teams = pgTable("teams", {
   deletedBy: bigint("deleted_by", { mode: "number" }).references(() => users.id),
 });
 
-export const teamMembers = pgTable("team_members", {
-  id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
-  teamId: bigint("team_id", { mode: "number" }).references(() => teams.id).notNull(),
-  userId: bigint("user_id", { mode: "number" }).references(() => users.id).notNull(),
-  isLead: boolean("is_lead").default(false).notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-  createdBy: bigint("created_by", { mode: "number" }).references(() => users.id),
-}, (table) => ({
-  teamMemberUnique: unique().on(table.teamId, table.userId),
-}));
+export const teamMembers = pgTable(
+  "team_members",
+  {
+    id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
+    teamId: bigint("team_id", { mode: "number" })
+      .references(() => teams.id)
+      .notNull(),
+    userId: bigint("user_id", { mode: "number" })
+      .references(() => users.id)
+      .notNull(),
+    isLead: boolean("is_lead").default(false).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: bigint("created_by", { mode: "number" }).references(() => users.id),
+  },
+  (table) => ({
+    teamMemberUnique: unique().on(table.teamId, table.userId),
+  }),
+);
 
 export const userSessions = pgTable("user_sessions", {
   id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
   uuid: uuid("uuid").defaultRandom().notNull().unique(),
-  userId: bigint("user_id", { mode: "number" }).references(() => users.id).notNull(),
+  userId: bigint("user_id", { mode: "number" })
+    .references(() => users.id)
+    .notNull(),
   ipAddress: varchar("ip_address", { length: 45 }).notNull(), // INET as varchar for portability
   userAgent: text("user_agent"),
   deviceType: varchar("device_type", { length: 50 }),
@@ -273,7 +336,10 @@ export const userSessions = pgTable("user_sessions", {
 
 export const twoFactorAuth = pgTable("two_factor_auth", {
   id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
-  userId: bigint("user_id", { mode: "number" }).references(() => users.id).notNull().unique(),
+  userId: bigint("user_id", { mode: "number" })
+    .references(() => users.id)
+    .notNull()
+    .unique(),
   method: varchar("method", { length: 20 }).notNull(), // totp / email_otp
   totpSecret: varchar("totp_secret", { length: 255 }),
   backupCodes: jsonb("backup_codes"),
@@ -286,7 +352,9 @@ export const twoFactorAuth = pgTable("two_factor_auth", {
 export const apiKeys = pgTable("api_keys", {
   id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
   uuid: uuid("uuid").defaultRandom().notNull().unique(),
-  organizationId: bigint("organization_id", { mode: "number" }).references(() => organizations.id).notNull(),
+  organizationId: bigint("organization_id", { mode: "number" })
+    .references(() => organizations.id)
+    .notNull(),
   userId: bigint("user_id", { mode: "number" }).references(() => users.id),
   name: varchar("name", { length: 150 }).notNull(),
   keyHash: varchar("key_hash", { length: 255 }).notNull().unique(),
@@ -303,7 +371,9 @@ export const apiKeys = pgTable("api_keys", {
 
 export const ipWhitelist = pgTable("ip_whitelist", {
   id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
-  organizationId: bigint("organization_id", { mode: "number" }).references(() => organizations.id).notNull(),
+  organizationId: bigint("organization_id", { mode: "number" })
+    .references(() => organizations.id)
+    .notNull(),
   ipRange: varchar("ip_range", { length: 43 }).notNull(), // CIDR
   label: varchar("label", { length: 150 }),
   isActive: boolean("is_active").default(true).notNull(),
@@ -319,41 +389,51 @@ export const ipWhitelist = pgTable("ip_whitelist", {
 ```typescript
 // packages/db/src/schema/_contacts.ts
 
-export const contacts = pgTable("contacts", {
-  id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
-  uuid: uuid("uuid").defaultRandom().notNull().unique(),
-  organizationId: bigint("organization_id", { mode: "number" }).references(() => organizations.id).notNull(),
-  email: varchar("email", { length: 255 }),
-  phone: varchar("phone", { length: 30 }),
-  firstName: varchar("first_name", { length: 100 }),
-  lastName: varchar("last_name", { length: 100 }),
-  company: varchar("company", { length: 200 }),
-  avatarUrl: text("avatar_url"),
-  contactTypeId: bigint("contact_type_id", { mode: "number" }).references(() => lookups.id),
-  language: varchar("language", { length: 10 }),
-  timezone: varchar("timezone", { length: 50 }),
-  isBlocked: boolean("is_blocked").default(false).notNull(),
-  externalId: varchar("external_id", { length: 255 }),
-  metadata: jsonb("metadata"),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
-  deletedAt: timestamp("deleted_at", { withTimezone: true }),
-  createdBy: bigint("created_by", { mode: "number" }).references(() => users.id),
-  updatedBy: bigint("updated_by", { mode: "number" }).references(() => users.id),
-  deletedBy: bigint("deleted_by", { mode: "number" }).references(() => users.id),
-}, (table) => ({
-  orgEmailUnique: unique().on(table.organizationId, table.email),
-}));
+export const contacts = pgTable(
+  "contacts",
+  {
+    id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
+    uuid: uuid("uuid").defaultRandom().notNull().unique(),
+    organizationId: bigint("organization_id", { mode: "number" })
+      .references(() => organizations.id)
+      .notNull(),
+    email: varchar("email", { length: 255 }),
+    phone: varchar("phone", { length: 30 }),
+    firstName: varchar("first_name", { length: 100 }),
+    lastName: varchar("last_name", { length: 100 }),
+    company: varchar("company", { length: 200 }),
+    avatarUrl: text("avatar_url"),
+    contactTypeId: bigint("contact_type_id", { mode: "number" }).references(() => lookups.id),
+    language: varchar("language", { length: 10 }),
+    timezone: varchar("timezone", { length: 50 }),
+    isBlocked: boolean("is_blocked").default(false).notNull(),
+    externalId: varchar("external_id", { length: 255 }),
+    metadata: jsonb("metadata"),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+    createdBy: bigint("created_by", { mode: "number" }).references(() => users.id),
+    updatedBy: bigint("updated_by", { mode: "number" }).references(() => users.id),
+    deletedBy: bigint("deleted_by", { mode: "number" }).references(() => users.id),
+  },
+  (table) => ({
+    orgEmailUnique: unique().on(table.organizationId, table.email),
+  }),
+);
 
 export const contactNotes = pgTable("contact_notes", {
   id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
   uuid: uuid("uuid").defaultRandom().notNull().unique(),
-  contactId: bigint("contact_id", { mode: "number" }).references(() => contacts.id).notNull(),
+  contactId: bigint("contact_id", { mode: "number" })
+    .references(() => contacts.id)
+    .notNull(),
   body: text("body").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
-  createdBy: bigint("created_by", { mode: "number" }).references(() => users.id).notNull(),
+  createdBy: bigint("created_by", { mode: "number" })
+    .references(() => users.id)
+    .notNull(),
   updatedBy: bigint("updated_by", { mode: "number" }).references(() => users.id),
   deletedBy: bigint("deleted_by", { mode: "number" }).references(() => users.id),
 });
@@ -369,7 +449,9 @@ export const contactNotes = pgTable("contact_notes", {
 export const mailboxes = pgTable("mailboxes", {
   id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
   uuid: uuid("uuid").defaultRandom().notNull().unique(),
-  organizationId: bigint("organization_id", { mode: "number" }).references(() => organizations.id).notNull(),
+  organizationId: bigint("organization_id", { mode: "number" })
+    .references(() => organizations.id)
+    .notNull(),
   name: varchar("name", { length: 150 }).notNull(),
   email: varchar("email", { length: 255 }).notNull(),
   replyTo: varchar("reply_to", { length: 255 }),
@@ -392,7 +474,10 @@ export const mailboxes = pgTable("mailboxes", {
 
 export const mailboxImapConfigs = pgTable("mailbox_imap_configs", {
   id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
-  mailboxId: bigint("mailbox_id", { mode: "number" }).references(() => mailboxes.id).notNull().unique(),
+  mailboxId: bigint("mailbox_id", { mode: "number" })
+    .references(() => mailboxes.id)
+    .notNull()
+    .unique(),
   host: varchar("host", { length: 255 }).notNull(),
   port: integer("port").notNull(),
   username: varchar("username", { length: 255 }).notNull(),
@@ -407,7 +492,10 @@ export const mailboxImapConfigs = pgTable("mailbox_imap_configs", {
 
 export const mailboxSmtpConfigs = pgTable("mailbox_smtp_configs", {
   id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
-  mailboxId: bigint("mailbox_id", { mode: "number" }).references(() => mailboxes.id).notNull().unique(),
+  mailboxId: bigint("mailbox_id", { mode: "number" })
+    .references(() => mailboxes.id)
+    .notNull()
+    .unique(),
   host: varchar("host", { length: 255 }).notNull(),
   port: integer("port").notNull(),
   username: varchar("username", { length: 255 }).notNull(),
@@ -423,7 +511,9 @@ export const mailboxSmtpConfigs = pgTable("mailbox_smtp_configs", {
 
 export const mailboxAliases = pgTable("mailbox_aliases", {
   id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
-  mailboxId: bigint("mailbox_id", { mode: "number" }).references(() => mailboxes.id).notNull(),
+  mailboxId: bigint("mailbox_id", { mode: "number" })
+    .references(() => mailboxes.id)
+    .notNull(),
   aliasEmail: varchar("alias_email", { length: 255 }).notNull().unique(),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   createdBy: bigint("created_by", { mode: "number" }).references(() => users.id),
@@ -432,7 +522,9 @@ export const mailboxAliases = pgTable("mailbox_aliases", {
 export const emailRoutingRules = pgTable("email_routing_rules", {
   id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
   uuid: uuid("uuid").defaultRandom().notNull().unique(),
-  organizationId: bigint("organization_id", { mode: "number" }).references(() => organizations.id).notNull(),
+  organizationId: bigint("organization_id", { mode: "number" })
+    .references(() => organizations.id)
+    .notNull(),
   mailboxId: bigint("mailbox_id", { mode: "number" }).references(() => mailboxes.id),
   name: varchar("name", { length: 150 }).notNull(),
   conditions: jsonb("conditions").notNull(),
@@ -452,8 +544,12 @@ export const emailRoutingRules = pgTable("email_routing_rules", {
 export const emailMessages = pgTable("email_messages", {
   id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
   uuid: uuid("uuid").defaultRandom().notNull().unique(),
-  organizationId: bigint("organization_id", { mode: "number" }).references(() => organizations.id).notNull(),
-  mailboxId: bigint("mailbox_id", { mode: "number" }).references(() => mailboxes.id).notNull(),
+  organizationId: bigint("organization_id", { mode: "number" })
+    .references(() => organizations.id)
+    .notNull(),
+  mailboxId: bigint("mailbox_id", { mode: "number" })
+    .references(() => mailboxes.id)
+    .notNull(),
   ticketId: bigint("ticket_id", { mode: "number" }).references(() => tickets.id),
   direction: varchar("direction", { length: 10 }).notNull(), // inbound / outbound
   messageId: text("message_id").notNull().unique(),
@@ -478,7 +574,9 @@ export const emailMessages = pgTable("email_messages", {
 export const emailAttachments = pgTable("email_attachments", {
   id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
   uuid: uuid("uuid").defaultRandom().notNull().unique(),
-  emailMessageId: bigint("email_message_id", { mode: "number" }).references(() => emailMessages.id).notNull(),
+  emailMessageId: bigint("email_message_id", { mode: "number" })
+    .references(() => emailMessages.id)
+    .notNull(),
   filename: varchar("filename", { length: 500 }).notNull(),
   mimeType: varchar("mime_type", { length: 150 }).notNull(),
   sizeBytes: bigint("size_bytes", { mode: "number" }).notNull(),
@@ -494,51 +592,67 @@ export const emailAttachments = pgTable("email_attachments", {
 ```typescript
 // packages/db/src/schema/_tickets.ts
 
-export const tickets = pgTable("tickets", {
-  id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
-  uuid: uuid("uuid").defaultRandom().notNull().unique(),
-  organizationId: bigint("organization_id", { mode: "number" }).references(() => organizations.id).notNull(),
-  referenceNumber: varchar("reference_number", { length: 30 }).notNull().unique(),
-  subject: text("subject").notNull(),
-  descriptionHtml: text("description_html"),
-  statusId: bigint("status_id", { mode: "number" }).references(() => lookups.id).notNull(),
-  priorityId: bigint("priority_id", { mode: "number" }).references(() => lookups.id).notNull(),
-  channelId: bigint("channel_id", { mode: "number" }).references(() => lookups.id),
-  contactId: bigint("contact_id", { mode: "number" }).references(() => contacts.id),
-  assignedAgentId: bigint("assigned_agent_id", { mode: "number" }).references(() => users.id),
-  assignedTeamId: bigint("assigned_team_id", { mode: "number" }).references(() => teams.id),
-  mailboxId: bigint("mailbox_id", { mode: "number" }).references(() => mailboxes.id),
-  formSubmissionId: bigint("form_submission_id", { mode: "number" }).references(() => formSubmissions.id),
-  socialMessageId: bigint("social_message_id", { mode: "number" }).references(() => socialMessages.id),
-  chatSessionId: bigint("chat_session_id", { mode: "number" }).references(() => chatSessions.id),
-  parentTicketId: bigint("parent_ticket_id", { mode: "number" }).references(() => tickets.id),
-  isMerged: boolean("is_merged").default(false).notNull(),
-  isSpam: boolean("is_spam").default(false).notNull(),
-  isLocked: boolean("is_locked").default(false).notNull(),
-  lockedBy: bigint("locked_by", { mode: "number" }).references(() => users.id),
-  lockedAt: timestamp("locked_at", { withTimezone: true }),
-  firstResponseAt: timestamp("first_response_at", { withTimezone: true }),
-  resolvedAt: timestamp("resolved_at", { withTimezone: true }),
-  closedAt: timestamp("closed_at", { withTimezone: true }),
-  dueAt: timestamp("due_at", { withTimezone: true }),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
-  deletedAt: timestamp("deleted_at", { withTimezone: true }),
-  createdBy: bigint("created_by", { mode: "number" }).references(() => users.id),
-  updatedBy: bigint("updated_by", { mode: "number" }).references(() => users.id),
-  deletedBy: bigint("deleted_by", { mode: "number" }).references(() => users.id),
-}, (table) => ({
-  orgStatusIdx: index().on(table.organizationId, table.statusId),
-  assignedAgentIdx: index().on(table.assignedAgentId),
-  assignedTeamIdx: index().on(table.assignedTeamId),
-  contactIdx: index().on(table.contactId),
-  createdAtIdx: index("tickets_created_at_idx").on(table.createdAt),
-}));
+export const tickets = pgTable(
+  "tickets",
+  {
+    id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
+    uuid: uuid("uuid").defaultRandom().notNull().unique(),
+    organizationId: bigint("organization_id", { mode: "number" })
+      .references(() => organizations.id)
+      .notNull(),
+    referenceNumber: varchar("reference_number", { length: 30 }).notNull().unique(),
+    subject: text("subject").notNull(),
+    descriptionHtml: text("description_html"),
+    statusId: bigint("status_id", { mode: "number" })
+      .references(() => lookups.id)
+      .notNull(),
+    priorityId: bigint("priority_id", { mode: "number" })
+      .references(() => lookups.id)
+      .notNull(),
+    channelId: bigint("channel_id", { mode: "number" }).references(() => lookups.id),
+    contactId: bigint("contact_id", { mode: "number" }).references(() => contacts.id),
+    assignedAgentId: bigint("assigned_agent_id", { mode: "number" }).references(() => users.id),
+    assignedTeamId: bigint("assigned_team_id", { mode: "number" }).references(() => teams.id),
+    mailboxId: bigint("mailbox_id", { mode: "number" }).references(() => mailboxes.id),
+    formSubmissionId: bigint("form_submission_id", { mode: "number" }).references(
+      () => formSubmissions.id,
+    ),
+    socialMessageId: bigint("social_message_id", { mode: "number" }).references(
+      () => socialMessages.id,
+    ),
+    chatSessionId: bigint("chat_session_id", { mode: "number" }).references(() => chatSessions.id),
+    parentTicketId: bigint("parent_ticket_id", { mode: "number" }).references(() => tickets.id),
+    isMerged: boolean("is_merged").default(false).notNull(),
+    isSpam: boolean("is_spam").default(false).notNull(),
+    isLocked: boolean("is_locked").default(false).notNull(),
+    lockedBy: bigint("locked_by", { mode: "number" }).references(() => users.id),
+    lockedAt: timestamp("locked_at", { withTimezone: true }),
+    firstResponseAt: timestamp("first_response_at", { withTimezone: true }),
+    resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+    closedAt: timestamp("closed_at", { withTimezone: true }),
+    dueAt: timestamp("due_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
+    createdBy: bigint("created_by", { mode: "number" }).references(() => users.id),
+    updatedBy: bigint("updated_by", { mode: "number" }).references(() => users.id),
+    deletedBy: bigint("deleted_by", { mode: "number" }).references(() => users.id),
+  },
+  (table) => ({
+    orgStatusIdx: index().on(table.organizationId, table.statusId),
+    assignedAgentIdx: index().on(table.assignedAgentId),
+    assignedTeamIdx: index().on(table.assignedTeamId),
+    contactIdx: index().on(table.contactId),
+    createdAtIdx: index("tickets_created_at_idx").on(table.createdAt),
+  }),
+);
 
 export const ticketMessages = pgTable("ticket_messages", {
   id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
   uuid: uuid("uuid").defaultRandom().notNull().unique(),
-  ticketId: bigint("ticket_id", { mode: "number" }).references(() => tickets.id).notNull(),
+  ticketId: bigint("ticket_id", { mode: "number" })
+    .references(() => tickets.id)
+    .notNull(),
   emailMessageId: bigint("email_message_id", { mode: "number" }).references(() => emailMessages.id),
   authorType: varchar("author_type", { length: 20 }).notNull(), // agent / contact / system
   authorUserId: bigint("author_user_id", { mode: "number" }).references(() => users.id),
@@ -558,8 +672,12 @@ export const ticketMessages = pgTable("ticket_messages", {
 export const ticketAttachments = pgTable("ticket_attachments", {
   id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
   uuid: uuid("uuid").defaultRandom().notNull().unique(),
-  ticketId: bigint("ticket_id", { mode: "number" }).references(() => tickets.id).notNull(),
-  ticketMessageId: bigint("ticket_message_id", { mode: "number" }).references(() => ticketMessages.id),
+  ticketId: bigint("ticket_id", { mode: "number" })
+    .references(() => tickets.id)
+    .notNull(),
+  ticketMessageId: bigint("ticket_message_id", { mode: "number" }).references(
+    () => ticketMessages.id,
+  ),
   filename: varchar("filename", { length: 500 }).notNull(),
   mimeType: varchar("mime_type", { length: 150 }).notNull(),
   sizeBytes: bigint("size_bytes", { mode: "number" }).notNull(),
@@ -568,75 +686,119 @@ export const ticketAttachments = pgTable("ticket_attachments", {
   createdBy: bigint("created_by", { mode: "number" }).references(() => users.id),
 });
 
-export const tags = pgTable("tags", {
-  id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
-  uuid: uuid("uuid").defaultRandom().notNull().unique(),
-  organizationId: bigint("organization_id", { mode: "number" }).references(() => organizations.id).notNull(),
-  name: varchar("name", { length: 100 }).notNull(),
-  color: varchar("color", { length: 7 }),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-  createdBy: bigint("created_by", { mode: "number" }).references(() => users.id),
-}, (table) => ({
-  orgNameUnique: unique().on(table.organizationId, table.name),
-}));
+export const tags = pgTable(
+  "tags",
+  {
+    id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
+    uuid: uuid("uuid").defaultRandom().notNull().unique(),
+    organizationId: bigint("organization_id", { mode: "number" })
+      .references(() => organizations.id)
+      .notNull(),
+    name: varchar("name", { length: 100 }).notNull(),
+    color: varchar("color", { length: 7 }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: bigint("created_by", { mode: "number" }).references(() => users.id),
+  },
+  (table) => ({
+    orgNameUnique: unique().on(table.organizationId, table.name),
+  }),
+);
 
-export const ticketTags = pgTable("ticket_tags", {
-  id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
-  ticketId: bigint("ticket_id", { mode: "number" }).references(() => tickets.id).notNull(),
-  tagId: bigint("tag_id", { mode: "number" }).references(() => tags.id).notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-  createdBy: bigint("created_by", { mode: "number" }).references(() => users.id),
-}, (table) => ({
-  ticketTagUnique: unique().on(table.ticketId, table.tagId),
-}));
+export const ticketTags = pgTable(
+  "ticket_tags",
+  {
+    id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
+    ticketId: bigint("ticket_id", { mode: "number" })
+      .references(() => tickets.id)
+      .notNull(),
+    tagId: bigint("tag_id", { mode: "number" })
+      .references(() => tags.id)
+      .notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: bigint("created_by", { mode: "number" }).references(() => users.id),
+  },
+  (table) => ({
+    ticketTagUnique: unique().on(table.ticketId, table.tagId),
+  }),
+);
 
-export const ticketFollowers = pgTable("ticket_followers", {
-  id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
-  ticketId: bigint("ticket_id", { mode: "number" }).references(() => tickets.id).notNull(),
-  userId: bigint("user_id", { mode: "number" }).references(() => users.id).notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-}, (table) => ({
-  ticketFollowerUnique: unique().on(table.ticketId, table.userId),
-}));
+export const ticketFollowers = pgTable(
+  "ticket_followers",
+  {
+    id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
+    ticketId: bigint("ticket_id", { mode: "number" })
+      .references(() => tickets.id)
+      .notNull(),
+    userId: bigint("user_id", { mode: "number" })
+      .references(() => users.id)
+      .notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    ticketFollowerUnique: unique().on(table.ticketId, table.userId),
+  }),
+);
 
-export const ticketCc = pgTable("ticket_cc", {
-  id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
-  ticketId: bigint("ticket_id", { mode: "number" }).references(() => tickets.id).notNull(),
-  email: varchar("email", { length: 255 }).notNull(),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-}, (table) => ({
-  ticketEmailUnique: unique().on(table.ticketId, table.email),
-}));
+export const ticketCc = pgTable(
+  "ticket_cc",
+  {
+    id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
+    ticketId: bigint("ticket_id", { mode: "number" })
+      .references(() => tickets.id)
+      .notNull(),
+    email: varchar("email", { length: 255 }).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    ticketEmailUnique: unique().on(table.ticketId, table.email),
+  }),
+);
 
 export const ticketMerges = pgTable("ticket_merges", {
   id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
-  masterTicketId: bigint("master_ticket_id", { mode: "number" }).references(() => tickets.id).notNull(),
-  mergedTicketId: bigint("merged_ticket_id", { mode: "number" }).references(() => tickets.id).notNull(),
+  masterTicketId: bigint("master_ticket_id", { mode: "number" })
+    .references(() => tickets.id)
+    .notNull(),
+  mergedTicketId: bigint("merged_ticket_id", { mode: "number" })
+    .references(() => tickets.id)
+    .notNull(),
   mergedAt: timestamp("merged_at", { withTimezone: true }).defaultNow().notNull(),
-  mergedBy: bigint("merged_by", { mode: "number" }).references(() => users.id).notNull(),
+  mergedBy: bigint("merged_by", { mode: "number" })
+    .references(() => users.id)
+    .notNull(),
 });
 
-export const ticketCustomFieldValues = pgTable("ticket_custom_field_values", {
-  id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
-  ticketId: bigint("ticket_id", { mode: "number" }).references(() => tickets.id).notNull(),
-  fieldId: bigint("field_id", { mode: "number" }).references(() => ticketCustomFields.id).notNull(),
-  valueText: text("value_text"),
-  valueNumber: numeric("value_number"),
-  valueBoolean: boolean("value_boolean"),
-  valueDate: timestamp("value_date", { withTimezone: true }),
-  valueLookupId: bigint("value_lookup_id", { mode: "number" }).references(() => lookups.id),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
-  createdBy: bigint("created_by", { mode: "number" }).references(() => users.id),
-  updatedBy: bigint("updated_by", { mode: "number" }).references(() => users.id),
-}, (table) => ({
-  ticketFieldUnique: unique().on(table.ticketId, table.fieldId),
-}));
+export const ticketCustomFieldValues = pgTable(
+  "ticket_custom_field_values",
+  {
+    id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
+    ticketId: bigint("ticket_id", { mode: "number" })
+      .references(() => tickets.id)
+      .notNull(),
+    fieldId: bigint("field_id", { mode: "number" })
+      .references(() => ticketCustomFields.id)
+      .notNull(),
+    valueText: text("value_text"),
+    valueNumber: numeric("value_number"),
+    valueBoolean: boolean("value_boolean"),
+    valueDate: timestamp("value_date", { withTimezone: true }),
+    valueLookupId: bigint("value_lookup_id", { mode: "number" }).references(() => lookups.id),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+    createdBy: bigint("created_by", { mode: "number" }).references(() => users.id),
+    updatedBy: bigint("updated_by", { mode: "number" }).references(() => users.id),
+  },
+  (table) => ({
+    ticketFieldUnique: unique().on(table.ticketId, table.fieldId),
+  }),
+);
 
 export const ticketViews = pgTable("ticket_views", {
   id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
   uuid: uuid("uuid").defaultRandom().notNull().unique(),
-  organizationId: bigint("organization_id", { mode: "number" }).references(() => organizations.id).notNull(),
+  organizationId: bigint("organization_id", { mode: "number" })
+    .references(() => organizations.id)
+    .notNull(),
   userId: bigint("user_id", { mode: "number" }).references(() => users.id),
   name: varchar("name", { length: 150 }).notNull(),
   filters: jsonb("filters").notNull(),
@@ -660,7 +822,9 @@ export const ticketViews = pgTable("ticket_views", {
 export const slaPolicies = pgTable("sla_policies", {
   id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
   uuid: uuid("uuid").defaultRandom().notNull().unique(),
-  organizationId: bigint("organization_id", { mode: "number" }).references(() => organizations.id).notNull(),
+  organizationId: bigint("organization_id", { mode: "number" })
+    .references(() => organizations.id)
+    .notNull(),
   name: varchar("name", { length: 150 }).notNull(),
   description: text("description"),
   isDefault: boolean("is_default").default(false).notNull(),
@@ -675,24 +839,37 @@ export const slaPolicies = pgTable("sla_policies", {
   deletedBy: bigint("deleted_by", { mode: "number" }).references(() => users.id),
 });
 
-export const slaPolicyTargets = pgTable("sla_policy_targets", {
-  id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
-  slaPolicyId: bigint("sla_policy_id", { mode: "number" }).references(() => slaPolicies.id).notNull(),
-  priorityId: bigint("priority_id", { mode: "number" }).references(() => lookups.id).notNull(),
-  firstResponseMinutes: integer("first_response_minutes").notNull(),
-  resolutionMinutes: integer("resolution_minutes").notNull(),
-  escalateAgentId: bigint("escalate_agent_id", { mode: "number" }).references(() => users.id),
-  escalateTeamId: bigint("escalate_team_id", { mode: "number" }).references(() => teams.id),
-  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
-}, (table) => ({
-  policyPriorityUnique: unique().on(table.slaPolicyId, table.priorityId),
-}));
+export const slaPolicyTargets = pgTable(
+  "sla_policy_targets",
+  {
+    id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
+    slaPolicyId: bigint("sla_policy_id", { mode: "number" })
+      .references(() => slaPolicies.id)
+      .notNull(),
+    priorityId: bigint("priority_id", { mode: "number" })
+      .references(() => lookups.id)
+      .notNull(),
+    firstResponseMinutes: integer("first_response_minutes").notNull(),
+    resolutionMinutes: integer("resolution_minutes").notNull(),
+    escalateAgentId: bigint("escalate_agent_id", { mode: "number" }).references(() => users.id),
+    escalateTeamId: bigint("escalate_team_id", { mode: "number" }).references(() => teams.id),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+  },
+  (table) => ({
+    policyPriorityUnique: unique().on(table.slaPolicyId, table.priorityId),
+  }),
+);
 
 export const ticketSla = pgTable("ticket_sla", {
   id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
-  ticketId: bigint("ticket_id", { mode: "number" }).references(() => tickets.id).notNull().unique(),
-  slaPolicyId: bigint("sla_policy_id", { mode: "number" }).references(() => slaPolicies.id).notNull(),
+  ticketId: bigint("ticket_id", { mode: "number" })
+    .references(() => tickets.id)
+    .notNull()
+    .unique(),
+  slaPolicyId: bigint("sla_policy_id", { mode: "number" })
+    .references(() => slaPolicies.id)
+    .notNull(),
   firstResponseDueAt: timestamp("first_response_due_at", { withTimezone: true }).notNull(),
   resolutionDueAt: timestamp("resolution_due_at", { withTimezone: true }).notNull(),
   firstResponseBreached: boolean("first_response_breached").default(false).notNull(),
@@ -708,7 +885,9 @@ export const ticketSla = pgTable("ticket_sla", {
 export const ticketCustomFields = pgTable("ticket_custom_fields", {
   id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
   uuid: uuid("uuid").defaultRandom().notNull().unique(),
-  organizationId: bigint("organization_id", { mode: "number" }).references(() => organizations.id).notNull(),
+  organizationId: bigint("organization_id", { mode: "number" })
+    .references(() => organizations.id)
+    .notNull(),
   name: varchar("name", { length: 100 }).notNull(),
   label: varchar("label", { length: 150 }).notNull(),
   fieldType: varchar("field_type", { length: 30 }).notNull(), // text / number / date / checkbox / dropdown / multi_select
@@ -728,7 +907,10 @@ export const ticketCustomFields = pgTable("ticket_custom_fields", {
 export const csatSurveys = pgTable("csat_surveys", {
   id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
   uuid: uuid("uuid").defaultRandom().notNull().unique(),
-  ticketId: bigint("ticket_id", { mode: "number" }).references(() => tickets.id).notNull().unique(),
+  ticketId: bigint("ticket_id", { mode: "number" })
+    .references(() => tickets.id)
+    .notNull()
+    .unique(),
   sentTo: varchar("sent_to", { length: 255 }).notNull(),
   sentAt: timestamp("sent_at", { withTimezone: true }).notNull(),
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
@@ -745,36 +927,36 @@ export const csatSurveys = pgTable("csat_surveys", {
 
 The remaining modules follow the same patterns established above:
 
-| Module | Tables | Key Features |
-|--------|--------|--------------|
-| **Saved Replies** (§8) | `saved_reply_folders`, `saved_replies` | Folders, merge tags, scope (org/team/personal) |
-| **Tasks** (§9) | `tasks`, `task_assignees`, `task_checklist_items` | Sub-tasks, due dates, linked to tickets |
-| **Form Builder** (§10) | `forms`, `form_fields`, `form_submissions`, `form_submission_values` | Conditional logic, CAPTCHA, field mapping |
-| **Workflows** (§11) | `workflows`, `workflow_execution_logs` | JSONB rules, trigger/condition/action |
-| **Social Media** (§12) | `social_accounts`, `social_messages` | OAuth, encrypted tokens, platform-specific |
-| **Channels** (§13) | `channels` | Unified channel registry |
-| **Knowledgebase** (§14) | `kb_categories`, `kb_articles`, `kb_article_related`, `kb_article_feedback` | Multi-language, WYSIWYG content |
-| **Binaka Chat** (§15) | `chat_widgets`, `chat_sessions`, `chat_messages` | WebSocket, pre-chat form, ratings |
-| **eCommerce** (§16) | `ecommerce_stores`, `ecommerce_orders` | Shopify/WooCommerce/Salla/Zid |
-| **Billing** (§20-25) | `subscription_plans`, `plan_features`, `plan_limits`, `addons`, `subscriptions`, `seats`, `usage_snapshots` | Plans, seats, add-ons, usage tracking |
-| **Invoices** (§25) | `invoices`, `invoice_items`, `payments` | Auto-numbering, VAT, Arabic PDF |
-| **Payments** (§26) | `payment_methods`, `coupons`, `coupon_redemptions` | Stripe/PayTabs tokens, coupon types |
-| **Gateway Records** (§28) | `stripe_customers`, `stripe_subscriptions`, `stripe_payment_methods`, `paytabs_transactions` | Gateway sync |
-| **Dunning** (§29) | `dunning_logs`, `subscription_state_changes` | Retry schedule, grace period |
-| **Revenue** (§30) | `revenue_snapshots`, `mrr_history` | MRR/ARR tracking |
-| **Audit** (§18) | `audit_logs`, `notifications`, `notification_channels` | Full activity trail |
+| Module                    | Tables                                                                                                      | Key Features                                   |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| **Saved Replies** (§8)    | `saved_reply_folders`, `saved_replies`                                                                      | Folders, merge tags, scope (org/team/personal) |
+| **Tasks** (§9)            | `tasks`, `task_assignees`, `task_checklist_items`                                                           | Sub-tasks, due dates, linked to tickets        |
+| **Form Builder** (§10)    | `forms`, `form_fields`, `form_submissions`, `form_submission_values`                                        | Conditional logic, CAPTCHA, field mapping      |
+| **Workflows** (§11)       | `workflows`, `workflow_execution_logs`                                                                      | JSONB rules, trigger/condition/action          |
+| **Social Media** (§12)    | `social_accounts`, `social_messages`                                                                        | OAuth, encrypted tokens, platform-specific     |
+| **Channels** (§13)        | `channels`                                                                                                  | Unified channel registry                       |
+| **Knowledgebase** (§14)   | `kb_categories`, `kb_articles`, `kb_article_related`, `kb_article_feedback`                                 | Multi-language, WYSIWYG content                |
+| **Binaka Chat** (§15)     | `chat_widgets`, `chat_sessions`, `chat_messages`                                                            | WebSocket, pre-chat form, ratings              |
+| **eCommerce** (§16)       | `ecommerce_stores`, `ecommerce_orders`                                                                      | Shopify/WooCommerce/Salla/Zid                  |
+| **Billing** (§20-25)      | `subscription_plans`, `plan_features`, `plan_limits`, `addons`, `subscriptions`, `seats`, `usage_snapshots` | Plans, seats, add-ons, usage tracking          |
+| **Invoices** (§25)        | `invoices`, `invoice_items`, `payments`                                                                     | Auto-numbering, VAT, Arabic PDF                |
+| **Payments** (§26)        | `payment_methods`, `coupons`, `coupon_redemptions`                                                          | Stripe/PayTabs tokens, coupon types            |
+| **Gateway Records** (§28) | `stripe_customers`, `stripe_subscriptions`, `stripe_payment_methods`, `paytabs_transactions`                | Gateway sync                                   |
+| **Dunning** (§29)         | `dunning_logs`, `subscription_state_changes`                                                                | Retry schedule, grace period                   |
+| **Revenue** (§30)         | `revenue_snapshots`, `mrr_history`                                                                          | MRR/ARR tracking                               |
+| **Audit** (§18)           | `audit_logs`, `notifications`, `notification_channels`                                                      | Full activity trail                            |
 
 ---
 
 ## Indexes Summary
 
-| Table | Indexes |
-|-------|---------|
-| `users` | `(organization_id, email)` WHERE deleted_at IS NULL |
-| `tickets` | `(organization_id, status_id)`, `(assigned_agent_id)`, `(assigned_team_id)`, `(contact_id)`, `created_at DESC` |
-| `lookups` | `(lookup_type_id, organization_id)`, `(parent_id)`, `(is_active)` |
-| `workflow_execution_logs` | `(workflow_id, executed_at DESC)`, `(ticket_id)` |
-| `social_messages` | `(social_account_id, platform_message_id)` UNIQUE |
+| Table                     | Indexes                                                                                                        |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `users`                   | `(organization_id, email)` WHERE deleted_at IS NULL                                                            |
+| `tickets`                 | `(organization_id, status_id)`, `(assigned_agent_id)`, `(assigned_team_id)`, `(contact_id)`, `created_at DESC` |
+| `lookups`                 | `(lookup_type_id, organization_id)`, `(parent_id)`, `(is_active)`                                              |
+| `workflow_execution_logs` | `(workflow_id, executed_at DESC)`, `(ticket_id)`                                                               |
+| `social_messages`         | `(social_account_id, platform_message_id)` UNIQUE                                                              |
 
 ---
 

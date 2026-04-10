@@ -69,7 +69,7 @@ export const notificationsRouter = {
         where: eq(users.id, userId),
       });
 
-      const existingMeta = (prefs?.metadata as Record<string, unknown>) || {};
+      const existingMeta = ((prefs as any)?.metadata as Record<string, unknown>) || {};
       const notificationTypes = (existingMeta.notificationTypes as Record<string, boolean>) || {};
 
       notificationTypes[type] = false;
@@ -98,7 +98,7 @@ export const notificationsRouter = {
         return null;
       }
 
-      const existingMeta = (user.metadata as Record<string, unknown>) || {};
+      const existingMeta = ((user as any)?.metadata as Record<string, unknown>) || {};
 
       return {
         emailDigest: existingMeta.emailDigest ?? true,

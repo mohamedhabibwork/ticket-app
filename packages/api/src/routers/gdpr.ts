@@ -1,5 +1,5 @@
 import { db } from "@ticket-app/db";
-import { gdprRequests } from "@ticket-app/db/schema";
+import { gdprRequests, contacts } from "@ticket-app/db/schema";
 import { eq, desc, and } from "drizzle-orm";
 import * as z from "zod";
 
@@ -226,7 +226,7 @@ export const gdprRouter = {
 
       if (input.anonymizeData && request.contact) {
         await db
-          .update(request.contact)
+          .update(contacts)
           .set({
             firstName: "REDACTED",
             lastName: "REDACTED",

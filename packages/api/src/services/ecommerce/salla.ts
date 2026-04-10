@@ -21,7 +21,7 @@ interface SallaOrder {
   created_at: string;
   updated_at: string;
   item_count: number;
- total: SallaMoney;
+  total: SallaMoney;
   subtotal: SallaMoney;
   tax: SallaMoney;
   discount: SallaMoney;
@@ -49,7 +49,7 @@ interface SallaPayment {
 }
 
 interface SallaShipment {
- status: string;
+  status: string;
   tracking_number: string | null;
   tracking_url: string | null;
   carrier: string | null;
@@ -116,7 +116,7 @@ export async function getSallaConfig(storeId: number): Promise<SallaConfig | nul
 export async function sallaApiRequest<T>(
   config: SallaConfig,
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
 ): Promise<T> {
   const url = `https://${config.shopDomain}/api/${SALLA_API_VERSION}/${endpoint}`;
 
@@ -144,7 +144,7 @@ export async function fetchSallaOrders(
     page?: number;
     sort?: string;
     status?: SallaOrderStatus;
-  } = {}
+  } = {},
 ): Promise<SallaOrder[]> {
   const searchParams = new URLSearchParams();
   searchParams.set("limit", String(params.limit || 100));
@@ -154,7 +154,7 @@ export async function fetchSallaOrders(
 
   const data = await sallaApiRequest<{ data: SallaOrder[] }>(
     config,
-    `orders?${searchParams.toString()}`
+    `orders?${searchParams.toString()}`,
   );
 
   return data.data || [];
@@ -162,13 +162,10 @@ export async function fetchSallaOrders(
 
 export async function fetchSallaOrder(
   config: SallaConfig,
-  orderId: string
+  orderId: string,
 ): Promise<SallaOrder | null> {
   try {
-    const data = await sallaApiRequest<{ data: SallaOrder }>(
-      config,
-      `orders/${orderId}`
-    );
+    const data = await sallaApiRequest<{ data: SallaOrder }>(config, `orders/${orderId}`);
     return data.data || null;
   } catch {
     return null;
@@ -177,7 +174,7 @@ export async function fetchSallaOrder(
 
 export function transformSallaOrder(
   storeId: number,
-  sallaOrder: SallaOrder
+  sallaOrder: SallaOrder,
 ): Omit<typeof ecommerceOrders.$inferInsert, "id" | "uuid" | "createdAt" | "updatedAt"> {
   const lineItems = sallaOrder.order_items.map((item) => ({
     productId: String(item.product_id),
@@ -236,9 +233,9 @@ export function transformSallaOrder(
     discountCodes: [],
     customerEmail: sallaOrder.customer.email?.toLowerCase() || null,
     customerPhone: sallaOrder.customer.phone?.replace(/\D/g, "") || null,
-    customerName: [sallaOrder.customer.first_name, sallaOrder.customer.last_name]
-      .filter(Boolean)
-      .join(" ") || null,
+    customerName:
+      [sallaOrder.customer.first_name, sallaOrder.customer.last_name].filter(Boolean).join(" ") ||
+      null,
     billingAddress,
     shippingAddress,
     shippingMethod: sallaOrder.shippment.carrier,
@@ -252,7 +249,7 @@ export function transformSallaOrder(
 
 export async function syncSallaStoreOrders(
   storeId: number,
-  sinceDate?: Date
+  sinceDate?: Date,
 ): Promise<{ synced: number; errors: string[] }> {
   const config = await getSallaConfig(storeId);
   if (!config) {
@@ -267,7 +264,7 @@ export async function syncSallaStoreOrders(
 
     const sinceTimestamp = sinceDate?.getTime() || Date.now() - 30 * 24 * 60 * 60 * 1000;
     const relevantOrders = orders.filter(
-      (order) => new Date(order.created_at).getTime() >= sinceTimestamp
+      (order) => new Date(order.created_at).getTime() >= sinceTimestamp,
     );
 
     let synced = 0;
@@ -294,9 +291,7 @@ export async function syncSallaStoreOrders(
         }
         synced++;
       } catch (err) {
-        errors.push(
-          `Order ${order.id}: ${err instanceof Error ? err.message : "Unknown error"}`
-        );
+        errors.push(`Order ${order.id}: ${err instanceof Error ? err.message : "Unknown error"}`);
       }
     }
 

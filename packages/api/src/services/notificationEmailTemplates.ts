@@ -1,4 +1,4 @@
-import { NOTIFICATION_TYPES, NotificationType } from "./notifications";
+import { NOTIFICATION_TYPES, type NotificationType } from "./notifications";
 
 export interface NotificationEmailData {
   ticket?: {
@@ -216,7 +216,7 @@ View ticket: ${ticketUrl}`,
       warning: { bg: "#fef3c7", border: "#f59e0b", text: "#92400e" },
       critical: { bg: "#fef2f2", border: "#ef4444", text: "#991b1b" },
     };
-    const colors = severityColors[severity] || severityColors.info;
+    const colors = severityColors[severity] ?? severityColors["info"];
 
     return {
       subject: `System Alert: ${message.substring(0, 50)}${message.length > 50 ? "..." : ""}`,

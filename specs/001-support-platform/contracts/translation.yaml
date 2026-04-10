@@ -16,14 +16,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/translateRequest'
+              $ref: "#/components/schemas/translateRequest"
       responses:
-        '200':
+        "200":
           description: Translation result
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/translateResponse'
+                $ref: "#/components/schemas/translateResponse"
 
   /translation/config:
     get:
@@ -32,14 +32,14 @@ paths:
       tags: [Translation]
       security: [cookieAuth: [], bearerAuth: []]
       parameters:
-        - $ref: '#/components/parameters/organizationId'
+        - $ref: "#/components/parameters/organizationId"
       responses:
-        '200':
+        "200":
           description: Config details
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/translationConfig'
+                $ref: "#/components/schemas/translationConfig"
 
     patch:
       operationId: updateTranslationConfig
@@ -47,15 +47,15 @@ paths:
       tags: [Translation]
       security: [cookieAuth: [], bearerAuth: []]
       parameters:
-        - $ref: '#/components/parameters/organizationId'
+        - $ref: "#/components/parameters/organizationId"
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/translationConfigUpdate'
+              $ref: "#/components/schemas/translationConfigUpdate"
       responses:
-        '200':
+        "200":
           description: Config updated
 
   /translation/usage:
@@ -65,9 +65,9 @@ paths:
       tags: [Translation]
       security: [cookieAuth: [], bearerAuth: []]
       parameters:
-        - $ref: '#/components/parameters/organizationId'
+        - $ref: "#/components/parameters/organizationId"
       responses:
-        '200':
+        "200":
           description: Usage statistics
           content:
             application/json:

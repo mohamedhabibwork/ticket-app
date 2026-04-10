@@ -16,9 +16,9 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/presenceJoin'
+              $ref: "#/components/schemas/presenceJoin"
       responses:
-        '200':
+        "200":
           description: Joined successfully
 
   /presence/leave:
@@ -32,9 +32,9 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/presenceLeave'
+              $ref: "#/components/schemas/presenceLeave"
       responses:
-        '200':
+        "200":
           description: Left successfully
 
   /presence/ping:
@@ -48,9 +48,9 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/presencePing'
+              $ref: "#/components/schemas/presencePing"
       responses:
-        '200':
+        "200":
           description: Heartbeat acknowledged
           content:
             application/json:
@@ -73,14 +73,14 @@ paths:
           schema:
             type: number
       responses:
-        '200':
+        "200":
           description: Viewer list
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/presenceViewer'
+                  $ref: "#/components/schemas/presenceViewer"
 
   /presence/check:
     post:
@@ -93,9 +93,9 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/presenceCheck'
+              $ref: "#/components/schemas/presenceCheck"
       responses:
-        '200':
+        "200":
           description: Presence status
           content:
             application/json:

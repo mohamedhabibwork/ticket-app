@@ -79,15 +79,18 @@ export const ticketMessagesRouter = {
 
       if (input.attachments && input.attachments.length > 0 && message) {
         await db.insert(ticketAttachments).values(
-          input.attachments.map((att) => ({
-            ticketId: input.ticketId,
-            ticketMessageId: message.id,
-            filename: att.filename,
-            mimeType: att.mimeType,
-            sizeBytes: att.sizeBytes,
-            storageKey: att.storageKey,
-            createdBy: input.authorUserId,
-          })),
+          input.attachments.map(
+            (att) =>
+              ({
+                ticketId: input.ticketId,
+                ticketMessageId: message.id,
+                filename: att.filename,
+                mimeType: att.mimeType,
+                sizeBytes: att.sizeBytes,
+                storageKey: att.storageKey,
+                createdBy: input.authorUserId,
+              }) as any,
+          ),
         );
       }
 

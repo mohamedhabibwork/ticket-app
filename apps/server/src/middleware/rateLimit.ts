@@ -38,7 +38,7 @@ export interface RateLimitResult {
 
 export async function checkRateLimit(
   key: string,
-  config: RateLimitConfig
+  config: RateLimitConfig,
 ): Promise<RateLimitResult> {
   const now = Date.now();
   const windowKey = `${config.keyPrefix}:${key}`;
@@ -72,7 +72,7 @@ export async function checkRateLimit(
 
 export async function getOrganizationRateLimit(
   organizationId: number | null,
-  _context: Context
+  _context: Context,
 ): Promise<RateLimitConfig> {
   if (!organizationId) {
     return RATE_LIMIT_TIERS.STANDARD;
@@ -109,7 +109,7 @@ export function rateLimitMiddleware(tier: RateLimitTier = "STANDARD") {
   return async function rateLimitHandler(
     context: Context,
     operation: { name?: string },
-    handler: () => Promise<unknown>
+    handler: () => Promise<unknown>,
   ): Promise<unknown> {
     const key = getClientKey(context);
     const orgId = context.session?.organizationId

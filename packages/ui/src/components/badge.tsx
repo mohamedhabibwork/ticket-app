@@ -36,7 +36,7 @@ function Badge({
         size === "sm" ? "px-1.5 py-0.5 text-[10px]" : "px-2 py-0.5 text-xs",
         dot && "before:size-1.5 before:rounded-full before:bg-current",
         removable && "pr-1.5",
-        className
+        className,
       )}
       {...props}
     >

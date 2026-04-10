@@ -9,8 +9,7 @@ export default function AdminBillingPage() {
 
   const { data: organizations, isLoading: orgsLoading } = useQuery({
     queryKey: ["allOrganizations"],
-    queryFn: () =>
-      orpc.admin.listOrganizations.query({ page: 1, limit: 100 }),
+    queryFn: () => orpc.admin.listOrganizations.query({ page: 1, limit: 100 }),
   });
 
   if (statsLoading || orgsLoading) {
@@ -32,45 +31,28 @@ export default function AdminBillingPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
         <div className="bg-white dark:bg-gray-800 rounded-lg border p-6">
-          <h3 className="text-sm font-medium text-gray-500 mb-1">
-            Total Organizations
-          </h3>
-          <div className="text-3xl font-bold">
-            {stats?.totalOrganizations || 0}
-          </div>
+          <h3 className="text-sm font-medium text-gray-500 mb-1">Total Organizations</h3>
+          <div className="text-3xl font-bold">{stats?.totalOrganizations || 0}</div>
         </div>
 
         <div className="bg-white dark:bg-gray-800 rounded-lg border p-6">
-          <h3 className="text-sm font-medium text-gray-500 mb-1">
-            Total Users
-          </h3>
+          <h3 className="text-sm font-medium text-gray-500 mb-1">Total Users</h3>
           <div className="text-3xl font-bold">{stats?.totalUsers || 0}</div>
         </div>
 
         <div className="bg-white dark:bg-gray-800 rounded-lg border p-6">
-          <h3 className="text-sm font-medium text-gray-500 mb-1">
-            Active Subscriptions
-          </h3>
-          <div className="text-3xl font-bold">
-            {stats?.totalActiveSubscriptions || 0}
-          </div>
+          <h3 className="text-sm font-medium text-gray-500 mb-1">Active Subscriptions</h3>
+          <div className="text-3xl font-bold">{stats?.totalActiveSubscriptions || 0}</div>
         </div>
 
         <div className="bg-white dark:bg-gray-800 rounded-lg border p-6">
-          <h3 className="text-sm font-medium text-gray-500 mb-1">
-            Monthly Revenue
-          </h3>
-          <div className="text-3xl font-bold">
-            ${((stats?.currentMRR || 0) / 100).toFixed(2)}
-          </div>
+          <h3 className="text-sm font-medium text-gray-500 mb-1">Monthly Revenue</h3>
+          <div className="text-3xl font-bold">${((stats?.currentMRR || 0) / 100).toFixed(2)}</div>
           {stats?.mrrChange !== undefined && stats.mrrChange !== 0 && (
             <p
-              className={`text-sm mt-1 ${
-                stats.mrrChange > 0 ? "text-green-600" : "text-red-600"
-              }`}
+              className={`text-sm mt-1 ${stats.mrrChange > 0 ? "text-green-600" : "text-red-600"}`}
             >
-              {stats.mrrChange > 0 ? "+" : ""}
-              ${(stats.mrrChange / 100).toFixed(2)} from last month
+              {stats.mrrChange > 0 ? "+" : ""}${(stats.mrrChange / 100).toFixed(2)} from last month
             </p>
           )}
         </div>
@@ -110,29 +92,23 @@ export default function AdminBillingPage() {
                         org.status === "active"
                           ? "bg-green-100 text-green-800"
                           : org.status === "canceled"
-                          ? "bg-red-100 text-red-800"
-                          : "bg-gray-100 text-gray-800"
+                            ? "bg-red-100 text-red-800"
+                            : "bg-gray-100 text-gray-800"
                       }`}
                     >
                       {org.status}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-500">
-                    {org.createdAt
-                      ? new Date(org.createdAt).toLocaleDateString()
-                      : "N/A"}
+                    {org.createdAt ? new Date(org.createdAt).toLocaleDateString() : "N/A"}
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex gap-2">
-                      <button className="text-blue-600 hover:underline text-sm">
-                        View
-                      </button>
+                      <button className="text-blue-600 hover:underline text-sm">View</button>
                       <button className="text-gray-600 hover:underline text-sm">
                         Subscription
                       </button>
-                      <button className="text-gray-600 hover:underline text-sm">
-                        Invoices
-                      </button>
+                      <button className="text-gray-600 hover:underline text-sm">Invoices</button>
                     </div>
                   </td>
                 </tr>
@@ -141,11 +117,8 @@ export default function AdminBillingPage() {
           </table>
         </div>
 
-        {(!organizations?.organizations ||
-          organizations.organizations.length === 0) && (
-          <div className="text-center py-12 text-gray-500">
-            No organizations found
-          </div>
+        {(!organizations?.organizations || organizations.organizations.length === 0) && (
+          <div className="text-center py-12 text-gray-500">No organizations found</div>
         )}
       </div>
     </div>

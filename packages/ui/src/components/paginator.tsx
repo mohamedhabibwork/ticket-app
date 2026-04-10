@@ -1,7 +1,12 @@
 "use client";
 
 import { cn } from "@ticket-app/ui/lib/utils";
-import { ChevronLeftIcon, ChevronRightIcon, ChevronsLeftIcon, ChevronsRightIcon } from "lucide-react";
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  ChevronsLeftIcon,
+  ChevronsRightIcon,
+} from "lucide-react";
 import * as React from "react";
 
 interface PaginatorProps extends React.ComponentProps<"div"> {
@@ -34,11 +39,7 @@ function Paginator({
     const delta = 1;
 
     for (let i = 1; i <= totalPages; i++) {
-      if (
-        i === 1 ||
-        i === totalPages ||
-        (i >= page - delta && i <= page + delta)
-      ) {
+      if (i === 1 || i === totalPages || (i >= page - delta && i <= page + delta)) {
         pages.push(i);
       } else if (pages[pages.length - 1] !== "ellipsis") {
         pages.push("ellipsis");
@@ -55,10 +56,7 @@ function Paginator({
   return (
     <div
       data-slot="paginator"
-      className={cn(
-        "flex flex-wrap items-center justify-between gap-4 px-4 py-3",
-        className
-      )}
+      className={cn("flex flex-wrap items-center justify-between gap-4 px-4 py-3", className)}
       {...props}
     >
       <div className="flex items-center gap-4">
@@ -122,15 +120,13 @@ function Paginator({
                 onClick={() => onPageChange(p)}
                 className={cn(
                   "inline-flex size-7 items-center justify-center rounded-none text-xs transition-colors",
-                  p === page
-                    ? "bg-primary text-primary-foreground"
-                    : "hover:bg-muted"
+                  p === page ? "bg-primary text-primary-foreground" : "hover:bg-muted",
                 )}
                 aria-current={p === page ? "page" : undefined}
               >
                 {p}
               </button>
-            )
+            ),
           )}
         </div>
 

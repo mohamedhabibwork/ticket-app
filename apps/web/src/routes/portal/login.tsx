@@ -1,7 +1,13 @@
 import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@ticket-app/ui/components/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@ticket-app/ui/components/card";
 import { Input } from "@ticket-app/ui/components/input";
 import { Label } from "@ticket-app/ui/components/label";
 import { Separator } from "@ticket-app/ui/components/separator";
@@ -24,7 +30,7 @@ function PortalLoginRoute() {
       onSuccess: (data) => {
         window.location.href = data.url;
       },
-    })
+    }),
   );
 
   const handleSocialLogin = (provider: "google" | "facebook" | "apple") => {
@@ -36,9 +42,7 @@ function PortalLoginRoute() {
     <div className="min-h-[80vh] flex items-center justify-center px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">
-            Customer Portal
-          </CardTitle>
+          <CardTitle className="text-2xl font-bold text-center">Customer Portal</CardTitle>
           <CardDescription className="text-center">
             Sign in to view and manage your support tickets
           </CardDescription>

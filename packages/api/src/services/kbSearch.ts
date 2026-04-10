@@ -10,7 +10,7 @@ interface SearchKbArticlesOptions {
   categoryId?: number;
 }
 
-interface KbArticleSearchResult {
+export interface KbArticleSearchResult {
   id: number;
   uuid: string;
   title: string;
@@ -39,9 +39,6 @@ export async function searchKbArticles(
   const searchQuery = query.trim();
   const tsQuery = searchQuery.replace(/\s+/g, " & ") + ":*";
 
-  const _titleField =
-    locale === "ar" ? sql`COALESCE(${kbArticles.titleAr}, ${kbArticles.title})` : kbArticles.title;
-
   const baseConditions = [
     eq(kbArticles.organizationId, organizationId),
     eq(kbArticles.status, "published"),
@@ -51,14 +48,6 @@ export async function searchKbArticles(
   if (categoryId) {
     baseConditions.push(eq(kbArticles.categoryId, categoryId));
   }
-
-  const _fullTextSearch = sql`
-    setweight(to_tsvector('english', ${kbArticles.title}), 'A') ||
-    setweight(to_tsvector('english', COALESCE(${kbArticles.titleAr}, '')), 'B') ||
-    setweight(to_tsvector('english', COALESCE(${kbArticles.bodyText}, '')), 'C') ||
-    setweight(to_tsvector('english', COALESCE(${kbArticles.metaDescription}, '')), 'D')
-    @@ to_tsquery('english', ${tsQuery})
-  `;
 
   const results = await db
     .select({

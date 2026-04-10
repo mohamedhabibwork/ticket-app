@@ -51,7 +51,7 @@ export function useTheme(): UseThemeReturn {
 export function getThemeVariables(
   mode: "light" | "dark",
   customPrimaryColor?: string,
-  customBackgroundColor?: string
+  customBackgroundColor?: string,
 ): Record<string, string> {
   const isDark = mode === "dark";
 
@@ -84,7 +84,7 @@ export function getThemeVariables(
 
 export function applyThemeVariables(
   styleElement: HTMLStyleElement,
-  variables: Record<string, string>
+  variables: Record<string, string>,
 ): void {
   const css = Object.entries(variables)
     .map(([key, value]) => `${key}: ${value};`)

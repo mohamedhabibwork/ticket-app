@@ -16,9 +16,7 @@
 
 ---
 
-
-
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Multi-Channel Ticket Submission (Priority: P1)
 
@@ -120,7 +118,7 @@ Organization owners can view their current plan, upgrade or downgrade, manage se
 
 ### User Story 6 - Workflow Automation (Priority: P2)
 
- Administrators can create automation rules that trigger actions based on ticket events. For example, when a ticket is created from a specific mailbox with high priority, it is automatically assigned to the urgent team.
+Administrators can create automation rules that trigger actions based on ticket events. For example, when a ticket is created from a specific mailbox with high priority, it is automatically assigned to the urgent team.
 
 **Why this priority**: Automation reduces manual work and ensures consistent handling. It allows small teams to handle high volume efficiently.
 
@@ -184,7 +182,7 @@ When a customer submits a ticket, agents can see their order history from connec
 
 ---
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -255,7 +253,7 @@ When a customer submits a ticket, agents can see their order history from connec
 - **FR-065**: System MUST display friendly placeholders with contextual guidance in empty states (e.g., "No tickets yet. Create your first ticket or connect a mailbox to get started.").
 - **FR-066**: System MUST automatically retry failed operations with exponential backoff (3 attempts) before showing error with manual retry option.
 
-### Key Entities *(include if feature involves data)*
+### Key Entities _(include if feature involves data)_
 
 - **Ticket**: A customer support request with unique reference, subject, description, status, priority, assignee, team, channel source, and timeline of messages.
 - **Contact**: An end customer who submits tickets, identified by email and/or phone, with optional company association.
@@ -274,7 +272,7 @@ When a customer submits a ticket, agents can see their order history from connec
 
 ---
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

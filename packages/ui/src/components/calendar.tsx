@@ -72,7 +72,7 @@ function Calendar({
       (d) =>
         d.getDate() === date.getDate() &&
         d.getMonth() === date.getMonth() &&
-        d.getFullYear() === date.getFullYear()
+        d.getFullYear() === date.getFullYear(),
     );
   };
 
@@ -138,7 +138,10 @@ function Calendar({
   return (
     <div
       data-slot="calendar"
-      className={cn("w-fit rounded-none border bg-popover p-3 shadow-md ring-1 ring-foreground/10", className)}
+      className={cn(
+        "w-fit rounded-none border bg-popover p-3 shadow-md ring-1 ring-foreground/10",
+        className,
+      )}
       {...props}
     >
       <div className="flex items-center justify-between gap-8 pb-3">
@@ -189,14 +192,14 @@ function Calendar({
                 "size-7 rounded-sm p-1 text-xs transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50",
                 isToday(date) && "bg-muted font-medium",
                 isSelected(date) && "bg-primary text-primary-foreground hover:bg-primary",
-                isInRange(date) && "bg-primary/10"
+                isInRange(date) && "bg-primary/10",
               )}
             >
               {date.getDate()}
             </button>
           ) : (
             <span key={idx} className="size-7" />
-          )
+          ),
         )}
       </div>
     </div>

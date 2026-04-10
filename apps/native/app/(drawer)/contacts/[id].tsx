@@ -1,14 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
-import {
-  Button,
-  Chip,
-  Divider,
-  Spinner,
-  Surface,
-  Text,
-  useThemeColor,
-} from "heroui-native";
+import { Button, Chip, Divider, Spinner, Surface, Text, useThemeColor } from "heroui-native";
 import { useLocalSearchParams, Link } from "expo-router";
 import { View, ScrollView, Alert } from "react-native";
 
@@ -94,9 +86,7 @@ export default function ContactDetailScreen() {
                 {contact.data.name?.charAt(0).toUpperCase() || "?"}
               </Text>
             </View>
-            <Text className="text-xl font-semibold text-foreground">
-              {contact.data.name}
-            </Text>
+            <Text className="text-xl font-semibold text-foreground">{contact.data.name}</Text>
           </View>
 
           <View className="flex-row justify-center gap-3 mb-4">

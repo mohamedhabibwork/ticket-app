@@ -90,7 +90,7 @@ export async function getWooCommerceConfig(storeId: number): Promise<WooCommerce
 export async function wooCommerceApiRequest<T>(
   config: WooCommerceConfig,
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
 ): Promise<T> {
   const url = `https://${config.domain}/wp-json/${WOOCOMMERCE_API_VERSION}/${endpoint}`;
 
@@ -120,7 +120,7 @@ export async function fetchWooCommerceOrders(
     after?: string;
     before?: string;
     status?: string;
-  } = {}
+  } = {},
 ): Promise<WooCommerceOrder[]> {
   const searchParams = new URLSearchParams();
   searchParams.set("per_page", String(params.per_page || 100));
@@ -136,7 +136,7 @@ export async function fetchWooCommerceOrders(
     searchParams.set("page", String(page));
     const response = await wooCommerceApiRequest<WooCommerceOrder[]>(
       config,
-      `orders?${searchParams.toString()}`
+      `orders?${searchParams.toString()}`,
     );
     orders.push(...response);
     if (response.length < (params.per_page || 100)) break;
@@ -148,13 +148,10 @@ export async function fetchWooCommerceOrders(
 
 export async function fetchWooCommerceOrder(
   config: WooCommerceConfig,
-  orderId: number
+  orderId: number,
 ): Promise<WooCommerceOrder | null> {
   try {
-    const orders = await wooCommerceApiRequest<WooCommerceOrder[]>(
-      config,
-      `orders/${orderId}`
-    );
+    const orders = await wooCommerceApiRequest<WooCommerceOrder[]>(config, `orders/${orderId}`);
     return orders[0] || null;
   } catch {
     return null;
@@ -163,7 +160,7 @@ export async function fetchWooCommerceOrder(
 
 export function transformWooCommerceOrder(
   storeId: number,
-  wooOrder: WooCommerceOrder
+  wooOrder: WooCommerceOrder,
 ): Omit<typeof ecommerceOrders.$inferInsert, "id" | "uuid" | "createdAt" | "updatedAt"> {
   const lineItems = wooOrder.line_items.map((item) => ({
     productId: String(item.product_id),
@@ -221,9 +218,8 @@ export function transformWooCommerceOrder(
     discountCodes: wooOrder.discount_codes,
     customerEmail: wooOrder.billing.email?.toLowerCase() || null,
     customerPhone: wooOrder.billing.phone?.replace(/\D/g, "") || null,
-    customerName: [wooOrder.billing.first_name, wooOrder.billing.last_name]
-      .filter(Boolean)
-      .join(" ") || null,
+    customerName:
+      [wooOrder.billing.first_name, wooOrder.billing.last_name].filter(Boolean).join(" ") || null,
     billingAddress,
     shippingAddress,
     shippingMethod: shippingLine?.method_title || null,
@@ -237,7 +233,7 @@ export function transformWooCommerceOrder(
 
 export async function syncWooCommerceStoreOrders(
   storeId: number,
-  sinceDate?: Date
+  sinceDate?: Date,
 ): Promise<{ synced: number; errors: string[] }> {
   const config = await getWooCommerceConfig(storeId);
   if (!config) {

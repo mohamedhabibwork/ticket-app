@@ -58,9 +58,7 @@ function IPWhitelistRoute() {
 
   const handleToggleEntry = (id: string) => {
     setEntries(
-      entries.map((entry) =>
-        entry.id === id ? { ...entry, enabled: !entry.enabled } : entry
-      )
+      entries.map((entry) => (entry.id === id ? { ...entry, enabled: !entry.enabled } : entry)),
     );
   };
 
@@ -75,10 +73,8 @@ function IPWhitelistRoute() {
 
     setEntries(
       entries.map((entry) =>
-        entry.id === editingId
-          ? { ...entry, cidr: editCidr, label: editLabel }
-          : entry
-      )
+        entry.id === editingId ? { ...entry, cidr: editCidr, label: editLabel } : entry,
+      ),
     );
     setEditingId(null);
   };
@@ -190,10 +186,7 @@ function IPWhitelistRoute() {
                         </div>
                         <div className="flex-1 space-y-1">
                           <Label className="text-muted-foreground text-xs">Label</Label>
-                          <Input
-                            value={editLabel}
-                            onChange={(e) => setEditLabel(e.target.value)}
-                          />
+                          <Input value={editLabel} onChange={(e) => setEditLabel(e.target.value)} />
                         </div>
                         <Button size="sm" onClick={handleSaveEdit}>
                           <Save className="h-4 w-4" />

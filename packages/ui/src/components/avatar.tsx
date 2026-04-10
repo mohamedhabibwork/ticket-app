@@ -39,7 +39,7 @@ function Avatar({
           md: "size-8",
           lg: "size-10",
         }[size],
-        className
+        className,
       )}
       {...props}
     >
@@ -68,7 +68,7 @@ function Avatar({
               offline: "bg-muted-foreground/30",
               busy: "bg-red-500",
             }[status],
-            size === "sm" ? "size-1.5" : size === "lg" ? "size-3" : "size-2"
+            size === "sm" ? "size-1.5" : size === "lg" ? "size-3" : "size-2",
           )}
         />
       )}

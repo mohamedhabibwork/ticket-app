@@ -1,15 +1,16 @@
 # Feature Upgrade Analysis
+
 ## UVdesk Open Source → Our Platform Gap Report
 
-| Field | Value |
-|---|---|
-| **Document Version** | 1.0.0 |
-| **Source** | https://www.uvdesk.com/en/opensource/ |
-| **Reference BRD** | BRD-FINAL.md v1.0.0 |
-| **Reference ERD** | ERD-FINAL.md v1.0.0 |
-| **Prepared By** | Mohamed Habib |
-| **Date** | 2026-04-08 |
-| **Classification** | Internal — Engineering |
+| Field                | Value                                 |
+| -------------------- | ------------------------------------- |
+| **Document Version** | 1.0.0                                 |
+| **Source**           | https://www.uvdesk.com/en/opensource/ |
+| **Reference BRD**    | BRD-FINAL.md v1.0.0                   |
+| **Reference ERD**    | ERD-FINAL.md v1.0.0                   |
+| **Prepared By**      | Mohamed Habib                         |
+| **Date**             | 2026-04-08                            |
+| **Classification**   | Internal — Engineering                |
 
 ---
 
@@ -29,177 +30,177 @@ All items marked ⚠️ or 🆕 are detailed in the **Upgrade Specifications** s
 
 ### 1.1 Core Ticket System
 
-| UVdesk Feature | Our Status | Notes |
-|---|---|---|
-| Ticket creation from email | ✅ Covered | `email_messages` → `tickets` flow |
-| Ticket types / categories | ⚠️ Partial | We have `lookups` but no dedicated ticket type entity with escalation routing |
-| Custom ticket fields | ✅ Covered | `ticket_custom_fields` + `ticket_custom_field_values` |
-| Google reCAPTCHA on ticket creation | ✅ Covered | Covered in form CAPTCHA; needs explicit flag on customer portal ticket form too |
-| Ticket priority (Urgent/Medium/Low) | ✅ Covered | `priority_id` FK to `lookups` |
-| Ticket status management | ✅ Covered | `status_id` FK to `lookups` |
-| Ticket tags | ✅ Covered | `tags` + `ticket_tags` junction |
-| Ticket merging | ✅ Covered | `ticket_merges` table |
-| CC / BCC on ticket replies | ✅ Covered | `ticket_cc` table; BCC stored in `email_messages` |
-| Ticket forwarding (CC/BCC forward) | ⚠️ Partial | Email forwarding not modelled as a distinct action; BCC/CC exist but explicit forward action is missing |
-| Secret / private notes | ✅ Covered | `ticket_messages.is_private = true` |
-| Thread-level locking (per message) | 🆕 New | We have ticket-level locking only; UVdesk locks individual thread entries |
-| Thread deletion (omit thread) | ⚠️ Partial | `ticket_messages.deleted_at` exists for soft delete but not exposed as an explicit agent-facing "omit" action with audit |
-| Multiple concurrent ticket viewers | 🆕 New | No presence tracking per ticket; UVdesk shows all agents currently viewing |
-| Image gallery viewer in ticket | 🆕 New | Attachments are stored but no dedicated gallery/lightbox metadata |
-| Saved replies (canned responses) | ✅ Covered | `saved_replies` + `saved_reply_folders` |
-| Bulk ticket actions | ✅ Covered | Specified in BRD §5.2 |
-| Spam detection / quarantine | ✅ Covered | `is_spam` flag + BRD §5.1 |
+| UVdesk Feature                      | Our Status | Notes                                                                                                                    |
+| ----------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------ |
+| Ticket creation from email          | ✅ Covered | `email_messages` → `tickets` flow                                                                                        |
+| Ticket types / categories           | ⚠️ Partial | We have `lookups` but no dedicated ticket type entity with escalation routing                                            |
+| Custom ticket fields                | ✅ Covered | `ticket_custom_fields` + `ticket_custom_field_values`                                                                    |
+| Google reCAPTCHA on ticket creation | ✅ Covered | Covered in form CAPTCHA; needs explicit flag on customer portal ticket form too                                          |
+| Ticket priority (Urgent/Medium/Low) | ✅ Covered | `priority_id` FK to `lookups`                                                                                            |
+| Ticket status management            | ✅ Covered | `status_id` FK to `lookups`                                                                                              |
+| Ticket tags                         | ✅ Covered | `tags` + `ticket_tags` junction                                                                                          |
+| Ticket merging                      | ✅ Covered | `ticket_merges` table                                                                                                    |
+| CC / BCC on ticket replies          | ✅ Covered | `ticket_cc` table; BCC stored in `email_messages`                                                                        |
+| Ticket forwarding (CC/BCC forward)  | ⚠️ Partial | Email forwarding not modelled as a distinct action; BCC/CC exist but explicit forward action is missing                  |
+| Secret / private notes              | ✅ Covered | `ticket_messages.is_private = true`                                                                                      |
+| Thread-level locking (per message)  | 🆕 New     | We have ticket-level locking only; UVdesk locks individual thread entries                                                |
+| Thread deletion (omit thread)       | ⚠️ Partial | `ticket_messages.deleted_at` exists for soft delete but not exposed as an explicit agent-facing "omit" action with audit |
+| Multiple concurrent ticket viewers  | 🆕 New     | No presence tracking per ticket; UVdesk shows all agents currently viewing                                               |
+| Image gallery viewer in ticket      | 🆕 New     | Attachments are stored but no dedicated gallery/lightbox metadata                                                        |
+| Saved replies (canned responses)    | ✅ Covered | `saved_replies` + `saved_reply_folders`                                                                                  |
+| Bulk ticket actions                 | ✅ Covered | Specified in BRD §5.2                                                                                                    |
+| Spam detection / quarantine         | ✅ Covered | `is_spam` flag + BRD §5.1                                                                                                |
 
 ---
 
 ### 1.2 Ticket Administration & Agent Management
 
-| UVdesk Feature | Our Status | Notes |
-|---|---|---|
-| Agent creation | ✅ Covered | `users` table |
-| Role-based access control | ✅ Covered | `roles` + `permissions` + `role_permissions` |
-| Agent privilege scopes (visibility) | ⚠️ Partial | We have action permissions but not view-scope restrictions (e.g., agent sees only own tickets) |
-| Groups (department classification) | 🆕 New | We have `teams` but UVdesk separates Groups (departments) from Teams (sub-groups); we need both levels |
-| Teams (sub-groups within groups) | ✅ Covered | `teams` + `team_members` |
-| Multiple agents viewing one ticket | 🆕 New | No viewer presence table exists |
-| Agent performance insights | ✅ Covered | `agent_performance_snapshots` + BRD §5.11 |
+| UVdesk Feature                      | Our Status | Notes                                                                                                  |
+| ----------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------ |
+| Agent creation                      | ✅ Covered | `users` table                                                                                          |
+| Role-based access control           | ✅ Covered | `roles` + `permissions` + `role_permissions`                                                           |
+| Agent privilege scopes (visibility) | ⚠️ Partial | We have action permissions but not view-scope restrictions (e.g., agent sees only own tickets)         |
+| Groups (department classification)  | 🆕 New     | We have `teams` but UVdesk separates Groups (departments) from Teams (sub-groups); we need both levels |
+| Teams (sub-groups within groups)    | ✅ Covered | `teams` + `team_members`                                                                               |
+| Multiple agents viewing one ticket  | 🆕 New     | No viewer presence table exists                                                                        |
+| Agent performance insights          | ✅ Covered | `agent_performance_snapshots` + BRD §5.11                                                              |
 
 ---
 
 ### 1.3 Email Management & Mailboxes
 
-| UVdesk Feature | Our Status | Notes |
-|---|---|---|
-| Mailbox configuration (IMAP/SMTP) | ✅ Covered | `mailboxes` + `mailbox_imap_configs` + `mailbox_smtp_configs` |
-| Multiple mailboxes | ✅ Covered | Multiple rows in `mailboxes` per org |
-| Mail-to-ticket (inbound parsing) | ✅ Covered | `email_messages` → ticket creation flow |
-| Email piping (customer reply via email) | ✅ Covered | `In-Reply-To` threading in `email_messages` |
-| Auto-reply on ticket creation | ✅ Covered | `mailboxes.auto_reply_enabled` |
-| Email routing rules | ✅ Covered | `email_routing_rules` |
-| Email signature per agent | ✅ Covered | `users.signature_html` |
+| UVdesk Feature                          | Our Status | Notes                                                         |
+| --------------------------------------- | ---------- | ------------------------------------------------------------- |
+| Mailbox configuration (IMAP/SMTP)       | ✅ Covered | `mailboxes` + `mailbox_imap_configs` + `mailbox_smtp_configs` |
+| Multiple mailboxes                      | ✅ Covered | Multiple rows in `mailboxes` per org                          |
+| Mail-to-ticket (inbound parsing)        | ✅ Covered | `email_messages` → ticket creation flow                       |
+| Email piping (customer reply via email) | ✅ Covered | `In-Reply-To` threading in `email_messages`                   |
+| Auto-reply on ticket creation           | ✅ Covered | `mailboxes.auto_reply_enabled`                                |
+| Email routing rules                     | ✅ Covered | `email_routing_rules`                                         |
+| Email signature per agent               | ✅ Covered | `users.signature_html`                                        |
 
 ---
 
 ### 1.4 Workflow & Automation
 
-| UVdesk Feature | Our Status | Notes |
-|---|---|---|
-| Event-based workflow triggers | ✅ Covered | `workflows` + `workflow_execution_logs` |
-| Condition-action rules | ✅ Covered | `conditions` + `actions` JSONB in `workflows` |
-| Workflow execution log | ✅ Covered | `workflow_execution_logs` |
+| UVdesk Feature                | Our Status | Notes                                         |
+| ----------------------------- | ---------- | --------------------------------------------- |
+| Event-based workflow triggers | ✅ Covered | `workflows` + `workflow_execution_logs`       |
+| Condition-action rules        | ✅ Covered | `conditions` + `actions` JSONB in `workflows` |
+| Workflow execution log        | ✅ Covered | `workflow_execution_logs`                     |
 
 ---
 
 ### 1.5 Social Media
 
-| UVdesk Feature | Our Status | Notes |
-|---|---|---|
-| Facebook (Pages + Messenger) | ✅ Covered | `social_accounts` + `social_messages` |
-| Instagram (DMs + Comments) | ✅ Covered | |
-| Twitter / X (Mentions + DMs) | ✅ Covered | |
-| WhatsApp Business API | ✅ Covered | |
-| Disqus comment integration | 🆕 New | Not in our platform; UVdesk has a Disqus Engage app turning comments into tickets |
+| UVdesk Feature               | Our Status | Notes                                                                             |
+| ---------------------------- | ---------- | --------------------------------------------------------------------------------- |
+| Facebook (Pages + Messenger) | ✅ Covered | `social_accounts` + `social_messages`                                             |
+| Instagram (DMs + Comments)   | ✅ Covered |                                                                                   |
+| Twitter / X (Mentions + DMs) | ✅ Covered |                                                                                   |
+| WhatsApp Business API        | ✅ Covered |                                                                                   |
+| Disqus comment integration   | 🆕 New     | Not in our platform; UVdesk has a Disqus Engage app turning comments into tickets |
 
 ---
 
 ### 1.6 eCommerce & Marketplace
 
-| UVdesk Feature | Our Status | Notes |
-|---|---|---|
-| Shopify integration | ✅ Covered | `ecommerce_integrations` |
-| WooCommerce integration | ✅ Covered | |
-| Magento 2 integration | ✅ Covered | |
-| Prestashop integration | ⚠️ Partial | `ecommerce_platform` lookup exists but Prestashop not explicitly seeded |
-| OpenCart integration | ⚠️ Partial | Same as above |
-| Salla (Saudi) integration | ✅ Covered | |
-| Zid (Saudi) integration | ✅ Covered | |
-| Marketplace integration (Amazon, eBay) | 🆕 New | UVdesk has Seller Central Messaging; we only handle eCommerce stores, not marketplace channels |
-| Amazon Seller Central Messaging | 🆕 New | Distinct from eCommerce orders; seller-buyer messaging within Amazon |
-| Order fetch / display in ticket | ✅ Covered | `ecommerce_orders` + `ticket_orders` |
+| UVdesk Feature                         | Our Status | Notes                                                                                          |
+| -------------------------------------- | ---------- | ---------------------------------------------------------------------------------------------- |
+| Shopify integration                    | ✅ Covered | `ecommerce_integrations`                                                                       |
+| WooCommerce integration                | ✅ Covered |                                                                                                |
+| Magento 2 integration                  | ✅ Covered |                                                                                                |
+| Prestashop integration                 | ⚠️ Partial | `ecommerce_platform` lookup exists but Prestashop not explicitly seeded                        |
+| OpenCart integration                   | ⚠️ Partial | Same as above                                                                                  |
+| Salla (Saudi) integration              | ✅ Covered |                                                                                                |
+| Zid (Saudi) integration                | ✅ Covered |                                                                                                |
+| Marketplace integration (Amazon, eBay) | 🆕 New     | UVdesk has Seller Central Messaging; we only handle eCommerce stores, not marketplace channels |
+| Amazon Seller Central Messaging        | 🆕 New     | Distinct from eCommerce orders; seller-buyer messaging within Amazon                           |
+| Order fetch / display in ticket        | ✅ Covered | `ecommerce_orders` + `ticket_orders`                                                           |
 
 ---
 
 ### 1.7 Multi-Channel Support
 
-| UVdesk Feature | Our Status | Notes |
-|---|---|---|
-| Email channel | ✅ Covered | |
-| Live chat (Binaka) | ✅ Covered | `chat_widgets` + `chat_sessions` |
-| Social media channels | ✅ Covered | |
-| Web forms | ✅ Covered | `forms` + `form_submissions` |
-| API ticket creation | ✅ Covered | BRD §5.1 + `api_keys` |
-| Unified inbox | ✅ Covered | BRD §5.9 |
-| Mobile App channel | 🆕 New | UVdesk lists a Mobile App product; no mobile SDK or push notification system in our platform |
+| UVdesk Feature        | Our Status | Notes                                                                                        |
+| --------------------- | ---------- | -------------------------------------------------------------------------------------------- |
+| Email channel         | ✅ Covered |                                                                                              |
+| Live chat (Binaka)    | ✅ Covered | `chat_widgets` + `chat_sessions`                                                             |
+| Social media channels | ✅ Covered |                                                                                              |
+| Web forms             | ✅ Covered | `forms` + `form_submissions`                                                                 |
+| API ticket creation   | ✅ Covered | BRD §5.1 + `api_keys`                                                                        |
+| Unified inbox         | ✅ Covered | BRD §5.9                                                                                     |
+| Mobile App channel    | 🆕 New     | UVdesk lists a Mobile App product; no mobile SDK or push notification system in our platform |
 
 ---
 
 ### 1.8 Form Builder
 
-| UVdesk Feature | Our Status | Notes |
-|---|---|---|
-| Drag-and-drop form builder | ✅ Covered | `forms` + `form_fields` |
-| Custom field types | ✅ Covered | |
-| Form embed via JS snippet | ✅ Covered | BRD §5.6 |
-| CAPTCHA protection | ✅ Covered | `forms.captcha_provider` |
+| UVdesk Feature             | Our Status | Notes                    |
+| -------------------------- | ---------- | ------------------------ |
+| Drag-and-drop form builder | ✅ Covered | `forms` + `form_fields`  |
+| Custom field types         | ✅ Covered |                          |
+| Form embed via JS snippet  | ✅ Covered | BRD §5.6                 |
+| CAPTCHA protection         | ✅ Covered | `forms.captcha_provider` |
 
 ---
 
 ### 1.9 Knowledgebase
 
-| UVdesk Feature | Our Status | Notes |
-|---|---|---|
-| Article categories | ✅ Covered | `kb_categories` (2-level hierarchy) |
-| Article authoring | ✅ Covered | `kb_articles` |
-| Article feedback (helpful / not helpful) | ✅ Covered | `kb_article_feedback` |
-| Article search | ✅ Covered | BRD §5.13 full-text search |
-| KB widget integration with Binaka | ✅ Covered | `chat_widgets.kb_search_enabled` |
+| UVdesk Feature                           | Our Status | Notes                               |
+| ---------------------------------------- | ---------- | ----------------------------------- |
+| Article categories                       | ✅ Covered | `kb_categories` (2-level hierarchy) |
+| Article authoring                        | ✅ Covered | `kb_articles`                       |
+| Article feedback (helpful / not helpful) | ✅ Covered | `kb_article_feedback`               |
+| Article search                           | ✅ Covered | BRD §5.13 full-text search          |
+| KB widget integration with Binaka        | ✅ Covered | `chat_widgets.kb_search_enabled`    |
 
 ---
 
 ### 1.10 Branding & Theming
 
-| UVdesk Feature | Our Status | Notes |
-|---|---|---|
-| Custom branding / logo | ✅ Covered | `branding_configs` |
-| Customize theme colors | ✅ Covered | |
-| Custom domain | ✅ Covered | `organizations.custom_domain` |
+| UVdesk Feature                       | Our Status | Notes                                   |
+| ------------------------------------ | ---------- | --------------------------------------- |
+| Custom branding / logo               | ✅ Covered | `branding_configs`                      |
+| Customize theme colors               | ✅ Covered |                                         |
+| Custom domain                        | ✅ Covered | `organizations.custom_domain`           |
 | White-label (remove vendor branding) | ✅ Covered | `branding_configs.hide_vendor_branding` |
 
 ---
 
 ### 1.11 Security
 
-| UVdesk Feature | Our Status | Notes |
-|---|---|---|
-| Role-based access | ✅ Covered | |
-| Two-factor authentication | ✅ Covered | `two_factor_auth` |
-| IP whitelisting | ✅ Covered | `ip_whitelist` |
-| API keys | ✅ Covered | `api_keys` |
-| Audit log | ✅ Covered | `audit_logs` |
-| GDPR compliance hooks | ⚠️ Partial | BRD mentions data retention / deletion but no dedicated GDPR data subject request workflow or anonymization log |
+| UVdesk Feature            | Our Status | Notes                                                                                                           |
+| ------------------------- | ---------- | --------------------------------------------------------------------------------------------------------------- |
+| Role-based access         | ✅ Covered |                                                                                                                 |
+| Two-factor authentication | ✅ Covered | `two_factor_auth`                                                                                               |
+| IP whitelisting           | ✅ Covered | `ip_whitelist`                                                                                                  |
+| API keys                  | ✅ Covered | `api_keys`                                                                                                      |
+| Audit log                 | ✅ Covered | `audit_logs`                                                                                                    |
+| GDPR compliance hooks     | ⚠️ Partial | BRD mentions data retention / deletion but no dedicated GDPR data subject request workflow or anonymization log |
 
 ---
 
 ### 1.12 Platform / Extensibility
 
-| UVdesk Feature | Our Status | Notes |
-|---|---|---|
-| Module / plugin architecture | 🆕 New | UVdesk is built on Symfony and exposes a module SDK; our platform has no official plugin/extension API |
-| Google Calendar integration | 🆕 New | UVdesk has a Google Calendar app for tasks/tickets; we have no calendar integration |
-| Translation / multilingual UI | ⚠️ Partial | BRD mentions Arabic/RTL and i18n but no machine translation or per-ticket translation service |
-| Single Sign-On for end-customers | 🆕 New | Our SSO covers agent login (SAML) but not end-customer portal SSO |
-| Self-hosted / on-premise deployment | 🆕 New | Our platform is SaaS-only; UVdesk is LAMP/LEMP self-hostable |
-| AI Chatbot | 🆕 New | UVdesk lists an AI Chatbot product; we have no AI-assisted chat or auto-reply |
+| UVdesk Feature                      | Our Status | Notes                                                                                                  |
+| ----------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------ |
+| Module / plugin architecture        | 🆕 New     | UVdesk is built on Symfony and exposes a module SDK; our platform has no official plugin/extension API |
+| Google Calendar integration         | 🆕 New     | UVdesk has a Google Calendar app for tasks/tickets; we have no calendar integration                    |
+| Translation / multilingual UI       | ⚠️ Partial | BRD mentions Arabic/RTL and i18n but no machine translation or per-ticket translation service          |
+| Single Sign-On for end-customers    | 🆕 New     | Our SSO covers agent login (SAML) but not end-customer portal SSO                                      |
+| Self-hosted / on-premise deployment | 🆕 New     | Our platform is SaaS-only; UVdesk is LAMP/LEMP self-hostable                                           |
+| AI Chatbot                          | 🆕 New     | UVdesk lists an AI Chatbot product; we have no AI-assisted chat or auto-reply                          |
 
 ---
 
 ## 2. Summary Counts
 
-| Status | Count |
-|---|---|
-| ✅ Covered | 52 |
-| ⚠️ Partial | 10 |
-| 🆕 New | 12 |
+| Status             | Count  |
+| ------------------ | ------ |
+| ✅ Covered         | 52     |
+| ⚠️ Partial         | 10     |
+| 🆕 New             | 12     |
 | **Total assessed** | **74** |
 
 ---
@@ -215,6 +216,7 @@ This section provides full BRD requirements and ERD additions for every ⚠️ P
 **Gap:** UVdesk's ticket categories are not just a lookup value — they carry escalation routing logic, icons, and SLA policy overrides per category.
 
 **BRD Addition:**
+
 - Admins shall define ticket types/categories beyond a simple label: each category may override the default SLA policy, default assigned team, and default priority.
 - Ticket category icons and color badges shall be configurable.
 - Creating a ticket via the customer portal shall allow the requester to select a category; available categories are configurable per form.
@@ -258,6 +260,7 @@ Add `category_id BIGINT REFERENCES ticket_categories(id)` to `tickets`.
 **Gap:** UVdesk supports locking individual ticket message threads (e.g., to hide FTP/SSH credentials shared in one reply from certain agents). Our platform only locks the entire ticket for concurrent editing.
 
 **BRD Addition:**
+
 - An agent with sufficient permissions may lock a specific reply thread within a ticket.
 - A locked thread is visible only to agents who have the `threads.view_locked` permission.
 - Locking a thread records the locking agent and timestamp.
@@ -285,6 +288,7 @@ Add permission key: `threads.lock`, `threads.unlock`, `threads.view_locked`.
 **Gap:** `ticket_messages.deleted_at` exists but is purely a backend soft-delete. UVdesk exposes "Omit Thread" as an explicit, audited, agent-facing action with a reason field.
 
 **BRD Addition:**
+
 - Agents with the `threads.delete` permission may omit (soft-delete) any thread from the ticket view.
 - Omitting a thread requires a reason (free text, mandatory) recorded in the audit log.
 - Omitted threads remain accessible to agents with the `threads.view_deleted` permission via a "show deleted threads" toggle.
@@ -305,6 +309,7 @@ The existing `deleted_at` / `deleted_by` audit columns already handle the who/wh
 **Gap:** UVdesk shows all agents currently viewing a ticket so they can coordinate. We have ticket-level locking for editing but no real-time viewer presence.
 
 **BRD Addition:**
+
 - When an agent opens a ticket, their presence is broadcast to all other agents viewing the same ticket in real time (via WebSocket).
 - The ticket header shall display avatar thumbnails of all current viewers.
 - Presence expires after 30 seconds of inactivity and refreshes on scroll/click/keystroke.
@@ -326,6 +331,7 @@ TTL: 30 seconds per viewer heartbeat
 **Gap:** UVdesk provides a built-in image gallery/lightbox within the ticket thread so agents can view uploaded images at full resolution without downloading. We store attachments but have no gallery metadata.
 
 **BRD Addition:**
+
 - Image attachments within a ticket thread shall be renderable inline as thumbnails.
 - Clicking a thumbnail opens a lightbox/gallery viewer showing the full-resolution image with navigation between all images in that thread.
 - Supported formats: JPEG, PNG, GIF, WebP, SVG.
@@ -351,6 +357,7 @@ ALTER TABLE ticket_attachments ADD COLUMN gallery_order      INTEGER;  -- positi
 **Gap:** Our permissions system controls what actions agents can perform but not what data they can see. UVdesk's "Agent Privileges" includes view scopes (e.g., an agent sees only tickets assigned to themselves or their group).
 
 **BRD Addition:**
+
 - Each role shall have a configurable ticket view scope: `all` (see all org tickets), `group` (see tickets assigned to their group/team), `self` (see only tickets assigned to themselves).
 - The ticket list query enforces the scope server-side; agents cannot bypass it via filters.
 - Admins and supervisors always see all tickets regardless of scope.
@@ -374,6 +381,7 @@ Add permission keys: `tickets.view_scope.all`, `tickets.view_scope.group`, `tick
 **Gap:** UVdesk distinguishes between Groups (department-level classification) and Teams (sub-groups within a group). We only have Teams. Groups give a higher-level routing and reporting layer.
 
 **BRD Addition:**
+
 - Admins may create Groups representing departments (e.g., Billing, Technical Support, Sales).
 - Each Team may belong to one Group.
 - Tickets may be assigned to a Group; the system routes to the Group's default Team.
@@ -414,6 +422,7 @@ ALTER TABLE tickets ADD COLUMN assigned_group_id BIGINT REFERENCES groups(id);
 **Gap:** We store CC/BCC on tickets and outgoing emails, but "Forward Ticket" as an explicit agent action — sending the thread content to an external email with CC/BCC tracking — is not modelled.
 
 **BRD Addition:**
+
 - Agents may forward any ticket thread to one or more external email addresses from within the ticket interface.
 - The forward action shall record: forwarded by, forwarded to (array), CC, BCC, timestamp, and which thread message was forwarded.
 - Forwarded messages are logged in the ticket timeline as a distinct event type (`forward`).
@@ -444,6 +453,7 @@ CREATE TABLE ticket_forwards (
 **Gap:** UVdesk has a Disqus Engage app that converts Disqus comments on blog/content pages into support tickets. We have no equivalent.
 
 **BRD Addition:**
+
 - Organizations may connect a Disqus forum via API key.
 - New comments on connected Disqus forums are ingested as tickets with channel source `disqus`.
 - Agents may reply to Disqus comments directly from the ticket interface; the reply is posted back to Disqus.
@@ -483,6 +493,7 @@ CREATE TABLE disqus_accounts (
 **Gap:** UVdesk has a dedicated Seller Central Messaging app integrating Amazon's buyer-seller messaging channel. We have eCommerce order data but not marketplace messaging.
 
 **BRD Addition:**
+
 - Organizations may connect an Amazon Seller Central account via MWS/SP-API credentials.
 - Inbound buyer-seller messages from Amazon are ingested as tickets with channel source `amazon_seller`.
 - Agents may reply to buyers directly from the ticket; the reply is sent via Amazon's messaging API within platform guidelines.
@@ -539,6 +550,7 @@ CREATE TABLE marketplace_messages (
 **Gap:** UVdesk has a Google Calendar app allowing agents to create calendar events from ticket tasks. We have no calendar integration.
 
 **BRD Addition:**
+
 - Agents may connect their personal Google Calendar via OAuth 2.0.
 - From any task or ticket, an agent may create a Google Calendar event pre-populated with ticket subject, due date, and a link back to the ticket.
 - Calendar events may also be created automatically by workflow actions: `create_calendar_event`.
@@ -584,6 +596,7 @@ CREATE TABLE ticket_calendar_events (
 **Gap:** UVdesk lists GDPR compliance. Our BRD mentions data retention and deletion but has no structured workflow for GDPR data subject requests (access, erasure, portability).
 
 **BRD Addition:**
+
 - The platform shall provide a GDPR request management workflow accessible to organization owners and platform admins.
 - Supported request types: Right of Access (export all data for a contact), Right to Erasure (anonymize all PII for a contact), Right to Portability (download contact data as JSON).
 - Each request shall be tracked with status: `received` → `in_progress` → `completed` / `rejected`.
@@ -622,6 +635,7 @@ CREATE TABLE gdpr_requests (
 **Gap:** Our SSO covers agent login (SAML/OAuth). UVdesk has SSO apps for end-customer portal login (so customers log in with their Google/social account to submit tickets).
 
 **BRD Addition:**
+
 - Organization admins may enable social login for the end-customer support portal: Google, Facebook, Apple.
 - When enabled, customers may register/login to the portal using their social account without creating a separate password.
 - The social identity is linked to the contact profile. If the social email matches an existing contact, accounts are merged automatically.
@@ -664,6 +678,7 @@ CREATE TABLE customer_sessions (
 **Gap:** Our BRD specifies Arabic/English bilingual UI but not in-ticket machine translation. UVdesk has a Translation app allowing agents to translate ticket content on demand.
 
 **BRD Addition:**
+
 - Agents may request a machine translation of any ticket message or customer reply into their preferred language via a "Translate" button.
 - Translation is performed via a configurable provider: Google Translate API or DeepL API.
 - The translated text is shown inline below the original; the original is preserved.
@@ -707,6 +722,7 @@ CREATE TABLE translation_cache (
 **Gap:** UVdesk lists a Mobile App product. We have no mobile SDK, push notification infrastructure, or mobile-specific ticket channel.
 
 **BRD Addition:**
+
 - The platform shall provide a mobile SDK (iOS / Android) that allows organizations to embed support within their own mobile apps.
 - The mobile SDK shall support: create ticket, view ticket history, reply to ticket, receive push notifications on new replies.
 - Push notifications are sent via FCM (Android) and APNs (iOS) when a ticket is updated and the customer has notifications enabled.
@@ -769,6 +785,7 @@ CREATE TABLE push_notification_logs (
 **Gap:** UVdesk lists an AI Chatbot product. We have Binaka live chat but no AI-driven automatic response layer.
 
 **BRD Addition:**
+
 - Organizations may enable an AI chatbot layer within the Binaka widget that handles visitor queries automatically before connecting to a human agent.
 - The chatbot uses the organization's knowledgebase articles as its primary knowledge source.
 - AI responses are generated via a configurable LLM provider: OpenAI (GPT-4o), Anthropic (Claude), or Azure OpenAI.
@@ -833,6 +850,7 @@ CREATE TABLE chatbot_messages (
 **Gap:** UVdesk is downloadable and self-hostable on LAMP/LEMP stacks. Our platform is SaaS-only. This is a major architectural consideration for enterprise clients who cannot use cloud-hosted software due to data sovereignty requirements (common in GCC government sector).
 
 **BRD Addition:**
+
 - The platform shall support an **On-Premise Edition** as a separately licensed deployment option.
 - On-Premise Edition is packaged as a Docker Compose bundle (application, PostgreSQL, Redis, worker queues).
 - A single on-premise license file activates the on-premise edition and enforces seat limits without calling home.
@@ -864,64 +882,64 @@ CREATE TABLE on_premise_licenses (
 
 ## 4. Upgrade Priority Roadmap
 
-| Priority | Feature | Effort | Impact |
-|---|---|---|---|
-| 🔴 P1 — Sprint 1 | Groups (department level) | Medium | High — core routing improvement |
-| 🔴 P1 — Sprint 1 | Ticket Categories with SLA override | Medium | High — admin demand |
-| 🔴 P1 — Sprint 1 | Agent visibility scopes | Low | High — security requirement |
-| 🔴 P1 — Sprint 1 | Thread-level locking | Low | Medium — data security |
-| 🔴 P1 — Sprint 1 | Thread omission audit | Low | Medium — compliance |
-| 🟡 P2 — Sprint 2 | Concurrent ticket viewer presence | Medium | Medium — UX quality |
-| 🟡 P2 — Sprint 2 | Ticket forwarding as explicit action | Low | Medium — agent workflow |
-| 🟡 P2 — Sprint 2 | Image gallery viewer | Medium | Medium — UX quality |
-| 🟡 P2 — Sprint 2 | GDPR data subject request workflow | Medium | High — legal compliance |
-| 🟡 P2 — Sprint 2 | End-customer portal SSO | Medium | High — enterprise demand |
-| 🟠 P3 — Sprint 3 | Ticket translation (machine) | Medium | Medium — MENA market |
-| 🟠 P3 — Sprint 3 | Google Calendar integration | Medium | Low–Medium |
-| 🟠 P3 — Sprint 3 | Disqus integration | Medium | Low |
-| 🟠 P3 — Sprint 3 | Amazon Seller Central Messaging | High | Medium — eCommerce clients |
-| 🔵 P4 — Future | Mobile SDK & Push Notifications | High | High — mobile-first clients |
-| 🔵 P4 — Future | AI Chatbot | High | High — market differentiation |
-| 🔵 P4 — Future | On-Premise / Self-Hosted Edition | Very High | High — GCC enterprise |
+| Priority         | Feature                              | Effort    | Impact                          |
+| ---------------- | ------------------------------------ | --------- | ------------------------------- |
+| 🔴 P1 — Sprint 1 | Groups (department level)            | Medium    | High — core routing improvement |
+| 🔴 P1 — Sprint 1 | Ticket Categories with SLA override  | Medium    | High — admin demand             |
+| 🔴 P1 — Sprint 1 | Agent visibility scopes              | Low       | High — security requirement     |
+| 🔴 P1 — Sprint 1 | Thread-level locking                 | Low       | Medium — data security          |
+| 🔴 P1 — Sprint 1 | Thread omission audit                | Low       | Medium — compliance             |
+| 🟡 P2 — Sprint 2 | Concurrent ticket viewer presence    | Medium    | Medium — UX quality             |
+| 🟡 P2 — Sprint 2 | Ticket forwarding as explicit action | Low       | Medium — agent workflow         |
+| 🟡 P2 — Sprint 2 | Image gallery viewer                 | Medium    | Medium — UX quality             |
+| 🟡 P2 — Sprint 2 | GDPR data subject request workflow   | Medium    | High — legal compliance         |
+| 🟡 P2 — Sprint 2 | End-customer portal SSO              | Medium    | High — enterprise demand        |
+| 🟠 P3 — Sprint 3 | Ticket translation (machine)         | Medium    | Medium — MENA market            |
+| 🟠 P3 — Sprint 3 | Google Calendar integration          | Medium    | Low–Medium                      |
+| 🟠 P3 — Sprint 3 | Disqus integration                   | Medium    | Low                             |
+| 🟠 P3 — Sprint 3 | Amazon Seller Central Messaging      | High      | Medium — eCommerce clients      |
+| 🔵 P4 — Future   | Mobile SDK & Push Notifications      | High      | High — mobile-first clients     |
+| 🔵 P4 — Future   | AI Chatbot                           | High      | High — market differentiation   |
+| 🔵 P4 — Future   | On-Premise / Self-Hosted Edition     | Very High | High — GCC enterprise           |
 
 ---
 
 ## 5. New Database Tables Summary
 
-| Table | Purpose |
-|---|---|
-| `ticket_categories` | Structured ticket types with SLA/team/priority overrides |
-| `groups` | Department-level grouping above teams |
-| `ticket_forwards` | Explicit ticket forwarding action records |
-| `disqus_accounts` | Disqus forum connections |
-| `marketplace_accounts` | Amazon Seller Central / eBay connections |
-| `marketplace_messages` | Inbound/outbound marketplace buyer-seller messages |
-| `agent_calendar_connections` | Google Calendar OAuth per agent |
-| `ticket_calendar_events` | Events created from tickets/tasks in Google Calendar |
-| `gdpr_requests` | GDPR data subject request tracking |
-| `customer_social_identities` | Social login (Google/Facebook/Apple) for end-customers |
-| `customer_sessions` | Customer portal session tokens |
-| `translation_configs` | Per-org machine translation provider config |
-| `translation_cache` | Ephemeral translation result cache |
-| `mobile_sdk_configs` | Mobile SDK configuration and FCM/APNs keys |
-| `contact_push_tokens` | Device push tokens per contact |
-| `push_notification_logs` | Push delivery records |
-| `chatbot_configs` | AI chatbot configuration per org |
-| `chatbot_sessions` | Chatbot conversation sessions |
-| `chatbot_messages` | Individual chatbot message turns |
-| `on_premise_licenses` | License records for self-hosted deployments |
+| Table                        | Purpose                                                  |
+| ---------------------------- | -------------------------------------------------------- |
+| `ticket_categories`          | Structured ticket types with SLA/team/priority overrides |
+| `groups`                     | Department-level grouping above teams                    |
+| `ticket_forwards`            | Explicit ticket forwarding action records                |
+| `disqus_accounts`            | Disqus forum connections                                 |
+| `marketplace_accounts`       | Amazon Seller Central / eBay connections                 |
+| `marketplace_messages`       | Inbound/outbound marketplace buyer-seller messages       |
+| `agent_calendar_connections` | Google Calendar OAuth per agent                          |
+| `ticket_calendar_events`     | Events created from tickets/tasks in Google Calendar     |
+| `gdpr_requests`              | GDPR data subject request tracking                       |
+| `customer_social_identities` | Social login (Google/Facebook/Apple) for end-customers   |
+| `customer_sessions`          | Customer portal session tokens                           |
+| `translation_configs`        | Per-org machine translation provider config              |
+| `translation_cache`          | Ephemeral translation result cache                       |
+| `mobile_sdk_configs`         | Mobile SDK configuration and FCM/APNs keys               |
+| `contact_push_tokens`        | Device push tokens per contact                           |
+| `push_notification_logs`     | Push delivery records                                    |
+| `chatbot_configs`            | AI chatbot configuration per org                         |
+| `chatbot_sessions`           | Chatbot conversation sessions                            |
+| `chatbot_messages`           | Individual chatbot message turns                         |
+| `on_premise_licenses`        | License records for self-hosted deployments              |
 
 ---
 
 ## 6. Columns Added to Existing Tables
 
-| Table | New Column(s) |
-|---|---|
-| `tickets` | `category_id`, `assigned_group_id` |
-| `ticket_messages` | `is_thread_locked`, `thread_locked_by`, `thread_locked_at`, `thread_unlocked_by`, `thread_unlocked_at`, `deleted_reason` |
-| `ticket_attachments` | `is_inline_image`, `image_width`, `image_height`, `thumbnail_key`, `gallery_order` |
-| `teams` | `group_id` |
-| `roles` | `ticket_view_scope` |
+| Table                | New Column(s)                                                                                                            |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `tickets`            | `category_id`, `assigned_group_id`                                                                                       |
+| `ticket_messages`    | `is_thread_locked`, `thread_locked_by`, `thread_locked_at`, `thread_unlocked_by`, `thread_unlocked_at`, `deleted_reason` |
+| `ticket_attachments` | `is_inline_image`, `image_width`, `image_height`, `thumbnail_key`, `gallery_order`                                       |
+| `teams`              | `group_id`                                                                                                               |
+| `roles`              | `ticket_view_scope`                                                                                                      |
 
 ---
 
@@ -946,4 +964,4 @@ calendar.connect
 
 ---
 
-*End of Upgrade Analysis — UVdesk Open Source → Our Platform v1.0.0*
+_End of Upgrade Analysis — UVdesk Open Source → Our Platform v1.0.0_

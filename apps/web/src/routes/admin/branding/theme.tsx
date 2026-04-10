@@ -9,7 +9,13 @@ import {
 } from "@ticket-app/ui/components/card";
 import { Button } from "@ticket-app/ui/components/button";
 import { Label } from "@ticket-app/ui/components/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@ticket-app/ui/components/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@ticket-app/ui/components/select";
 import { Save, RotateCcw, Sun, Moon, Palette } from "lucide-react";
 
 export const Route = createFileRoute("/admin/branding/theme")({
@@ -252,7 +258,10 @@ function ThemeEditorRoute() {
                   <Select
                     value={theme.borderRadius}
                     onValueChange={(value) =>
-                      setTheme((prev) => ({ ...prev, borderRadius: value as ThemeSettings["borderRadius"] }))
+                      setTheme((prev) => ({
+                        ...prev,
+                        borderRadius: value as ThemeSettings["borderRadius"],
+                      }))
                     }
                   >
                     <SelectTrigger>
@@ -272,7 +281,10 @@ function ThemeEditorRoute() {
                   <Select
                     value={theme.fontFamily}
                     onValueChange={(value) =>
-                      setTheme((prev) => ({ ...prev, fontFamily: value as ThemeSettings["fontFamily"] }))
+                      setTheme((prev) => ({
+                        ...prev,
+                        fontFamily: value as ThemeSettings["fontFamily"],
+                      }))
                     }
                   >
                     <SelectTrigger>
@@ -343,8 +355,14 @@ function ThemeEditorRoute() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <div className="h-4 w-3/4 rounded" style={{ backgroundColor: `${currentColors.primary}30` }} />
-                  <div className="h-3 w-1/2 rounded" style={{ backgroundColor: `${currentColors.primary}20` }} />
+                  <div
+                    className="h-4 w-3/4 rounded"
+                    style={{ backgroundColor: `${currentColors.primary}30` }}
+                  />
+                  <div
+                    className="h-3 w-1/2 rounded"
+                    style={{ backgroundColor: `${currentColors.primary}20` }}
+                  />
                 </div>
                 <div
                   className="h-8 flex items-center justify-center text-white rounded"

@@ -1,3 +1,6 @@
+import { db } from "@ticket-app/db";
+import { passwordResets } from "@ticket-app/db/schema";
+
 export interface CreatePasswordResetParams {
   userId: number;
   token: string;
@@ -17,22 +20,22 @@ export interface PasswordReset {
 export async function createPasswordReset(
   params: CreatePasswordResetParams,
 ): Promise<PasswordReset> {
-  // TODO: Insert into password_resets table when schema is created
-  // const [result] = await db.insert(passwordResets).values({
-  //   userId: params.userId,
-  //   token: params.token,
-  //   expiresAt: params.expiresAt,
-  //   requestedBy: params.requestedBy,
-  // }).returning();
+  const [result] = await db
+    .insert(passwordResets)
+    .values({
+      userId: params.userId,
+      token: params.token,
+      expiresAt: params.expiresAt,
+      requestedBy: params.requestedBy,
+    })
+    .returning();
 
-  const passwordReset: PasswordReset = {
-    id: Date.now(), // Temporary ID
-    userId: params.userId,
-    token: params.token,
-    expiresAt: params.expiresAt,
-    requestedBy: params.requestedBy,
-    createdAt: new Date(),
+  return {
+    id: result.id,
+    userId: result.userId,
+    token: result.token,
+    expiresAt: result.expiresAt,
+    requestedBy: result.requestedBy ?? undefined,
+    createdAt: result.createdAt,
   };
-
-  return passwordReset;
 }

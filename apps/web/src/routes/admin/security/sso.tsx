@@ -131,9 +131,7 @@ function SSOConfigurationRoute() {
               <Input
                 id="metadataUrl"
                 value={settings.metadataUrl}
-                onChange={(e) =>
-                  setSettings((prev) => ({ ...prev, metadataUrl: e.target.value }))
-                }
+                onChange={(e) => setSettings((prev) => ({ ...prev, metadataUrl: e.target.value }))}
                 placeholder="https://your-idp.com/metadata"
               />
               <p className="text-xs text-muted-foreground">
@@ -147,9 +145,7 @@ function SSOConfigurationRoute() {
                 <Input
                   id="entityId"
                   value={settings.entityId}
-                  onChange={(e) =>
-                    setSettings((prev) => ({ ...prev, entityId: e.target.value }))
-                  }
+                  onChange={(e) => setSettings((prev) => ({ ...prev, entityId: e.target.value }))}
                   placeholder="urn:your-app:sp"
                 />
               </div>
@@ -158,9 +154,7 @@ function SSOConfigurationRoute() {
                 <Input
                   id="acsUrl"
                   value={settings.acsUrl}
-                  onChange={(e) =>
-                    setSettings((prev) => ({ ...prev, acsUrl: e.target.value }))
-                  }
+                  onChange={(e) => setSettings((prev) => ({ ...prev, acsUrl: e.target.value }))}
                   placeholder="https://your-app.com/sso/acs"
                 />
               </div>
@@ -171,9 +165,7 @@ function SSOConfigurationRoute() {
         <Card>
           <CardHeader>
             <CardTitle>Attribute Mapping</CardTitle>
-            <CardDescription>
-              Map SAML attributes to user profile fields
-            </CardDescription>
+            <CardDescription>Map SAML attributes to user profile fields</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">

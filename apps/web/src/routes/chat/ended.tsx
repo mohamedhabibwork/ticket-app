@@ -40,7 +40,7 @@ function ChatHistoryRoute() {
       organizationId,
       status: "ended",
       limit: 50,
-    })
+    }),
   );
 
   const { data: agents } = useQuery(
@@ -48,7 +48,7 @@ function ChatHistoryRoute() {
       organizationId,
       isActive: true,
       limit: 100,
-    })
+    }),
   );
 
   const endedSessions = sessions?.filter((s) => s.status === "ended" || s.status === "converted");
@@ -120,7 +120,9 @@ function ChatHistoryRoute() {
               <select
                 className="h-8 w-full rounded-none border border-input bg-transparent px-2.5 py-1 text-xs"
                 value={agentFilter || ""}
-                onChange={(e) => setAgentFilter(e.target.value ? Number(e.target.value) : undefined)}
+                onChange={(e) =>
+                  setAgentFilter(e.target.value ? Number(e.target.value) : undefined)
+                }
               >
                 <option value="">All Agents</option>
                 {agents?.users?.map((agent) => (
@@ -134,7 +136,9 @@ function ChatHistoryRoute() {
               <select
                 className="h-8 w-full rounded-none border border-input bg-transparent px-2.5 py-1 text-xs"
                 value={ratingFilter || ""}
-                onChange={(e) => setRatingFilter(e.target.value ? Number(e.target.value) : undefined)}
+                onChange={(e) =>
+                  setRatingFilter(e.target.value ? Number(e.target.value) : undefined)
+                }
               >
                 <option value="">All Ratings</option>
                 <option value="5">5 Stars</option>

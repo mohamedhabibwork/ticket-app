@@ -5,15 +5,7 @@ import { Button } from "@ticket-app/ui/components/button";
 import { Input } from "@ticket-app/ui/components/input";
 import { Label } from "@ticket-app/ui/components/label";
 import { Checkbox } from "@ticket-app/ui/components/checkbox";
-import {
-  ArrowLeft,
-  Save,
-  Download,
-  Plus,
-  Trash2,
-  FileText,
-  BarChart3,
-} from "lucide-react";
+import { ArrowLeft, Save, Download, Plus, Trash2, FileText, BarChart3 } from "lucide-react";
 
 type GroupBy = "day" | "week" | "month" | "agent" | "team" | "priority";
 
@@ -83,9 +75,7 @@ function CustomReportPage() {
 
   const toggleMetric = (metricId: string) => {
     setMetrics((prev) =>
-      prev.map((m) =>
-        m.id === metricId ? { ...m, selected: !m.selected } : m
-      )
+      prev.map((m) => (m.id === metricId ? { ...m, selected: !m.selected } : m)),
     );
   };
 
@@ -111,7 +101,18 @@ function CustomReportPage() {
     const selectedMetrics = metrics.filter((m) => m.selected);
     return Array.from({ length: 5 }, (_, i) => ({
       id: i + 1,
-      group: groupBy === "day" ? `Apr ${i + 1}` : groupBy === "week" ? `Week ${i + 1}` : groupBy === "month" ? `Month ${i + 1}` : groupBy === "agent" ? `Agent ${i + 1}` : groupBy === "team" ? `Team ${i + 1}` : `Priority ${i + 1}`,
+      group:
+        groupBy === "day"
+          ? `Apr ${i + 1}`
+          : groupBy === "week"
+            ? `Week ${i + 1}`
+            : groupBy === "month"
+              ? `Month ${i + 1}`
+              : groupBy === "agent"
+                ? `Agent ${i + 1}`
+                : groupBy === "team"
+                  ? `Team ${i + 1}`
+                  : `Priority ${i + 1}`,
       ...Object.fromEntries(selectedMetrics.map((m) => [m.id, Math.floor(Math.random() * 100)])),
     }));
   };
@@ -129,9 +130,7 @@ function CustomReportPage() {
         </Button>
         <div>
           <h1 className="text-3xl font-bold">Custom Report Builder</h1>
-          <p className="text-muted-foreground mt-1">
-            Create and save custom report configurations
-          </p>
+          <p className="text-muted-foreground mt-1">Create and save custom report configurations</p>
         </div>
       </div>
 
@@ -196,10 +195,7 @@ function CustomReportPage() {
                       <div className="font-medium text-sm mb-2">{filter.label}</div>
                       <div className="flex flex-wrap gap-2">
                         {filter.values.map((value) => (
-                          <label
-                            key={value}
-                            className="flex items-center gap-1.5 text-sm"
-                          >
+                          <label key={value} className="flex items-center gap-1.5 text-sm">
                             <input type="checkbox" className="rounded" />
                             {value}
                           </label>
@@ -232,7 +228,13 @@ function CustomReportPage() {
                   <thead>
                     <tr className="text-left text-sm text-muted-foreground border-b">
                       <th className="px-4 py-3 font-medium capitalize">
-                        {groupBy === "day" ? "Date" : groupBy === "week" ? "Week" : groupBy === "month" ? "Month" : groupBy}
+                        {groupBy === "day"
+                          ? "Date"
+                          : groupBy === "week"
+                            ? "Week"
+                            : groupBy === "month"
+                              ? "Month"
+                              : groupBy}
                       </th>
                       {selectedMetrics.map((metric) => (
                         <th key={metric.id} className="px-4 py-3 font-medium">
@@ -284,9 +286,7 @@ function CustomReportPage() {
               {savedReports.length === 0 ? (
                 <div className="text-center py-8">
                   <FileText className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
-                  <p className="text-sm text-muted-foreground">
-                    No saved reports yet
-                  </p>
+                  <p className="text-sm text-muted-foreground">No saved reports yet</p>
                 </div>
               ) : (
                 <div className="space-y-3">

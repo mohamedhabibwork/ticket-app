@@ -14,9 +14,9 @@ webhooks:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ticketEvent'
+              $ref: "#/components/schemas/ticketEvent"
       responses:
-        '200':
+        "200":
           description: Event acknowledged
 
   ticket.updated:
@@ -28,9 +28,9 @@ webhooks:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ticketEvent'
+              $ref: "#/components/schemas/ticketEvent"
       responses:
-        '200':
+        "200":
           description: Event acknowledged
 
   ticket.status_changed:
@@ -42,9 +42,9 @@ webhooks:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ticketStatusEvent'
+              $ref: "#/components/schemas/ticketStatusEvent"
       responses:
-        '200':
+        "200":
           description: Event acknowledged
 
   ticket.assigned:
@@ -56,9 +56,9 @@ webhooks:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ticketEvent'
+              $ref: "#/components/schemas/ticketEvent"
       responses:
-        '200':
+        "200":
           description: Event acknowledged
 
   ticket.reply_received:
@@ -70,9 +70,9 @@ webhooks:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ticketReplyEvent'
+              $ref: "#/components/schemas/ticketReplyEvent"
       responses:
-        '200':
+        "200":
           description: Event acknowledged
 
   sla.breached:
@@ -84,9 +84,9 @@ webhooks:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/slaBreachEvent'
+              $ref: "#/components/schemas/slaBreachEvent"
       responses:
-        '200':
+        "200":
           description: Event acknowledged
 
   subscription.created:
@@ -98,9 +98,9 @@ webhooks:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/subscriptionEvent'
+              $ref: "#/components/schemas/subscriptionEvent"
       responses:
-        '200':
+        "200":
           description: Event acknowledged
 
   subscription.updated:
@@ -112,9 +112,9 @@ webhooks:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/subscriptionEvent'
+              $ref: "#/components/schemas/subscriptionEvent"
       responses:
-        '200':
+        "200":
           description: Event acknowledged
 
   subscription.canceled:
@@ -126,9 +126,9 @@ webhooks:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/subscriptionEvent'
+              $ref: "#/components/schemas/subscriptionEvent"
       responses:
-        '200':
+        "200":
           description: Event acknowledged
 
   invoice.paid:
@@ -140,9 +140,9 @@ webhooks:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/invoiceEvent'
+              $ref: "#/components/schemas/invoiceEvent"
       responses:
-        '200':
+        "200":
           description: Event acknowledged
 
   invoice.payment_failed:
@@ -154,9 +154,9 @@ webhooks:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/invoiceEvent'
+              $ref: "#/components/schemas/invoiceEvent"
       responses:
-        '200':
+        "200":
           description: Event acknowledged
 
 components:

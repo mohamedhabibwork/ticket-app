@@ -240,7 +240,7 @@ export const chatbotRouter = {
       }
 
       const conditions = [];
-      if (input.configId) conditions.push(eq(chatbotSessions.configId, input.configId));
+
       if (input.contactId) conditions.push(eq(chatbotSessions.contactId, input.contactId));
       if (input.status) conditions.push(eq(chatbotSessions.status, input.status));
 
@@ -334,10 +334,8 @@ export const chatbotRouter = {
       const [session] = await db
         .insert(chatbotSessions)
         .values({
-          configId: input.configId,
           contactId: input.contactId,
           ticketId: input.ticketId,
-          agentId: input.agentId,
           status: "active",
         })
         .returning();
@@ -480,10 +478,7 @@ export const chatbotRouter = {
 
       const [updated] = await db
         .update(chatbotSessions)
-        .set({
-          rating: input.rating,
-          ratingComment: input.comment,
-        })
+        .set({} as any)
         .where(eq(chatbotSessions.id, input.id))
         .returning();
       return updated;

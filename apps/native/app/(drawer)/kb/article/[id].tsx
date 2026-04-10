@@ -64,11 +64,11 @@ export default function KBArticleScreen() {
 
         <View className="flex-row items-center gap-2 mb-4">
           <Ionicons name="folder-outline" size={14} color={mutedColor} />
-          <Text className="text-muted text-xs">{article.data.category?.name || "Uncategorized"}</Text>
-          <Text className="text-muted text-xs">•</Text>
           <Text className="text-muted text-xs">
-            {article.data.views || 0} views
+            {article.data.category?.name || "Uncategorized"}
           </Text>
+          <Text className="text-muted text-xs">•</Text>
+          <Text className="text-muted text-xs">{article.data.views || 0} views</Text>
         </View>
 
         <Surface variant="secondary" className="p-4 rounded-lg mb-4">
@@ -113,8 +113,7 @@ export default function KBArticleScreen() {
           <View className="flex-row items-center gap-2">
             <Ionicons name="information-circle-outline" size={18} color={mutedColor} />
             <Text className="text-muted text-sm">
-              Need more help?{" "}
-              <Text className="text-primary">Contact support</Text>
+              Need more help? <Text className="text-primary">Contact support</Text>
             </Text>
           </View>
         </Surface>

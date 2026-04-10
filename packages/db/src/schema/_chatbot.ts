@@ -14,22 +14,19 @@ import { kbArticles } from "./_knowledgebase";
 import { organizations } from "./_organizations";
 import { tickets } from "./_tickets";
 
-export const chatbotConfigs = pgTable(
-  "chatbot_configs",
-  {
-    id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
-    organizationId: bigint("organization_id", { mode: "number" })
-      .references(() => organizations.id)
-      .notNull(),
-    name: varchar("name", { length: 150 }).notNull(),
-    isEnabled: boolean("is_enabled").default(false).notNull(),
-    escalationThreshold: bigint("escalation_threshold", { mode: "number" }).default(3).notNull(),
-    responseDelaySeconds: bigint("response_delay_seconds", { mode: "number" }).default(5).notNull(),
-    workingHours: jsonb("working_hours"),
-    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
-  },
-);
+export const chatbotConfigs = pgTable("chatbot_configs", {
+  id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
+  organizationId: bigint("organization_id", { mode: "number" })
+    .references(() => organizations.id)
+    .notNull(),
+  name: varchar("name", { length: 150 }).notNull(),
+  isEnabled: boolean("is_enabled").default(false).notNull(),
+  escalationThreshold: bigint("escalation_threshold", { mode: "number" }).default(3).notNull(),
+  responseDelaySeconds: bigint("response_delay_seconds", { mode: "number" }).default(5).notNull(),
+  workingHours: jsonb("working_hours"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
+});
 
 export const chatbotSessions = pgTable(
   "chatbot_sessions",
@@ -49,7 +46,7 @@ export const chatbotSessions = pgTable(
   (table) => ({
     contactIdx: index("chatbot_sessions_contact_idx").on(table.contactId),
     ticketIdx: index("chatbot_sessions_ticket_idx").on(table.ticketId),
-  })
+  }),
 );
 
 export const chatbotMessages = pgTable(
@@ -68,7 +65,7 @@ export const chatbotMessages = pgTable(
   },
   (table) => ({
     sessionIdx: index("chatbot_messages_session_idx").on(table.chatbotSessionId),
-  })
+  }),
 );
 
 export const chatbotConfigsRelations = relations(chatbotConfigs, ({ one }) => ({

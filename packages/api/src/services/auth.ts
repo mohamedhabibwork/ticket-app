@@ -7,7 +7,6 @@ import { authenticator } from "otplib";
 import type { SessionData } from "@ticket-app/db/lib/sessions";
 
 const SESSION_TTL_SECONDS = 24 * 60 * 60;
-const _REFRESH_TOKEN_TTL_SECONDS = 7 * 24 * 60 * 60;
 
 export interface AuthResult {
   user: {
@@ -248,7 +247,7 @@ export async function verify2FA(tempToken: string, code: string): Promise<AuthRe
 
 export async function loginWithOAuth(
   provider: "google",
-  tokens: OAuthTokens,
+  _tokens: OAuthTokens,
   userInfo: OAuthUserInfo,
   ipAddress?: string,
   userAgent?: string,
@@ -356,6 +355,10 @@ export async function registerWithEmail(
     })
     .returning();
 
+  if (!newUser) {
+    throw new Error("Failed to create user");
+  }
+
   const defaultRole = await db.query.roles.findFirst({
     where: and(eq(roles.organizationId, organizationId), sql`slug = 'agent'`),
   });
@@ -380,7 +383,7 @@ export async function registerWithEmail(
     });
   }
 
-  return createSessionFromUser(newUser, ipAddress, userAgent);
+  return createSessionFromUser(newUser as any, ipAddress, userAgent);
 }
 
 export async function logout(sessionToken: string): Promise<void> {
@@ -443,7 +446,7 @@ export async function revokeSession(sessionToken: string, userId: number): Promi
 
 async function createSessionFromUser(
   user: typeof users.$inferSelect & {
-    roles: { role: typeof roles.$InferSelect }[];
+    roles: { role: typeof roles.$inferSelect }[];
   },
   ipAddress?: string,
   userAgent?: string,

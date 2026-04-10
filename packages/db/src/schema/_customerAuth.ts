@@ -31,8 +31,11 @@ export const customerSocialIdentities = pgTable(
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => ({
-    contactProviderUnique: index("customer_social_contact_provider_idx").on(table.contactId, table.provider),
-  })
+    contactProviderUnique: index("customer_social_contact_provider_idx").on(
+      table.contactId,
+      table.provider,
+    ),
+  }),
 );
 
 export const customerSessions = pgTable(
@@ -43,7 +46,9 @@ export const customerSessions = pgTable(
     contactId: bigint("contact_id", { mode: "number" })
       .references(() => contacts.id)
       .notNull(),
-    customerSocialIdentityId: bigint("customer_social_identity_id", { mode: "number" }).references((): any => customerSocialIdentities.id),
+    customerSocialIdentityId: bigint("customer_social_identity_id", { mode: "number" }).references(
+      (): any => customerSocialIdentities.id,
+    ),
     sessionToken: varchar("session_token", { length: 500 }).notNull().unique(),
     userAgent: text("user_agent"),
     ipAddress: varchar("ip_address", { length: 50 }),
@@ -52,7 +57,7 @@ export const customerSessions = pgTable(
   },
   (table) => ({
     contactIdx: index("customer_sessions_contact_idx").on(table.contactId),
-  })
+  }),
 );
 
 export const customerSocialIdentitiesRelations = relations(customerSocialIdentities, ({ one }) => ({

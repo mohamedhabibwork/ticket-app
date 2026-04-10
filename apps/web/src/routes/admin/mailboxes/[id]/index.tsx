@@ -8,7 +8,18 @@ import {
   CardDescription,
 } from "@ticket-app/ui/components/card";
 import { Button } from "@ticket-app/ui/components/button";
-import { Loader2, Mail, RefreshCw, Settings, Route as RouteIcon, Play, AlertCircle, CheckCircle, XCircle, ArrowLeft } from "lucide-react";
+import {
+  Loader2,
+  Mail,
+  RefreshCw,
+  Settings,
+  Route as RouteIcon,
+  Play,
+  AlertCircle,
+  CheckCircle,
+  XCircle,
+  ArrowLeft,
+} from "lucide-react";
 import { orpc } from "@/utils/orpc";
 
 function formatRelativeTime(date: Date | string): string {
@@ -35,22 +46,26 @@ function MailboxDetailRoute() {
   const { id } = useParams({ from: "/admin/mailboxes/$id" });
   const mailboxId = Number(id);
 
-  const { data: mailbox, isLoading, refetch } = useQuery(
+  const {
+    data: mailbox,
+    isLoading,
+    refetch,
+  } = useQuery(
     orpc.mailboxes.get.queryOptions({
       id: mailboxId,
-    })
+    }),
   );
 
   const syncMutation = useMutation(
     orpc.mailboxes.sync.mutationOptions({
       onSuccess: () => refetch(),
-    })
+    }),
   );
 
   const testConnectionMutation = useMutation(
     orpc.mailboxes.testConnection.mutationOptions({
       onSuccess: () => refetch(),
-    })
+    }),
   );
 
   const getStatusBadge = (status: string) => {
@@ -191,15 +206,24 @@ function MailboxDetailRoute() {
           <CardContent>
             {mailbox.syncErrors && mailbox.syncErrors.length > 0 ? (
               <div className="space-y-3">
-                {mailbox.syncErrors.slice(0, 5).map((error: { id: number; message: string; occurredAt: string }, index: number) => (
-                  <div key={error.id || index} className="flex items-start gap-2 p-2 rounded bg-red-50 dark:bg-red-950/20">
-                    <AlertCircle className="h-4 w-4 text-red-600 mt-0.5" />
-                    <div>
-                      <p className="text-sm text-red-800 dark:text-red-200">{error.message}</p>
-                      <p className="text-xs text-muted-foreground">{formatRelativeTime(error.occurredAt)}</p>
-                    </div>
-                  </div>
-                ))}
+                {mailbox.syncErrors
+                  .slice(0, 5)
+                  .map(
+                    (error: { id: number; message: string; occurredAt: string }, index: number) => (
+                      <div
+                        key={error.id || index}
+                        className="flex items-start gap-2 p-2 rounded bg-red-50 dark:bg-red-950/20"
+                      >
+                        <AlertCircle className="h-4 w-4 text-red-600 mt-0.5" />
+                        <div>
+                          <p className="text-sm text-red-800 dark:text-red-200">{error.message}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {formatRelativeTime(error.occurredAt)}
+                          </p>
+                        </div>
+                      </div>
+                    ),
+                  )}
               </div>
             ) : (
               <div className="text-center py-6 text-muted-foreground">

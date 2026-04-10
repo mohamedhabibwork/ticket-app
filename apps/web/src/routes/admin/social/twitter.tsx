@@ -37,23 +37,27 @@ function TwitterConnectionRoute() {
   const [mentionsToTicket, setMentionsToTicket] = useState(true);
   const [dmsToTicket, setDmsToTicket] = useState(true);
 
-  const { data: accounts, isLoading, refetch } = useQuery(
+  const {
+    data: accounts,
+    isLoading,
+    refetch,
+  } = useQuery(
     orpc.socialAccounts.list.queryOptions({
       organizationId: 1,
       platform: "twitter",
-    })
+    }),
   );
 
   const disconnectMutation = useMutation(
     orpc.socialAccounts.disconnect.mutationOptions({
       onSuccess: () => refetch(),
-    })
+    }),
   );
 
   const refreshMutation = useMutation(
     orpc.socialAccounts.refreshToken.mutationOptions({
       onSuccess: () => refetch(),
-    })
+    }),
   );
 
   const handleOAuthFlow = () => {
@@ -63,7 +67,7 @@ function TwitterConnectionRoute() {
     window.location.href = `https://twitter.com/i/oauth2/authorize?response_type=code&client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${scope}&state=twitter_auth`;
   };
 
-  const connectedAccounts = accounts?.filter(a => a.isActive) || [];
+  const connectedAccounts = accounts?.filter((a) => a.isActive) || [];
 
   return (
     <div className="container mx-auto max-w-4xl px-4 py-6">
@@ -80,7 +84,9 @@ function TwitterConnectionRoute() {
           </div>
           <div>
             <h1 className="text-2xl font-bold">Twitter / X</h1>
-            <p className="text-muted-foreground">Connect Twitter accounts for mentions and DM support</p>
+            <p className="text-muted-foreground">
+              Connect Twitter accounts for mentions and DM support
+            </p>
           </div>
         </div>
       </div>
@@ -99,18 +105,25 @@ function TwitterConnectionRoute() {
             ) : connectedAccounts.length > 0 ? (
               <div className="space-y-3">
                 {connectedAccounts.map((account) => (
-                  <div key={account.id} className="flex items-center justify-between p-3 rounded bg-green-50 dark:bg-green-950/20">
+                  <div
+                    key={account.id}
+                    className="flex items-center justify-between p-3 rounded bg-green-50 dark:bg-green-950/20"
+                  >
                     <div className="flex items-center gap-3">
                       <CheckCircle className="h-5 w-5 text-green-600" />
                       <div>
                         <p className="font-medium">@{account.platformUsername || "twitter_user"}</p>
-                        <p className="text-xs text-muted-foreground">Connected {formatRelativeTime(account.updatedAt)}</p>
+                        <p className="text-xs text-muted-foreground">
+                          Connected {formatRelativeTime(account.updatedAt)}
+                        </p>
                       </div>
                     </div>
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => disconnectMutation.mutate({ id: account.id, organizationId: 1 })}
+                      onClick={() =>
+                        disconnectMutation.mutate({ id: account.id, organizationId: 1 })
+                      }
                       disabled={disconnectMutation.isPending}
                     >
                       Disconnect
@@ -170,14 +183,19 @@ function TwitterConnectionRoute() {
           {connectedAccounts.length > 0 ? (
             <div className="space-y-4">
               {connectedAccounts.map((account) => (
-                <div key={account.id} className="flex items-center justify-between p-4 border rounded">
+                <div
+                  key={account.id}
+                  className="flex items-center justify-between p-4 border rounded"
+                >
                   <div className="flex items-center gap-4">
                     <div className="rounded-full bg-black p-2">
                       <Twitter className="h-4 w-4 text-white" />
                     </div>
                     <div>
                       <p className="font-medium">@{account.platformUsername || "twitter_user"}</p>
-                      <p className="text-xs text-muted-foreground font-mono">{account.platformAccountId}</p>
+                      <p className="text-xs text-muted-foreground font-mono">
+                        {account.platformAccountId}
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -191,7 +209,9 @@ function TwitterConnectionRoute() {
                       onClick={() => refreshMutation.mutate({ id: account.id, organizationId: 1 })}
                       disabled={refreshMutation.isPending}
                     >
-                      <RefreshCw className={`h-4 w-4 ${refreshMutation.isPending ? "animate-spin" : ""}`} />
+                      <RefreshCw
+                        className={`h-4 w-4 ${refreshMutation.isPending ? "animate-spin" : ""}`}
+                      />
                     </Button>
                   </div>
                 </div>

@@ -26,7 +26,7 @@ function DrawerOverlay({ className, ...props }: DialogPrimitive.Backdrop.Props) 
       data-slot="drawer-overlay"
       className={cn(
         "fixed inset-0 z-50 bg-black/50 backdrop-blur-sm data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
-        className
+        className,
       )}
       {...props}
     />
@@ -43,7 +43,7 @@ function DrawerContent({ className, children, ...props }: React.ComponentProps<"
           data-slot="drawer-content"
           className={cn(
             "flex h-full flex-col bg-background shadow-lg ring-1 ring-foreground/10 duration-200 outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right",
-            className
+            className,
           )}
           {...props}
         >
@@ -90,7 +90,7 @@ function DrawerClose({ className, ...props }: DialogPrimitive.Close.Props) {
       data-slot="drawer-close"
       className={cn(
         "rounded-sm opacity-70 hover:opacity-100 focus:outline-none focus:ring-1 focus:ring-ring/50",
-        className
+        className,
       )}
       {...props}
     >
@@ -120,4 +120,13 @@ function DrawerFooter({ className, ...props }: React.ComponentProps<"div">) {
   );
 }
 
-export { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerClose, DrawerBody, DrawerFooter };
+export {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerDescription,
+  DrawerClose,
+  DrawerBody,
+  DrawerFooter,
+};

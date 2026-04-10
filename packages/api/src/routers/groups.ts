@@ -82,7 +82,6 @@ export const groupsRouter = {
           organizationId: input.organizationId,
           name: input.name,
           description: input.description,
-          parentId: input.parentId,
           createdBy: input.createdBy,
         })
         .returning();
@@ -118,7 +117,6 @@ export const groupsRouter = {
         .set({
           name: input.name,
           description: input.description,
-          parentId: input.parentId,
           isActive: input.isActive,
         })
         .where(eq(groups.id, input.id))

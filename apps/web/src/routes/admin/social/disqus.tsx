@@ -11,7 +11,14 @@ import {
 import { Button } from "@ticket-app/ui/components/button";
 import { Input } from "@ticket-app/ui/components/input";
 import { Label } from "@ticket-app/ui/components/label";
-import { Loader2, ArrowLeft, MessageSquare, RefreshCw, CheckCircle, ExternalLink } from "lucide-react";
+import {
+  Loader2,
+  ArrowLeft,
+  MessageSquare,
+  RefreshCw,
+  CheckCircle,
+  ExternalLink,
+} from "lucide-react";
 import { orpc } from "@/utils/orpc";
 
 function formatRelativeTime(date: Date | string): string {
@@ -41,10 +48,14 @@ function DisqusConnectionRoute() {
   const [accessToken, setAccessToken] = useState("");
   const [showManualForm, setShowManualForm] = useState(false);
 
-  const { data: accounts, isLoading, refetch } = useQuery(
+  const {
+    data: accounts,
+    isLoading,
+    refetch,
+  } = useQuery(
     orpc.disqus.listAccounts.queryOptions({
       organizationId: 1,
-    })
+    }),
   );
 
   const connectMutation = useMutation(
@@ -57,19 +68,19 @@ function DisqusConnectionRoute() {
         setAccessToken("");
         setShowManualForm(false);
       },
-    })
+    }),
   );
 
   const disconnectMutation = useMutation(
     orpc.disqus.disconnect.mutationOptions({
       onSuccess: () => refetch(),
-    })
+    }),
   );
 
   const testConnectionMutation = useMutation(
     orpc.disqus.testConnection.mutationOptions({
       onSuccess: () => refetch(),
-    })
+    }),
   );
 
   const handleManualConnect = () => {
@@ -83,7 +94,7 @@ function DisqusConnectionRoute() {
     });
   };
 
-  const connectedAccounts = accounts?.filter(a => a.status === "active") || [];
+  const connectedAccounts = accounts?.filter((a) => a.status === "active") || [];
 
   return (
     <div className="container mx-auto max-w-4xl px-4 py-6">
@@ -119,7 +130,10 @@ function DisqusConnectionRoute() {
             ) : connectedAccounts.length > 0 ? (
               <div className="space-y-3">
                 {connectedAccounts.map((account) => (
-                  <div key={account.id} className="flex items-center justify-between p-3 rounded bg-green-50 dark:bg-green-950/20">
+                  <div
+                    key={account.id}
+                    className="flex items-center justify-between p-3 rounded bg-green-50 dark:bg-green-950/20"
+                  >
                     <div className="flex items-center gap-3">
                       <CheckCircle className="h-5 w-5 text-green-600" />
                       <div>
@@ -127,22 +141,30 @@ function DisqusConnectionRoute() {
                           <MessageSquare className="h-3 w-3" />
                           {account.forumShortname}
                         </p>
-                        <p className="text-xs text-muted-foreground">Connected {formatRelativeTime(account.updatedAt)}</p>
+                        <p className="text-xs text-muted-foreground">
+                          Connected {formatRelativeTime(account.updatedAt)}
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => testConnectionMutation.mutate({ id: account.id, organizationId: 1 })}
+                        onClick={() =>
+                          testConnectionMutation.mutate({ id: account.id, organizationId: 1 })
+                        }
                         disabled={testConnectionMutation.isPending}
                       >
-                        <RefreshCw className={`h-4 w-4 ${testConnectionMutation.isPending ? "animate-spin" : ""}`} />
+                        <RefreshCw
+                          className={`h-4 w-4 ${testConnectionMutation.isPending ? "animate-spin" : ""}`}
+                        />
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => disconnectMutation.mutate({ id: account.id, organizationId: 1 })}
+                        onClick={() =>
+                          disconnectMutation.mutate({ id: account.id, organizationId: 1 })
+                        }
                         disabled={disconnectMutation.isPending}
                       >
                         Disconnect
@@ -190,7 +212,8 @@ function DisqusConnectionRoute() {
               <code className="text-xs break-all">{`${window.location.origin}/api/webhooks/disqus`}</code>
             </div>
             <p className="text-xs text-muted-foreground">
-              Configure this URL in your Disqus forum settings to receive incoming comments and moderate discussions.
+              Configure this URL in your Disqus forum settings to receive incoming comments and
+              moderate discussions.
             </p>
             <a
               href="https://disqus.com/admin/settings/webhooks/"
@@ -220,7 +243,9 @@ function DisqusConnectionRoute() {
                 value={forumShortname}
                 onChange={(e) => setForumShortname(e.target.value)}
               />
-              <p className="text-xs text-muted-foreground">The shortname used in your Disqus forum URL</p>
+              <p className="text-xs text-muted-foreground">
+                The shortname used in your Disqus forum URL
+              </p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="apiKey">API Key</Label>
@@ -251,7 +276,9 @@ function DisqusConnectionRoute() {
                 value={accessToken}
                 onChange={(e) => setAccessToken(e.target.value)}
               />
-              <p className="text-xs text-muted-foreground">Required for posting replies back to Disqus</p>
+              <p className="text-xs text-muted-foreground">
+                Required for posting replies back to Disqus
+              </p>
             </div>
             <Button
               onClick={handleManualConnect}
@@ -283,7 +310,10 @@ function DisqusConnectionRoute() {
           {connectedAccounts.length > 0 ? (
             <div className="space-y-4">
               {connectedAccounts.map((account) => (
-                <div key={account.id} className="flex items-center justify-between p-4 border rounded">
+                <div
+                  key={account.id}
+                  className="flex items-center justify-between p-4 border rounded"
+                >
                   <div className="flex items-center gap-4">
                     <div className="rounded-full bg-blue-100 p-2">
                       <MessageSquare className="h-4 w-4 text-blue-600" />
@@ -304,10 +334,14 @@ function DisqusConnectionRoute() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => testConnectionMutation.mutate({ id: account.id, organizationId: 1 })}
+                      onClick={() =>
+                        testConnectionMutation.mutate({ id: account.id, organizationId: 1 })
+                      }
                       disabled={testConnectionMutation.isPending}
                     >
-                      <RefreshCw className={`h-4 w-4 ${testConnectionMutation.isPending ? "animate-spin" : ""}`} />
+                      <RefreshCw
+                        className={`h-4 w-4 ${testConnectionMutation.isPending ? "animate-spin" : ""}`}
+                      />
                     </Button>
                     <Button
                       variant="ghost"

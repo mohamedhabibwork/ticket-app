@@ -497,7 +497,7 @@ export async function createChatSession(
       contact = newContact;
     }
 
-    contactId = contact.id;
+    contactId = contact!.id;
   }
 
   const token = crypto.randomUUID();
@@ -556,7 +556,7 @@ export async function submitOfflineMessage(
   });
 
   if (contact) {
-    contactId = contact.id;
+    contactId = contact!.id;
   } else {
     const [newContact] = await db
       .insert(contacts)

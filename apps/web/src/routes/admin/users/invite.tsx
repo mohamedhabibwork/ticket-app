@@ -2,7 +2,13 @@ import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Button } from "@ticket-app/ui/components/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@ticket-app/ui/components/card";
 import { Input } from "@ticket-app/ui/components/input";
 import { Label } from "@ticket-app/ui/components/label";
 import { Checkbox } from "@ticket-app/ui/components/checkbox";
@@ -37,7 +43,7 @@ function InviteUserRoute() {
       onError: (error) => {
         setErrors({ submit: error.message });
       },
-    })
+    }),
   );
 
   const validateForm = () => {
@@ -97,9 +103,7 @@ function InviteUserRoute() {
           </Link>
         </Button>
         <h1 className="text-3xl font-bold">Invite User</h1>
-        <p className="text-muted-foreground mt-1">
-          Send an invitation to join your organization
-        </p>
+        <p className="text-muted-foreground mt-1">Send an invitation to join your organization</p>
       </div>
 
       <Card>
@@ -108,9 +112,7 @@ function InviteUserRoute() {
             <User className="h-5 w-5" />
             User Information
           </CardTitle>
-          <CardDescription>
-            Enter the details of the user you want to invite
-          </CardDescription>
+          <CardDescription>Enter the details of the user you want to invite</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -124,9 +126,7 @@ function InviteUserRoute() {
                   placeholder="John"
                   hasError={!!errors.firstName}
                 />
-                {errors.firstName && (
-                  <p className="text-xs text-destructive">{errors.firstName}</p>
-                )}
+                {errors.firstName && <p className="text-xs text-destructive">{errors.firstName}</p>}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="lastName">Last Name *</Label>
@@ -137,9 +137,7 @@ function InviteUserRoute() {
                   placeholder="Doe"
                   hasError={!!errors.lastName}
                 />
-                {errors.lastName && (
-                  <p className="text-xs text-destructive">{errors.lastName}</p>
-                )}
+                {errors.lastName && <p className="text-xs text-destructive">{errors.lastName}</p>}
               </div>
             </div>
 
@@ -157,9 +155,7 @@ function InviteUserRoute() {
                   hasError={!!errors.email}
                 />
               </div>
-              {errors.email && (
-                <p className="text-xs text-destructive">{errors.email}</p>
-              )}
+              {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
             </div>
 
             <div className="space-y-2">
@@ -219,10 +215,7 @@ function InviteUserRoute() {
               <Button variant="outline" asChild>
                 <Link to="/admin/users">Cancel</Link>
               </Button>
-              <Button
-                type="submit"
-                disabled={inviteMutation.isPending}
-              >
+              <Button type="submit" disabled={inviteMutation.isPending}>
                 {inviteMutation.isPending ? (
                   <>
                     <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full mr-2" />

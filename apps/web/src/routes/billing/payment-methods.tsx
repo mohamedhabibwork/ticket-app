@@ -2,7 +2,13 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { orpc } from "@/utils/orpc";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@ticket-app/ui/components/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@ticket-app/ui/components/card";
 import { Button } from "@ticket-app/ui/components/button";
 import { Badge } from "@ticket-app/ui/components/badge";
 import { Input } from "@ticket-app/ui/components/input";
@@ -161,7 +167,9 @@ export default function PaymentMethodsPage() {
                     >
                       <div className="flex items-center gap-4">
                         <div className="w-12 h-8 bg-muted rounded flex items-center justify-center text-xs font-bold">
-                          {CARD_ICONS[method.brand?.toLowerCase()] || method.brand?.toUpperCase() || "CARD"}
+                          {CARD_ICONS[method.brand?.toLowerCase()] ||
+                            method.brand?.toUpperCase() ||
+                            "CARD"}
                         </div>
                         <div>
                           <div className="font-medium flex items-center gap-2">
@@ -220,9 +228,7 @@ export default function PaymentMethodsPage() {
                 <Building2 className="h-5 w-5" />
                 Billing Address
               </CardTitle>
-              <CardDescription>
-                Used for invoicing and tax purposes
-              </CardDescription>
+              <CardDescription>Used for invoicing and tax purposes</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-3 text-sm">
@@ -248,8 +254,8 @@ export default function PaymentMethodsPage() {
             </CardHeader>
             <CardContent className="text-sm text-muted-foreground">
               <p className="mb-2">
-                If you have questions about your payment methods or billing, please contact
-                our support team.
+                If you have questions about your payment methods or billing, please contact our
+                support team.
               </p>
               <Button variant="outline" size="sm" className="w-full">
                 Contact Support
@@ -269,7 +275,8 @@ export default function PaymentMethodsPage() {
               </Button>
             </div>
             <p className="text-sm text-muted-foreground mb-4">
-              Enter your card details securely. Your information is encrypted and processed by Stripe.
+              Enter your card details securely. Your information is encrypted and processed by
+              Stripe.
             </p>
             <div className="space-y-4">
               <div className="space-y-2">
@@ -320,13 +327,7 @@ export default function PaymentMethodsPage() {
               </Button>
               <Button
                 onClick={() => addCardMutation.mutate()}
-                disabled={
-                  !cardNumber ||
-                  !expiry ||
-                  !cvc ||
-                  !name ||
-                  addCardMutation.isPending
-                }
+                disabled={!cardNumber || !expiry || !cvc || !name || addCardMutation.isPending}
               >
                 {addCardMutation.isPending ? "Adding..." : "Add Card"}
               </Button>

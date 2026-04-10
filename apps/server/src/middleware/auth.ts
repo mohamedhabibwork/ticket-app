@@ -4,8 +4,7 @@ import { ORPCError } from "@orpc/server";
 export async function authMiddleware(
   context: Context,
 ): Promise<{ userId: string; organizationId: string; sessionId: string } | null> {
-  const authHeader =
-    context.headers?.["authorization"] || context.headers?.["Authorization"];
+  const authHeader = context.headers?.["authorization"] || context.headers?.["Authorization"];
 
   if (!authHeader?.startsWith("Bearer ")) {
     throw new ORPCError("UNAUTHORIZED", {

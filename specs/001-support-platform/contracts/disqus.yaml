@@ -16,14 +16,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/disqusConnect'
+              $ref: "#/components/schemas/disqusConnect"
       responses:
-        '200':
+        "200":
           description: Forum connected
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/disqusAccount'
+                $ref: "#/components/schemas/disqusAccount"
 
   /disqus/accounts:
     get:
@@ -32,14 +32,14 @@ paths:
       tags: [Disqus]
       security: [cookieAuth: [], bearerAuth: []]
       responses:
-        '200':
+        "200":
           description: Account list
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/disqusAccount'
+                  $ref: "#/components/schemas/disqusAccount"
 
     delete:
       operationId: disconnectDisqus
@@ -52,7 +52,7 @@ paths:
           schema:
             type: number
       responses:
-        '200':
+        "200":
           description: Disconnected
 
   /disqus/sync:
@@ -67,7 +67,7 @@ paths:
           schema:
             type: number
       responses:
-        '200':
+        "200":
           description: Sync started
 
 components:

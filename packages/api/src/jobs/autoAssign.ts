@@ -129,7 +129,7 @@ async function selectAgent(teamId: number, method: string): Promise<number | nul
         return activeMembers[0]?.userId ?? null;
       }
 
-      return agentCounts[0].agentId;
+      return agentCounts[0]!.agentId;
     }
 
     case "least_assigned": {
@@ -160,7 +160,7 @@ async function selectAgent(teamId: number, method: string): Promise<number | nul
         return activeMembers[0]?.userId ?? null;
       }
 
-      return agentCounts[0].agentId;
+      return agentCounts[0]!.agentId;
     }
 
     default:

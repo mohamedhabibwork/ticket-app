@@ -91,7 +91,7 @@ export const ticketCategoriesRouter = {
           teamId: input.teamId,
           priorityId: input.priorityId,
           createdBy: input.createdBy,
-        })
+        } as any)
         .returning();
       return category;
     }),
@@ -131,7 +131,7 @@ export const ticketCategoriesRouter = {
           teamId: input.teamId,
           priorityId: input.priorityId,
           isActive: input.isActive,
-        })
+        } as any)
         .where(eq(ticketCategories.id, input.id))
         .returning();
       return updated;

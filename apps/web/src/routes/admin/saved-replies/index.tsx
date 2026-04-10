@@ -3,12 +3,33 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@ticket-app/ui/components/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@ticket-app/ui/components/dropdown-menu";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@ticket-app/ui/components/dropdown-menu";
 import { Input } from "@ticket-app/ui/components/input";
 import { Badge } from "@ticket-app/ui/components/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@ticket-app/ui/components/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@ticket-app/ui/components/select";
 import { orpc } from "@/utils/orpc";
-import { MoreHorizontal, Plus, Edit, Trash2, MessageSquare, Search, Folder, Tag } from "lucide-react";
+import {
+  MoreHorizontal,
+  Plus,
+  Edit,
+  Trash2,
+  MessageSquare,
+  Search,
+  Folder,
+  Tag,
+} from "lucide-react";
 
 export const Route = createFileRoute("/admin/saved-replies/")({
   component: SavedRepliesListRoute,
@@ -36,11 +57,13 @@ function SavedRepliesListRoute() {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ["saved-replies", organizationId] });
       },
-    })
+    }),
   );
 
   const handleDelete = (replyId: number) => {
-    if (confirm("Are you sure you want to delete this saved reply? This action cannot be undone.")) {
+    if (
+      confirm("Are you sure you want to delete this saved reply? This action cannot be undone.")
+    ) {
       deleteMutation.mutate({ id: replyId });
     }
   };
@@ -149,14 +172,14 @@ function SavedRepliesListRoute() {
                       <MessageSquare className="h-5 w-5 text-muted-foreground" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <CardTitle className="text-base truncate">
-                        {reply.name}
-                      </CardTitle>
+                      <CardTitle className="text-base truncate">{reply.name}</CardTitle>
                       <div className="flex items-center gap-2 mt-1">
                         <Badge variant="outline" className="text-xs">
                           {getFolderName(reply.folderId)}
                         </Badge>
-                        <span className={`px-1.5 py-0.5 rounded text-xs ${getScopeBadgeColor(reply.scope)}`}>
+                        <span
+                          className={`px-1.5 py-0.5 rounded text-xs ${getScopeBadgeColor(reply.scope)}`}
+                        >
                           {reply.scope}
                         </span>
                       </div>
@@ -190,14 +213,15 @@ function SavedRepliesListRoute() {
               <CardContent>
                 <div className="space-y-3">
                   {reply.subject && (
-                    <div className="text-sm font-medium truncate">
-                      {reply.subject}
-                    </div>
+                    <div className="text-sm font-medium truncate">{reply.subject}</div>
                   )}
                   <div
                     className="text-xs text-muted-foreground line-clamp-3 prose prose-xs max-w-none"
                     dangerouslySetInnerHTML={{
-                      __html: reply.bodyHtml?.substring(0, 200) || reply.bodyText?.substring(0, 200) || "",
+                      __html:
+                        reply.bodyHtml?.substring(0, 200) ||
+                        reply.bodyText?.substring(0, 200) ||
+                        "",
                     }}
                   />
                   {reply.shortcuts && (

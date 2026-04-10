@@ -41,8 +41,8 @@ export async function createAuditLog(context: AuditContext, entry: AuditEntry): 
     const [auditLog] = await db
       .insert(auditLogs)
       .values({
-        userId: context.userId ? BigInt(context.userId) : null,
-        organizationId: context.organizationId ? BigInt(context.organizationId) : null,
+        userId: context.userId ? Number(context.userId) : null,
+        organizationId: context.organizationId ? Number(context.organizationId) : null,
         action: entry.action,
         resourceType: entry.resourceType,
         resourceId: entry.resourceId,

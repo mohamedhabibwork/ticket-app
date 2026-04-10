@@ -5,13 +5,18 @@ import { toast } from "sonner";
 import { Button } from "@ticket-app/ui/components/button";
 import { Input } from "@ticket-app/ui/components/input";
 import { Textarea } from "@ticket-app/ui/components/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@ticket-app/ui/components/card";
-import { Loader2, ArrowLeft, Send, StickyNote, Ticket, Star, Clock, User, Phone } from "lucide-react";
+  Loader2,
+  ArrowLeft,
+  Send,
+  StickyNote,
+  Ticket,
+  Star,
+  Clock,
+  User,
+  Phone,
+} from "lucide-react";
 
 import { orpc } from "@/utils/orpc";
 
@@ -47,32 +52,36 @@ function ChatConversationRoute() {
   const { data: session, isLoading } = useQuery(
     orpc.chatSessions.get.queryOptions(
       { organizationId, id: sessionId },
-      { enabled: !isNaN(sessionId) }
-    )
+      { enabled: !isNaN(sessionId) },
+    ),
   );
 
   const sendMessageMutation = useMutation(
     orpc.chatMessages.createFromAgent.mutationOptions({
       onSuccess: () => {
         setMessageText("");
-        queryClient.invalidateQueries(orpc.chatSessions.get.queryOptions({ organizationId, id: sessionId }));
+        queryClient.invalidateQueries(
+          orpc.chatSessions.get.queryOptions({ organizationId, id: sessionId }),
+        );
       },
       onError: (error) => {
         toast.error(`Failed to send message: ${error.message}`);
       },
-    })
+    }),
   );
 
   const endSessionMutation = useMutation(
     orpc.chatSessions.updateStatus.mutationOptions({
       onSuccess: () => {
         toast.success("Chat ended");
-        queryClient.invalidateQueries(orpc.chatSessions.get.queryOptions({ organizationId, id: sessionId }));
+        queryClient.invalidateQueries(
+          orpc.chatSessions.get.queryOptions({ organizationId, id: sessionId }),
+        );
       },
       onError: (error) => {
         toast.error(`Failed to end chat: ${error.message}`);
       },
-    })
+    }),
   );
 
   const addNoteMutation = useMutation(
@@ -80,24 +89,28 @@ function ChatConversationRoute() {
       onSuccess: () => {
         setNoteText("");
         toast.success("Note added");
-        queryClient.invalidateQueries(orpc.chatSessions.get.queryOptions({ organizationId, id: sessionId }));
+        queryClient.invalidateQueries(
+          orpc.chatSessions.get.queryOptions({ organizationId, id: sessionId }),
+        );
       },
       onError: (error) => {
         toast.error(`Failed to add note: ${error.message}`);
       },
-    })
+    }),
   );
 
   const rateSessionMutation = useMutation(
     orpc.chatSessions.setRating.mutationOptions({
       onSuccess: () => {
         toast.success("Rating submitted");
-        queryClient.invalidateQueries(orpc.chatSessions.get.queryOptions({ organizationId, id: sessionId }));
+        queryClient.invalidateQueries(
+          orpc.chatSessions.get.queryOptions({ organizationId, id: sessionId }),
+        );
       },
       onError: (error) => {
         toast.error(`Failed to rate chat: ${error.message}`);
       },
-    })
+    }),
   );
 
   const convertToTicketMutation = useMutation(
@@ -109,7 +122,7 @@ function ChatConversationRoute() {
       onError: (error) => {
         toast.error(`Failed to create ticket: ${error.message}`);
       },
-    })
+    }),
   );
 
   const handleSendMessage = () => {
@@ -201,9 +214,7 @@ function ChatConversationRoute() {
                 ? `${session.contact.firstName} ${session.contact.lastName}`
                 : "Anonymous"}
             </h1>
-            <p className="text-muted-foreground">
-              {isActive ? "Active Chat" : "Chat Transcript"}
-            </p>
+            <p className="text-muted-foreground">{isActive ? "Active Chat" : "Chat Transcript"}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -255,8 +266,8 @@ function ChatConversationRoute() {
                       session.status === "active"
                         ? "bg-green-100 text-green-800"
                         : session.status === "waiting"
-                        ? "bg-yellow-100 text-yellow-800"
-                        : "bg-gray-100 text-gray-800"
+                          ? "bg-yellow-100 text-yellow-800"
+                          : "bg-gray-100 text-gray-800"
                     }`}
                   >
                     {session.status}
@@ -275,8 +286,8 @@ function ChatConversationRoute() {
                         msg.authorType === "agent"
                           ? "bg-primary text-primary-foreground"
                           : msg.authorType === "system"
-                          ? "bg-yellow-100 text-yellow-800 text-center text-sm"
-                          : "bg-muted"
+                            ? "bg-yellow-100 text-yellow-800 text-center text-sm"
+                            : "bg-muted"
                       }`}
                     >
                       {msg.isInternal && (
@@ -330,11 +341,7 @@ function ChatConversationRoute() {
               <CardContent>
                 <div className="flex items-center gap-1">
                   {[1, 2, 3, 4, 5].map((star) => (
-                    <button
-                      key={star}
-                      onClick={() => handleRate(star)}
-                      className="p-1"
-                    >
+                    <button key={star} onClick={() => handleRate(star)} className="p-1">
                       <Star
                         className={`h-6 w-6 ${
                           star <= (rating || session.rating || 0)
@@ -368,9 +375,7 @@ function ChatConversationRoute() {
                 disabled={!noteText.trim() || addNoteMutation.isPending}
                 className="w-full"
               >
-                {addNoteMutation.isPending && (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                )}
+                {addNoteMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                 Add Note
               </Button>
             </CardContent>

@@ -20,7 +20,9 @@ export const auditLogs = pgTable(
     id: bigint("id", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
     uuid: uuid("uuid").defaultRandom().notNull().unique(),
     userId: bigint("user_id", { mode: "number" }).references(() => users.id),
-    organizationId: bigint("organization_id", { mode: "number" }).references(() => organizations.id),
+    organizationId: bigint("organization_id", { mode: "number" }).references(
+      () => organizations.id,
+    ),
     action: varchar("action", { length: 100 }).notNull(),
     resourceType: varchar("resource_type", { length: 100 }).notNull(),
     resourceId: varchar("resource_id", { length: 255 }),
@@ -37,7 +39,7 @@ export const auditLogs = pgTable(
     resourceIdx: index("audit_logs_resource_idx").on(table.resourceType, table.resourceId),
     createdAtIdx: index("audit_logs_created_at_idx").on(table.createdAt),
     actionIdx: index("audit_logs_action_idx").on(table.action),
-  })
+  }),
 );
 
 export const notifications = pgTable(
@@ -63,7 +65,7 @@ export const notifications = pgTable(
     userIdx: index("notifications_user_idx").on(table.userId),
     orgIdx: index("notifications_org_idx").on(table.organizationId),
     createdAtIdx: index("notifications_created_at_idx").on(table.createdAt),
-  })
+  }),
 );
 
 export const notificationChannels = pgTable(
@@ -83,7 +85,7 @@ export const notificationChannels = pgTable(
   },
   (table) => ({
     userChannelUnique: unique().on(table.userId, table.channel),
-  })
+  }),
 );
 
 export const auditLogsRelations = relations(auditLogs, ({ one }) => ({

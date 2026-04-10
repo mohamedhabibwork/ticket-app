@@ -156,14 +156,14 @@ export const onPremiseRouter = {
 
       const result = await validateSeatLimit(
         input.organizationId,
-        userCount[0].count,
+        userCount[0]?.count ?? 0,
         Number(license.seatLimit),
       );
 
       return {
         enforced: true,
         allowed: result.allowed,
-        currentCount: userCount[0].count,
+        currentCount: userCount[0]?.count ?? 0,
         seatLimit: license.seatLimit,
         message: result.message,
       };

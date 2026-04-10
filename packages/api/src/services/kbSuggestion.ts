@@ -26,7 +26,7 @@ interface KbSuggestionResult {
 }
 
 export async function suggestKbArticles(
-  options: KbSuggestionOptions
+  options: KbSuggestionOptions,
 ): Promise<KbSuggestionResult[]> {
   const {
     organizationId,
@@ -64,7 +64,11 @@ export async function suggestKbArticles(
     const title = locale === "ar" && article.titleAr ? article.titleAr : article.title;
     const titleLower = title.toLowerCase();
     const bodyLower = (article.bodyText || "").toLowerCase();
-    const metaLower = ((article.metaKeywords || "") + " " + (article.metaDescription || "")).toLowerCase();
+    const metaLower = (
+      (article.metaKeywords || "") +
+      " " +
+      (article.metaDescription || "")
+    ).toLowerCase();
 
     let relevanceScore = 0;
 
@@ -80,7 +84,10 @@ export async function suggestKbArticles(
       }
     }
 
-    const subjectWords = ticketSubject.toLowerCase().split(/\s+/).filter((w) => w.length > 2);
+    const subjectWords = ticketSubject
+      .toLowerCase()
+      .split(/\s+/)
+      .filter((w) => w.length > 2);
     for (const word of subjectWords) {
       if (titleLower.includes(word)) {
         relevanceScore += 40;
@@ -122,13 +129,13 @@ export async function suggestKbArticles(
 async function getMostHelpfulArticles(
   organizationId: number,
   locale: string,
-  limit: number
+  limit: number,
 ): Promise<KbSuggestionResult[]> {
   const articles = await db.query.kbArticles.findMany({
     where: and(
       eq(kbArticles.organizationId, organizationId),
       eq(kbArticles.status, "published"),
-      isNull(kbArticles.deletedAt)
+      isNull(kbArticles.deletedAt),
     ),
     with: {
       category: true,

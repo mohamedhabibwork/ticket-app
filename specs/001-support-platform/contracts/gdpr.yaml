@@ -12,21 +12,21 @@ paths:
       tags: [GDPR]
       security: [cookieAuth: [], bearerAuth: []]
       parameters:
-        - $ref: '#/components/parameters/organizationId'
+        - $ref: "#/components/parameters/organizationId"
         - name: status
           in: query
           schema:
             type: string
             enum: [pending, in_progress, completed, rejected]
       responses:
-        '200':
+        "200":
           description: Request list
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/gdprRequest'
+                  $ref: "#/components/schemas/gdprRequest"
 
     post:
       operationId: createGdprRequest
@@ -38,14 +38,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/gdprRequestCreate'
+              $ref: "#/components/schemas/gdprRequestCreate"
       responses:
-        '201':
+        "201":
           description: Request created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/gdprRequest'
+                $ref: "#/components/schemas/gdprRequest"
 
   /gdpr/requests/{requestId}:
     get:
@@ -60,12 +60,12 @@ paths:
           schema:
             type: number
       responses:
-        '200':
+        "200":
           description: Request details
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/gdprRequest'
+                $ref: "#/components/schemas/gdprRequest"
 
     patch:
       operationId: updateGdprRequest
@@ -83,9 +83,9 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/gdprRequestUpdate'
+              $ref: "#/components/schemas/gdprRequestUpdate"
       responses:
-        '200':
+        "200":
           description: Request updated
 
   /gdpr/requests/{requestId}/export:
@@ -101,7 +101,7 @@ paths:
           schema:
             type: number
       responses:
-        '200':
+        "200":
           description: Exported data
           content:
             application/json:
@@ -121,7 +121,7 @@ paths:
           schema:
             type: number
       responses:
-        '200':
+        "200":
           description: Data erased
 
 components:

@@ -11,7 +11,15 @@ import {
 import { Button } from "@ticket-app/ui/components/button";
 import { Input } from "@ticket-app/ui/components/input";
 import { Label } from "@ticket-app/ui/components/label";
-import { Loader2, ArrowLeft, ShoppingBag, RefreshCw, CheckCircle, ExternalLink, AlertCircle } from "lucide-react";
+import {
+  Loader2,
+  ArrowLeft,
+  ShoppingBag,
+  RefreshCw,
+  CheckCircle,
+  ExternalLink,
+  AlertCircle,
+} from "lucide-react";
 import { orpc } from "@/utils/orpc";
 
 function formatRelativeTime(date: Date | string): string {
@@ -62,13 +70,17 @@ function AmazonSellerCentralRoute() {
   const [spApiRefreshToken, setSpApiRefreshToken] = useState("");
   const [showManualForm, setShowManualForm] = useState(false);
 
-  const { data: accounts, isLoading, refetch } = useQuery(
+  const {
+    data: accounts,
+    isLoading,
+    refetch,
+  } = useQuery(
     orpc.marketplace.listAccounts.queryOptions({
       organizationId: 1,
-    })
+    }),
   );
 
-  const amazonAccounts = accounts?.filter(a => a.platform === "amazon_seller") || [];
+  const amazonAccounts = accounts?.filter((a) => a.platform === "amazon_seller") || [];
 
   const connectMutation = useMutation(
     orpc.marketplace.connectMarketplace.mutationOptions({
@@ -82,17 +94,25 @@ function AmazonSellerCentralRoute() {
         setSpApiRefreshToken("");
         setShowManualForm(false);
       },
-    })
+    }),
   );
 
   const disconnectMutation = useMutation(
     orpc.marketplace.disconnect.mutationOptions({
       onSuccess: () => refetch(),
-    })
+    }),
   );
 
   const handleManualConnect = () => {
-    if (!accountName || !sellerId || !marketplaceId || !spApiClientId || !spApiClientSecret || !spApiRefreshToken) return;
+    if (
+      !accountName ||
+      !sellerId ||
+      !marketplaceId ||
+      !spApiClientId ||
+      !spApiClientSecret ||
+      !spApiRefreshToken
+    )
+      return;
     connectMutation.mutate({
       organizationId: 1,
       platform: "amazon_seller",
@@ -106,7 +126,7 @@ function AmazonSellerCentralRoute() {
   };
 
   const getMarketplaceName = (id: string) => {
-    const marketplace = marketplaceRegions.find(m => m.id === id);
+    const marketplace = marketplaceRegions.find((m) => m.id === id);
     return marketplace ? `${marketplace.name} (${marketplace.code})` : id;
   };
 
@@ -157,7 +177,9 @@ function AmazonSellerCentralRoute() {
           </div>
           <div>
             <h1 className="text-2xl font-bold">Amazon Seller Central</h1>
-            <p className="text-muted-foreground">Connect Amazon Seller Central for buyer-seller messaging</p>
+            <p className="text-muted-foreground">
+              Connect Amazon Seller Central for buyer-seller messaging
+            </p>
           </div>
         </div>
       </div>
@@ -176,7 +198,10 @@ function AmazonSellerCentralRoute() {
             ) : amazonAccounts.length > 0 ? (
               <div className="space-y-3">
                 {amazonAccounts.map((account) => (
-                  <div key={account.id} className="flex items-center justify-between p-3 rounded bg-green-50 dark:bg-green-950/20">
+                  <div
+                    key={account.id}
+                    className="flex items-center justify-between p-3 rounded bg-green-50 dark:bg-green-950/20"
+                  >
                     <div className="flex items-center gap-3">
                       <CheckCircle className="h-5 w-5 text-green-600" />
                       <div>
@@ -185,7 +210,10 @@ function AmazonSellerCentralRoute() {
                           {account.accountName}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          {getMarketplaceName(account.marketplaceId)} · Last sync: {account.lastSyncedAt ? formatRelativeTime(account.lastSyncedAt) : "Never"}
+                          {getMarketplaceName(account.marketplaceId)} · Last sync:{" "}
+                          {account.lastSyncedAt
+                            ? formatRelativeTime(account.lastSyncedAt)
+                            : "Never"}
                         </p>
                       </div>
                     </div>
@@ -194,7 +222,9 @@ function AmazonSellerCentralRoute() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => disconnectMutation.mutate({ id: account.id, organizationId: 1 })}
+                        onClick={() =>
+                          disconnectMutation.mutate({ id: account.id, organizationId: 1 })
+                        }
                         disabled={disconnectMutation.isPending}
                       >
                         Disconnect
@@ -211,10 +241,12 @@ function AmazonSellerCentralRoute() {
 
             <div className="p-3 rounded bg-amber-50 dark:bg-amber-950/20">
               <p className="text-sm text-amber-800 dark:text-amber-200">
-                <strong>72-Hour SLA:</strong> Amazon requires sellers to respond to buyer messages within 72 hours.
+                <strong>72-Hour SLA:</strong> Amazon requires sellers to respond to buyer messages
+                within 72 hours.
               </p>
               <p className="text-xs text-amber-700 dark:text-amber-300 mt-2">
-                Tickets from Amazon will show an SLA countdown indicator to help you meet the response deadline.
+                Tickets from Amazon will show an SLA countdown indicator to help you meet the
+                response deadline.
               </p>
             </div>
 
@@ -237,7 +269,8 @@ function AmazonSellerCentralRoute() {
             <div className="p-3 rounded bg-muted">
               <p className="text-sm font-medium mb-2">What is Amazon SP-API?</p>
               <p className="text-xs text-muted-foreground">
-                The Selling Partner API (SP-API) is a REST API that provides programmatic access to Amazon seller data and operations.
+                The Selling Partner API (SP-API) is a REST API that provides programmatic access to
+                Amazon seller data and operations.
               </p>
             </div>
             <div className="p-3 rounded bg-muted">
@@ -298,7 +331,9 @@ function AmazonSellerCentralRoute() {
                 >
                   <option value="">Select marketplace</option>
                   {marketplaceRegions.map((m) => (
-                    <option key={m.id} value={m.id}>{m.name} ({m.code})</option>
+                    <option key={m.id} value={m.id}>
+                      {m.name} ({m.code})
+                    </option>
                   ))}
                 </select>
               </div>
@@ -336,8 +371,12 @@ function AmazonSellerCentralRoute() {
             <Button
               onClick={handleManualConnect}
               disabled={
-                !accountName || !sellerId || !marketplaceId ||
-                !spApiClientId || !spApiClientSecret || !spApiRefreshToken ||
+                !accountName ||
+                !sellerId ||
+                !marketplaceId ||
+                !spApiClientId ||
+                !spApiClientSecret ||
+                !spApiRefreshToken ||
                 connectMutation.isPending
               }
               className="w-full"
@@ -367,7 +406,10 @@ function AmazonSellerCentralRoute() {
           {amazonAccounts.length > 0 ? (
             <div className="space-y-4">
               {amazonAccounts.map((account) => (
-                <div key={account.id} className="flex items-center justify-between p-4 border rounded">
+                <div
+                  key={account.id}
+                  className="flex items-center justify-between p-4 border rounded"
+                >
                   <div className="flex items-center gap-4">
                     <div className="rounded-full bg-orange-100 p-2">
                       <ShoppingBag className="h-4 w-4 text-orange-600" />
@@ -381,18 +423,14 @@ function AmazonSellerCentralRoute() {
                         Seller ID: {account.sellerId} · {getMarketplaceName(account.marketplaceId)}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        Last sync: {account.lastSyncedAt ? formatRelativeTime(account.lastSyncedAt) : "Never"}
+                        Last sync:{" "}
+                        {account.lastSyncedAt ? formatRelativeTime(account.lastSyncedAt) : "Never"}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
                     {getStatusBadge(account.status)}
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => refetch()}
-                      disabled={false}
-                    >
+                    <Button variant="ghost" size="icon" onClick={() => refetch()} disabled={false}>
                       <RefreshCw className="h-4 w-4" />
                     </Button>
                     <Button

@@ -48,7 +48,7 @@ export const users = pgTable(
   },
   (table) => ({
     orgEmailUnique: unique().on(table.organizationId, table.email),
-  })
+  }),
 );
 
 export const roles = pgTable(
@@ -73,7 +73,7 @@ export const roles = pgTable(
   },
   (table) => ({
     orgSlugUnique: unique().on(table.organizationId, table.slug),
-  })
+  }),
 );
 
 export const permissions = pgTable("permissions", {
@@ -100,7 +100,7 @@ export const rolePermissions = pgTable(
   },
   (table) => ({
     rolePermissionUnique: unique().on(table.roleId, table.permissionId),
-  })
+  }),
 );
 
 export const userRoles = pgTable(
@@ -118,7 +118,7 @@ export const userRoles = pgTable(
   },
   (table) => ({
     userRoleUnique: unique().on(table.userId, table.roleId),
-  })
+  }),
 );
 
 export const teams = pgTable(
@@ -132,7 +132,9 @@ export const teams = pgTable(
     groupId: bigint("group_id", { mode: "number" }).references((): any => groups.id),
     name: varchar("name", { length: 150 }).notNull(),
     description: text("description"),
-    autoAssignMethod: varchar("auto_assign_method", { length: 30 }).default("round_robin").notNull(),
+    autoAssignMethod: varchar("auto_assign_method", { length: 30 })
+      .default("round_robin")
+      .notNull(),
     isActive: boolean("is_active").default(true).notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull(),
@@ -143,7 +145,7 @@ export const teams = pgTable(
   },
   (table) => ({
     orgIdx: index("teams_org_idx").on(table.organizationId),
-  })
+  }),
 );
 
 export const teamMembers = pgTable(
@@ -162,7 +164,7 @@ export const teamMembers = pgTable(
   },
   (table) => ({
     teamMemberUnique: unique().on(table.teamId, table.userId),
-  })
+  }),
 );
 
 export const userSessions = pgTable(
@@ -184,7 +186,7 @@ export const userSessions = pgTable(
   (table) => ({
     userIdx: index("user_sessions_user_idx").on(table.userId),
     expiresIdx: index("user_sessions_expires_idx").on(table.expiresAt),
-  })
+  }),
 );
 
 export const twoFactorAuth = pgTable("two_factor_auth", {
@@ -225,7 +227,7 @@ export const apiKeys = pgTable(
   },
   (table) => ({
     orgIdx: index("api_keys_org_idx").on(table.organizationId),
-  })
+  }),
 );
 
 export const ipWhitelist = pgTable("ip_whitelist", {

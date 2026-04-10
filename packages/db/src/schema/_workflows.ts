@@ -38,7 +38,7 @@ export const workflows = pgTable(
   },
   (table) => ({
     orgIdx: index("workflows_org_idx").on(table.organizationId),
-  })
+  }),
 );
 
 export const workflowExecutionLogs = pgTable(
@@ -61,10 +61,10 @@ export const workflowExecutionLogs = pgTable(
   (table) => ({
     workflowExecutedAtIdx: index("workflow_execution_logs_workflow_executed_at_idx").on(
       table.workflowId,
-      table.executedAt
+      table.executedAt,
     ),
     ticketIdx: index("workflow_execution_logs_ticket_idx").on(table.ticketId),
-  })
+  }),
 );
 
 export const workflowsRelations = relations(workflows, ({ one, many }) => ({

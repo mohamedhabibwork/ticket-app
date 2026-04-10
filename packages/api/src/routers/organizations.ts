@@ -151,7 +151,7 @@ export const organizationsRouter = {
 
       if (input.customDomain) {
         const existingDomain = await db.query.organizations.findFirst({
-          where: eq(organizations.customDomain, input.customDomain),
+          where: eq(organizations.customDomain, input.customDomain as any),
         });
 
         if (existingDomain) {
@@ -168,18 +168,18 @@ export const organizationsRouter = {
           name: input.name,
           slug: input.slug,
           subdomain: input.subdomain,
-          customDomain: input.customDomain,
+          customDomain: input.customDomain as any,
           locale: input.locale,
           timezone: input.timezone,
           planId: input.planId,
-          maxAgents: input.maxAgents,
+          maxAgents: input.maxAgents as any,
           trialEndsAt,
           createdBy: input.createdBy,
         })
         .returning();
 
       await db.insert(brandingConfigs).values({
-        organizationId: org.id,
+        organizationId: (org as any).id,
       });
 
       return org;
@@ -238,7 +238,7 @@ export const organizationsRouter = {
 
       if (input.customDomain && input.customDomain !== org.customDomain) {
         const existing = await db.query.organizations.findFirst({
-          where: eq(organizations.customDomain, input.customDomain),
+          where: eq(organizations.customDomain, input.customDomain as any),
         });
         if (existing) {
           throw new Error("Organization with this custom domain already exists");
@@ -251,11 +251,11 @@ export const organizationsRouter = {
           name: input.name,
           slug: input.slug,
           subdomain: input.subdomain,
-          customDomain: input.customDomain,
+          customDomain: input.customDomain as any,
           locale: input.locale,
           timezone: input.timezone,
           isActive: input.isActive,
-          maxAgents: input.maxAgents,
+          maxAgents: input.maxAgents as any,
           updatedAt: new Date(),
         })
         .where(eq(organizations.id, input.id))
@@ -360,7 +360,7 @@ export const organizationsRouter = {
         const [updated] = await db
           .update(organizationSettings)
           .set({
-            value: input.value,
+            value: value as any,
             updatedAt: new Date(),
             updatedBy: input.createdBy,
           })
@@ -374,7 +374,7 @@ export const organizationsRouter = {
         .values({
           organizationId: input.organizationId,
           key: input.key,
-          value: input.value,
+          value: value as any,
           createdBy: input.createdBy,
         })
         .returning();
@@ -425,7 +425,7 @@ export const organizationsRouter = {
           const [updated] = await db
             .update(organizationSettings)
             .set({
-              value,
+              value: value as any,
               updatedAt: new Date(),
               updatedBy: input.createdBy,
             })
@@ -438,7 +438,7 @@ export const organizationsRouter = {
             .values({
               organizationId: input.organizationId,
               key,
-              value,
+              value: value as any,
               createdBy: input.createdBy,
             })
             .returning();

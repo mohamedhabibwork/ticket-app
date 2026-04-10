@@ -17,14 +17,14 @@ paths:
           schema:
             type: number
       responses:
-        '200':
+        "200":
           description: Forward list
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/ticketForward'
+                  $ref: "#/components/schemas/ticketForward"
 
     post:
       operationId: createTicketForward
@@ -36,14 +36,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ticketForwardCreate'
+              $ref: "#/components/schemas/ticketForwardCreate"
       responses:
-        '201':
+        "201":
           description: Forward created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ticketForward'
+                $ref: "#/components/schemas/ticketForward"
 
 components:
   securitySchemes:

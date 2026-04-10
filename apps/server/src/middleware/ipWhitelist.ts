@@ -84,7 +84,7 @@ export async function checkIpWhitelist(
       .select({ ipRange: ipWhitelist.ipRange, isActive: ipWhitelist.isActive })
       .from(ipWhitelist)
       .where(
-        and(eq(ipWhitelist.organizationId, BigInt(organizationId)), eq(ipWhitelist.isActive, true)),
+        and(eq(ipWhitelist.organizationId, Number(organizationId)), eq(ipWhitelist.isActive, true)),
       );
 
     if (whitelistEntries.length === 0) {

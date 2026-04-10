@@ -7,8 +7,7 @@ import { publicProcedure } from "../index";
 import { addExcelExportJob, addExcelImportJob } from "@ticket-app/queue";
 
 const EntityTypeEnum = z.enum(["tickets", "contacts", "users", "kb_articles", "saved_replies"]);
-const _ExportStatusEnum = z.enum(["pending", "processing", "completed", "failed"]);
-const _ImportStatusEnum = z.enum(["pending", "validating", "processing", "completed", "failed"]);
+
 const ImportModeEnum = z.enum(["create", "upsert"]);
 
 export const excelRouter = {
@@ -34,7 +33,7 @@ export const excelRouter = {
           ),
         );
 
-      if (activeExportsCount[0].count >= 3) {
+      if ((activeExportsCount[0]?.count ?? 0) >= 3) {
         throw new Error("Maximum concurrent exports (3) reached for this organization");
       }
 
@@ -50,7 +49,7 @@ export const excelRouter = {
         .returning();
 
       await addExcelExportJob({
-        jobId: job.uuid,
+        jobId: job!.uuid,
         organizationId,
         userId,
         entityType,
@@ -58,8 +57,8 @@ export const excelRouter = {
       });
 
       return {
-        jobId: job.uuid,
-        status: job.status,
+        jobId: job!.uuid,
+        status: job!.status,
       };
     }),
 
@@ -85,8 +84,8 @@ export const excelRouter = {
       }
 
       return {
-        jobId: job.uuid,
-        status: job.status,
+        jobId: job!.uuid,
+        status: job!.status,
         entityType: job.entityType,
         recordCount: job.recordCount,
         fileUrl: job.fileUrl,
@@ -117,7 +116,7 @@ export const excelRouter = {
         throw new Error("Export job not found");
       }
 
-      if (job.status !== "completed") {
+      if (job!.status !== "completed") {
         throw new Error("Export job not yet completed");
       }
 
@@ -162,7 +161,7 @@ export const excelRouter = {
         .returning();
 
       await addExcelImportJob({
-        jobId: job.uuid,
+        jobId: job!.uuid,
         organizationId,
         userId,
         entityType,
@@ -172,8 +171,8 @@ export const excelRouter = {
       });
 
       return {
-        jobId: job.uuid,
-        status: job.status,
+        jobId: job!.uuid,
+        status: job!.status,
       };
     }),
 
@@ -199,8 +198,8 @@ export const excelRouter = {
       }
 
       return {
-        jobId: job.uuid,
-        status: job.status,
+        jobId: job!.uuid,
+        status: job!.status,
         entityType: job.entityType,
         mode: job.mode,
         totalRows: job.totalRows,
@@ -232,8 +231,8 @@ export const excelRouter = {
       });
 
       return jobs.map((job) => ({
-        jobId: job.uuid,
-        status: job.status,
+        jobId: job!.uuid,
+        status: job!.status,
         entityType: job.entityType,
         recordCount: job.recordCount,
         createdAt: job.createdAt,
@@ -260,8 +259,8 @@ export const excelRouter = {
       });
 
       return jobs.map((job) => ({
-        jobId: job.uuid,
-        status: job.status,
+        jobId: job!.uuid,
+        status: job!.status,
         entityType: job.entityType,
         mode: job.mode,
         totalRows: job.totalRows,

@@ -21,7 +21,7 @@ export const adminRouter = {
     .handler(async ({ input, context }) => {
       const user = await db.query.users.findFirst({
         where: and(
-          eq(users.id, BigInt(context.auth.userId || 0)),
+          eq(users.id, Number(context.auth.userId || 0)),
           eq(users.organizationId, input.organizationId),
         ),
       });
@@ -52,7 +52,7 @@ export const adminRouter = {
     .handler(async ({ input, context }) => {
       const user = await db.query.users.findFirst({
         where: and(
-          eq(users.id, BigInt(context.auth.userId || 0)),
+          eq(users.id, Number(context.auth.userId || 0)),
           eq(users.organizationId, input.organizationId),
         ),
       });
@@ -72,16 +72,16 @@ export const adminRouter = {
         if (existing) {
           await db
             .update(organizationSettings)
-            .set({ value, updatedAt: new Date() })
+            .set({ value: String(value), updatedAt: new Date() })
             .where(eq(organizationSettings.id, existing.id));
         } else {
           await db.insert(organizationSettings).values({
             organizationId: input.organizationId,
             key,
-            value,
-            createdBy: BigInt(context.auth.userId || 0),
-            updatedBy: BigInt(context.auth.userId || 0),
-          });
+            value: String(value),
+            createdBy: Number(context.auth.userId || 0),
+            updatedBy: Number(context.auth.userId || 0),
+          } as any);
         }
       }
 
@@ -98,7 +98,7 @@ export const adminRouter = {
     .handler(async ({ input, context }) => {
       const user = await db.query.users.findFirst({
         where: and(
-          eq(users.id, BigInt(context.auth.userId || 0)),
+          eq(users.id, Number(context.auth.userId || 0)),
           eq(users.organizationId, input.organizationId),
         ),
       });
@@ -125,9 +125,9 @@ export const adminRouter = {
           organizationId: input.organizationId,
           key: settingKey,
           value: String(input.enabled),
-          createdBy: BigInt(context.auth.userId || 0),
-          updatedBy: BigInt(context.auth.userId || 0),
-        });
+          createdBy: Number(context.auth.userId || 0),
+          updatedBy: Number(context.auth.userId || 0),
+        } as any);
       }
 
       return { success: true, enforce2FA: input.enabled };
@@ -158,7 +158,7 @@ export const adminRouter = {
     )
     .handler(async ({ input }) => {
       const tfa = await db.query.twoFactorAuth.findFirst({
-        where: eq(twoFactorAuth.userId, BigInt(input.userId)),
+        where: eq(twoFactorAuth.userId, Number(input.userId)),
       });
 
       return {

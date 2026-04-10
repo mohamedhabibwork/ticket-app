@@ -1,14 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  Button,
-  Spinner,
-  Surface,
-  Text,
-  TextField,
-  Input,
-  useThemeColor,
-} from "heroui-native";
+import { Button, Spinner, Surface, Text, TextField, Input, useThemeColor } from "heroui-native";
 import { useLocalSearchParams } from "expo-router";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { View, ScrollView, Keyboard, KeyboardAvoidingView, Platform } from "react-native";
@@ -112,9 +104,7 @@ export default function ChatConversationScreen() {
                 <Surface
                   variant="secondary"
                   className={`max-w-[80%] p-3 rounded-2xl ${
-                    message.direction === "inbound"
-                      ? "rounded-tl-sm"
-                      : "rounded-tr-sm bg-primary"
+                    message.direction === "inbound" ? "rounded-tl-sm" : "rounded-tr-sm bg-primary"
                   }`}
                 >
                   <Text

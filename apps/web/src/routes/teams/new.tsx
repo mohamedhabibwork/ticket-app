@@ -5,12 +5,7 @@ import { toast } from "sonner";
 import { Button } from "@ticket-app/ui/components/button";
 import { Input } from "@ticket-app/ui/components/input";
 import { Label } from "@ticket-app/ui/components/label";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@ticket-app/ui/components/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -41,7 +36,7 @@ function NewTeamRoute() {
       organizationId,
       isActive: true,
       limit: 100,
-    })
+    }),
   );
 
   const createMutation = useMutation(
@@ -61,7 +56,7 @@ function NewTeamRoute() {
       onError: (error) => {
         toast.error(`Failed to create team: ${error.message}`);
       },
-    })
+    }),
   );
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -128,7 +123,8 @@ function NewTeamRoute() {
                 <DropdownMenu open={showLeadDropdown} onOpenChange={setShowLeadDropdown}>
                   <DropdownMenuTrigger asChild>
                     <Button variant="outline" className="w-full justify-between">
-                      {autoAssignOptions.find((o) => o.value === autoAssignMethod)?.label || "Select method"}
+                      {autoAssignOptions.find((o) => o.value === autoAssignMethod)?.label ||
+                        "Select method"}
                       <ChevronDown className="h-4 w-4 ml-2" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -160,16 +156,11 @@ function NewTeamRoute() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start" className="w-full max-h-60 overflow-y-auto">
-                    <DropdownMenuItem
-                      onClick={() => setSelectedLeadId(null)}
-                    >
+                    <DropdownMenuItem onClick={() => setSelectedLeadId(null)}>
                       None
                     </DropdownMenuItem>
                     {agents?.users?.map((agent) => (
-                      <DropdownMenuItem
-                        key={agent.id}
-                        onClick={() => setSelectedLeadId(agent.id)}
-                      >
+                      <DropdownMenuItem key={agent.id} onClick={() => setSelectedLeadId(agent.id)}>
                         {agent.firstName} {agent.lastName}
                       </DropdownMenuItem>
                     ))}
@@ -180,17 +171,11 @@ function NewTeamRoute() {
           </Card>
 
           <div className="flex justify-end gap-3">
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => navigate({ to: "/teams" })}
-            >
+            <Button type="button" variant="ghost" onClick={() => navigate({ to: "/teams" })}>
               Cancel
             </Button>
             <Button type="submit" disabled={createMutation.isPending}>
-              {createMutation.isPending && (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              )}
+              {createMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               Create Team
             </Button>
           </div>

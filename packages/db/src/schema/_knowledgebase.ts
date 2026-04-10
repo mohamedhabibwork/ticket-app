@@ -40,7 +40,7 @@ export const kbCategories = pgTable(
   (table) => ({
     orgSlugUnique: unique().on(table.organizationId, table.slug),
     parentIdx: index("kb_categories_parent_idx").on(table.parentId),
-  })
+  }),
 );
 
 export const kbArticles = pgTable(
@@ -76,7 +76,7 @@ export const kbArticles = pgTable(
   (table) => ({
     orgSlugUnique: unique().on(table.organizationId, table.slug),
     categoryIdx: index("kb_articles_category_idx").on(table.categoryId),
-  })
+  }),
 );
 
 export const kbArticleRelated = pgTable(
@@ -93,7 +93,7 @@ export const kbArticleRelated = pgTable(
   },
   (table) => ({
     articleRelatedUnique: unique().on(table.articleId, table.relatedArticleId),
-  })
+  }),
 );
 
 export const kbArticleFeedback = pgTable(
@@ -110,7 +110,7 @@ export const kbArticleFeedback = pgTable(
   },
   (table) => ({
     articleIdx: index("kb_article_feedback_article_idx").on(table.articleId),
-  })
+  }),
 );
 
 export const kbCategoriesRelations = relations(kbCategories, ({ one, many }) => ({

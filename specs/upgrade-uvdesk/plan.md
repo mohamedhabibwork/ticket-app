@@ -21,7 +21,7 @@ Implement full UVDesk Open Source feature parity plus AI-powered enhancements. T
 
 ## Constitution Check
 
-*No constitution rules defined — template empty. Treating as PASS.*
+_No constitution rules defined — template empty. Treating as PASS._
 
 ## Project Structure
 
@@ -70,11 +70,11 @@ packages/
 
 ## Complexity Tracking
 
-| Violation | Why Needed | Simpler Alternative Rejected Because |
-|-----------|------------|-------------------------------------|
-| WebSocket presence system | Real-time concurrent ticket viewers requires pub/sub | Polling insufficient for UX quality |
-| 19 new database tables | UVDesk parity requires structured entities | Simpler key-value insufficient for compliance/audit |
-| AI chatbot layer | Market differentiation, UVDesk AI Chatbot parity | Manual-only insufficient at scale |
+| Violation                 | Why Needed                                           | Simpler Alternative Rejected Because                |
+| ------------------------- | ---------------------------------------------------- | --------------------------------------------------- |
+| WebSocket presence system | Real-time concurrent ticket viewers requires pub/sub | Polling insufficient for UX quality                 |
+| 19 new database tables    | UVDesk parity requires structured entities           | Simpler key-value insufficient for compliance/audit |
+| AI chatbot layer          | Market differentiation, UVDesk AI Chatbot parity     | Manual-only insufficient at scale                   |
 
 ---
 
@@ -91,15 +91,15 @@ packages/
 
 ### Research Tasks
 
-| # | Topic | Decision Needed |
-|---|-------|----------------|
-| 1 | Real-time presence architecture | WebSocket provider for ticket viewer presence |
-| 2 | Machine translation provider | Google Translate vs DeepL for ticket messages |
-| 3 | Amazon SP-API integration | Library choice for seller central messaging |
-| 4 | Mobile push notifications | FCM/APNs vs third-party service |
-| 5 | On-premise license enforcement | Local-only JWT verification pattern |
-| 6 | AI chatbot knowledgebase RAG | Embedding provider + retrieval strategy |
-| 7 | Disqus API integration | API v3 endpoints and rate limits |
+| #   | Topic                           | Decision Needed                               |
+| --- | ------------------------------- | --------------------------------------------- |
+| 1   | Real-time presence architecture | WebSocket provider for ticket viewer presence |
+| 2   | Machine translation provider    | Google Translate vs DeepL for ticket messages |
+| 3   | Amazon SP-API integration       | Library choice for seller central messaging   |
+| 4   | Mobile push notifications       | FCM/APNs vs third-party service               |
+| 5   | On-premise license enforcement  | Local-only JWT verification pattern           |
+| 6   | AI chatbot knowledgebase RAG    | Embedding provider + retrieval strategy       |
+| 7   | Disqus API integration          | API v3 endpoints and rate limits              |
 
 ---
 
@@ -107,38 +107,38 @@ packages/
 
 ### New Database Tables (19)
 
-| Table | Purpose | File |
-|-------|---------|------|
-| `ticket_categories` | Structured ticket types with SLA/team/priority overrides | `_tickets.ts` |
-| `groups` | Department-level grouping above teams | `_teams.ts` (new file) |
-| `ticket_forwards` | Explicit ticket forwarding action records | `_tickets.ts` |
-| `disqus_accounts` | Disqus forum connections | `_social.ts` |
-| `marketplace_accounts` | Amazon Seller Central / eBay connections | `_ecommerce.ts` |
-| `marketplace_messages` | Inbound/outbound marketplace buyer-seller messages | `_ecommerce.ts` |
-| `agent_calendar_connections` | Google Calendar OAuth per agent | `_users.ts` |
-| `ticket_calendar_events` | Events created from tickets/tasks in Google Calendar | `_tasks.ts` |
-| `gdpr_requests` | GDPR data subject request tracking | `_audit.ts` |
-| `customer_social_identities` | Social login (Google/Facebook/Apple) for end-customers | `_contacts.ts` |
-| `customer_sessions` | Customer portal session tokens | `_contacts.ts` |
-| `translation_configs` | Per-org machine translation provider config | `_organizations.ts` |
-| `translation_cache` | Ephemeral translation result cache | `_organizations.ts` |
-| `mobile_sdk_configs` | Mobile SDK configuration and FCM/APNs keys | `_organizations.ts` |
-| `contact_push_tokens` | Device push tokens per contact | `_contacts.ts` |
-| `push_notification_logs` | Push delivery records | `_channels.ts` |
-| `chatbot_configs` | AI chatbot configuration per org | `_organizations.ts` |
-| `chatbot_sessions` | Chatbot conversation sessions | `_chat.ts` |
-| `chatbot_messages` | Individual chatbot message turns | `_chat.ts` |
-| `on_premise_licenses` | License records for self-hosted deployments | `_organizations.ts` |
+| Table                        | Purpose                                                  | File                   |
+| ---------------------------- | -------------------------------------------------------- | ---------------------- |
+| `ticket_categories`          | Structured ticket types with SLA/team/priority overrides | `_tickets.ts`          |
+| `groups`                     | Department-level grouping above teams                    | `_teams.ts` (new file) |
+| `ticket_forwards`            | Explicit ticket forwarding action records                | `_tickets.ts`          |
+| `disqus_accounts`            | Disqus forum connections                                 | `_social.ts`           |
+| `marketplace_accounts`       | Amazon Seller Central / eBay connections                 | `_ecommerce.ts`        |
+| `marketplace_messages`       | Inbound/outbound marketplace buyer-seller messages       | `_ecommerce.ts`        |
+| `agent_calendar_connections` | Google Calendar OAuth per agent                          | `_users.ts`            |
+| `ticket_calendar_events`     | Events created from tickets/tasks in Google Calendar     | `_tasks.ts`            |
+| `gdpr_requests`              | GDPR data subject request tracking                       | `_audit.ts`            |
+| `customer_social_identities` | Social login (Google/Facebook/Apple) for end-customers   | `_contacts.ts`         |
+| `customer_sessions`          | Customer portal session tokens                           | `_contacts.ts`         |
+| `translation_configs`        | Per-org machine translation provider config              | `_organizations.ts`    |
+| `translation_cache`          | Ephemeral translation result cache                       | `_organizations.ts`    |
+| `mobile_sdk_configs`         | Mobile SDK configuration and FCM/APNs keys               | `_organizations.ts`    |
+| `contact_push_tokens`        | Device push tokens per contact                           | `_contacts.ts`         |
+| `push_notification_logs`     | Push delivery records                                    | `_channels.ts`         |
+| `chatbot_configs`            | AI chatbot configuration per org                         | `_organizations.ts`    |
+| `chatbot_sessions`           | Chatbot conversation sessions                            | `_chat.ts`             |
+| `chatbot_messages`           | Individual chatbot message turns                         | `_chat.ts`             |
+| `on_premise_licenses`        | License records for self-hosted deployments              | `_organizations.ts`    |
 
 ### Columns Added to Existing Tables (5 tables)
 
-| Table | New Column(s) | Notes |
-|-------|---------------|-------|
-| `tickets` | `category_id`, `assigned_group_id` | FK to new tables |
-| `ticket_messages` | `is_thread_locked`, `thread_locked_by`, `thread_locked_at`, `thread_unlocked_by`, `thread_unlocked_at`, `deleted_reason` | Thread-level locking + omission audit |
-| `ticket_attachments` | `is_inline_image`, `image_width`, `image_height`, `thumbnail_key`, `gallery_order` | Image gallery metadata |
-| `teams` | `group_id` | FK to new groups table |
-| `roles` | `ticket_view_scope` | `'all' \| 'group' \| 'self'` |
+| Table                | New Column(s)                                                                                                            | Notes                                 |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------ | ------------------------------------- |
+| `tickets`            | `category_id`, `assigned_group_id`                                                                                       | FK to new tables                      |
+| `ticket_messages`    | `is_thread_locked`, `thread_locked_by`, `thread_locked_at`, `thread_unlocked_by`, `thread_unlocked_at`, `deleted_reason` | Thread-level locking + omission audit |
+| `ticket_attachments` | `is_inline_image`, `image_width`, `image_height`, `thumbnail_key`, `gallery_order`                                       | Image gallery metadata                |
+| `teams`              | `group_id`                                                                                                               | FK to new groups table                |
+| `roles`              | `ticket_view_scope`                                                                                                      | `'all' \| 'group' \| 'self'`          |
 
 ### New Permission Keys (13)
 
@@ -154,32 +154,32 @@ calendar.connect
 
 ### New API Routers
 
-| Router | Purpose |
-|--------|---------|
-| `groups.ts` | Department-level group CRUD |
-| `ticketCategories.ts` | Ticket type/category management |
-| `ticketForwards.ts` | Ticket forwarding action logging |
-| `disqus.ts` | Disqus integration |
-| `marketplace.ts` | Amazon Seller Central / marketplace messaging |
-| `calendar.ts` | Google Calendar integration |
-| `gdpr.ts` | GDPR data subject request workflow |
-| `customerAuth.ts` | End-customer portal SSO |
-| `translation.ts` | Machine translation service |
-| `mobileSdk.ts` | Mobile SDK configuration |
-| `chatbot.ts` | AI chatbot configuration and sessions |
-| `presence.ts` | WebSocket presence management |
-| `onPremise.ts` | On-premise license management |
+| Router                | Purpose                                       |
+| --------------------- | --------------------------------------------- |
+| `groups.ts`           | Department-level group CRUD                   |
+| `ticketCategories.ts` | Ticket type/category management               |
+| `ticketForwards.ts`   | Ticket forwarding action logging              |
+| `disqus.ts`           | Disqus integration                            |
+| `marketplace.ts`      | Amazon Seller Central / marketplace messaging |
+| `calendar.ts`         | Google Calendar integration                   |
+| `gdpr.ts`             | GDPR data subject request workflow            |
+| `customerAuth.ts`     | End-customer portal SSO                       |
+| `translation.ts`      | Machine translation service                   |
+| `mobileSdk.ts`        | Mobile SDK configuration                      |
+| `chatbot.ts`          | AI chatbot configuration and sessions         |
+| `presence.ts`         | WebSocket presence management                 |
+| `onPremise.ts`        | On-premise license management                 |
 
 ### New Queue Workers
 
-| Worker | Purpose | Trigger |
-|--------|---------|---------|
-| `gdpr-sl老了-check.worker.ts` | GDPR request SLA monitoring | Daily cron |
-| `amazon-sync.worker.ts` | Amazon seller central message sync | Scheduled |
-| `disqus-sync.worker.ts` | Disqus comment ingestion | Scheduled |
-| `push-notification.worker.ts` | FCM/APNs delivery | Event-driven |
-| `chatbot-escalation.worker.ts` | Bot confidence threshold check | Event-driven |
-| `license-verification.worker.ts` | On-premise license daily check | Daily cron |
+| Worker                           | Purpose                            | Trigger      |
+| -------------------------------- | ---------------------------------- | ------------ |
+| `gdpr-sl老了-check.worker.ts`    | GDPR request SLA monitoring        | Daily cron   |
+| `amazon-sync.worker.ts`          | Amazon seller central message sync | Scheduled    |
+| `disqus-sync.worker.ts`          | Disqus comment ingestion           | Scheduled    |
+| `push-notification.worker.ts`    | FCM/APNs delivery                  | Event-driven |
+| `chatbot-escalation.worker.ts`   | Bot confidence threshold check     | Event-driven |
+| `license-verification.worker.ts` | On-premise license daily check     | Daily cron   |
 
 ---
 
@@ -187,57 +187,58 @@ calendar.connect
 
 ### Sprint 1 (P1 - Core Infrastructure)
 
-| # | Feature | Files Changed |
-|---|---------|---------------|
-| 1 | Groups (department level) | `db/schema/_teams.ts`, `api/routers/groups.ts`, web pages, mobile screens |
-| 2 | Ticket Categories with SLA override | `db/schema/_tickets.ts`, `api/routers/ticketCategories.ts`, web pages |
-| 3 | Agent visibility scopes | `db/schema/_users.ts`, `api/routers/roles.ts`, ticket list query updates |
-| 4 | Thread-level locking | `db/schema/_tickets.ts`, `api/routers/ticketMessages.ts`, web UI |
-| 5 | Thread omission audit | Same as above + audit log extension |
+| #   | Feature                             | Files Changed                                                             |
+| --- | ----------------------------------- | ------------------------------------------------------------------------- |
+| 1   | Groups (department level)           | `db/schema/_teams.ts`, `api/routers/groups.ts`, web pages, mobile screens |
+| 2   | Ticket Categories with SLA override | `db/schema/_tickets.ts`, `api/routers/ticketCategories.ts`, web pages     |
+| 3   | Agent visibility scopes             | `db/schema/_users.ts`, `api/routers/roles.ts`, ticket list query updates  |
+| 4   | Thread-level locking                | `db/schema/_tickets.ts`, `api/routers/ticketMessages.ts`, web UI          |
+| 5   | Thread omission audit               | Same as above + audit log extension                                       |
 
 ### Sprint 2 (P2 - Agent Experience)
 
-| # | Feature | Files Changed |
-|---|---------|---------------|
-| 6 | Concurrent ticket viewer presence | `api/routers/presence.ts`, WebSocket handler, Redis pub/sub |
-| 7 | Ticket forwarding as explicit action | `db/schema/_tickets.ts`, `api/routers/ticketForwards.ts`, web UI |
-| 8 | Image gallery viewer in ticket | `db/schema/_tickets.ts`, web component, lightbox UI |
-| 9 | GDPR data subject request workflow | `db/schema/_audit.ts`, `api/routers/gdpr.ts`, admin UI, queue worker |
-| 10 | End-customer portal SSO | `db/schema/_contacts.ts`, `api/routers/customerAuth.ts`, `social.ts` router |
+| #   | Feature                              | Files Changed                                                               |
+| --- | ------------------------------------ | --------------------------------------------------------------------------- |
+| 6   | Concurrent ticket viewer presence    | `api/routers/presence.ts`, WebSocket handler, Redis pub/sub                 |
+| 7   | Ticket forwarding as explicit action | `db/schema/_tickets.ts`, `api/routers/ticketForwards.ts`, web UI            |
+| 8   | Image gallery viewer in ticket       | `db/schema/_tickets.ts`, web component, lightbox UI                         |
+| 9   | GDPR data subject request workflow   | `db/schema/_audit.ts`, `api/routers/gdpr.ts`, admin UI, queue worker        |
+| 10  | End-customer portal SSO              | `db/schema/_contacts.ts`, `api/routers/customerAuth.ts`, `social.ts` router |
 
 ### Sprint 3 (P3 - Integrations)
 
-| # | Feature | Files Changed |
-|---|---------|---------------|
-| 11 | Ticket translation (machine) | `db/schema/_organizations.ts`, `api/routers/translation.ts`, translate UI |
-| 12 | Google Calendar integration | `db/schema/_users.ts`, `api/routers/calendar.ts`, event creation UI |
-| 13 | Disqus integration | `db/schema/_social.ts`, `api/routers/disqus.ts`, queue worker, web UI |
-| 14 | Amazon Seller Central Messaging | `db/schema/_ecommerce.ts`, `api/routers/marketplace.ts`, queue worker |
+| #   | Feature                         | Files Changed                                                             |
+| --- | ------------------------------- | ------------------------------------------------------------------------- |
+| 11  | Ticket translation (machine)    | `db/schema/_organizations.ts`, `api/routers/translation.ts`, translate UI |
+| 12  | Google Calendar integration     | `db/schema/_users.ts`, `api/routers/calendar.ts`, event creation UI       |
+| 13  | Disqus integration              | `db/schema/_social.ts`, `api/routers/disqus.ts`, queue worker, web UI     |
+| 14  | Amazon Seller Central Messaging | `db/schema/_ecommerce.ts`, `api/routers/marketplace.ts`, queue worker     |
 
 ### Sprint 4 (P4 - Mobile & AI)
 
-| # | Feature | Files Changed |
-|---|---------|---------------|
-| 15 | Mobile SDK & Push Notifications | `db/schema/_organizations.ts`, `api/routers/mobileSdk.ts`, push worker, SDK docs |
-| 16 | AI Chatbot | `db/schema/_organizations.ts`, `db/schema/_chat.ts`, `api/routers/chatbot.ts`, web UI |
-| 17 | On-Premise / Self-Hosted Edition | `db/schema/_organizations.ts`, `api/routers/onPremise.ts`, Docker Compose, license verification |
+| #   | Feature                          | Files Changed                                                                                   |
+| --- | -------------------------------- | ----------------------------------------------------------------------------------------------- |
+| 15  | Mobile SDK & Push Notifications  | `db/schema/_organizations.ts`, `api/routers/mobileSdk.ts`, push worker, SDK docs                |
+| 16  | AI Chatbot                       | `db/schema/_organizations.ts`, `db/schema/_chat.ts`, `api/routers/chatbot.ts`, web UI           |
+| 17  | On-Premise / Self-Hosted Edition | `db/schema/_organizations.ts`, `api/routers/onPremise.ts`, Docker Compose, license verification |
 
 ---
 
 ## Priority Roadmap Summary
 
-| Sprint | Features | Effort | Impact |
-|--------|----------|--------|--------|
-| P1 | Groups, Ticket Categories, Agent Scopes, Thread Locking, Thread Omission | Medium-High | High |
-| P2 | Presence, Forwarding, Gallery, GDPR, Customer SSO | Medium | High |
-| P3 | Translation, Calendar, Disqus, Amazon Seller | Medium | Medium |
-| P4 | Mobile SDK, AI Chatbot, On-Premise | High | High |
+| Sprint | Features                                                                 | Effort      | Impact |
+| ------ | ------------------------------------------------------------------------ | ----------- | ------ |
+| P1     | Groups, Ticket Categories, Agent Scopes, Thread Locking, Thread Omission | Medium-High | High   |
+| P2     | Presence, Forwarding, Gallery, GDPR, Customer SSO                        | Medium      | High   |
+| P3     | Translation, Calendar, Disqus, Amazon Seller                             | Medium      | Medium |
+| P4     | Mobile SDK, AI Chatbot, On-Premise                                       | High        | High   |
 
 ---
 
 ## Output Artifacts
 
 After Phase 1 completion:
+
 - `specs/upgrade-uvdesk/research.md` - Technology decisions for unknowns
 - `specs/upgrade-uvdesk/data-model.md` - Complete Drizzle schema additions
 - `packages/db/src/schema/upgrade-uvdesk/` - New schema files
