@@ -249,9 +249,10 @@ export const chatMessagesRouter = {
         .returning();
 
       const { publishChatMessage } = await import("../services/chatPubSub");
+      if (!message) throw new Error("Failed to create message");
       await publishChatMessage({
         sessionId: input.sessionId,
-        message: message ?? null,
+        message: { ...message, body: message.body ?? "" },
       });
 
       return message;

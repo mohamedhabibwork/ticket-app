@@ -59,8 +59,13 @@ async function getOrganizationBranding(organizationId: number): Promise<{
 
   return {
     name: org.name,
-    logoUrl: org.brandingConfig?.emailLogoUrl || org.brandingConfig?.logoUrl,
-    primaryColor: org.brandingConfig?.emailHeaderColor || org.brandingConfig?.primaryColor,
+    logoUrl:
+      org.brandingConfig?.emailLogoUrl ?? org.brandingConfig?.logoUrl ?? undefined ?? undefined,
+    primaryColor:
+      org.brandingConfig?.emailHeaderColor ??
+      org.brandingConfig?.primaryColor ??
+      undefined ??
+      undefined,
   };
 }
 
@@ -104,7 +109,7 @@ export async function sendNotificationEmail(
 
   const emailData: NotificationEmailData = {
     ...data,
-    organization,
+    organization: organization ?? undefined ?? undefined,
   };
 
   if (data.ticket) {

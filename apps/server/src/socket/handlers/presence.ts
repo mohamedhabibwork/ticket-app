@@ -77,9 +77,9 @@ export function handleHeartbeat(
 }
 
 export function handleGetViewers(
-  io: SocketIOServer,
+  _io: SocketIOServer,
   socket: any,
-  user: AuthenticatedUser,
+  _user: AuthenticatedUser,
   payload: { ticketId: number },
 ): void {
   const { ticketId } = payload;

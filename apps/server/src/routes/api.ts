@@ -26,6 +26,12 @@ api.post("/tickets", async (c) => {
       return c.json({ error: "organizationId and subject are required" }, 400);
     }
 
+    if (typeof organizationId !== "number") {
+      return c.json({ error: "organizationId must be a number" }, 400);
+    }
+
+    const orgId = organizationId;
+
     if (email) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(email)) {
@@ -39,7 +45,7 @@ api.post("/tickets", async (c) => {
       let contact = await db.query.contacts.findFirst({
         where: and(
           eq(contacts.email, email.toLowerCase()),
-          eq(contacts.organizationId, organizationId),
+          eq(contacts.organizationId, orgId),
           isNull(contacts.deletedAt),
         ),
       });
@@ -48,13 +54,16 @@ api.post("/tickets", async (c) => {
         const [newContact] = await db
           .insert(contacts)
           .values({
-            organizationId,
+            organizationId: orgId,
             email: email.toLowerCase(),
             firstName,
             lastName,
             metadata,
           })
           .returning();
+        if (!newContact) {
+          return c.json({ error: "Failed to create contact" }, 500);
+        }
         contact = newContact;
       }
 
@@ -70,6 +79,10 @@ api.post("/tickets", async (c) => {
       })
     )?.id;
 
+    if (!defaultStatusId) {
+      return c.json({ error: "Default ticket status not found" }, 500);
+    }
+
     const defaultPriorityId =
       priorityId ||
       (
@@ -84,30 +97,37 @@ api.post("/tickets", async (c) => {
         })
       )?.id;
 
+    if (!defaultPriorityId) {
+      return c.json({ error: "Default ticket priority not found" }, 500);
+    }
+
     const year = new Date().getFullYear();
     const prefix = `TKT-${year}-`;
     const countResult = await db
       .select({ count: sql<number>`COUNT(*)::int` })
       .from(tickets)
       .where(
-        sql`${tickets.organizationId} = ${organizationId} AND ${tickets.referenceNumber} LIKE ${prefix}%`,
+        sql`${tickets.organizationId} = ${orgId} AND ${tickets.referenceNumber} LIKE ${prefix}%`,
       );
     const sequence = (countResult[0]?.count ?? 0) + 1;
     const referenceNumber = `${prefix}${sequence.toString().padStart(6, "0")}`;
 
-    const [ticket] = await db
-      .insert(tickets)
-      .values({
-        organizationId,
-        referenceNumber,
-        subject,
-        descriptionHtml: description ? `<p>${description}</p>` : null,
-        channelId,
-        contactId,
-        statusId: defaultStatusId,
-        priorityId: defaultPriorityId,
-      })
-      .returning();
+    const insertData = {
+      organizationId: orgId,
+      referenceNumber: referenceNumber,
+      subject: subject as string,
+      descriptionHtml: description ? `<p>${description}</p>` : null,
+      channelId: channelId as number | undefined,
+      contactId: contactId as number | undefined,
+      statusId: defaultStatusId,
+      priorityId: defaultPriorityId,
+    };
+
+    const [ticket] = await db.insert(tickets).values(insertData).returning();
+
+    if (!ticket) {
+      return c.json({ error: "Failed to create ticket" }, 500);
+    }
 
     await db
       .insert(ticketMessages)

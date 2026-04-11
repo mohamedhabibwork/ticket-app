@@ -360,7 +360,7 @@ export const organizationsRouter = {
         const [updated] = await db
           .update(organizationSettings)
           .set({
-            value: value as any,
+            value: input.value as any,
             updatedAt: new Date(),
             updatedBy: input.createdBy,
           })
@@ -374,7 +374,7 @@ export const organizationsRouter = {
         .values({
           organizationId: input.organizationId,
           key: input.key,
-          value: value as any,
+          value: input.value as any,
           createdBy: input.createdBy,
         })
         .returning();
@@ -406,7 +406,7 @@ export const organizationsRouter = {
     .input(
       z.object({
         organizationId: z.coerce.number(),
-        settings: z.record(z.string()),
+        settings: z.record(z.string(), z.string()),
         createdBy: z.coerce.number().optional(),
       }),
     )

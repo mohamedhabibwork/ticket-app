@@ -1,4 +1,4 @@
-import { eq, and, isNull } from "drizzle-orm";
+import { eq, and, isNull, sql } from "drizzle-orm";
 import { db } from "@ticket-app/db";
 import {
   permissions,
@@ -477,10 +477,11 @@ export async function getUserPermissions(ctx: UserPermissionContext): Promise<st
 
   const permissionKeys = new Set<string>();
   for (const ur of userRoleRows) {
-    if (ur.role.isActive && !ur.role.deletedAt) {
-      for (const rp of ur.role.permissions) {
-        permissionKeys.add(rp.permission.key);
-      }
+    if (!ur.role || !ur.role.isActive || ur.role.deletedAt) {
+      continue;
+    }
+    for (const rp of ur.role.permissions) {
+      permissionKeys.add(rp.permission.key);
     }
   }
 
@@ -550,7 +551,7 @@ export async function createRole(params: {
   if (params.permissionIds?.length) {
     await db.insert(rolePermissions).values(
       params.permissionIds.map((pid) => ({
-        roleId: role.id,
+        roleId: role!.id,
         permissionId: pid,
         createdBy: params.createdBy,
       })),
@@ -609,7 +610,7 @@ export async function updateRolePermissions(params: {
         userAgent: params.auditContext.userAgent,
       },
       {
-        action: "ROLE_PERMISSION_UPDATE",
+        action: "UPDATE",
         resourceType: "role",
         resourceId: params.roleId.toString(),
         changes,
@@ -641,9 +642,11 @@ export async function deleteRole(params: {
     throw new Error("Cannot delete system role");
   }
 
-  const userCount = await db.query.userRoles.count({
-    where: eq(userRoles.roleId, params.roleId),
-  });
+  const userCountResult = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(userRoles)
+    .where(eq(userRoles.roleId, params.roleId));
+  const userCount = userCountResult[0]?.count ?? 0;
 
   if (userCount > 0) {
     throw new Error("Cannot delete role with assigned users");
@@ -692,7 +695,7 @@ export async function seedDefaultPermissions() {
 
 export async function seedSystemRoles(organizationId: number) {
   const allPerms = await db.query.permissions.findMany();
-  const permByKey = new Map(allPerms.map((p) => [p.key, p.id]));
+  const permById = new Map(allPerms.map((p) => [p.id, p.key]));
 
   const ownerPermIds = allPerms.map((p) => p.id);
   const adminPermIds = allPerms
@@ -770,11 +773,11 @@ export async function seedSystemRoles(organizationId: number) {
         })
         .returning();
 
-      const validPermIds = sr.permissionIds.filter((id) => permByKey.hasValue(id));
+      const validPermIds = sr.permissionIds.filter((id) => permById.has(id));
       if (validPermIds.length > 0) {
         await db.insert(rolePermissions).values(
           validPermIds.map((pid) => ({
-            roleId: role.id,
+            roleId: role!.id,
             permissionId: pid,
           })),
         );
@@ -1030,11 +1033,17 @@ export async function getUsersByPermission(organizationId: number, permission: s
 
   const userIds = new Set<number>();
   for (const rp of rolesWithPerm) {
-    if (rp.role.organizationId === organizationId && !rp.role.deletedAt && rp.role.isActive) {
-      for (const ur of rp.role.userRoles) {
-        if (ur.user.isActive && !ur.user.deletedAt) {
-          userIds.add(ur.userId);
-        }
+    if (
+      !rp.role ||
+      rp.role.organizationId !== organizationId ||
+      rp.role.deletedAt ||
+      !rp.role.isActive
+    ) {
+      continue;
+    }
+    for (const ur of rp.role.userRoles) {
+      if (ur.user.isActive && !ur.user.deletedAt) {
+        userIds.add(ur.userId);
       }
     }
   }

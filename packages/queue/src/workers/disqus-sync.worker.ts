@@ -160,18 +160,32 @@ async function processDisqusPost(
   const threadTitle =
     post.thread?.title || `Disqus: ${post.author.name} - ${post.message.substring(0, 50)}`;
 
+  const year = new Date().getFullYear();
+  const prefix = `TKT-${year}-`;
+  const countResult = await db
+    .select({ count: sql<number>`COUNT(*)::int` })
+    .from(tickets)
+    .where(
+      sql`${tickets.organizationId} = ${account.organizationId} AND ${tickets.referenceNumber} LIKE ${prefix}%`,
+    );
+  const sequence = (countResult[0]?.count ?? 0) + 1;
+  const referenceNumber = `${prefix}${sequence.toString().padStart(6, "0")}`;
+
   const [ticket] = await db
     .insert(tickets)
     .values({
       organizationId: account.organizationId,
+      referenceNumber,
       subject: threadTitle.substring(0, 255),
       descriptionHtml: post.html || `<p>${post.message}</p>`,
       channelId: channelLookup?.id,
-      statusId: defaultStatusId,
-      priorityId: defaultPriorityId,
+      statusId: defaultStatusId!,
+      priorityId: defaultPriorityId!,
       createdBy: account.createdBy,
     })
     .returning();
+
+  if (!ticket) throw new Error("Failed to create ticket");
 
   await db
     .insert(ticketMessages)

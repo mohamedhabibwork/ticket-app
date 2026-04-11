@@ -85,7 +85,7 @@ Brief explanation of the rule and why it matters.
 
 Optional explanatory text after examples.
 
-Reference: [Link](https://example.com)
+Reference: [Link](https://ticket.cloud.habib.cloud)
 
 ## File Naming Convention
 

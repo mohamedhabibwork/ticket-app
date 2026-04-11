@@ -293,7 +293,7 @@ function LicenseSettingsRoute() {
             <Label htmlFor="domain">Installation Domain</Label>
             <Input
               id="domain"
-              placeholder="support.example.com"
+              placeholder="support.ticket.cloud.habib.cloud"
               value={domain}
               onChange={(e) => setDomain(e.target.value)}
             />

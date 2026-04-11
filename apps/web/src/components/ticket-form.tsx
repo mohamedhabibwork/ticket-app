@@ -178,7 +178,7 @@ export function TicketForm({ organizationId, onSuccess, onError, redirectUrl }: 
             className={`w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white ${
               errors.email ? "border-red-500" : "border-gray-300"
             }`}
-            placeholder="you@example.com"
+            placeholder="you@habib.cloud"
           />
           {errors.email && <p className="mt-1 text-sm text-red-500">{errors.email}</p>}
         </div>

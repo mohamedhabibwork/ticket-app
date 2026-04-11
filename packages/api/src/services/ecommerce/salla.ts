@@ -33,7 +33,7 @@ interface SallaOrder {
   };
 }
 
-type SallaOrderStatus =
+export type SallaOrderStatus =
   | "pending"
   | "confirmed"
   | "ready_to_ship"
@@ -134,7 +134,7 @@ export async function sallaApiRequest<T>(
     throw new Error(`Salla API error: ${response.status} - ${error}`);
   }
 
-  return response.json();
+  return response.json() as T;
 }
 
 export async function fetchSallaOrders(

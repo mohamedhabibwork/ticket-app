@@ -47,7 +47,7 @@ export async function createInvite(params: CreateInviteParams): Promise<Invite> 
       email: params.email.toLowerCase(),
       token: params.token,
       expiresAt: params.expiresAt,
-      invitedBy: params.invitedBy,
+      invitedBy: params.invitedBy ?? 0,
       firstName: params.firstName,
       lastName: params.lastName,
     })

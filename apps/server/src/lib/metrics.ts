@@ -68,7 +68,7 @@ class MetricsCollectorImpl implements MetricsCollector {
     existing.push(entry);
     this.store.counters.set(key, this.trimEntries(existing));
 
-    logger.debug("Counter incremented", { name, value, labels });
+    logger.debug({ name, value, labels }, "Counter incremented");
   }
 
   setGauge(name: string, value: number, labels?: Record<string, string>): void {
@@ -84,7 +84,7 @@ class MetricsCollectorImpl implements MetricsCollector {
     existing.push(entry);
     this.store.gauges.set(key, this.trimEntries(existing));
 
-    logger.debug("Gauge set", { name, value, labels });
+    logger.debug({ name, value, labels }, "Gauge set");
   }
 
   recordHistogram(name: string, value: number, labels?: Record<string, string>): void {
@@ -116,7 +116,7 @@ class MetricsCollectorImpl implements MetricsCollector {
 
     this.store.histograms.set(key, this.trimEntries(existing) as HistogramMetric[]);
 
-    logger.debug("Histogram recorded", { name, value, labels });
+    logger.debug({ name, value, labels }, "Histogram recorded");
   }
 
   getMetrics() {

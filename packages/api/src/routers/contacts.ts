@@ -89,7 +89,7 @@ export const contactsRouter = {
     .input(
       z.object({
         organizationId: z.coerce.number(),
-        email: z.string().email(),
+        email: z.email(),
       }),
     )
     .handler(async ({ input }) => {
@@ -106,7 +106,7 @@ export const contactsRouter = {
     .input(
       z.object({
         organizationId: z.coerce.number(),
-        email: z.string().email().optional(),
+        email: z.email().optional(),
         phone: z.string().optional(),
         firstName: z.string().optional(),
         lastName: z.string().optional(),
@@ -166,7 +166,7 @@ export const contactsRouter = {
       z.object({
         id: z.coerce.number(),
         organizationId: z.coerce.number(),
-        email: z.string().email().optional(),
+        email: z.email().optional(),
         phone: z.string().optional(),
         firstName: z.string().optional(),
         lastName: z.string().optional(),
@@ -329,7 +329,7 @@ export const contactsRouter = {
     .input(
       z.object({
         organizationId: z.coerce.number(),
-        email: z.string().email().optional(),
+        email: z.email().optional(),
         phone: z.string().optional(),
         firstName: z.string().optional(),
         lastName: z.string().optional(),
@@ -443,7 +443,7 @@ export const contactsRouter = {
       const strategy = suggestMergeStrategy(target, source);
 
       const mergedData = {
-        email: strategy.email.value?.toLowerCase(),
+        email: strategy.email?.value?.toLowerCase() || target.email,
         phone: strategy.phone?.value ?? null,
         firstName: strategy.firstName?.value ?? null,
         lastName: strategy.lastName?.value ?? null,
@@ -1114,7 +1114,7 @@ export const contactsRouter = {
         const strategy = suggestMergeStrategy(target, source);
 
         const mergedData = {
-          email: strategy.email.value?.toLowerCase() || target.email,
+          email: strategy.email?.value?.toLowerCase() || target.email,
           phone: strategy.phone?.value ?? target.phone,
           firstName: strategy.firstName?.value ?? target.firstName,
           lastName: strategy.lastName?.value ?? target.lastName,

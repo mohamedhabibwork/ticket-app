@@ -43,7 +43,7 @@ Use this skill when:
 
 ```tsx
 const fetchUser = async (userId: string) => {
-  const response = await fetch(`https://api.example.com/users/${userId}`);
+  const response = await fetch(`https://api.ticket.cloud.habib.cloud/users/${userId}`);
 
   if (!response.ok) {
     throw new Error(`HTTP error! status: ${response.status}`);
@@ -57,7 +57,7 @@ const fetchUser = async (userId: string) => {
 
 ```tsx
 const createUser = async (userData: UserData) => {
-  const response = await fetch("https://api.example.com/users", {
+  const response = await fetch("https://api.ticket.cloud.habib.cloud/users", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -303,7 +303,7 @@ Expo supports environment variables with the `EXPO_PUBLIC_` prefix. These are in
 
 ```tsx
 // .env
-EXPO_PUBLIC_API_URL=https://api.example.com
+EXPO_PUBLIC_API_URL=https://api.ticket.cloud.habib.cloud
 EXPO_PUBLIC_API_VERSION=v1
 
 // Usage in code

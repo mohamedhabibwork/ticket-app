@@ -5,7 +5,7 @@ import { stripeCustomers } from "@ticket-app/db/schema";
 import { eq } from "drizzle-orm";
 
 export const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
-  apiVersion: "2025-03-31.basil",
+  apiVersion: "2023-10-16" as const,
 });
 
 export async function getOrCreateStripeCustomer(

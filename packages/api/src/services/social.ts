@@ -12,11 +12,7 @@ import { generateReferenceNumber } from "../lib/reference";
 
 import { decryptToken } from "../lib/crypto";
 import { getFacebookConversationMessages, sendFacebookMessage } from "./social/facebook";
-import {
-  getTwitterDmEvents,
-  getTwitterConversationMessages,
-  sendTwitterDm,
-} from "./social/twitter";
+import { getXDmEvents, getXConversationMessages, sendXDm } from "./social/twitter";
 import {
   sendWhatsAppMessage,
   getWhatsAppIncomingMessages,
@@ -137,6 +133,10 @@ export async function createTicketFromSocialMessage(
     ),
   });
 
+  if (!defaultStatusLookup || !defaultPriorityLookup) {
+    throw new Error("Default status or priority lookup not found");
+  }
+
   const [ticket] = await db
     .insert(tickets)
     .values({
@@ -144,14 +144,17 @@ export async function createTicketFromSocialMessage(
       referenceNumber,
       subject: `${message.platform.toUpperCase()} Message from ${message.authorName || message.authorUsername || "Unknown"}`,
       descriptionHtml: message.bodyHtml || `<p>${message.bodyText}</p>`,
-      descriptionText: message.bodyText,
-      statusId: defaultStatusLookup?.id,
-      priorityId: defaultPriorityLookup?.id,
-      channelId,
-      contactId,
+      statusId: defaultStatusLookup.id,
+      priorityId: defaultPriorityLookup.id,
+      channelId: channelId ?? null,
+      contactId: contactId ?? null,
       socialMessageId,
     })
     .returning();
+
+  if (!ticket) {
+    throw new Error("Failed to create ticket");
+  }
 
   await db
     .update(socialMessages)
@@ -180,7 +183,7 @@ export async function addSocialMessageAsReply(
       messageType: "reply",
       bodyHtml: message.bodyHtml || `<p>${message.bodyText}</p>`,
       bodyText: message.bodyText,
-      createdAt: message.sentAt,
+      ...(message.sentAt ? { createdAt: message.sentAt } : {}),
     })
     .returning();
 
@@ -229,6 +232,10 @@ export async function processIncomingSocialMessage(
     })
     .returning();
 
+  if (!message) {
+    throw new Error("Failed to create social message");
+  }
+
   const isNewConversation = !messageInput.platformParentMessageId;
 
   let ticket = null;
@@ -254,20 +261,24 @@ export async function replyToSocialMessage(
 ): Promise<{ success: boolean; platformMessageId?: string; error?: string }> {
   const ticket = await db.query.tickets.findFirst({
     where: eq(tickets.id, ticketId),
-    with: {
-      socialMessage: {
-        with: {
-          socialAccount: true,
-        },
-      },
-    },
   });
 
-  if (!ticket?.socialMessage) {
+  if (!ticket?.socialMessageId) {
     return { success: false, error: "Ticket is not from a social channel" };
   }
 
-  const socialAccount = ticket.socialMessage.socialAccount;
+  const socialMessage = await db.query.socialMessages.findFirst({
+    where: eq(socialMessages.id, ticket.socialMessageId),
+    with: {
+      socialAccount: true,
+    },
+  });
+
+  if (!socialMessage) {
+    return { success: false, error: "Social message not found" };
+  }
+
+  const socialAccount = socialMessage.socialAccount;
   const accountData = await getAccountWithToken(socialAccount.id);
 
   if (!accountData) {
@@ -275,20 +286,20 @@ export async function replyToSocialMessage(
   }
 
   const { account, accessToken } = accountData;
-  const recipientId = ticket.socialMessage.authorPlatformUserId;
+  const recipientId = socialMessage.authorPlatformUserId || "";
 
   try {
     let platformMessageId: string;
 
     if (account.platform === "facebook" || account.platform === "instagram") {
       const result = await sendFacebookMessage(recipientId, replyText, accessToken);
-      platformMessageId = result.messages?.[0]?.id || "";
+      platformMessageId = result.messageId;
     } else if (account.platform === "twitter") {
-      const result = await sendTwitterDm(recipientId, replyText, accessToken);
-      platformMessageId = result.dm_event_id;
+      const result = await sendXDm(recipientId, replyText, accessToken);
+      platformMessageId = result.dm_event_id || "";
     } else if (account.platform === "whatsapp") {
       const result = await sendWhatsAppMessage(recipientId, replyText);
-      platformMessageId = result.messages?.[0]?.id || "";
+      platformMessageId = result.messages[0]?.id ?? "";
     } else {
       return { success: false, error: `Unsupported platform: ${account.platform}` };
     }
@@ -337,17 +348,17 @@ export async function pollFacebookMessages(
   try {
     const conversations = await getFacebookConversationMessages(
       account.platformAccountId,
-      accessToken,
+      _accessToken,
       25,
     );
 
     for (const conv of conversations) {
-      const messages = await getFacebookConversationMessages(conv.id, accessToken, 10);
+      const messages = await getFacebookConversationMessages(conv.id, _accessToken, 10);
 
       for (const msg of messages) {
         if (msg.from?.id === account.platformAccountId) continue;
 
-        await processIncomingSocialMessage(organizationId, accountId, {
+        await processIncomingSocialMessage(_organizationId, accountId, {
           platform: account.platform as "facebook",
           platformMessageId: msg.id,
           authorPlatformUserId: msg.from?.id || "",
@@ -376,7 +387,7 @@ export async function pollTwitterMessages(
   const { account, accessToken: _accessToken } = accountData;
 
   try {
-    const events = await getTwitterDmEvents(accessToken, 25);
+    const events = await getXDmEvents(_accessToken, 25);
 
     for (const event of events) {
       if (event.event_type !== "message_create") continue;
@@ -385,12 +396,12 @@ export async function pollTwitterMessages(
       if (senderId === account.platformAccountId) continue;
 
       const conversationId = event.message_create?.conversation_id;
-      const messages = await getTwitterConversationMessages(conversationId, accessToken, 10);
+      const messages = await getXConversationMessages(conversationId, _accessToken, 10);
 
       for (const msg of messages) {
         if (msg.create?.sender_id === account.platformAccountId) continue;
 
-        await processIncomingSocialMessage(organizationId, accountId, {
+        await processIncomingSocialMessage(_organizationId, accountId, {
           platform: "twitter",
           platformMessageId: msg.create?.dm_event_id || msg.id,
           authorPlatformUserId: msg.create?.sender_id || senderId,
@@ -428,7 +439,7 @@ export async function pollWhatsAppMessages(
         mediaUrls = [msg.image.id];
       }
 
-      await processIncomingSocialMessage(organizationId, accountId, {
+      await processIncomingSocialMessage(_organizationId, accountId, {
         platform: "whatsapp",
         platformMessageId: msg.id,
         authorPlatformUserId: msg.from,
@@ -492,9 +503,9 @@ export async function checkAndRefreshExpiredTokens(): Promise<void> {
         const refreshToken = decryptToken(account.refreshTokenEnc);
         newTokens = await refreshFacebookToken(refreshToken);
       } else if (account.platform === "twitter") {
-        const { refreshTwitterToken } = await import("./social/twitter");
+        const { refreshXToken } = await import("./social/twitter");
         const refreshToken = decryptToken(account.refreshTokenEnc);
-        newTokens = await refreshTwitterToken(refreshToken);
+        newTokens = await refreshXToken(refreshToken);
       } else {
         continue;
       }

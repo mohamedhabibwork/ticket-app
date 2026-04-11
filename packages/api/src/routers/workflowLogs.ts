@@ -16,8 +16,6 @@ const listLogsSchema = z.object({
 
 export const workflowLogsRouter = {
   list: publicProcedure.input(listLogsSchema).handler(async ({ input }) => {
-    const _conditions = [eq(workflows.organizationId, input.organizationId)];
-
     let logs;
 
     if (input.workflowId) {

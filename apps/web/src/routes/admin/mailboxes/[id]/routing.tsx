@@ -57,7 +57,7 @@ const ACTION_TYPES = [
   { value: "set_status", label: "Set Status" },
 ];
 
-export const Route = createFileRoute("/admin/mailboxes/id/routing")({
+export const Route = createFileRoute("/admin/mailboxes/$id/routing")({
   component: MailboxRoutingRoute,
 });
 
@@ -66,19 +66,19 @@ function MailboxRoutingRoute() {
   const mailboxId = Number(id);
 
   const { data: mailbox, isLoading } = useQuery(
-    orpc.mailboxes.get.queryOptions({
+    (orpc as any).mailboxes.get.queryOptions({
       id: mailboxId,
     }),
   );
 
   const { data: rules, refetch } = useQuery(
-    orpc.mailboxes.getRoutingRules.queryOptions({
+    (orpc as any).mailboxes.getRoutingRules.queryOptions({
       mailboxId,
     }),
   );
 
   const { data: teams } = useQuery(
-    orpc.teams.list.queryOptions({
+    (orpc as any).teams.list.queryOptions({
       organizationId: 1,
     }),
   );
@@ -87,7 +87,7 @@ function MailboxRoutingRoute() {
   const [isCreating, setIsCreating] = useState(false);
 
   const createRuleMutation = useMutation(
-    orpc.mailboxes.createRoutingRule.mutationOptions({
+    (orpc as any).mailboxes.createRoutingRule.mutationOptions({
       onSuccess: () => {
         setEditingRule(null);
         setIsCreating(false);
@@ -97,7 +97,7 @@ function MailboxRoutingRoute() {
   );
 
   const updateRuleMutation = useMutation(
-    orpc.mailboxes.updateRoutingRule.mutationOptions({
+    (orpc as any).mailboxes.updateRoutingRule.mutationOptions({
       onSuccess: () => {
         setEditingRule(null);
         refetch();
@@ -106,7 +106,7 @@ function MailboxRoutingRoute() {
   );
 
   const deleteRuleMutation = useMutation(
-    orpc.mailboxes.deleteRoutingRule.mutationOptions({
+    (orpc as any).mailboxes.deleteRoutingRule.mutationOptions({
       onSuccess: () => {
         setEditingRule(null);
         refetch();
@@ -115,7 +115,7 @@ function MailboxRoutingRoute() {
   );
 
   const reorderMutation = useMutation(
-    orpc.mailboxes.reorderRoutingRules.mutationOptions({
+    (orpc as any).mailboxes.reorderRoutingRules.mutationOptions({
       onSuccess: () => refetch(),
     }),
   );

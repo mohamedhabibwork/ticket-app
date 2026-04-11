@@ -292,7 +292,7 @@ export default function MyScreen() {
         <Text className="text-xl font-bold text-gray-900">Hello Tailwind!</Text>
         <Image
           className="w-full h-48 rounded-lg object-cover"
-          source={{ uri: "https://example.com/image.jpg" }}
+          source={{ uri: "https://ticket.cloud.habib.cloud/image.jpg" }}
         />
       </View>
     </ScrollView>

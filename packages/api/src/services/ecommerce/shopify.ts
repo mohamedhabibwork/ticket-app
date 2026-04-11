@@ -97,7 +97,7 @@ export async function shopifyApiRequest<T>(
     throw new Error(`Shopify API error: ${response.status} - ${error}`);
   }
 
-  return response.json();
+  return response.json() as T;
 }
 
 export async function fetchShopifyOrders(

@@ -1,5 +1,5 @@
 import { db } from "@ticket-app/db";
-import { emailRoutingRules } from "@ticket-app/db/schema";
+import { emailRoutingRules, tickets } from "@ticket-app/db/schema";
 import { eq, and, isNull, asc } from "drizzle-orm";
 
 export interface RoutingContext {
@@ -135,7 +135,9 @@ export async function applyRoutingToTicket(
   ticketId: number,
   routingResult: RoutingResult,
 ): Promise<void> {
-  const updates: Record<string, any> = {};
+  const updates: Partial<
+    Pick<typeof tickets.$inferInsert, "mailboxId" | "assignedTeamId" | "priorityId">
+  > = {};
 
   if (routingResult.mailboxId) {
     updates.mailboxId = routingResult.mailboxId;
@@ -150,6 +152,6 @@ export async function applyRoutingToTicket(
   }
 
   if (Object.keys(updates).length > 0) {
-    await db.update(db.query.tickets).set(updates).where(eq(db.query.tickets.id, ticketId));
+    await db.update(tickets).set(updates).where(eq(tickets.id, ticketId));
   }
 }

@@ -32,6 +32,12 @@ emailWebhook.post("/inbound", async (c) => {
       return c.json({ error: "Mailbox not found" }, 404);
     }
 
+    if (typeof mailbox.organizationId !== "number") {
+      return c.json({ error: "Invalid mailbox organizationId" }, 400);
+    }
+
+    const orgId = mailbox.organizationId;
+
     const existingMessage = await db.query.emailMessages.findFirst({
       where: and(eq(emailMessages.messageId, messageId), eq(emailMessages.mailboxId, mailboxId)),
     });
@@ -50,7 +56,7 @@ emailWebhook.post("/inbound", async (c) => {
     let contact = await db.query.contacts.findFirst({
       where: and(
         eq(contacts.email, from.email.toLowerCase()),
-        eq(contacts.organizationId, mailbox.organizationId),
+        eq(contacts.organizationId, orgId),
         isNull(contacts.deletedAt),
       ),
     });
@@ -59,19 +65,22 @@ emailWebhook.post("/inbound", async (c) => {
       const [newContact] = await db
         .insert(contacts)
         .values({
-          organizationId: mailbox.organizationId,
+          organizationId: orgId,
           email: from.email.toLowerCase(),
           firstName: from.name?.split(" ")[0] || null,
           lastName: from.name?.split(" ").slice(1).join(" ") || null,
         })
         .returning();
+      if (!newContact) {
+        return c.json({ error: "Failed to create contact" }, 500);
+      }
       contact = newContact;
     }
 
     const [savedEmailMessage] = await db
       .insert(emailMessages)
       .values({
-        organizationId: mailbox.organizationId,
+        organizationId: orgId,
         mailboxId,
         direction: "inbound",
         messageId,
@@ -93,15 +102,16 @@ emailWebhook.post("/inbound", async (c) => {
       })
       .returning();
 
+    if (!savedEmailMessage) {
+      return c.json({ error: "Failed to save email message" }, 500);
+    }
+
     let parentTicketId: number | undefined;
     let isReply = false;
 
     if (inReplyTo) {
       const parentEmail = await db.query.emailMessages.findFirst({
-        where: and(
-          eq(emailMessages.messageId, inReplyTo),
-          eq(emailMessages.organizationId, mailbox.organizationId),
-        ),
+        where: and(eq(emailMessages.messageId, inReplyTo), eq(emailMessages.organizationId, orgId)),
       });
 
       if (parentEmail?.ticketId) {
@@ -119,6 +129,10 @@ emailWebhook.post("/inbound", async (c) => {
       })
     )?.id;
 
+    if (!defaultStatusId) {
+      return c.json({ error: "Default ticket status not found" }, 500);
+    }
+
     const defaultPriorityId = (
       await db.query.lookups.findFirst({
         where: and(
@@ -131,32 +145,39 @@ emailWebhook.post("/inbound", async (c) => {
       })
     )?.id;
 
+    if (!defaultPriorityId) {
+      return c.json({ error: "Default ticket priority not found" }, 500);
+    }
+
     const year = new Date().getFullYear();
     const prefix = `TKT-${year}-`;
     const countResult = await db
       .select({ count: sql<number>`COUNT(*)::int` })
       .from(tickets)
       .where(
-        sql`${tickets.organizationId} = ${mailbox.organizationId} AND ${tickets.referenceNumber} LIKE ${prefix}%`,
+        sql`${tickets.organizationId} = ${orgId} AND ${tickets.referenceNumber} LIKE ${prefix}%`,
       );
     const sequence = (countResult[0]?.count ?? 0) + 1;
     const referenceNumber = `${prefix}${sequence.toString().padStart(6, "0")}`;
 
-    const [ticket] = await db
-      .insert(tickets)
-      .values({
-        organizationId: mailbox.organizationId,
-        mailboxId,
-        referenceNumber,
-        subject: subject || "(No Subject)",
-        descriptionHtml: html,
-        channelId: channelLookup?.id,
-        contactId: contact.id,
-        statusId: defaultStatusId,
-        priorityId: defaultPriorityId,
-        parentTicketId,
-      })
-      .returning();
+    const insertData = {
+      organizationId: orgId,
+      mailboxId: mailboxId as number,
+      referenceNumber,
+      subject: subject || "(No Subject)",
+      descriptionHtml: html,
+      channelId: channelLookup?.id as number | undefined,
+      contactId: contact.id,
+      statusId: defaultStatusId,
+      priorityId: defaultPriorityId,
+      parentTicketId,
+    };
+
+    const [ticket] = await db.insert(tickets).values(insertData).returning();
+
+    if (!ticket) {
+      return c.json({ error: "Failed to create ticket" }, 500);
+    }
 
     await db
       .update(emailMessages)

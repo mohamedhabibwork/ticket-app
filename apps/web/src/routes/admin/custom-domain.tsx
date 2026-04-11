@@ -331,7 +331,7 @@ function CustomDomainRoute() {
               To configure your custom domain, you'll need to add DNS records at your domain
               registrar.
             </p>
-            <Button variant="outline" asChild>
+            <Button variant="outline">
               <a
                 href="https://docs.uvdesk.com/domain-setup"
                 target="_blank"

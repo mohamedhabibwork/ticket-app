@@ -82,13 +82,13 @@ export const tickets = pgTable(
     updatedBy: bigint("updated_by", { mode: "number" }).references((): any => users.id),
     deletedBy: bigint("deleted_by", { mode: "number" }).references((): any => users.id),
   },
-  (table) => ({
-    orgStatusIdx: index("tickets_org_status_idx").on(table.organizationId, table.statusId),
-    assignedAgentIdx: index("tickets_assigned_agent_idx").on(table.assignedAgentId),
-    assignedTeamIdx: index("tickets_assigned_team_idx").on(table.assignedTeamId),
-    contactIdx: index("tickets_contact_idx").on(table.contactId),
-    createdAtIdx: index("tickets_created_at_idx").on(table.createdAt),
-  }),
+  (table) => [
+    index("tickets_org_status_idx").on(table.organizationId, table.statusId),
+    index("tickets_assigned_agent_idx").on(table.assignedAgentId),
+    index("tickets_assigned_team_idx").on(table.assignedTeamId),
+    index("tickets_contact_idx").on(table.contactId),
+    index("tickets_created_at_idx").on(table.createdAt),
+  ],
 );
 
 export const ticketMessages = pgTable(
@@ -122,9 +122,7 @@ export const ticketMessages = pgTable(
     updatedBy: bigint("updated_by", { mode: "number" }).references((): any => users.id),
     deletedBy: bigint("deleted_by", { mode: "number" }).references((): any => users.id),
   },
-  (table) => ({
-    ticketIdx: index("ticket_messages_ticket_idx").on(table.ticketId),
-  }),
+  (table) => [index("ticket_messages_ticket_idx").on(table.ticketId)],
 );
 
 export const ticketAttachments = pgTable("ticket_attachments", {
@@ -165,9 +163,7 @@ export const tags = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     createdBy: bigint("created_by", { mode: "number" }).references((): any => users.id),
   },
-  (table) => ({
-    orgNameUnique: unique().on(table.organizationId, table.name),
-  }),
+  (table) => [unique().on(table.organizationId, table.name)],
 );
 
 export const ticketTags = pgTable(
@@ -183,9 +179,7 @@ export const ticketTags = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
     createdBy: bigint("created_by", { mode: "number" }).references((): any => users.id),
   },
-  (table) => ({
-    ticketTagUnique: unique().on(table.ticketId, table.tagId),
-  }),
+  (table) => [unique().on(table.ticketId, table.tagId)],
 );
 
 export const ticketFollowers = pgTable(
@@ -200,9 +194,7 @@ export const ticketFollowers = pgTable(
       .notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
-  (table) => ({
-    ticketFollowerUnique: unique().on(table.ticketId, table.userId),
-  }),
+  (table) => [unique().on(table.ticketId, table.userId)],
 );
 
 export const ticketCc = pgTable(
@@ -215,9 +207,7 @@ export const ticketCc = pgTable(
     email: varchar("email", { length: 255 }).notNull(),
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
   },
-  (table) => ({
-    ticketEmailUnique: unique().on(table.ticketId, table.email),
-  }),
+  (table) => [unique().on(table.ticketId, table.email)],
 );
 
 export const ticketMerges = pgTable("ticket_merges", {
@@ -254,9 +244,7 @@ export const ticketCustomFieldValues = pgTable(
     createdBy: bigint("created_by", { mode: "number" }).references((): any => users.id),
     updatedBy: bigint("updated_by", { mode: "number" }).references((): any => users.id),
   },
-  (table) => ({
-    ticketFieldUnique: unique().on(table.ticketId, table.fieldId),
-  }),
+  (table) => [unique().on(table.ticketId, table.fieldId)],
 );
 
 export const ticketViews = pgTable(
@@ -278,9 +266,7 @@ export const ticketViews = pgTable(
     createdBy: bigint("created_by", { mode: "number" }).references((): any => users.id),
     updatedBy: bigint("updated_by", { mode: "number" }).references((): any => users.id),
   },
-  (table) => ({
-    orgIdx: index("ticket_views_org_idx").on(table.organizationId),
-  }),
+  (table) => [index("ticket_views_org_idx").on(table.organizationId)],
 );
 
 export const ticketsRelations = relations(tickets, ({ one, many }) => ({

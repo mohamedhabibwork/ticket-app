@@ -29,7 +29,7 @@ export const Route = createFileRoute("/admin/forms/id/")({
 
 function FormSettingsRoute() {
   const navigate = useNavigate();
-  const { id } = useParams({ from: "/admin/forms/id/" });
+  const { id } = useParams({ from: "/admin/forms/id/" } as any);
   const formId = Number(id);
 
   const {
@@ -37,29 +37,29 @@ function FormSettingsRoute() {
     isLoading,
     refetch,
   } = useQuery(
-    orpc.forms.get.queryOptions({
+    (orpc as any).forms.get.queryOptions({
       id: formId,
       organizationId: 1,
     }),
   );
 
   const updateMutation = useMutation(
-    orpc.forms.update?.mutationOptions({
+    (orpc as any).forms.update?.mutationOptions({
       onSuccess: () => refetch(),
     }),
   );
 
   const [formSettings, setFormSettings] = useState({
-    name: form?.name || "",
-    description: form?.description || "",
-    submitButtonText: form?.submitButtonText || "Submit",
-    successMessage: form?.successMessage || "Thank you for your submission!",
-    redirectUrl: form?.redirectUrl || "",
-    captchaEnabled: form?.captchaEnabled || false,
+    name: (form as any)?.name || "",
+    description: (form as any)?.description || "",
+    submitButtonText: (form as any)?.submitButtonText || "Submit",
+    successMessage: (form as any)?.successMessage || "Thank you for your submission!",
+    redirectUrl: (form as any)?.redirectUrl || "",
+    captchaEnabled: (form as any)?.captchaEnabled || false,
     captchaType: "recaptcha_v3" as "recaptcha_v3" | "hcaptcha",
     captchaSiteKey: "",
     notificationEmails: "",
-    isPublished: form?.isPublished || false,
+    isPublished: (form as any)?.isPublished || false,
   });
 
   const [embedCode, setEmbedCode] = useState("");
@@ -67,7 +67,7 @@ function FormSettingsRoute() {
 
   const generateEmbedCode = () => {
     const iframeCode = `<iframe src="${window.location.origin}/forms/${formId}" width="100%" height="800" frameborder="0"></iframe>`;
-    const _jsCode = `<script>!function(){var f=document.createElement('iframe');f.src='/forms/${formId}',f.width='100%',f.height='800',f.frameBorder=0,document.body.appendChild(f)}();</script>`;
+    const _jsCode = `<script>!function(){var f=document.createElement("iframe");f.src="/forms/${formId}",f.width="100%",f.height="800",f.frameBorder=0,document.body.appendChild(f)}();</script>`;
     setEmbedCode(iframeCode);
   };
 
@@ -78,7 +78,7 @@ function FormSettingsRoute() {
   };
 
   const handleSave = () => {
-    updateMutation?.mutate({
+    (updateMutation as any)?.mutate({
       id: formId,
       name: formSettings.name,
       description: formSettings.description,
@@ -104,7 +104,7 @@ function FormSettingsRoute() {
         <Card>
           <CardContent className="py-12 text-center">
             <p className="text-muted-foreground">Form not found</p>
-            <Link to="/admin/forms/">
+            <Link to="/admin/forms">
               <Button variant="outline" className="mt-4">
                 Back to Forms
               </Button>
@@ -118,7 +118,7 @@ function FormSettingsRoute() {
   return (
     <div className="container mx-auto max-w-4xl px-4 py-6">
       <div className="mb-6">
-        <Link to="/admin/forms/">
+        <Link to="/admin/forms">
           <Button variant="ghost" className="mb-4">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Forms
@@ -211,7 +211,7 @@ function FormSettingsRoute() {
                 type="url"
                 value={formSettings.redirectUrl}
                 onChange={(e) => setFormSettings({ ...formSettings, redirectUrl: e.target.value })}
-                placeholder="https://example.com/thank-you"
+                placeholder="https://ticket.cloud.habib.cloud/thank-you"
               />
               <p className="text-xs text-muted-foreground">
                 Leave empty to show success message instead
@@ -226,7 +226,7 @@ function FormSettingsRoute() {
                   setFormSettings({ ...formSettings, notificationEmails: e.target.value })
                 }
                 rows={2}
-                placeholder="email@example.com&#10;another@example.com"
+                placeholder="email@habib.cloud&#10;another@habib.cloud"
               />
               <p className="text-xs text-muted-foreground">
                 Receive notifications for new submissions (one per line)
@@ -262,8 +262,11 @@ function FormSettingsRoute() {
                   <Label>CAPTCHA Provider</Label>
                   <Select
                     value={formSettings.captchaType}
-                    onValueChange={(value: "recaptcha_v3" | "hcaptcha") =>
-                      setFormSettings({ ...formSettings, captchaType: value })
+                    onValueChange={(value) =>
+                      setFormSettings({
+                        ...formSettings,
+                        captchaType: value as "recaptcha_v3" | "hcaptcha",
+                      })
                     }
                   >
                     <SelectTrigger>
@@ -311,7 +314,7 @@ function FormSettingsRoute() {
                     );
                   } else {
                     setEmbedCode(
-                      `&lt;script&gt;!function(){var f=document.createElement('iframe');f.src='/forms/${formId}',f.width='100%',f.height='800',f.frameBorder=0,document.body.appendChild(f)}();&lt;/script&gt;`,
+                      `&lt;script&gt;!function(){var f=document.createElement("iframe");f.src="/forms/${formId}",f.width="100%",f.height="800",f.frameBorder=0,document.body.appendChild(f)}();&lt;/script&gt;`,
                     );
                   }
                 }}
@@ -360,7 +363,7 @@ function FormSettingsRoute() {
         </Card>
 
         <div className="flex justify-end gap-2">
-          <Button variant="outline" onClick={() => navigate({ to: "/admin/forms/" })}>
+          <Button variant="outline" onClick={() => navigate({ to: "/admin/forms" })}>
             Cancel
           </Button>
           <Button onClick={handleSave} disabled={updateMutation.isPending}>

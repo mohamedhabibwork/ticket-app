@@ -5,7 +5,11 @@ import { db } from "@ticket-app/db";
 import { getRedis } from "@ticket-app/queue";
 import { notifications, users } from "@ticket-app/db/schema";
 import type { NotificationJobData } from "@ticket-app/db/lib/queues";
-import { getUserNotificationPreferences, markNotificationAsRead } from "../services/notifications";
+import {
+  getUserNotificationPreferences,
+  markNotificationAsRead,
+  type NotificationType,
+} from "../services/notifications";
 import type { TemplateData } from "../services/notificationTemplates";
 import { sendSlackNotification } from "../services/slack";
 import { sendNotificationEmailIfImportant, queueEmailDigest } from "../services/notificationEmail";
@@ -54,13 +58,15 @@ export function createNotificationProcessWorker() {
       switch (type) {
         case "process_notification":
           return handleProcessNotification(
-            job.data as { type: "process_notification" } & NotificationJobData,
+            job.data as unknown as { type: "process_notification" } & NotificationJobData,
           );
         case "send_email_digest":
-          return handleSendEmailDigest(job.data as { type: "send_email_digest"; userId: number });
+          return handleSendEmailDigest(
+            job.data as unknown as { type: "send_email_digest"; userId: number },
+          );
         case "mark_read":
           return handleMarkRead(
-            job.data as { type: "mark_read"; notificationId: number; userId: number },
+            job.data as unknown as { type: "mark_read"; notificationId: number; userId: number },
           );
         default:
           throw new Error(`Unknown notification process type: ${type}`);

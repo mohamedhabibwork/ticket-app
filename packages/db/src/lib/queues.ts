@@ -63,8 +63,9 @@ export type AutoAssignJobData = {
 };
 
 const connection = {
-  host: env.REDIS_URL.replace("redis://", "").split(":")[0] || "localhost",
-  port: parseInt(env.REDIS_URL.split(":")[2] || "6379"),
+  url: env.REDIS_URL,
+  maxRetriesPerRequest: null,
+  enableReadyCheck: false,
 };
 
 export const emailQueue = new Queue<EmailJobData>(QUEUE_NAMES.EMAIL, {

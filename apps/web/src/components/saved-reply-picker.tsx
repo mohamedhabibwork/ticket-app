@@ -13,6 +13,11 @@ import { useState } from "react";
 
 import { orpc } from "@/utils/orpc";
 
+interface SavedReplyFolder {
+  id: number;
+  name: string;
+}
+
 interface SavedReply {
   id: number;
   uuid: string;
@@ -22,6 +27,7 @@ interface SavedReply {
   bodyText: string | null;
   shortcuts: string | null;
   scope: string;
+  folderId: number | null;
 }
 
 interface SavedReplyPickerProps {
@@ -41,19 +47,22 @@ export function SavedReplyPicker({
   const [selectedFolder, setSelectedFolder] = useState<number | null>(null);
 
   const { data: replies, isLoading } = useQuery(
-    orpc.savedReplies.list.queryOptions({
+    (orpc as any).savedReplies.list.queryOptions({
       organizationId,
-      userId,
-    }),
+      userId: userId ?? undefined,
+    }) as any,
   );
 
   const { data: folders } = useQuery(
-    orpc.savedReplies.listFolders.queryOptions({
+    (orpc as any).savedReplies.listFolders.queryOptions({
       organizationId,
-    }),
+    }) as any,
   );
 
-  const filteredReplies = replies?.filter((reply) => {
+  const typedReplies = (replies ?? []) as SavedReply[];
+  const typedFolders = (folders ?? []) as SavedReplyFolder[];
+
+  const filteredReplies = typedReplies.filter((reply: SavedReply) => {
     const matchesSearch =
       !search ||
       reply.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -82,7 +91,7 @@ export function SavedReplyPicker({
           />
         </div>
 
-        {folders && folders.length > 0 && (
+        {typedFolders.length > 0 && (
           <div className="flex gap-2 flex-wrap">
             <Button
               variant={selectedFolder === null ? "default" : "outline"}
@@ -91,7 +100,7 @@ export function SavedReplyPicker({
             >
               All
             </Button>
-            {folders.map((folder) => (
+            {typedFolders.map((folder: SavedReplyFolder) => (
               <Button
                 key={folder.id}
                 variant={selectedFolder === folder.id ? "default" : "outline"}
@@ -108,9 +117,9 @@ export function SavedReplyPicker({
           <div className="flex justify-center py-8">
             <Loader2 className="h-6 w-6 animate-spin" />
           </div>
-        ) : filteredReplies && filteredReplies.length > 0 ? (
+        ) : filteredReplies.length > 0 ? (
           <div className="max-h-[300px] overflow-y-auto space-y-2">
-            {filteredReplies.map((reply) => (
+            {filteredReplies.map((reply: SavedReply) => (
               <button
                 key={reply.id}
                 type="button"

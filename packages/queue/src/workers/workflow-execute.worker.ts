@@ -55,7 +55,8 @@ export interface WorkflowAction {
     | "webhook"
     | "create_task"
     | "add_note"
-    | "apply_saved_reply";
+    | "apply_saved_reply"
+    | "stop_processing";
   config: Record<string, unknown>;
 }
 
@@ -91,7 +92,7 @@ interface TicketData {
   [key: string]: unknown;
 }
 
-const workflowExecuteQueue = new Queue(WorkflowExecuteJobData, {
+const workflowExecuteQueue = new Queue<WorkflowExecuteJobData>(WORKFLOW_EXECUTE_QUEUE, {
   connection: getRedis(),
   defaultJobOptions: {
     attempts: 3,
@@ -535,10 +536,15 @@ async function executeAddTag(action: WorkflowAction, ticket: TicketData): Promis
   });
 
   if (!tag) {
-    [tag] = await db
+    const [newTag] = await db
       .insert(tags)
       .values({ name: tagName, organizationId: ticket.organizationId })
       .returning();
+    if (!newTag) {
+      console.error(`[Workflow] Failed to create tag "${tagName}"`);
+      return;
+    }
+    tag = newTag;
   }
 
   const existingTicketTag = await db.query.ticketTags.findFirst({

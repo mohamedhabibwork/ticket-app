@@ -162,8 +162,8 @@ async function refreshOAuthToken(account: typeof socialAccounts.$inferSelect): P
         body: new URLSearchParams({
           grant_type: "refresh_token",
           refresh_token: account.refreshTokenEnc,
-          client_id: env.TWITTER_CLIENT_ID || "",
-          client_secret: env.TWITTER_CLIENT_SECRET || "",
+          client_id: env.X_CLIENT_ID || "",
+          client_secret: env.X_CLIENT_SECRET || "",
         }),
       });
       const data = (await response.json()) as {
@@ -364,6 +364,8 @@ async function processSocialMessage(
     })
     .returning();
 
+  if (!socialMessage) throw new Error("Failed to create social message");
+
   const settings = {};
   const shouldCreateTicket = (settings as any).autoCreateTicket ?? true;
 
@@ -413,11 +415,13 @@ async function processSocialMessage(
           descriptionHtml: message.bodyHtml || `<p>${message.bodyText}</p>`,
           channelId: channelLookup?.id,
           socialMessageId: socialMessage.id,
-          statusId: defaultStatusId,
-          priorityId: defaultPriorityId,
+          statusId: defaultStatusId!,
+          priorityId: defaultPriorityId!,
           isSpam: message.isSpam || false,
         })
         .returning();
+
+      if (!ticket) throw new Error("Failed to create ticket");
 
       await db
         .update(socialMessages)

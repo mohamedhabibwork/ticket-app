@@ -1,5 +1,3 @@
-import type { RouterClient } from "@orpc/server";
-
 import { publicProcedure } from "../index";
 import { notificationsRouter } from "./notifications";
 import { fileRouter } from "./files";
@@ -117,4 +115,3 @@ export const appRouter = {
 };
 
 export type AppRouter = typeof appRouter;
-export type AppRouterClient = RouterClient<typeof appRouter>;

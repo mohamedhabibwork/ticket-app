@@ -1,6 +1,6 @@
 import { db } from "@ticket-app/db";
 import { tasks, taskAssignees, taskChecklistItems, lookups } from "@ticket-app/db/schema";
-import { eq, and, isNull, desc } from "drizzle-orm";
+import { eq, and, isNull, desc, sql } from "drizzle-orm";
 import * as z from "zod";
 
 import { publicProcedure } from "../index";

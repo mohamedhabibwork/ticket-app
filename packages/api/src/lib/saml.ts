@@ -143,8 +143,8 @@ export function decodeAuthnResponse(
   const status = statusMatch?.[1] || "urn:oasis:names:tc:SAML:2.0:status:Responder";
 
   const response: SamlAuthnResponse = {
-    id: idMatch?.[1] || generateUniqueId(),
-    inResponseTo: inResponseToMatch?.[1] || "",
+    id: idMatch?.[1] ?? generateUniqueId(),
+    inResponseTo: inResponseToMatch?.[1] ?? "",
     status,
   };
 
@@ -161,14 +161,16 @@ export function decodeAuthnResponse(
       for (const match of attributeMatches) {
         const name = match[1];
         const value = match[2];
-        if (attributes[name]) {
-          if (Array.isArray(attributes[name])) {
-            (attributes[name] as string[]).push(value!);
+        if (name && value !== undefined) {
+          if (attributes[name]) {
+            if (Array.isArray(attributes[name])) {
+              (attributes[name] as string[]).push(value);
+            } else {
+              attributes[name] = [attributes[name] as string, value];
+            }
           } else {
-            attributes[name] = [attributes[name] as string, value!];
+            attributes[name] = value;
           }
-        } else {
-          attributes[name] = value!;
         }
       }
 
@@ -178,7 +180,7 @@ export function decodeAuthnResponse(
       const sessionIndexMatch = __assertionXml.match(/SessionIndex="([^"]+)"/);
 
       response.assertion = {
-        nameID: nameIdMatch[1],
+        nameID: nameIdMatch?.[1] ?? "",
         nameIDFormat: decoded.match(/<saml:NameID[^>]*Format="([^"]+)"/)?.[1] || "",
         sessionIndex: sessionIndexMatch?.[1],
         attributes,

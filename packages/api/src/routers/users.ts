@@ -122,7 +122,7 @@ export const usersRouter = {
     .input(
       z.object({
         organizationId: z.coerce.number(),
-        email: z.string().email(),
+        email: z.email(),
       }),
     )
     .handler(async ({ input }) => {
@@ -146,7 +146,7 @@ export const usersRouter = {
     .input(
       z.object({
         organizationId: z.coerce.number(),
-        email: z.string().email(),
+        email: z.email(),
         firstName: z.string().min(1).max(100),
         lastName: z.string().min(1).max(100),
         password: z.string().min(8).optional(),
@@ -230,7 +230,7 @@ export const usersRouter = {
       z.object({
         id: z.coerce.number(),
         organizationId: z.coerce.number(),
-        email: z.string().email().optional(),
+        email: z.email().optional(),
         firstName: z.string().min(1).max(100).optional(),
         lastName: z.string().min(1).max(100).optional(),
         phone: z.string().optional(),
@@ -418,7 +418,11 @@ export const usersRouter = {
       }
 
       const secret = authenticator.generateSecret();
-      const otpauthUrl = authenticator.keyuri(user.email, "TicketApp", secret);
+      const otpauthUrl = authenticator.keyuri(
+        user.email || "unknown@ticket.app",
+        "TicketApp",
+        secret,
+      );
 
       await db
         .insert(twoFactorAuth)
@@ -656,7 +660,7 @@ export const usersRouter = {
     .input(
       z.object({
         organizationId: z.coerce.number(),
-        email: z.string().email(),
+        email: z.email(),
         roleIds: z.array(z.coerce.number()),
         invitedBy: z.coerce.number(),
         firstName: z.string().optional(),
@@ -1110,8 +1114,8 @@ export const usersRouter = {
         keyPrefix: newKey?.keyPrefix ?? "",
         key: keyData,
         scopes: newKey?.scopes ?? [],
-        expiresAt: newKey.expiresAt,
-        createdAt: newKey.createdAt,
+        expiresAt: newKey?.expiresAt ?? null,
+        createdAt: newKey?.createdAt ?? null,
       };
     }),
 

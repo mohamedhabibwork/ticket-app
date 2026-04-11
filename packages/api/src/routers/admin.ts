@@ -21,12 +21,12 @@ export const adminRouter = {
     .handler(async ({ input, context }) => {
       const user = await db.query.users.findFirst({
         where: and(
-          eq(users.id, Number(context.auth.userId || 0)),
+          eq(users.id, Number(context.auth!.userId || 0)),
           eq(users.organizationId, input.organizationId),
         ),
       });
 
-      if (!user?.isPlatformAdmin && user?.id !== context.auth.userId) {
+      if (!user?.isPlatformAdmin && user?.id !== Number(context.auth!.userId!)) {
         throw new Error("Unauthorized");
       }
 
@@ -52,7 +52,7 @@ export const adminRouter = {
     .handler(async ({ input, context }) => {
       const user = await db.query.users.findFirst({
         where: and(
-          eq(users.id, Number(context.auth.userId || 0)),
+          eq(users.id, Number(context.auth!.userId || 0)),
           eq(users.organizationId, input.organizationId),
         ),
       });
@@ -79,8 +79,8 @@ export const adminRouter = {
             organizationId: input.organizationId,
             key,
             value: String(value),
-            createdBy: Number(context.auth.userId || 0),
-            updatedBy: Number(context.auth.userId || 0),
+            createdBy: Number(context.auth!.userId || 0),
+            updatedBy: Number(context.auth!.userId || 0),
           } as any);
         }
       }
@@ -98,7 +98,7 @@ export const adminRouter = {
     .handler(async ({ input, context }) => {
       const user = await db.query.users.findFirst({
         where: and(
-          eq(users.id, Number(context.auth.userId || 0)),
+          eq(users.id, Number(context.auth!.userId || 0)),
           eq(users.organizationId, input.organizationId),
         ),
       });
@@ -125,8 +125,8 @@ export const adminRouter = {
           organizationId: input.organizationId,
           key: settingKey,
           value: String(input.enabled),
-          createdBy: Number(context.auth.userId || 0),
-          updatedBy: Number(context.auth.userId || 0),
+          createdBy: Number(context.auth!.userId || 0),
+          updatedBy: Number(context.auth!.userId || 0),
         } as any);
       }
 

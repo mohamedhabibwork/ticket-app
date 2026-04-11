@@ -87,9 +87,9 @@ export const emailMessagesRouter = {
       z.object({
         organizationId: z.coerce.number(),
         mailboxId: z.coerce.number(),
-        toEmails: z.array(z.string().email()),
-        ccEmails: z.array(z.string().email()).optional(),
-        bccEmails: z.array(z.string().email()).optional(),
+        toEmails: z.array(z.email()),
+        ccEmails: z.array(z.email()).optional(),
+        bccEmails: z.array(z.email()).optional(),
         subject: z.string().min(1).max(500),
         bodyHtml: z.string().optional(),
         bodyText: z.string().optional(),
@@ -132,7 +132,7 @@ export const emailMessagesRouter = {
         mailboxId: z.coerce.number(),
         bodyHtml: z.string().optional(),
         bodyText: z.string().optional(),
-        ccEmails: z.array(z.string().email()).optional(),
+        ccEmails: z.array(z.email()).optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -183,7 +183,7 @@ export const emailMessagesRouter = {
       z.object({
         organizationId: z.coerce.number(),
         ticketId: z.coerce.number(),
-        forwardTo: z.array(z.string().email()),
+        forwardTo: z.array(z.email()),
         bodyHtml: z.string().optional(),
         bodyText: z.string().optional(),
       }),

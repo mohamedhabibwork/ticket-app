@@ -377,9 +377,9 @@ export const subscriptionsRouter = {
           throw new Error("Organization not found");
         }
 
-        const _customerId = await getOrCreateStripeCustomer(
+        await getOrCreateStripeCustomer(
           input.organizationId,
-          org.email || "unknown@unknown.com",
+          (org as any).email ?? "unknown@unknown.com",
           org.name,
         );
 

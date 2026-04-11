@@ -198,7 +198,7 @@ function NewTicketRoute() {
                   <Input
                     id="contactEmail"
                     type="email"
-                    placeholder="customer@example.com"
+                    placeholder="customer@habib.cloud"
                     value={contactEmail}
                     onChange={(e) => setContactEmail(e.target.value)}
                   />

@@ -906,7 +906,7 @@ function ActionParamsEditor({
             <Input
               value={(action.params.to as string) || ""}
               onChange={(e) => onUpdate({ to: e.target.value })}
-              placeholder="customer@example.com"
+              placeholder="customer@habib.cloud"
             />
           </div>
           <div className="space-y-1">
@@ -937,7 +937,7 @@ function ActionParamsEditor({
             <Input
               value={(action.params.url as string) || ""}
               onChange={(e) => onUpdate({ url: e.target.value })}
-              placeholder="https://api.example.com/webhook"
+              placeholder="https://api.ticket.cloud.habib.cloud/webhook"
             />
           </div>
         </div>

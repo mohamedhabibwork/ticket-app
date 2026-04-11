@@ -23,7 +23,7 @@ export function TicketReply({ ticketId, onSuccess }: TicketReplyProps) {
   const [body, setBody] = useState("");
 
   const createMutation = useMutation(
-    orpc.ticketMessages.create.mutationOptions({
+    (orpc as any).ticketMessages.create.mutationOptions({
       onSuccess: () => {
         setSubject("");
         setBody("");
@@ -43,7 +43,7 @@ export function TicketReply({ ticketId, onSuccess }: TicketReplyProps) {
       bodyHtml: `<p>${body.replace(/\n/g, "<br>")}</p>`,
       bodyText: body,
       isPrivate: false,
-    });
+    } as any);
   };
 
   return (

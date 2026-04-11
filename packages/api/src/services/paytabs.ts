@@ -27,24 +27,13 @@ export interface PaytabsCreateToken {
 
 export type PaytabsPaymentMethodType = "mada" | "sadad" | "applepay" | "creditcard";
 
-const _PAYTABS_REGION_MAP: Record<string, string> = {
-  SA: "SAU",
-  AE: "ARE",
-  EG: "EGY",
-  KW: "KWT",
-  BH: "BHR",
-  OM: "OMN",
-  QA: "QAT",
-};
-
 export class PaytabsService {
   private serverKey: string;
-  private _clientKey: string;
   private baseUrl: string;
 
   constructor() {
     this.serverKey = env.PAYTABS_SERVER_KEY;
-    this._clientKey = env.PAYTABS_CLIENT_KEY;
+    void env.PAYTABS_CLIENT_KEY;
     this.baseUrl = env.PAYTABS_BASE_URL || "https://secure.paytabs.com";
   }
 
@@ -52,6 +41,7 @@ export class PaytabsService {
     organizationId_: number,
     params: PaytabsPaymentInit,
   ): Promise<PaytabsPaymentResult> {
+    void organizationId_;
     const response = await fetch(`${this.baseUrl}/payment/request`, {
       method: "POST",
       headers: {
@@ -141,6 +131,7 @@ export class PaytabsService {
     organizationId_: number,
     params: PaytabsCreateToken,
   ): Promise<PaytabsTokenResult> {
+    void organizationId_;
     const response = await fetch(`${this.baseUrl}/payment/token`, {
       method: "POST",
       headers: {
@@ -208,10 +199,6 @@ export class PaytabsService {
 
     if (currency === "SAR") {
       methods.push("mada", "sadad");
-    }
-
-    if (typeof window !== "undefined" && window.Apple?.Pay) {
-      methods.push("applepay");
     }
 
     return methods;

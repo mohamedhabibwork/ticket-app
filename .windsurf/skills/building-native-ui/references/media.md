@@ -170,7 +170,7 @@ Use `expo-video` not `expo-av`:
 import { useVideoPlayer, VideoView } from "expo-video";
 import { useEvent } from "expo";
 
-const videoSource = "https://example.com/video.mp4";
+const videoSource = "https://ticket.cloud.habib.cloud/video.mp4";
 
 const player = useVideoPlayer(videoSource, (player) => {
   player.loop = true;

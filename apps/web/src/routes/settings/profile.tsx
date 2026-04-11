@@ -155,7 +155,7 @@ function ProfileSettingsRoute() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder={user?.email || "john.doe@example.com"}
+                  placeholder={user?.email || "john.doe@habib.cloud"}
                   disabled
                 />
                 <p className="text-xs text-muted-foreground">Email cannot be changed</p>

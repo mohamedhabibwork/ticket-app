@@ -1,5 +1,5 @@
 import { db } from "@ticket-app/db";
-import { socialMessages } from "@ticket-app/db/schema";
+import { socialMessages, socialAccounts } from "@ticket-app/db/schema";
 import { eq, and, isNull, desc, sql } from "drizzle-orm";
 import * as z from "zod";
 
@@ -89,7 +89,7 @@ export const socialMessagesRouter = {
       if (!message) return null;
 
       const account = await db.query.socialAccounts.findFirst({
-        where: eq(db.query.socialAccounts.fields.id, message.socialAccountId),
+        where: eq(socialAccounts.id, message.socialAccountId),
       });
 
       if (!account || account.organizationId !== input.organizationId) {

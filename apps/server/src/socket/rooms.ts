@@ -32,11 +32,11 @@ export function parseRoomName(room: string): { type: RoomType; id: string } | nu
   if (parts.length !== 2) return null;
 
   const [type, id] = parts;
-  if (!Object.values(ROOM_TYPES).includes(type as RoomType)) {
+  if (!type || !Object.values(ROOM_TYPES).includes(type as RoomType)) {
     return null;
   }
 
-  return { type: type as RoomType, id };
+  return { type: type as RoomType, id: id as string };
 }
 
 export function isValidRoomName(room: string): boolean {

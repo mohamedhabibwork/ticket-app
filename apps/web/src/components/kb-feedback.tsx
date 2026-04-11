@@ -19,7 +19,7 @@ export function KbFeedback({ articleId, locale = "en", className }: KbFeedbackPr
   const [hasSubmitted, setHasSubmitted] = useState(false);
 
   const submitFeedback = useMutation(
-    orpc.kbArticles.submitFeedback.mutationOptions({
+    (orpc as any).kbArticles.submitFeedback.mutationOptions({
       onSuccess: () => {
         setHasSubmitted(true);
         toast.success(locale === "ar" ? "شكراً على ملاحظاتك!" : "Thanks for your feedback!");
@@ -37,7 +37,7 @@ export function KbFeedback({ articleId, locale = "en", className }: KbFeedbackPr
       submitFeedback.mutate({
         articleId,
         rating: "helpful",
-      });
+      } as any);
     }
   };
 
@@ -46,7 +46,7 @@ export function KbFeedback({ articleId, locale = "en", className }: KbFeedbackPr
       articleId,
       rating: "not_helpful",
       comment: comment || undefined,
-    });
+    } as any);
   };
 
   if (hasSubmitted) {

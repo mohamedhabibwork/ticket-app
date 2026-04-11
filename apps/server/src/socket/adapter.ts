@@ -1,24 +1,14 @@
 import { createAdapter } from "@socket.io/redis-adapter";
 import { env } from "@ticket-app/env/server";
-import type { RedisClientType } from "@socket.io/redis-adapter";
 import type { Server as SocketIOServer } from "socket.io";
-import { createClient, type RedisClientType as RedisType } from "redis";
+import { createClient } from "redis";
 
-const REDIS_URL = env.REDIS_URL;
+let pubClient: ReturnType<typeof createClient>;
+let subClient: ReturnType<typeof createClient>;
 
-let pubClient: RedisType;
-let subClient: RedisType;
-
-function createRedisClient(): RedisType {
-  const url = new URL(REDIS_URL);
-  const isSSL = url.protocol === "rediss:";
-
+function createRedisClient(): ReturnType<typeof createClient> {
   const client = createClient({
-    url: REDIS_URL,
-    socket: {
-      tls: isSSL,
-      rejectUnauthorized: !isSSL,
-    },
+    url: env.REDIS_URL,
   });
 
   client.on("error", (err: Error) => {
@@ -34,13 +24,14 @@ export async function setupRedisAdapter(io: SocketIOServer): Promise<void> {
 
   await Promise.all([pubClient.connect(), subClient.connect()]);
 
-  io.adapter(
-    createAdapter(pubClient as unknown as RedisClientType, subClient as unknown as RedisClientType),
-  );
+  io.adapter(createAdapter(pubClient, subClient));
 
   console.log("Socket.io Redis adapter initialized");
 }
 
-export function getRedisClients(): { pubClient: RedisType; subClient: RedisType } {
+export function getRedisClients(): {
+  pubClient: ReturnType<typeof createClient>;
+  subClient: ReturnType<typeof createClient>;
+} {
   return { pubClient, subClient };
 }

@@ -58,6 +58,7 @@ export const slaPoliciesRouter = {
   create: publicProcedure
     .input(
       z.object({
+        organizationId: z.coerce.number(),
         name: z.string().min(1).max(150),
         description: z.string().optional(),
         isDefault: z.coerce.boolean().default(false),
@@ -70,12 +71,13 @@ export const slaPoliciesRouter = {
       return await db
         .insert(slaPolicies)
         .values({
+          organizationId: input.organizationId ?? null,
           name: input.name,
-          description: input.description,
+          description: input.description ?? null,
           isDefault: input.isDefault,
           businessHoursOnly: input.businessHoursOnly,
-          businessHoursConfig: input.businessHoursConfig,
-          holidays: input.holidays,
+          businessHoursConfig: input.businessHoursConfig ?? null,
+          holidays: input.holidays ?? null,
         })
         .returning();
     }),

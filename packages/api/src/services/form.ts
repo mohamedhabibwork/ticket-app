@@ -219,6 +219,10 @@ export async function convertFormToTicket(
   const sequence = (countResult[0]?.count ?? 0) + 1;
   const referenceNumber = `${prefix}${sequence.toString().padStart(6, "0")}`;
 
+  if (defaultStatusId === undefined || defaultPriorityId === undefined) {
+    throw new Error("Default status or priority lookup not found");
+  }
+
   const [ticket] = await db
     .insert(tickets)
     .values({
@@ -226,8 +230,8 @@ export async function convertFormToTicket(
       referenceNumber,
       subject,
       descriptionHtml,
-      channelId: channelLookup?.id,
-      contactId,
+      channelId: channelLookup?.id ?? null,
+      contactId: contactId ?? null,
       statusId: defaultStatusId,
       priorityId: defaultPriorityId,
       formSubmissionId: submission!.id,
@@ -244,7 +248,7 @@ export async function convertFormToTicket(
     .values({
       ticketId: ticket!.id,
       authorType: contactId ? "contact" : "system",
-      authorContactId: contactId,
+      authorContactId: contactId ?? null,
       messageType: "form_submission",
       bodyHtml: descriptionHtml,
     })

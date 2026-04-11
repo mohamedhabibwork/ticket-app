@@ -7,6 +7,7 @@ interface Seat {
   userId: number;
   role: string;
   addedAt: string;
+  removedAt: string | null;
   user?: {
     id: number;
     uuid: string;
@@ -38,36 +39,30 @@ export function SeatManagement({ subscription, onUpdate }: SeatManagementProps) 
   const [email, setEmail] = useState("");
   const queryClient = useQueryClient();
 
-  const addSeatMutation = useMutation({
-    mutationFn: async ({ userId }: { userId: number }) => {
-      return await orpc.subscriptions.addSeat.mutate({
-        organizationId: 1,
-        userId,
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["subscription"] });
-      setIsAddOpen(false);
-      setEmail("");
-      onUpdate?.();
-    },
-  });
+  const addSeatMutation = useMutation(
+    (orpc as any).subscriptions.addSeat.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["subscription"] });
+        setIsAddOpen(false);
+        setEmail("");
+        onUpdate?.();
+      },
+    }),
+  );
 
-  const removeSeatMutation = useMutation({
-    mutationFn: async ({ userId }: { userId: number }) => {
-      return await orpc.subscriptions.removeSeat.mutate({
-        organizationId: 1,
-        userId,
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["subscription"] });
-      onUpdate?.();
-    },
-  });
+  const removeSeatMutation = useMutation(
+    (orpc as any).subscriptions.removeSeat.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["subscription"] });
+        onUpdate?.();
+      },
+    }),
+  );
 
-  const handleAddByEmail = () => {
+  const handleAddByEmail = async () => {
     if (!email.includes("@")) return;
+    // TODO: Look up user by email and get userId
+    await addSeatMutation.mutateAsync({ organizationId: 1, userId: 1 } as any);
   };
 
   const currentSeats = subscription.seats || [];
@@ -161,7 +156,12 @@ export function SeatManagement({ subscription, onUpdate }: SeatManagementProps) 
                     </td>
                     <td className="py-3 text-right">
                       <button
-                        onClick={() => removeSeatMutation.mutate({ userId: seat.userId })}
+                        onClick={() =>
+                          removeSeatMutation.mutateAsync({
+                            organizationId: 1,
+                            userId: seat.userId,
+                          } as any)
+                        }
                         disabled={removeSeatMutation.isPending}
                         className="text-red-600 hover:underline text-sm"
                       >

@@ -128,7 +128,7 @@ const result = await generateText({
   output: Output.object({
     schema: z.object({
       name: z.string(),
-      age: z.number(),
+      age: z.coerce.number(),
     }),
   }),
   prompt: "Extract the user info: John is 25 years old",

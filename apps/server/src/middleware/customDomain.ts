@@ -8,7 +8,7 @@ export interface CustomDomainContext {
 }
 
 const DEFAULT_DOMAIN = env.DEFAULT_DOMAIN;
-const SUBDOMAIN_SUFFIX = env.SUBDOMAIN_SUFFIX || "support.app";
+const SUBDOMAIN_SUFFIX: string = env.SUBDOMAIN_SUFFIX || "ticket.cloud.habib.cloud";
 
 export async function resolveCustomDomain(context: Context): Promise<CustomDomainContext> {
   const host = context.headers?.host || context.headers?.Host || "";
@@ -17,7 +17,7 @@ export async function resolveCustomDomain(context: Context): Promise<CustomDomai
     return { resolvedDomain: null, isCustomDomain: false, organizationId: null };
   }
 
-  const hostname = host.split(":")[0];
+  const hostname = host.split(":")[0] ?? "";
 
   if (DEFAULT_DOMAIN && hostname === DEFAULT_DOMAIN) {
     return { resolvedDomain: hostname, isCustomDomain: false, organizationId: null };

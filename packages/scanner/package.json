@@ -1,0 +1,20 @@
+{
+  "name": "@ticket-app/scanner",
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./agent": {
+      "default": "./src/agent.ts"
+    }
+  },
+  "scripts": {},
+  "dependencies": {
+    "bun": "catalog:"
+  },
+  "devDependencies": {
+    "@ticket-app/config": "workspace:*",
+    "typescript": "^5"
+  }
+}

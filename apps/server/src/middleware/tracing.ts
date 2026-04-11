@@ -31,8 +31,12 @@ export function parseTraceparent(value: string): TraceContext | null {
     const parts = value.split("-");
     if (parts.length < 3) return null;
 
-    const [version, traceId, spanId, flags] = parts;
+    const version = parts[0];
+    const traceId = parts[1];
+    const spanId = parts[2];
+    const flags = parts[3];
 
+    if (!version || !traceId || !spanId) return null;
     if (version !== TRACING_VERSION) return null;
     if (traceId.length !== 32) return null;
     if (spanId.length !== 16) return null;
@@ -107,37 +111,42 @@ export function tracingMiddleware() {
     );
 
     try {
-      spanLogger.info("Operation started", {
-        operation: operation.name,
-        spanId: traceContext.spanId,
-        parentSpanId: traceContext.parentSpanId,
-      });
+      spanLogger.info(
+        {
+          operation: operation.name,
+          spanId: traceContext.spanId,
+          parentSpanId: traceContext.parentSpanId,
+        },
+        "Operation started",
+      );
 
       const result = await handler();
 
       const duration = Date.now() - startTime;
-      spanLogger.info("Operation completed", {
-        operation: operation.name,
-        duration,
-        spanId: traceContext.spanId,
-      });
+      spanLogger.info(
+        { operation: operation.name, duration, spanId: traceContext.spanId },
+        "Operation completed",
+      );
 
       return result;
     } catch (error) {
       const duration = Date.now() - startTime;
-      spanLogger.error("Operation failed", {
-        operation: operation.name,
-        duration,
-        spanId: traceContext.spanId,
-        error: error instanceof Error ? error.message : String(error),
-      });
+      spanLogger.error(
+        {
+          operation: operation.name,
+          duration,
+          spanId: traceContext.spanId,
+          error: error instanceof Error ? error.message : String(error),
+        },
+        "Operation failed",
+      );
 
       throw error;
     }
   };
 }
 
-export function createSpan(name: string, parentContext: TraceContext): TraceContext {
+export function createSpan(_name: string, parentContext: TraceContext): TraceContext {
   return {
     traceId: parentContext.traceId,
     spanId: generateSpanId(),
@@ -152,22 +161,15 @@ export function withSpan<T>(
   fn: (span: TraceContext) => T,
 ): T {
   const span = createSpan(name, parentContext);
-  const _headers = getTracingHeaders(span);
 
-  logger.debug("Span started", {
-    spanName: name,
-    spanId: span.spanId,
-    parentSpanId: span.parentSpanId,
-    traceId: span.traceId,
-  });
+  logger.debug(
+    { spanName: name, spanId: span.spanId, parentSpanId: span.parentSpanId, traceId: span.traceId },
+    "Span started",
+  );
 
   const result = fn(span);
 
-  logger.debug("Span ended", {
-    spanName: name,
-    spanId: span.spanId,
-    traceId: span.traceId,
-  });
+  logger.debug({ spanName: name, spanId: span.spanId, traceId: span.traceId }, "Span ended");
 
   return result;
 }

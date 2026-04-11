@@ -515,9 +515,14 @@ export async function createChatSession(
     })
     .returning();
 
+  if (!session) {
+    throw new Error("Failed to create chat session");
+  }
+  const sessionData = session!;
+
   return {
-    sessionId: session.id,
-    sessionUuid: session.uuid,
+    sessionId: sessionData.id,
+    sessionUuid: sessionData.uuid,
     contactId: contactId || 0,
     token,
   };
@@ -556,7 +561,7 @@ export async function submitOfflineMessage(
   });
 
   if (contact) {
-    contactId = contact!.id;
+    contactId = contact.id;
   } else {
     const [newContact] = await db
       .insert(contacts)
@@ -567,6 +572,10 @@ export async function submitOfflineMessage(
         lastName: name?.includes(" ") ? name.split(" ").slice(1).join(" ") : null,
       })
       .returning();
+
+    if (!newContact) {
+      throw new Error("Failed to create contact");
+    }
     contactId = newContact.id;
   }
 
@@ -594,6 +603,10 @@ export async function submitOfflineMessage(
     })
   )?.id;
 
+  if (defaultStatusId === undefined || defaultPriorityId === undefined) {
+    throw new Error("Default status or priority lookup not found");
+  }
+
   const year = new Date().getFullYear();
   const prefix = `TKT-${year}-`;
   const countResult = await db
@@ -612,8 +625,8 @@ export async function submitOfflineMessage(
       referenceNumber,
       subject: `Offline chat message from ${email}`,
       descriptionHtml: `<p>${message}</p>`,
-      channelId: channelChatId,
-      contactId,
+      channelId: channelChatId ?? null,
+      contactId: contactId ?? null,
       statusId: defaultStatusId,
       priorityId: defaultPriorityId,
     })

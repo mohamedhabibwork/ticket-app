@@ -48,9 +48,9 @@ Create `store.config.json` at your project root:
         "keywords": ["keyword1", "keyword2", "keyword3"],
         "releaseNotes": "What's new in this version...",
         "promoText": "Limited time offer!",
-        "privacyPolicyUrl": "https://example.com/privacy",
-        "supportUrl": "https://example.com/support",
-        "marketingUrl": "https://example.com"
+        "privacyPolicyUrl": "https://ticket.cloud.habib.cloud/privacy",
+        "supportUrl": "https://ticket.cloud.habib.cloud/support",
+        "marketingUrl": "https://ticket.cloud.habib.cloud"
       }
     },
     "advisory": {
@@ -77,9 +77,9 @@ Create `store.config.json` at your project root:
     "review": {
       "firstName": "John",
       "lastName": "Doe",
-      "email": "review@example.com",
+      "email": "review@habib.cloud",
       "phone": "+1 555-123-4567",
-      "notes": "Demo account: test@example.com / password123"
+      "notes": "Demo account: test@habib.cloud / password123"
     }
   }
 }
@@ -269,7 +269,9 @@ module.exports = async () => {
   const baseConfig = require("./store.config.json");
 
   // Fetch translations from CMS/localization service
-  const translations = await fetch("https://api.example.com/app-store-copy").then((r) => r.json());
+  const translations = await fetch("https://api.ticket.cloud.habib.cloud/app-store-copy").then(
+    (r) => r.json(),
+  );
 
   return {
     ...baseConfig,
@@ -381,7 +383,7 @@ Provide contact info and test credentials for the App Review team.
     "lastName": "Smith",
     "email": "app-review@company.com",
     "phone": "+1 (555) 123-4567",
-    "demoUsername": "demo@example.com",
+    "demoUsername": "demo@habib.cloud",
     "demoPassword": "ReviewDemo2025!",
     "notes": "To test premium features:\n1. Log in with demo credentials\n2. Navigate to Settings > Subscription\n3. Tap 'Restore Purchase' - sandbox purchase will be restored\n\nFor location features, allow location access when prompted."
   }

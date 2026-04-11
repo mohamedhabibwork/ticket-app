@@ -48,52 +48,35 @@ export default function PaymentMethodsPage() {
   const [name, setName] = useState("");
   const queryClient = useQueryClient();
 
-  const { data: paymentMethods, isLoading } = useQuery({
-    queryKey: ["paymentMethods"],
-    queryFn: () => orpc.paymentMethods.list.query({ organizationId: 1 }),
-  });
+  const { data: paymentMethods, isLoading } = useQuery(
+    orpc.paymentMethods.list.queryOptions({ organizationId: 1 }),
+  );
 
-  const setDefaultMutation = useMutation({
-    mutationFn: async ({ methodId }: { methodId: number }) => {
-      return await orpc.paymentMethods.setDefault.mutate({
-        organizationId: 1,
-        paymentMethodId: methodId,
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["paymentMethods"] });
-    },
-  });
+  const setDefaultMutation = useMutation(
+    orpc.paymentMethods.setDefault.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["paymentMethods"] });
+      },
+    }),
+  );
 
-  const removeMutation = useMutation({
-    mutationFn: async ({ methodId }: { methodId: number }) => {
-      return await orpc.paymentMethods.delete.mutate({
-        organizationId: 1,
-        paymentMethodId: methodId,
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["paymentMethods"] });
-    },
-  });
+  const removeMutation = useMutation(
+    orpc.paymentMethods.delete.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["paymentMethods"] });
+      },
+    }),
+  );
 
-  const addCardMutation = useMutation({
-    mutationFn: async () => {
-      return await orpc.paymentMethods.create.mutate({
-        organizationId: 1,
-        cardNumber,
-        expMonth: parseInt(expiry.split("/")[0]),
-        expYear: parseInt(expiry.split("/")[1]),
-        cvc,
-        name,
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["paymentMethods"] });
-      setIsAddOpen(false);
-      resetForm();
-    },
-  });
+  const addCardMutation = useMutation(
+    orpc.paymentMethods.create.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["paymentMethods"] });
+        setIsAddOpen(false);
+        resetForm();
+      },
+    }),
+  );
 
   const resetForm = () => {
     setCardNumber("");
@@ -191,7 +174,12 @@ export default function PaymentMethodsPage() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => setDefaultMutation.mutate({ methodId: method.id })}
+                            onClick={() =>
+                              setDefaultMutation.mutateAsync({
+                                organizationId: 1,
+                                paymentMethodId: method.id,
+                              })
+                            }
                             disabled={setDefaultMutation.isPending}
                           >
                             Set Default
@@ -200,7 +188,12 @@ export default function PaymentMethodsPage() {
                         <Button
                           variant="ghost"
                           size="icon-sm"
-                          onClick={() => removeMutation.mutate({ methodId: method.id })}
+                          onClick={() =>
+                            removeMutation.mutateAsync({
+                              organizationId: 1,
+                              paymentMethodId: method.id,
+                            })
+                          }
                           disabled={removeMutation.isPending || method.isDefault}
                           className="text-destructive"
                         >
@@ -326,7 +319,16 @@ export default function PaymentMethodsPage() {
                 Cancel
               </Button>
               <Button
-                onClick={() => addCardMutation.mutate()}
+                onClick={() =>
+                  addCardMutation.mutateAsync({
+                    organizationId: 1,
+                    cardNumber,
+                    expMonth: parseInt(expiry.split("/")[0]),
+                    expYear: parseInt(expiry.split("/")[1]),
+                    cvc,
+                    name,
+                  })
+                }
                 disabled={!cardNumber || !expiry || !cvc || !name || addCardMutation.isPending}
               >
                 {addCardMutation.isPending ? "Adding..." : "Add Card"}

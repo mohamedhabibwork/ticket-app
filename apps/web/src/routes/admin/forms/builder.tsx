@@ -91,9 +91,11 @@ export const Route = createFileRoute("/admin/forms/builder")({
 function FormBuilderRoute() {
   const navigate = useNavigate();
   const location = useLocation();
-  const formDataFromState = location.state?.formData as
-    | { name: string; description: string; formType: string }
-    | undefined;
+  const formDataFromState = (
+    location.state as unknown as {
+      formData?: { name: string; description: string; formType: string };
+    }
+  )?.formData;
 
   const [formName] = useState(formDataFromState?.name || "Untitled Form");
   const [fields, setFields] = useState<FormField[]>([]);
@@ -292,7 +294,7 @@ function FormBuilderRoute() {
 
   const handleSaveForm = () => {
     console.log("Saving form:", { name: formName, fields });
-    navigate({ to: "/admin/forms/" });
+    navigate({ to: "/admin/forms" });
   };
 
   const renderFieldPreview = (field: FormField) => {
@@ -364,7 +366,7 @@ function FormBuilderRoute() {
     <div className="h-full flex flex-col">
       <div className="border-b bg-background px-4 py-3 flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" onClick={() => navigate({ to: "/admin/forms/" })}>
+          <Button variant="ghost" onClick={() => navigate({ to: "/admin/forms" })}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back
           </Button>
@@ -573,7 +575,7 @@ function FormBuilderRoute() {
                                   <Select
                                     value={cond.field}
                                     onValueChange={(v) =>
-                                      updateShowWhenCondition(cond.id, { field: v })
+                                      updateShowWhenCondition(cond.id, { field: v as string })
                                     }
                                   >
                                     <SelectTrigger className="flex-1 h-7 text-xs">
@@ -676,7 +678,7 @@ function FormBuilderRoute() {
                                   <Select
                                     value={cond.field}
                                     onValueChange={(v) =>
-                                      updateHideWhenCondition(cond.id, { field: v })
+                                      updateHideWhenCondition(cond.id, { field: v as string })
                                     }
                                   >
                                     <SelectTrigger className="flex-1 h-7 text-xs">

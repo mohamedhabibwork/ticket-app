@@ -55,85 +55,59 @@ export default function SeatManagementPage() {
   const [role, setRole] = useState("agent");
   const queryClient = useQueryClient();
 
-  const { data: subscription, isLoading } = useQuery({
-    queryKey: ["subscription"],
-    queryFn: () => orpc.subscriptions.get.query({ organizationId: 1 }),
-  });
+  const { data: subscription, isLoading } = useQuery(
+    orpc.subscriptions.get.queryOptions({ organizationId: 1 }),
+  );
 
-  const { data: seats } = useQuery({
-    queryKey: ["seats"],
-    queryFn: () => orpc.subscriptions.getSeats.query({ organizationId: 1 }),
-  });
+  const { data: seats } = useQuery(orpc.subscriptions.getSeats.queryOptions({ organizationId: 1 }));
 
-  const { data: pendingInvitations } = useQuery({
-    queryKey: ["pendingInvitations"],
-    queryFn: () => orpc.subscriptions.getPendingInvitations.query({ organizationId: 1 }),
-  });
+  const { data: pendingInvitations } = useQuery(
+    orpc.subscriptions.getPendingInvitations.queryOptions({ organizationId: 1 }),
+  );
 
-  const inviteMutation = useMutation({
-    mutationFn: async ({ email, role }: { email: string; role: string }) => {
-      return await orpc.users.invite.mutate({
-        organizationId: 1,
-        email,
-        role,
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["pendingInvitations"] });
-      setIsInviteOpen(false);
-      setEmail("");
-      setRole("agent");
-    },
-  });
+  const inviteMutation = useMutation(
+    orpc.users.invite.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["pendingInvitations"] });
+        setIsInviteOpen(false);
+        setEmail("");
+        setRole("agent");
+      },
+    }),
+  );
 
-  const removeSeatMutation = useMutation({
-    mutationFn: async ({ userId }: { userId: number }) => {
-      return await orpc.subscriptions.removeSeat.mutate({
-        organizationId: 1,
-        userId,
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["subscription"] });
-      queryClient.invalidateQueries({ queryKey: ["seats"] });
-    },
-  });
+  const removeSeatMutation = useMutation(
+    orpc.subscriptions.removeSeat.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["subscription"] });
+        queryClient.invalidateQueries({ queryKey: ["seats"] });
+      },
+    }),
+  );
 
-  const resendInvitationMutation = useMutation({
-    mutationFn: async ({ invitationId }: { invitationId: number }) => {
-      return await orpc.users.resendInvitation.mutate({
-        organizationId: 1,
-        invitationId,
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["pendingInvitations"] });
-    },
-  });
+  const resendInvitationMutation = useMutation(
+    orpc.users.resendInvitation.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["pendingInvitations"] });
+      },
+    }),
+  );
 
-  const cancelInvitationMutation = useMutation({
-    mutationFn: async ({ invitationId }: { invitationId: number }) => {
-      return await orpc.users.cancelInvitation.mutate({
-        organizationId: 1,
-        invitationId,
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["pendingInvitations"] });
-    },
-  });
+  const cancelInvitationMutation = useMutation(
+    orpc.users.cancelInvitation.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["pendingInvitations"] });
+      },
+    }),
+  );
 
-  const addSeatsMutation = useMutation({
-    mutationFn: async ({ count }: { count: number }) => {
-      return await orpc.subscriptions.addSeats.mutate({
-        organizationId: 1,
-        seatCount: count,
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["subscription"] });
-    },
-  });
+  const addSeatsMutation = useMutation(
+    orpc.subscriptions.addSeats.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["subscription"] });
+      },
+    }),
+  );
 
   const currentSeats: SeatUser[] = seats || [];
   const activeSeats = currentSeats.filter((s) => !s.removedAt);
@@ -300,7 +274,9 @@ export default function SeatManagementPage() {
                     <Button
                       variant="ghost"
                       size="icon-sm"
-                      onClick={() => removeSeatMutation.mutate({ userId: seat.userId })}
+                      onClick={() =>
+                        removeSeatMutation.mutateAsync({ organizationId: 1, userId: seat.userId })
+                      }
                       disabled={removeSeatMutation.isPending}
                       className="text-destructive"
                     >
@@ -347,7 +323,10 @@ export default function SeatManagementPage() {
                       variant="outline"
                       size="sm"
                       onClick={() =>
-                        resendInvitationMutation.mutate({ invitationId: invitation.id })
+                        resendInvitationMutation.mutateAsync({
+                          organizationId: 1,
+                          invitationId: invitation.id,
+                        })
                       }
                       disabled={resendInvitationMutation.isPending}
                     >
@@ -357,7 +336,10 @@ export default function SeatManagementPage() {
                       variant="ghost"
                       size="icon-sm"
                       onClick={() =>
-                        cancelInvitationMutation.mutate({ invitationId: invitation.id })
+                        cancelInvitationMutation.mutateAsync({
+                          organizationId: 1,
+                          invitationId: invitation.id,
+                        })
                       }
                       disabled={cancelInvitationMutation.isPending}
                       className="text-destructive"
@@ -411,7 +393,7 @@ export default function SeatManagementPage() {
                 variant="outline"
                 size="sm"
                 className="bg-white border-blue-300"
-                onClick={() => addSeatsMutation.mutate({ count: 5 })}
+                onClick={() => addSeatsMutation.mutateAsync({ organizationId: 1, seatCount: 5 })}
                 disabled={addSeatsMutation.isPending}
               >
                 Purchase 5 More Seats - $25/mo
@@ -462,7 +444,7 @@ export default function SeatManagementPage() {
                 Cancel
               </Button>
               <Button
-                onClick={() => inviteMutation.mutate({ email, role })}
+                onClick={() => inviteMutation.mutateAsync({ organizationId: 1, email, role })}
                 disabled={!email || inviteMutation.isPending}
               >
                 {inviteMutation.isPending ? "Sending..." : "Send Invitation"}

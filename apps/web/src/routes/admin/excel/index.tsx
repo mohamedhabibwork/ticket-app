@@ -95,47 +95,49 @@ function ExcelManagementRoute() {
   const [importMode, setImportMode] = useState<"create" | "upsert">("create");
   const [matchField, setMatchField] = useState("");
 
-  const exportJobsQuery = useQuery({
-    queryKey: ["excel-exports"],
-    queryFn: () =>
-      orpc.excel.listExportJobs.queryOptions({
-        organizationId: ORGANIZATION_ID,
-        limit: 20,
-        offset: 0,
-      }),
-  });
+  const exportJobsQuery = useQuery(
+    (orpc as any).excel.listExportJobs.queryOptions({
+      organizationId: ORGANIZATION_ID,
+      limit: 20,
+      offset: 0,
+    }) as any,
+  );
 
-  const importJobsQuery = useQuery({
-    queryKey: ["excel-imports"],
-    queryFn: () =>
-      orpc.excel.listImportJobs.queryOptions({
-        organizationId: ORGANIZATION_ID,
-        limit: 20,
-        offset: 0,
-      }),
-  });
+  const importJobsQuery = useQuery(
+    (orpc as any).excel.listImportJobs.queryOptions({
+      organizationId: ORGANIZATION_ID,
+      limit: 20,
+      offset: 0,
+    }) as any,
+  );
 
   const createExportMutation = useMutation(
-    orpc.excel.createExportJob.mutationOptions({
+    (orpc as any).excel.createExportJob.mutationOptions({
       onSuccess: () => {
         exportJobsQuery.refetch();
       },
-    }),
+    }) as any,
   );
 
   const createImportMutation = useMutation(
-    orpc.excel.createImportJob.mutationOptions({
+    (orpc as any).excel.createImportJob.mutationOptions({
       onSuccess: () => {
         importJobsQuery.refetch();
         setImportFile(null);
       },
-    }),
+    }) as any,
   );
 
-  const getDownloadUrlMutation = useMutation(orpc.excel.getExportDownloadUrl.mutationOptions());
+  const getDownloadUrlMutation = useMutation(
+    (orpc as any).excel.getExportDownloadUrl.mutationOptions() as any,
+  );
+
+  const generateUploadUrlMutation = useMutation(
+    (orpc as any).files.generateUploadUrl.mutationOptions() as any,
+  );
 
   const handleExport = () => {
-    createExportMutation.mutate({
+    (createExportMutation as any).mutate({
       organizationId: ORGANIZATION_ID,
       userId: USER_ID,
       entityType: selectedEntityType,
@@ -143,10 +145,10 @@ function ExcelManagementRoute() {
   };
 
   const handleDownload = (jobId: string) => {
-    getDownloadUrlMutation.mutate(
+    (getDownloadUrlMutation as any).mutate(
       { jobId, organizationId: ORGANIZATION_ID },
       {
-        onSuccess: (data) => {
+        onSuccess: (data: any) => {
           window.open(data.downloadUrl, "_blank");
         },
       },
@@ -160,13 +162,13 @@ function ExcelManagementRoute() {
     setImportFile(file);
 
     try {
-      const { uploadUrl, publicUrl } = await orpc.files.generateUploadUrl.mutateAsync({
+      const { uploadUrl, publicUrl } = await (generateUploadUrlMutation.mutateAsync({
         organizationId: ORGANIZATION_ID,
         filename: file.name,
         contentType: file.type || "application/vnd.ms-excel",
         sizeBytes: file.size,
         attachmentType: "ticket",
-      });
+      } as any) as any);
 
       await fetch(uploadUrl, {
         method: "PUT",
@@ -176,7 +178,7 @@ function ExcelManagementRoute() {
         },
       });
 
-      createImportMutation.mutate({
+      (createImportMutation as any).mutate({
         organizationId: ORGANIZATION_ID,
         userId: USER_ID,
         entityType: selectedEntityType,
@@ -190,10 +192,12 @@ function ExcelManagementRoute() {
   };
 
   const pendingExportJobs =
-    exportJobsQuery.data?.filter((j) => j.status === "pending" || j.status === "processing") || [];
+    (exportJobsQuery.data as any)?.filter(
+      (j: any) => j.status === "pending" || j.status === "processing",
+    ) || [];
   const pendingImportJobs =
-    importJobsQuery.data?.filter(
-      (j) => j.status === "pending" || j.status === "validating" || j.status === "processing",
+    (importJobsQuery.data as any)?.filter(
+      (j: any) => j.status === "pending" || j.status === "validating" || j.status === "processing",
     ) || [];
   const hasPendingJobs = pendingExportJobs.length > 0 || pendingImportJobs.length > 0;
 
@@ -211,8 +215,8 @@ function ExcelManagementRoute() {
     return () => clearInterval(interval);
   }, [hasPendingJobs, activeTab]);
 
-  const exportJobs = exportJobsQuery.data || [];
-  const importJobs = importJobsQuery.data || [];
+  const exportJobs = (exportJobsQuery.data as any) || [];
+  const importJobs = (importJobsQuery.data as any) || [];
 
   return (
     <div className="container mx-auto max-w-6xl px-4 py-6">
@@ -284,7 +288,7 @@ function ExcelManagementRoute() {
                   </div>
                 ) : exportJobs.length > 0 ? (
                   <div className="space-y-3">
-                    {exportJobs.map((job) => (
+                    {exportJobs.map((job: any) => (
                       <div
                         key={job.jobId}
                         className="flex items-center justify-between rounded-none border p-3"
@@ -415,7 +419,7 @@ function ExcelManagementRoute() {
                   </div>
                 ) : importJobs.length > 0 ? (
                   <div className="space-y-3">
-                    {importJobs.map((job) => (
+                    {importJobs.map((job: any) => (
                       <div
                         key={job.jobId}
                         className="flex items-center justify-between rounded-none border p-3"

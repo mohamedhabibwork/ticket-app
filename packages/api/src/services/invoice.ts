@@ -106,7 +106,7 @@ export async function createInvoice(
     );
   }
 
-  return invoice;
+  return invoice!;
 }
 
 export async function getInvoiceWithDetails(invoiceId: number) {

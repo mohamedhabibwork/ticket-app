@@ -107,10 +107,9 @@ app.get("/", (c) => {
 
 const PORT = parseInt(process.env.PORT || "3000");
 
-const { server } = serve({
+const server = serve({
   fetch: app.fetch,
   port: PORT,
-  override: true,
 });
 
 logger.info({ port: PORT }, "Server starting");

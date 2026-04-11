@@ -1,12 +1,10 @@
 import { google } from "@ai-sdk/google";
-import { generateText, wrapLanguageModel } from "ai";
+import { generateText } from "ai";
 import * as z from "zod";
 
 import { publicProcedure } from "../index";
 
-const model = wrapLanguageModel({
-  model: google("gemini-2.5-flash"),
-});
+const model = google("gemini-2.5-flash");
 
 export const aiRouter = {
   suggestReplies: publicProcedure

@@ -130,7 +130,7 @@ function PortalLoginRoute() {
               <Input
                 id="email"
                 type="email"
-                placeholder="you@example.com"
+                placeholder="you@habib.cloud"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />

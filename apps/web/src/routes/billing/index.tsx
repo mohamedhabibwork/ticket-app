@@ -7,20 +7,17 @@ import { Badge } from "@ticket-app/ui/components/badge";
 import { CreditCard, Calendar, Users, ArrowUpRight } from "lucide-react";
 
 export default function BillingOverviewPage() {
-  const { data: subscription, isLoading: subLoading } = useQuery({
-    queryKey: ["subscription"],
-    queryFn: () => orpc.subscriptions.get.query({ organizationId: 1 }),
-  });
+  const { data: subscription, isLoading: subLoading } = useQuery(
+    (orpc as any).subscriptions.get.queryOptions({ organizationId: 1 }),
+  ) as any;
 
-  const { data: paymentMethods } = useQuery({
-    queryKey: ["paymentMethods"],
-    queryFn: () => orpc.paymentMethods.list.query({ organizationId: 1 }),
-  });
+  const { data: paymentMethods } = useQuery(
+    (orpc as any).paymentMethods.list.queryOptions({ organizationId: 1 }),
+  ) as any;
 
-  const { data: _plans } = useQuery({
-    queryKey: ["plans"],
-    queryFn: () => orpc.subscriptions.getAvailablePlans.query(),
-  });
+  const { data: _plans } = useQuery(
+    (orpc as any).subscriptions.getAvailablePlans.queryOptions(),
+  ) as any;
 
   if (subLoading) {
     return (

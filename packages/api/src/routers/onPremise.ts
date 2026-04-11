@@ -24,7 +24,7 @@ export const onPremiseRouter = {
     .handler(async ({ input, context }) => {
       const canRead = await hasPermission(
         {
-          userId: Number(context.auth.userId),
+          userId: Number(context.auth!.userId),
           organizationId: input.organizationId,
         },
         buildPermissionKey(PERMISSION_GROUPS.ON_PREMISE, PERMISSION_ACTIONS.READ),
@@ -56,7 +56,7 @@ export const onPremiseRouter = {
     .handler(async ({ input, context }) => {
       const canWrite = await hasPermission(
         {
-          userId: Number(context.auth.userId),
+          userId: Number(context.auth!.userId),
           organizationId: input.organizationId,
         },
         buildPermissionKey(PERMISSION_GROUPS.ON_PREMISE, PERMISSION_ACTIONS.WRITE),
@@ -116,6 +116,10 @@ export const onPremiseRouter = {
         })
         .returning();
 
+      if (!license) {
+        throw new Error("Failed to insert license record");
+      }
+
       await addLicenseVerificationJob({ type: "verify-license", licenseId: license.id });
 
       return {
@@ -131,7 +135,7 @@ export const onPremiseRouter = {
     .handler(async ({ input, context }) => {
       const canRead = await hasPermission(
         {
-          userId: Number(context.auth.userId),
+          userId: Number(context.auth!.userId),
           organizationId: input.organizationId,
         },
         buildPermissionKey(PERMISSION_GROUPS.ON_PREMISE, PERMISSION_ACTIONS.READ),
@@ -174,7 +178,7 @@ export const onPremiseRouter = {
     .handler(async ({ input, context }) => {
       const canRead = await hasPermission(
         {
-          userId: Number(context.auth.userId),
+          userId: Number(context.auth!.userId),
           organizationId: input.organizationId,
         },
         buildPermissionKey(PERMISSION_GROUPS.ON_PREMISE, PERMISSION_ACTIONS.READ),
@@ -224,7 +228,7 @@ export const onPremiseRouter = {
     .handler(async ({ input, context }) => {
       const canWrite = await hasPermission(
         {
-          userId: Number(context.auth.userId),
+          userId: Number(context.auth!.userId),
           organizationId: input.organizationId,
         },
         buildPermissionKey(PERMISSION_GROUPS.ON_PREMISE, PERMISSION_ACTIONS.WRITE),
@@ -249,7 +253,7 @@ export const onPremiseRouter = {
     .handler(async ({ input, context }) => {
       const canWrite = await hasPermission(
         {
-          userId: Number(context.auth.userId),
+          userId: Number(context.auth!.userId),
           organizationId: input.organizationId,
         },
         buildPermissionKey(PERMISSION_GROUPS.ON_PREMISE, PERMISSION_ACTIONS.WRITE),

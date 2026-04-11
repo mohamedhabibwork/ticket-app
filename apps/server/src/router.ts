@@ -1,12 +1,11 @@
 import type { Context } from "@ticket-app/api/context";
-import { appRouter } from "@ticket-app/api/routers/index";
 import { logger, withRequestContext } from "./lib/logger";
 import { extractTraceContext } from "./middleware/tracing";
 import { rateLimitMiddleware, type RateLimitTier } from "./middleware/rateLimit";
 import { authMiddleware } from "./middleware/auth";
 import { organizationMiddleware } from "./middleware/organization";
 import { ipWhitelistMiddleware } from "./middleware/ipWhitelist";
-import { auditMiddleware, createAuditLog, type AuditAction } from "./middleware/audit";
+import { createAuditLog, type AuditAction } from "./middleware/audit";
 import { errors, isStructuredError } from "./utils/errors";
 import { ORPCError } from "@orpc/server";
 
@@ -80,19 +79,25 @@ function errorInterceptor(): InterceptorFn {
       const correlationId = traceContext?.traceId;
 
       if (!isStructuredError(error) && error instanceof ORPCError) {
-        logger.error("ORPC Error", {
-          operation: operation.name,
-          code: error.code,
-          message: error.message,
-          correlationId,
-        });
+        logger.error(
+          {
+            operation: operation.name,
+            code: error.code,
+            message: error.message,
+            correlationId,
+          },
+          "ORPC Error",
+        );
       } else if (!isStructuredError(error)) {
-        logger.error("Unhandled error", {
-          operation: operation.name,
-          error: error instanceof Error ? error.message : String(error),
-          stack: error instanceof Error ? error.stack : undefined,
-          correlationId,
-        });
+        logger.error(
+          {
+            operation: operation.name,
+            error: error instanceof Error ? error.message : String(error),
+            stack: error instanceof Error ? error.stack : undefined,
+            correlationId,
+          },
+          "Unhandled error",
+        );
       }
 
       throw error;
@@ -116,30 +121,39 @@ function tracingInterceptor(): InterceptorFn {
     );
 
     try {
-      spanLogger.info("Operation started", {
-        operation: operation.name,
-        spanId: traceContext.spanId,
-        parentSpanId: traceContext.parentSpanId,
-      });
+      spanLogger.info(
+        {
+          operation: operation.name,
+          spanId: traceContext.spanId,
+          parentSpanId: traceContext.parentSpanId,
+        },
+        "Operation started",
+      );
 
       const result = await handler();
 
       const duration = Date.now() - startTime;
-      spanLogger.info("Operation completed", {
-        operation: operation.name,
-        duration,
-        spanId: traceContext.spanId,
-      });
+      spanLogger.info(
+        {
+          operation: operation.name,
+          duration,
+          spanId: traceContext.spanId,
+        },
+        "Operation completed",
+      );
 
       return result;
     } catch (error) {
       const duration = Date.now() - startTime;
-      spanLogger.error("Operation failed", {
-        operation: operation.name,
-        duration,
-        spanId: traceContext.spanId,
-        error: error instanceof Error ? error.message : String(error),
-      });
+      spanLogger.error(
+        {
+          operation: operation.name,
+          duration,
+          spanId: traceContext.spanId,
+          error: error instanceof Error ? error.message : String(error),
+        },
+        "Operation failed",
+      );
 
       throw error;
     }
@@ -187,8 +201,6 @@ function isMutatingOperation(operationName: string | undefined): boolean {
 }
 
 function auditInterceptor(): InterceptorFn {
-  const _audit = auditMiddleware();
-
   return async (
     context: Context,
     operation: { name?: string },
@@ -210,7 +222,7 @@ function auditInterceptor(): InterceptorFn {
             : undefined,
           ipAddress: context.headers?.["x-forwarded-for"] as string | undefined,
           userAgent: context.headers?.["user-agent"] as string | undefined,
-          sessionId: context.session?.sessionId,
+          sessionId: context.headers?.["authorization"]?.slice(7),
         };
 
         const action = getAuditAction(operationName);
@@ -221,7 +233,7 @@ function auditInterceptor(): InterceptorFn {
         });
       }
 
-      logger.info("Operation completed", {
+      logger.info({
         operation: operationName,
         duration,
         status: "success",
@@ -240,7 +252,7 @@ function auditInterceptor(): InterceptorFn {
             : undefined,
           ipAddress: context.headers?.["x-forwarded-for"] as string | undefined,
           userAgent: context.headers?.["user-agent"] as string | undefined,
-          sessionId: context.session?.sessionId,
+          sessionId: context.headers?.["authorization"]?.slice(7),
         };
 
         const action = getAuditAction(operationName);
@@ -256,13 +268,16 @@ function auditInterceptor(): InterceptorFn {
         });
       }
 
-      logger.error("Operation failed", {
-        operation: operationName,
-        duration,
-        status: "error",
-        mutating: isMutating,
-        error: error instanceof Error ? error.message : String(error),
-      });
+      logger.error(
+        {
+          operation: operationName,
+          duration,
+          status: "error",
+          mutating: isMutating,
+          error: error instanceof Error ? error.message : String(error),
+        },
+        "Operation failed",
+      );
 
       throw error;
     }
@@ -320,8 +335,8 @@ export async function resolveOrganizationContext(context: Context): Promise<void
   return organizationMiddleware(context);
 }
 
-export function requireAuth(context: Context): AuthContext {
-  const authContext = authMiddleware(context);
+export async function requireAuth(context: Context): Promise<AuthContext> {
+  const authContext = await authMiddleware(context);
   if (!authContext) {
     throw errors.unauthorized("Authentication required");
   }

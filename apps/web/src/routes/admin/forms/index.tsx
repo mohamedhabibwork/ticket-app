@@ -42,18 +42,18 @@ function FormListRoute() {
     isLoading,
     refetch,
   } = useQuery(
-    orpc.forms.list.queryOptions({
+    (orpc as any).forms.list.queryOptions({
       organizationId: 1,
     }),
   );
 
   const deleteMutation = useMutation(
-    orpc.forms.delete?.mutationOptions({
+    (orpc as any).forms.delete?.mutationOptions({
       onSuccess: () => refetch(),
     }),
   );
 
-  const filteredForms = forms?.filter((form) => {
+  const filteredForms = (forms as any[])?.filter((form: any) => {
     const matchesSearch = form.name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus =
       statusFilter === "all" ||
@@ -125,7 +125,7 @@ function FormListRoute() {
         </div>
       ) : filteredForms && filteredForms.length > 0 ? (
         <div className="space-y-4">
-          {filteredForms.map((form) => (
+          {(filteredForms as any[]).map((form: any) => (
             <Card key={form.id}>
               <CardContent className="p-4">
                 <div className="flex items-start gap-4">
@@ -158,7 +158,7 @@ function FormListRoute() {
                         <Edit className="h-4 w-4" />
                       </Button>
                     </Link>
-                    <Link to={`/forms/${form.id}`} target="_blank">
+                    <Link to={`/forms/${form.id}/` as any} target="_blank">
                       <Button variant="ghost" size="icon">
                         <Eye className="h-4 w-4" />
                       </Button>
@@ -166,7 +166,7 @@ function FormListRoute() {
                     <Button variant="ghost" size="icon" onClick={() => copyEmbedCode(form.id)}>
                       <Copy className="h-4 w-4" />
                     </Button>
-                    <Link to={`/admin/forms/${form.id}/submissions`}>
+                    <Link to={`/admin/forms/${form.id}/submissions/` as any}>
                       <Button variant="ghost" size="icon">
                         <Inbox className="h-4 w-4" />
                       </Button>
@@ -176,7 +176,7 @@ function FormListRoute() {
                       size="icon"
                       onClick={() => {
                         if (confirm("Are you sure you want to delete this form?")) {
-                          deleteMutation?.mutate({ id: form.id });
+                          (deleteMutation as any)?.mutate({ id: form.id });
                         }
                       }}
                       disabled={deleteMutation?.isPending}

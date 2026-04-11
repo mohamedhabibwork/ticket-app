@@ -24,8 +24,8 @@ React DOM provides APIs to hint the browser about resources it will need. These 
 import { preconnect, prefetchDNS } from "react-dom";
 
 export default function App() {
-  prefetchDNS("https://analytics.example.com");
-  preconnect("https://api.example.com");
+  prefetchDNS("https://analytics.ticket.cloud.habib.cloud");
+  preconnect("https://api.ticket.cloud.habib.cloud");
 
   return <main>{/* content */}</main>;
 }

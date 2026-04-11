@@ -6,11 +6,45 @@ export interface TokenResponse {
   expiresAt: number;
 }
 
+interface FacebookTokenResponse {
+  access_token: string;
+  token_type: string;
+  expires_in?: number;
+  refresh_token?: string;
+}
+
+interface FacebookDebugResponse {
+  data?: {
+    is_valid?: boolean;
+    token_type?: string;
+    expires_at?: number;
+  };
+}
+
+interface TwitterTokenResponse {
+  access_token: string;
+  token_type: string;
+  expires_in?: number;
+  scope?: string;
+  refresh_token?: string;
+}
+
+interface InstagramTokenResponse {
+  access_token: string;
+  token_type: string;
+  expires_in?: number;
+  refresh_token?: string;
+}
+
+interface InstagramMeResponse {
+  id?: string;
+}
+
 const FACEBOOK_TOKEN_URL = "https://graph.facebook.com/v18.0/oauth/access_token";
 const FACEBOOK_DEBUG_URL = "https://graph.facebook.com/v18.0/debug_token";
 
-const TWITTER_TOKEN_URL = "https://api.twitter.com/2/oauth2/token";
-const TWITTER_TOKEN_INFO_URL = "https://api.twitter.com/2/users/me";
+const X_TOKEN_URL = "https://api.twitter.com/2/oauth2/token";
+const X_TOKEN_INFO_URL = "https://api.twitter.com/2/users/me";
 
 const INSTAGRAM_TOKEN_URL = "https://graph.instagram.com/v18.0/oauth/access_token";
 const INSTAGRAM_TOKEN_INFO_URL = "https://graph.instagram.com/v18.0/me";
@@ -23,7 +57,7 @@ export async function refreshSocialToken(
     case "facebook":
       return refreshFacebookToken(refreshToken);
     case "twitter":
-      return refreshTwitterToken(refreshToken);
+      return refreshXToken(refreshToken);
     case "instagram":
       return refreshInstagramToken(refreshToken);
     case "whatsapp":
@@ -57,7 +91,7 @@ async function refreshFacebookToken(refreshToken: string): Promise<TokenResponse
     throw new Error("Failed to refresh Facebook token");
   }
 
-  const data = await response.json();
+  const data = (await response.json()) as FacebookTokenResponse;
   return {
     accessToken: data.access_token,
     refreshToken: data.refresh_token || refreshToken,
@@ -65,12 +99,10 @@ async function refreshFacebookToken(refreshToken: string): Promise<TokenResponse
   };
 }
 
-async function refreshTwitterToken(refreshToken: string): Promise<TokenResponse> {
-  const credentials = Buffer.from(`${env.TWITTER_CLIENT_ID}:${env.TWITTER_CLIENT_SECRET}`).toString(
-    "base64",
-  );
+async function refreshXToken(refreshToken: string): Promise<TokenResponse> {
+  const credentials = Buffer.from(`${env.X_CLIENT_ID}:${env.X_CLIENT_SECRET}`).toString("base64");
 
-  const response = await fetch(TWITTER_TOKEN_URL, {
+  const response = await fetch(X_TOKEN_URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
@@ -86,7 +118,7 @@ async function refreshTwitterToken(refreshToken: string): Promise<TokenResponse>
     throw new Error("Failed to refresh Twitter token");
   }
 
-  const data = await response.json();
+  const data = (await response.json()) as TwitterTokenResponse;
   return {
     accessToken: data.access_token,
     refreshToken: data.refresh_token || refreshToken,
@@ -96,14 +128,14 @@ async function refreshTwitterToken(refreshToken: string): Promise<TokenResponse>
 
 async function refreshInstagramToken(refreshToken: string): Promise<TokenResponse> {
   const response = await fetch(
-    `${INSTAGRAM_TOKEN_URL}?grant_type=ig_exchange_token&client_secret=${env.INSTAGRAM_CLIENT_SECRET}&access_token=${refreshToken}`,
+    `${INSTAGRAM_TOKEN_URL}?grant_type=ig_exchange_token&client_id=${env.FACEBOOK_CLIENT_ID}&client_secret=${env.FACEBOOK_CLIENT_SECRET}&access_token=${refreshToken}`,
   );
 
   if (!response.ok) {
     throw new Error("Failed to refresh Instagram token");
   }
 
-  const data = await response.json();
+  const data = (await response.json()) as InstagramTokenResponse;
   return {
     accessToken: data.access_token,
     refreshToken: data.refresh_token || refreshToken,
@@ -112,16 +144,16 @@ async function refreshInstagramToken(refreshToken: string): Promise<TokenRespons
 }
 
 async function refreshWhatsAppToken(refreshToken: string): Promise<TokenResponse> {
-  // WhatsApp uses similar refresh mechanism
+  // WhatsApp uses Facebook OAuth for token refresh
   const response = await fetch(
-    `https://graph.facebook.com/v18.0/oauth/access_token?grant_type=fb_exchange_token&client_id=${env.WHATSAPP_CLIENT_ID}&client_secret=${env.WHATSAPP_CLIENT_SECRET}&fb_exchange_token=${refreshToken}`,
+    `https://graph.facebook.com/v18.0/oauth/access_token?grant_type=fb_exchange_token&client_id=${env.FACEBOOK_CLIENT_ID}&client_secret=${env.FACEBOOK_CLIENT_SECRET}&fb_exchange_token=${refreshToken}`,
   );
 
   if (!response.ok) {
     throw new Error("Failed to refresh WhatsApp token");
   }
 
-  const data = await response.json();
+  const data = (await response.json()) as FacebookTokenResponse;
   return {
     accessToken: data.access_token,
     refreshToken: data.refresh_token || refreshToken,
@@ -134,7 +166,7 @@ async function validateFacebookToken(accessToken: string): Promise<boolean> {
     const response = await fetch(
       `${FACEBOOK_DEBUG_URL}?input_token=${accessToken}&access_token=${env.FACEBOOK_CLIENT_ID}|${env.FACEBOOK_CLIENT_SECRET}`,
     );
-    const data = await response.json();
+    const data = (await response.json()) as FacebookDebugResponse;
     return data.data?.is_valid === true;
   } catch {
     return false;
@@ -143,7 +175,7 @@ async function validateFacebookToken(accessToken: string): Promise<boolean> {
 
 async function validateTwitterToken(accessToken: string): Promise<boolean> {
   try {
-    const response = await fetch(TWITTER_TOKEN_INFO_URL, {
+    const response = await fetch(X_TOKEN_INFO_URL, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
       },
@@ -157,7 +189,7 @@ async function validateTwitterToken(accessToken: string): Promise<boolean> {
 async function validateInstagramToken(accessToken: string): Promise<boolean> {
   try {
     const response = await fetch(`${INSTAGRAM_TOKEN_INFO_URL}?access_token=${accessToken}`);
-    const data = await response.json();
+    const data = (await response.json()) as InstagramMeResponse;
     return data.id != null;
   } catch {
     return false;
@@ -170,7 +202,7 @@ async function validateWhatsAppToken(accessToken: string): Promise<boolean> {
     const response = await fetch(
       `https://graph.facebook.com/v18.0/debug_token?input_token=${accessToken}&access_token=${env.FACEBOOK_CLIENT_ID}|${env.FACEBOOK_CLIENT_SECRET}`,
     );
-    const data = await response.json();
+    const data = (await response.json()) as FacebookDebugResponse;
     return data.data?.is_valid === true;
   } catch {
     return false;

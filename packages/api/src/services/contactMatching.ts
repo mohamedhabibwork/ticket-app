@@ -1,6 +1,6 @@
 import { db } from "@ticket-app/db";
 import { contacts } from "@ticket-app/db/schema";
-import { and, isNull, or, like, ilike } from "drizzle-orm";
+import { and, eq, isNull, or, like, ilike } from "drizzle-orm";
 
 export interface MatchCandidate {
   id: number;
@@ -48,24 +48,24 @@ export function levenshteinDistance(a: string, b: string): number {
   }
 
   for (let j = 0; j <= a.length; j++) {
-    matrix[0][j] = j;
+    matrix[0]![j] = j;
   }
 
   for (let i = 1; i <= b.length; i++) {
     for (let j = 1; j <= a.length; j++) {
       if (b.charAt(i - 1) === a.charAt(j - 1)) {
-        matrix[i][j] = matrix[i - 1][j - 1];
+        matrix[i]![j] = matrix[i - 1]![j - 1]!;
       } else {
-        matrix[i][j] = Math.min(
-          matrix[i - 1][j - 1] + 1,
-          matrix[i][j - 1] + 1,
-          matrix[i - 1][j] + 1,
+        matrix[i]![j] = Math.min(
+          matrix[i - 1]![j - 1]! + 1,
+          matrix[i]![j - 1]! + 1,
+          matrix[i - 1]![j]! + 1,
         );
       }
     }
   }
 
-  return matrix[b.length][a.length];
+  return matrix[b.length]![a.length]!;
 }
 
 export function stringSimilarity(a: string, b: string): number {
@@ -177,8 +177,6 @@ export async function findFuzzyDuplicates(
   },
   options: FuzzyMatchOptions = DEFAULT_OPTIONS,
 ): Promise<MatchCandidate[]> {
-  const _conditions = [isNull(contacts.deletedAt)];
-
   const searchConditions = [];
 
   if (contactData.email) {
@@ -294,31 +292,31 @@ export function suggestMergeStrategy(
 ): Record<string, { value: string | null; source: "primary" | "secondary" }> {
   return {
     email: {
-      value: primary.email || secondary.email,
+      value: primary.email ?? secondary.email ?? null,
       source: primary.email ? "primary" : "secondary",
     },
     phone: {
-      value: primary.phone || secondary.phone,
+      value: primary.phone ?? secondary.phone ?? null,
       source: primary.phone ? "primary" : "secondary",
     },
     firstName: {
-      value: primary.firstName || secondary.firstName,
+      value: primary.firstName ?? secondary.firstName ?? null,
       source: primary.firstName ? "primary" : "secondary",
     },
     lastName: {
-      value: primary.lastName || secondary.lastName,
+      value: primary.lastName ?? secondary.lastName ?? null,
       source: primary.lastName ? "primary" : "secondary",
     },
     company: {
-      value: primary.company || secondary.company,
+      value: primary.company ?? secondary.company ?? null,
       source: primary.company ? "primary" : "secondary",
     },
     language: {
-      value: primary.language || secondary.language,
+      value: primary.language ?? secondary.language ?? null,
       source: primary.language ? "primary" : "secondary",
     },
     timezone: {
-      value: primary.timezone || secondary.timezone,
+      value: primary.timezone ?? secondary.timezone ?? null,
       source: primary.timezone ? "primary" : "secondary",
     },
   };

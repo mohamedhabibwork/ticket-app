@@ -150,53 +150,50 @@ export default function PlanUpgradePage() {
   const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("annual");
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
-  const { data: subscription } = useQuery({
-    queryKey: ["subscription"],
-    queryFn: () => orpc.subscriptions.get.query({ organizationId: 1 }),
-  });
+  const { data: subscription } = useQuery(
+    orpc.subscriptions.get.queryOptions({ organizationId: 1 }),
+  );
 
-  const upgradeMutation = useMutation({
-    mutationFn: async ({ planSlug }: { planSlug: string }) => {
-      const plan = PLANS.find((p) => p.slug === planSlug);
-      if (!plan) throw new Error("Plan not found");
-      return await orpc.subscriptions.create.mutate({
+  const upgradeMutation = useMutation(
+    orpc.subscriptions.create.mutationOptions({
+      onSuccess: () => {
+        window.location.reload();
+      },
+    }),
+  );
+
+  const updateMutation = useMutation(
+    orpc.subscriptions.update.mutationOptions({
+      onSuccess: () => {
+        window.location.reload();
+      },
+    }),
+  );
+
+  const currentPlanSlug = subscription?.plan?.slug || "free";
+  const currentPlanIndex = PLANS.findIndex((p) => p.slug === currentPlanSlug);
+
+  const handlePlanAction = async (planSlug: string, index: number) => {
+    if (planSlug === currentPlanSlug) return;
+    const plan = PLANS.find((p) => p.slug === planSlug);
+    if (!plan) throw new Error("Plan not found");
+
+    if (currentPlanSlug === "free" || !subscription) {
+      await upgradeMutation.mutateAsync({
         organizationId: 1,
         planId: plan.slug,
         billingCycle,
         seatCount: 1,
       });
-    },
-    onSuccess: () => {
-      window.location.reload();
-    },
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: async ({ planSlug }: { planSlug: string }) => {
-      const plan = PLANS.find((p) => p.slug === planSlug);
-      if (!plan) throw new Error("Plan not found");
-      return await orpc.subscriptions.update.mutate({
+    } else if (index < currentPlanIndex) {
+      await updateMutation.mutateAsync({ organizationId: 1, planId: plan.slug });
+    } else {
+      await upgradeMutation.mutateAsync({
         organizationId: 1,
         planId: plan.slug,
+        billingCycle,
+        seatCount: 1,
       });
-    },
-    onSuccess: () => {
-      window.location.reload();
-    },
-  });
-
-  const currentPlanSlug = subscription?.plan?.slug || "free";
-  const currentPlanIndex = PLANS.findIndex((p) => p.slug === currentPlanSlug);
-
-  const handlePlanAction = (planSlug: string, index: number) => {
-    if (planSlug === currentPlanSlug) return;
-
-    if (currentPlanSlug === "free" || !subscription) {
-      upgradeMutation.mutate({ planSlug });
-    } else if (index < currentPlanIndex) {
-      updateMutation.mutate({ planSlug });
-    } else {
-      upgradeMutation.mutate({ planSlug });
     }
   };
 

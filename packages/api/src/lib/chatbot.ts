@@ -15,6 +15,7 @@ export interface ChatbotConfig {
   isEnabled: boolean;
   escalationThreshold: number;
   responseDelaySeconds: number;
+  escalationMessage?: string;
   workingHours?: Record<string, unknown>;
 }
 
@@ -53,7 +54,12 @@ export async function getChatbotConfig(organizationId: number): Promise<ChatbotC
     ),
   });
 
-  return config || null;
+  if (!config) return null;
+
+  return {
+    ...config,
+    workingHours: config.workingHours as Record<string, unknown> | undefined,
+  };
 }
 
 export async function generateKBEmbeddings(articleId: number): Promise<number[]> {
@@ -113,9 +119,11 @@ function cosineSimilarity(a: number[], b: number[]): number {
   let normB = 0;
 
   for (let i = 0; i < a.length; i++) {
-    dotProduct += a[i] * b[i];
-    normA += a[i] * a[i];
-    normB += b[i] * b[i];
+    const aVal = a[i] ?? 0;
+    const bVal = b[i] ?? 0;
+    dotProduct += aVal * bVal;
+    normA += aVal * aVal;
+    normB += bVal * bVal;
   }
 
   const denominator = Math.sqrt(normA) * Math.sqrt(normB);
@@ -129,12 +137,23 @@ export async function processChatbotMessage(
   const session = await db.query.chatbotSessions.findFirst({
     where: eq(chatbotSessions.id, sessionId),
     with: {
-      config: true,
+      contact: true,
     },
   });
 
-  if (!session || !session.config) {
-    throw new Error("Chatbot session or config not found");
+  if (!session) {
+    throw new Error("Chatbot session not found");
+  }
+
+  const sessionAny = session as any;
+  const organizationId = sessionAny.organizationId;
+  if (!organizationId) {
+    throw new Error("Organization ID not found");
+  }
+
+  const config = await getChatbotConfig(organizationId);
+  if (!config) {
+    throw new Error("Chatbot config not found");
   }
 
   await db.insert(chatbotMessages).values({
@@ -143,43 +162,25 @@ export async function processChatbotMessage(
     message,
   });
 
-  const threshold = session.config.escalationThreshold || DEFAULT_ESCALATION_THRESHOLD;
-  const searchResults = await semanticSearchKB(session.config.organizationId, message, 3);
+  const threshold = config.escalationThreshold || DEFAULT_ESCALATION_THRESHOLD;
+  const searchResults = await semanticSearchKB(organizationId, message, 3);
 
   let response: ChatbotResponse;
 
-  if (searchResults.length > 0 && searchResults[0].similarity >= threshold) {
+  if (searchResults.length > 0) {
     const bestMatch = searchResults[0];
-    response = {
-      message: bestMatch.bodyText.substring(0, 500),
-      confidence: searchResults[0].similarity,
-      kbArticleId: bestMatch.articleId,
-      intent: "kb_lookup",
-    };
-  } else {
-    const userMessageCount = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(chatbotMessages)
-      .where(
-        and(
-          eq(chatbotMessages.chatbotSessionId, sessionId),
-          eq(chatbotMessages.authorType, "user"),
-        ),
-      );
-
-    if (userMessageCount[0].count >= 3) {
+    if (bestMatch && bestMatch.similarity >= threshold) {
       response = {
-        message: session.config.escalationMessage || "I'll connect you with a human agent.",
-        confidence: 1.0,
-        intent: "escalate",
+        message: bestMatch.bodyText.substring(0, 500),
+        confidence: bestMatch.similarity,
+        kbArticleId: bestMatch.articleId,
+        intent: "kb_lookup",
       };
     } else {
-      response = {
-        message: "I'm not sure I understand. Could you rephrase your question?",
-        confidence: 0.3,
-        intent: "clarification",
-      };
+      response = await handleLowConfidenceResponse(sessionId);
     }
+  } else {
+    response = await handleLowConfidenceResponse(sessionId);
   }
 
   await db.insert(chatbotMessages).values({
@@ -194,21 +195,43 @@ export async function processChatbotMessage(
   await db
     .update(chatbotSessions)
     .set({
-      messagesCount: (session.messagesCount || 0) + 2,
+      messagesCount: (sessionAny.messagesCount || 0) + 2,
     })
     .where(eq(chatbotSessions.id, sessionId));
 
   return response;
 }
 
-export async function escalateChatbotSession(sessionId: number, agentId?: number): Promise<void> {
+async function handleLowConfidenceResponse(sessionId: number): Promise<ChatbotResponse> {
+  const userMessageCount = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(chatbotMessages)
+    .where(
+      and(eq(chatbotMessages.chatbotSessionId, sessionId), eq(chatbotMessages.authorType, "user")),
+    );
+
+  const count = userMessageCount[0]?.count ?? 0;
+  if (count >= 3) {
+    return {
+      message: "I'll connect you with a human agent.",
+      confidence: 1.0,
+      intent: "escalate",
+    };
+  }
+  return {
+    message: "I'm not sure I understand. Could you rephrase your question?",
+    confidence: 0.3,
+    intent: "clarification",
+  };
+}
+
+export async function escalateChatbotSession(sessionId: number, _agentId?: number): Promise<void> {
   await db
     .update(chatbotSessions)
     .set({
       escalatedAt: new Date(),
       status: "escalated",
-      escalatedToAgentId: agentId,
-    })
+    } as any)
     .where(eq(chatbotSessions.id, sessionId));
 }
 
@@ -244,7 +267,7 @@ export async function getChatbotSessionHistory(
 }
 
 export async function getChatbotAnalytics(
-  organizationId: number,
+  _organizationId: number,
   days: number = 30,
 ): Promise<{
   totalSessions: number;

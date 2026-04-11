@@ -11,7 +11,7 @@ const NOTIFICATION_DELIVERY_QUEUE = `${env.QUEUE_PREFIX}-notification-delivery`;
 export interface NotificationDeliveryJobData {
   notificationId?: number;
   userId: number;
-  type: string;
+  type?: string;
   title: string;
   body?: string;
   data?: Record<string, any>;
@@ -74,7 +74,7 @@ export function createNotificationDeliveryWorker(): Worker {
   return new Worker(
     NOTIFICATION_DELIVERY_QUEUE,
     async (job: Job<NotificationDeliveryJobData>) => {
-      const { notificationId, userId, type, title, body, data, channel } = job.data;
+      const { notificationId, userId, type = "", title, body, data, channel } = job.data;
 
       if (channel === "email") {
         await handleEmailNotification(userId, type, title, body, data);
@@ -242,6 +242,7 @@ async function handlePushNotification(
       return false;
     }
 
+    // @ts-ignore
     const webpush = await import("webpush");
 
     const pushPayload = JSON.stringify({
@@ -261,7 +262,7 @@ async function handlePushNotification(
       pushPayload,
       {
         vapidDetails: {
-          subject: "mailto:notifications@example.com",
+          subject: "mailto:notifications@habib.cloud",
           publicKey: vapidPublicKey,
           privateKey: vapidPrivateKey,
         },
@@ -324,7 +325,7 @@ async function handleEmailNotification(
 
 async function handleSmsNotification(
   userId: number,
-  type: string,
+  _type: string,
   title: string,
   _body?: string,
   _data?: Record<string, any>,
@@ -349,12 +350,12 @@ async function handleSmsNotification(
 function buildNotificationEmailHtml(
   title: string,
   body: string,
-  type: string,
+  _type: string,
   data?: Record<string, any>,
 ): string {
   const notificationUrl = data?.ticketId
-    ? `${env.APP_URL || "https://app.example.com"}/tickets/${data.ticketId}`
-    : `${env.APP_URL || "https://app.example.com"}/notifications`;
+    ? `${env.APP_URL || "https://app.ticket.cloud.habib.cloud"}/tickets/${data.ticketId}`
+    : `${env.APP_URL || "https://app.ticket.cloud.habib.cloud"}/notifications`;
 
   return `
 <!DOCTYPE html>
@@ -381,7 +382,7 @@ function buildNotificationEmailHtml(
   </div>
   <div class="footer">
     <p>You received this email because you have notification alerts enabled.</p>
-    <p><a href="${env.APP_URL || "https://app.example.com"}/settings/notifications">Manage notification preferences</a></p>
+    <p><a href="${env.APP_URL || "https://app.ticket.cloud.habib.cloud"}/settings/notifications">Manage notification preferences</a></p>
   </div>
 </body>
 </html>
@@ -493,8 +494,8 @@ function buildDigestEmailHtml(notificationsList: (typeof notifications.$inferSel
     ${itemsHtml}
   </div>
   <div class="footer">
-    <p><a href="${env.APP_URL || "https://app.example.com"}/notifications">View all notifications</a></p>
-    <p><a href="${env.APP_URL || "https://app.example.com"}/settings/notifications">Manage notification preferences</a></p>
+    <p><a href="${env.APP_URL || "https://app.ticket.cloud.habib.cloud"}/notifications">View all notifications</a></p>
+    <p><a href="${env.APP_URL || "https://app.ticket.cloud.habib.cloud"}/settings/notifications">Manage notification preferences</a></p>
   </div>
 </body>
 </html>

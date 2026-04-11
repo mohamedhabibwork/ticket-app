@@ -220,7 +220,7 @@ export const ticketsRouter = {
         mailboxId: z.coerce.number().optional(),
         formSubmissionId: z.coerce.number().optional(),
         parentTicketId: z.coerce.number().optional(),
-        ccEmails: z.array(z.string().email()).optional(),
+        ccEmails: z.array(z.email()).optional(),
         isSpam: z.coerce.boolean().default(false),
         createdBy: z.coerce.number().optional(),
       }),
@@ -263,8 +263,8 @@ export const ticketsRouter = {
           referenceNumber,
           subject: input.subject,
           descriptionHtml: input.descriptionHtml,
-          statusId: defaultStatusId,
-          priorityId: defaultPriorityId,
+          statusId: defaultStatusId as number,
+          priorityId: defaultPriorityId as number,
           channelId: input.channelId,
           contactId: input.contactId,
           assignedAgentId: input.assignedAgentId,
@@ -505,7 +505,7 @@ export const ticketsRouter = {
     .input(
       z.object({
         ticketId: z.coerce.number(),
-        email: z.string().email(),
+        email: z.email(),
         createdBy: z.coerce.number().optional(),
       }),
     )
@@ -537,7 +537,7 @@ export const ticketsRouter = {
     .input(
       z.object({
         ticketId: z.coerce.number(),
-        email: z.string().email(),
+        email: z.email(),
       }),
     )
     .handler(async ({ input }) => {

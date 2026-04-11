@@ -74,7 +74,7 @@ export const ticketSlaRouter = {
         target.firstResponseMinutes,
         target.resolutionMinutes,
         slaPolicy.businessHoursOnly ? (slaPolicy.businessHoursConfig as any) : null,
-        slaPolicy.holidays,
+        slaPolicy.holidays as any,
       );
 
       return await db

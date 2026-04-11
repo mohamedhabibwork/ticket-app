@@ -80,7 +80,7 @@ import { useLoaderData } from "expo-router";
 import { ActivityIndicator, View, Text } from "react-native";
 
 export async function loader() {
-  const response = await fetch("https://api.example.com/posts");
+  const response = await fetch("https://api.ticket.cloud.habib.cloud/posts");
   const posts = await response.json();
   return { posts };
 }
@@ -127,7 +127,7 @@ type Post = {
 
 export const loader: LoaderFunction<{ post: Post }> = async (request, params) => {
   const id = params.id as string;
-  const response = await fetch(`https://api.example.com/posts/${id}`);
+  const response = await fetch(`https://api.ticket.cloud.habib.cloud/posts/${id}`);
 
   if (!response.ok) {
     throw new StatusError(404, `Post ${id} not found`);
@@ -266,7 +266,7 @@ import { useLoaderData } from "expo-router";
 import { ActivityIndicator, View, Text } from "react-native";
 
 export async function loader() {
-  const response = await fetch("https://api.example.com/posts");
+  const response = await fetch("https://api.ticket.cloud.habib.cloud/posts");
   return { posts: await response.json() };
 }
 

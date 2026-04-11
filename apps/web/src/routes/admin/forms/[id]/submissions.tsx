@@ -46,14 +46,14 @@ export const Route = createFileRoute("/admin/forms/id/submissions")({
 });
 
 function FormSubmissionsRoute() {
-  const { id } = useParams({ from: "/admin/forms/id/submissions" });
+  const { id } = useParams({ from: "/admin/forms/id/submissions" } as any);
   const formId = Number(id);
 
   const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
   const { data: form, isLoading: formLoading } = useQuery(
-    orpc.forms.get.queryOptions({
+    (orpc as any).forms.get.queryOptions({
       id: formId,
       organizationId: 1,
     }),
@@ -64,35 +64,37 @@ function FormSubmissionsRoute() {
     isLoading: submissionsLoading,
     refetch,
   } = useQuery(
-    orpc.forms.getSubmissions?.queryOptions({
+    (orpc as any).forms.getSubmissions?.queryOptions({
       formId,
       organizationId: 1,
     }) || { enabled: false },
   );
 
   const convertToTicketMutation = useMutation(
-    orpc.forms.convertToTicket?.mutationOptions({
+    (orpc as any).forms.convertToTicket?.mutationOptions({
       onSuccess: () => refetch(),
     }),
   );
 
-  const filteredSubmissions = submissions?.filter((sub: Submission) => {
-    if (!searchQuery) return true;
-    const search = searchQuery.toLowerCase();
-    return (
-      sub.contact?.email.toLowerCase().includes(search) || sub.uuid.toLowerCase().includes(search)
-    );
-  });
+  const filteredSubmissions = (submissions as Submission[] | undefined)?.filter(
+    (sub: Submission) => {
+      if (!searchQuery) return true;
+      const search = searchQuery.toLowerCase();
+      return (
+        sub.contact?.email.toLowerCase().includes(search) || sub.uuid.toLowerCase().includes(search)
+      );
+    },
+  );
 
   const exportToCSV = () => {
-    if (!submissions || submissions.length === 0) return;
+    if (!submissions || (submissions as Submission[]).length === 0) return;
 
     const headers = ["ID", "Date", "Email", "Name", "IP Address", "Status", "Ticket ID"];
-    const rows = submissions.map((sub: Submission) => [
+    const rows = (submissions as Submission[]).map((sub: Submission) => [
       sub.id,
       new Date(sub.createdAt).toISOString(),
       sub.contact?.email || "",
-      `${sub.contact?.firstName || ""} ${sub.contact?.lastName || ""}`.trim(),
+      `${sub.contact?.firstName || ``} ${sub.contact?.lastName || ``}`.trim(),
       sub.ipAddress || "",
       sub.ticketId ? "Converted" : "New",
       sub.ticketId || "",
@@ -139,7 +141,7 @@ function FormSubmissionsRoute() {
         <Card>
           <CardContent className="py-12 text-center">
             <p className="text-muted-foreground">Form not found</p>
-            <Link to="/admin/forms/">
+            <Link to="/admin/forms">
               <Button variant="outline" className="mt-4">
                 Back to Forms
               </Button>
@@ -153,7 +155,7 @@ function FormSubmissionsRoute() {
   return (
     <div className="container mx-auto max-w-6xl px-4 py-6">
       <div className="mb-6">
-        <Link to="/admin/forms/">
+        <Link to="/admin/forms">
           <Button variant="ghost" className="mb-4">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Forms
@@ -161,13 +163,13 @@ function FormSubmissionsRoute() {
         </Link>
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold">{form.name} - Submissions</h1>
+            <h1 className="text-2xl font-bold">{(form as any)?.name || "Form"} - Submissions</h1>
             <p className="text-muted-foreground">View and manage form submissions</p>
           </div>
           <Button
             variant="outline"
             onClick={exportToCSV}
-            disabled={!submissions || submissions.length === 0}
+            disabled={!submissions || (submissions as Submission[]).length === 0}
           >
             <Download className="mr-2 h-4 w-4" />
             Export CSV
@@ -225,7 +227,9 @@ function FormSubmissionsRoute() {
                   <Button
                     size="sm"
                     onClick={() =>
-                      convertToTicketMutation?.mutate({ submissionId: selectedSubmission.id })
+                      (convertToTicketMutation as any)?.mutate({
+                        submissionId: selectedSubmission.id,
+                      })
                     }
                     disabled={convertToTicketMutation.isPending}
                   >
@@ -260,11 +264,12 @@ function FormSubmissionsRoute() {
                     {selectedSubmission.ticketId && (
                       <div>
                         <Label className="text-muted-foreground">Ticket</Label>
-                        <Link to={`/tickets/${selectedSubmission.ticketId}`}>
-                          <p className="text-sm text-primary">
-                            View Ticket #{selectedSubmission.ticketId}
-                          </p>
-                        </Link>
+                        <a
+                          href={`/tickets/${selectedSubmission.ticketId}`}
+                          className="text-sm text-primary"
+                        >
+                          View Ticket #{selectedSubmission.ticketId}
+                        </a>
                       </div>
                     )}
                   </div>

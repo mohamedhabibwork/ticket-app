@@ -25,7 +25,7 @@ export const gdprRouter = {
     .handler(async ({ input, context }) => {
       const canWrite = await hasPermission(
         {
-          userId: Number(context.auth.userId),
+          userId: Number(context.auth!.userId),
           organizationId: input.organizationId,
         },
         buildPermissionKey(PERMISSION_GROUPS.GDPR, PERMISSION_ACTIONS.WRITE),
@@ -62,7 +62,7 @@ export const gdprRouter = {
     .handler(async ({ input, context }) => {
       const canRead = await hasPermission(
         {
-          userId: Number(context.auth.userId),
+          userId: Number(context.auth!.userId),
           organizationId: input.organizationId,
         },
         buildPermissionKey(PERMISSION_GROUPS.GDPR, PERMISSION_ACTIONS.READ),
@@ -90,7 +90,7 @@ export const gdprRouter = {
     .handler(async ({ input, context }) => {
       const canRead = await hasPermission(
         {
-          userId: Number(context.auth.userId),
+          userId: Number(context.auth!.userId),
           organizationId: input.organizationId,
         },
         buildPermissionKey(PERMISSION_GROUPS.GDPR, PERMISSION_ACTIONS.READ),
@@ -118,7 +118,7 @@ export const gdprRouter = {
     .handler(async ({ input, context }) => {
       const canWrite = await hasPermission(
         {
-          userId: Number(context.auth.userId),
+          userId: Number(context.auth!.userId),
           organizationId: input.organizationId,
         },
         buildPermissionKey(PERMISSION_GROUPS.GDPR, PERMISSION_ACTIONS.WRITE),
@@ -152,7 +152,7 @@ export const gdprRouter = {
     .handler(async ({ input, context }) => {
       const canWrite = await hasPermission(
         {
-          userId: Number(context.auth.userId),
+          userId: Number(context.auth!.userId),
           organizationId: input.organizationId,
         },
         buildPermissionKey(PERMISSION_GROUPS.GDPR, PERMISSION_ACTIONS.WRITE),
@@ -205,7 +205,7 @@ export const gdprRouter = {
     .handler(async ({ input, context }) => {
       const canWrite = await hasPermission(
         {
-          userId: Number(context.auth.userId),
+          userId: Number(context.auth!.userId),
           organizationId: input.organizationId,
         },
         buildPermissionKey(PERMISSION_GROUPS.GDPR, PERMISSION_ACTIONS.WRITE),
@@ -234,7 +234,7 @@ export const gdprRouter = {
             phone: null,
             metadata: { erasedAt: new Date().toISOString(), reason: "GDPR Erasure Request" },
           })
-          .where(eq(request.contact.id, request.contactId!));
+          .where(eq(contacts.id, request.contactId));
       }
 
       await db
@@ -253,7 +253,7 @@ export const gdprRouter = {
     .handler(async ({ input, context }) => {
       const canWrite = await hasPermission(
         {
-          userId: Number(context.auth.userId),
+          userId: Number(context.auth!.userId),
           organizationId: input.organizationId,
         },
         buildPermissionKey(PERMISSION_GROUPS.GDPR, PERMISSION_ACTIONS.WRITE),

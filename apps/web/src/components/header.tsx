@@ -14,9 +14,8 @@ export default function Header() {
     { to: "/", label: t("nav.dashboard") },
     { to: "/tickets", label: t("nav.tickets") },
     { to: "/contacts", label: t("nav.contacts") },
-    { to: "/reports", label: t("nav.reports") },
     { to: "/settings", label: t("nav.settings") },
-  ] as const;
+  ];
 
   return (
     <div className="border-b border-border">

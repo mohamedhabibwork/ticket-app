@@ -37,6 +37,7 @@ export const ticketAttachmentsRouter = {
   create: publicProcedure
     .input(
       z.object({
+        organizationId: z.coerce.number(),
         ticketId: z.coerce.number(),
         ticketMessageId: z.coerce.number().optional(),
         filename: z.string(),
@@ -50,13 +51,14 @@ export const ticketAttachmentsRouter = {
       const [attachment] = await db
         .insert(ticketAttachments)
         .values({
+          organizationId: input.organizationId ?? null,
           ticketId: input.ticketId,
-          ticketMessageId: input.ticketMessageId,
+          ticketMessageId: input.ticketMessageId ?? null,
           filename: input.filename,
           mimeType: input.mimeType,
           sizeBytes: input.sizeBytes,
           storageKey: input.storageKey,
-          createdBy: input.createdBy,
+          createdBy: input.createdBy ?? null,
         })
         .returning();
       return attachment;

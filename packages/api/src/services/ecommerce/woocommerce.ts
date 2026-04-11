@@ -110,7 +110,7 @@ export async function wooCommerceApiRequest<T>(
     throw new Error(`WooCommerce API error: ${response.status} - ${error}`);
   }
 
-  return response.json();
+  return response.json() as T;
 }
 
 export async function fetchWooCommerceOrders(

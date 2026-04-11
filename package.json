@@ -57,7 +57,8 @@
     "deploy": "turbo -F @ticket-app/infra deploy",
     "destroy": "turbo -F @ticket-app/infra destroy",
     "check": "oxlint && oxfmt --write",
-    "prepare": "husky"
+    "prepare": "husky",
+    "scan:errors": "bun run packages/scanner/bin/scan.ts"
   },
   "dependencies": {
     "@ticket-app/env": "workspace:*",

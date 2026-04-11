@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { orpc } from "../../utils/orpc";
+import { orpc } from "@/utils/orpc";
 import {
   Package,
   ChevronDown,
@@ -61,19 +61,19 @@ export function OrderPanel({ contactId, email, phone, organizationId, onLookup }
     queryKey: ["ecommerce-orders", contactId, email, phone, organizationId],
     queryFn: async () => {
       if (contactId) {
-        return await orpc.ecommerceOrders.getByContact.query({
+        return await (orpc as any).ecommerceOrders.getByContact.queryOptions({
           organizationId,
           contactId,
           limit: 10,
         });
       } else if (email) {
-        return await orpc.ecommerceOrders.searchByEmail.query({
+        return await (orpc as any).ecommerceOrders.searchByEmail.queryOptions({
           organizationId,
           email,
           limit: 10,
         });
       } else if (phone) {
-        return await orpc.ecommerceOrders.searchByPhone.query({
+        return await (orpc as any).ecommerceOrders.searchByPhone.queryOptions({
           organizationId,
           phone,
           limit: 10,

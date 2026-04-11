@@ -1,12 +1,10 @@
-import { z } from "zod";
-
-const __captchaVerifySchema = z.object({
-  secret: z.string(),
-  response: z.string(),
-  remoteip: z.string().optional(),
-});
-
 export type CaptchaProvider = "hcaptcha" | "recaptcha_v3";
+
+export interface CaptbotVerifyResponse {
+  success: boolean;
+  "error-codes"?: string[];
+  score?: number;
+}
 
 export interface CaptchaVerifyResult {
   success: boolean;
@@ -31,7 +29,7 @@ async function verifyHCaptcha(
     body: body.toString(),
   });
 
-  const data = await res.json();
+  const data = (await res.json()) as CaptbotVerifyResponse;
   return {
     success: data.success,
     errorCodes: data["error-codes"],
@@ -55,7 +53,7 @@ async function verifyRecaptchaV3(
     body: body.toString(),
   });
 
-  const data = await res.json();
+  const data = (await res.json()) as CaptbotVerifyResponse;
   return {
     success: data.success,
     errorCodes: data["error-codes"],

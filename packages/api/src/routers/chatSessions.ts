@@ -354,7 +354,7 @@ export const chatSessionsRouter = {
         .set({
           readAt: new Date(),
           readBy: input.userId ?? input.contactId,
-        })
+        } as any)
         .where(eq(chatMessages.id, input.messageId));
 
       const { publishReadReceipt } = await import("../services/chatPubSub");

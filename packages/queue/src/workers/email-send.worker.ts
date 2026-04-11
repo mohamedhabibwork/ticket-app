@@ -120,7 +120,7 @@ export function createEmailSendWorker(): Worker {
           messageId,
           inReplyTo,
           fromEmail: fromAddress,
-          fromName,
+          fromName: fromName ?? null,
           toEmails,
           ccEmails,
           bccEmails,
@@ -162,7 +162,7 @@ interface LogSentEmailParams {
   messageId: string;
   inReplyTo?: string;
   fromEmail: string;
-  fromName?: string;
+  fromName?: string | null;
   toEmails: string[];
   ccEmails?: string[];
   bccEmails?: string[];
@@ -198,7 +198,7 @@ async function logSentEmail(params: LogSentEmailParams): Promise<void> {
       messageId,
       inReplyTo,
       fromEmail,
-      fromName,
+      fromName: fromName ?? null,
       toEmails,
       ccEmails,
       bccEmails,

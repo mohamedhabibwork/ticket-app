@@ -30,12 +30,17 @@ export async function createPasswordReset(
     })
     .returning();
 
+  if (!result) {
+    throw new Error("Failed to create password reset token");
+  }
+  const resultData = result!;
+
   return {
-    id: result.id,
-    userId: result.userId,
-    token: result.token,
-    expiresAt: result.expiresAt,
-    requestedBy: result.requestedBy ?? undefined,
-    createdAt: result.createdAt,
+    id: resultData.id,
+    userId: resultData.userId,
+    token: resultData.token,
+    expiresAt: resultData.expiresAt,
+    requestedBy: resultData.requestedBy ?? undefined,
+    createdAt: resultData.createdAt,
   };
 }

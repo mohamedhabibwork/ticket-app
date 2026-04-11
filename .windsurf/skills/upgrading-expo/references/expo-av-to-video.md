@@ -21,7 +21,7 @@ const [status, setStatus] = useState({});
 
 <Video
   ref={videoRef}
-  source={{ uri: "https://example.com/video.mp4" }}
+  source={{ uri: "https://ticket.cloud.habib.cloud/video.mp4" }}
   style={{ width: 350, height: 200 }}
   resizeMode={ResizeMode.CONTAIN}
   isLooping
@@ -36,7 +36,7 @@ videoRef.current?.pauseAsync();
 ### After (expo-video)
 
 ```tsx
-const player = useVideoPlayer("https://example.com/video.mp4", (player) => {
+const player = useVideoPlayer("https://ticket.cloud.habib.cloud/video.mp4", (player) => {
   player.loop = true;
 });
 

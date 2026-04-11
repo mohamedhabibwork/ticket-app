@@ -24,7 +24,7 @@ export const customerAuthRouter = {
     .handler(async ({ input, context }) => {
       const canRead = await hasPermission(
         {
-          userId: Number(context.auth.userId),
+          userId: Number(context.auth!.userId),
           organizationId: input.organizationId,
         },
         buildPermissionKey(PERMISSION_GROUPS.USERS, PERMISSION_ACTIONS.READ),
@@ -54,7 +54,7 @@ export const customerAuthRouter = {
     .handler(async ({ input, context }) => {
       const canWrite = await hasPermission(
         {
-          userId: Number(context.auth.userId),
+          userId: Number(context.auth!.userId),
           organizationId: input.organizationId,
         },
         buildPermissionKey(PERMISSION_GROUPS.USERS, PERMISSION_ACTIONS.WRITE),
@@ -98,7 +98,7 @@ export const customerAuthRouter = {
     .handler(async ({ input, context }) => {
       const canWrite = await hasPermission(
         {
-          userId: Number(context.auth.userId),
+          userId: Number(context.auth!.userId),
           organizationId: input.organizationId,
         },
         buildPermissionKey(PERMISSION_GROUPS.USERS, PERMISSION_ACTIONS.WRITE),
@@ -135,7 +135,7 @@ export const customerAuthRouter = {
     .handler(async ({ input, context }) => {
       const canWrite = await hasPermission(
         {
-          userId: Number(context.auth.userId),
+          userId: Number(context.auth!.userId),
           organizationId: input.organizationId,
         },
         buildPermissionKey(PERMISSION_GROUPS.USERS, PERMISSION_ACTIONS.WRITE),
@@ -145,7 +145,11 @@ export const customerAuthRouter = {
         throw new Error("Unauthorized: Auth write permission required");
       }
 
-      const payload = JSON.parse(Buffer.from(input.idToken.split(".")[1], "base64").toString());
+      const tokenParts = input.idToken.split(".");
+      if (tokenParts.length < 2) {
+        throw new Error("Invalid Apple ID token");
+      }
+      const payload = JSON.parse(Buffer.from(tokenParts[1]!, "base64").toString());
       const appleUserId = payload.sub;
       const email = payload.email;
 
@@ -163,7 +167,7 @@ export const customerAuthRouter = {
     .handler(async ({ input, context }) => {
       const canWrite = await hasPermission(
         {
-          userId: Number(context.auth.userId),
+          userId: Number(context.auth!.userId),
           organizationId: input.organizationId,
         },
         buildPermissionKey(PERMISSION_GROUPS.USERS, PERMISSION_ACTIONS.WRITE),
@@ -191,7 +195,7 @@ export const customerAuthRouter = {
     .handler(async ({ input, context }) => {
       const canRead = await hasPermission(
         {
-          userId: Number(context.auth.userId),
+          userId: Number(context.auth!.userId),
           organizationId: input.organizationId,
         },
         buildPermissionKey(PERMISSION_GROUPS.USERS, PERMISSION_ACTIONS.READ),
@@ -213,7 +217,7 @@ export const customerAuthRouter = {
     .handler(async ({ input, context }) => {
       const canRead = await hasPermission(
         {
-          userId: Number(context.auth.userId),
+          userId: Number(context.auth!.userId),
           organizationId: input.organizationId,
         },
         buildPermissionKey(PERMISSION_GROUPS.USERS, PERMISSION_ACTIONS.READ),
@@ -239,14 +243,14 @@ export const customerAuthRouter = {
         providerUserId: z.string(),
         accessToken: z.string().optional(),
         refreshToken: z.string().optional(),
-        email: z.string().email().optional(),
+        email: z.email().optional(),
         displayName: z.string().optional(),
       }),
     )
     .handler(async ({ input, context }) => {
       const canWrite = await hasPermission(
         {
-          userId: Number(context.auth.userId),
+          userId: Number(context.auth!.userId),
           organizationId: input.organizationId,
         },
         buildPermissionKey(PERMISSION_GROUPS.USERS, PERMISSION_ACTIONS.WRITE),
@@ -256,7 +260,18 @@ export const customerAuthRouter = {
         throw new Error("Unauthorized: Auth write permission required");
       }
 
-      const [identity] = await db.insert(customerSocialIdentities).values(input).returning();
+      const [identity] = await db
+        .insert(customerSocialIdentities)
+        .values({
+          contactId: input.contactId,
+          provider: input.provider,
+          providerUserId: input.providerUserId,
+          accessTokenEnc: input.accessToken,
+          refreshTokenEnc: input.refreshToken,
+          providerEmail: input.email,
+          providerUsername: input.displayName,
+        })
+        .returning();
       return identity;
     }),
 
@@ -265,7 +280,7 @@ export const customerAuthRouter = {
     .handler(async ({ input, context }) => {
       const canWrite = await hasPermission(
         {
-          userId: Number(context.auth.userId),
+          userId: Number(context.auth!.userId),
           organizationId: input.organizationId,
         },
         buildPermissionKey(PERMISSION_GROUPS.USERS, PERMISSION_ACTIONS.WRITE),
@@ -284,7 +299,7 @@ export const customerAuthRouter = {
     .handler(async ({ input, context }) => {
       const canRead = await hasPermission(
         {
-          userId: Number(context.auth.userId),
+          userId: Number(context.auth!.userId),
           organizationId: input.organizationId,
         },
         buildPermissionKey(PERMISSION_GROUPS.USERS, PERMISSION_ACTIONS.READ),
@@ -306,7 +321,7 @@ export const customerAuthRouter = {
     .handler(async ({ input, context }) => {
       const canRead = await hasPermission(
         {
-          userId: Number(context.auth.userId),
+          userId: Number(context.auth!.userId),
           organizationId: input.organizationId,
         },
         buildPermissionKey(PERMISSION_GROUPS.USERS, PERMISSION_ACTIONS.READ),
@@ -336,7 +351,7 @@ export const customerAuthRouter = {
     .handler(async ({ input, context }) => {
       const canWrite = await hasPermission(
         {
-          userId: Number(context.auth.userId),
+          userId: Number(context.auth!.userId),
           organizationId: input.organizationId,
         },
         buildPermissionKey(PERMISSION_GROUPS.USERS, PERMISSION_ACTIONS.WRITE),
@@ -346,11 +361,15 @@ export const customerAuthRouter = {
         throw new Error("Unauthorized: Auth write permission required");
       }
 
+      const sessionToken = crypto.randomUUID();
+      const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
       const [session] = await db
         .insert(customerSessions)
         .values({
           contactId: input.contactId,
           customerSocialIdentityId: input.customerSocialIdentityId,
+          sessionToken,
+          expiresAt,
           ipAddress: input.ipAddress,
           userAgent: input.userAgent,
         })
@@ -363,7 +382,7 @@ export const customerAuthRouter = {
     .handler(async ({ input, context }) => {
       const canWrite = await hasPermission(
         {
-          userId: Number(context.auth.userId),
+          userId: Number(context.auth!.userId),
           organizationId: input.organizationId,
         },
         buildPermissionKey(PERMISSION_GROUPS.USERS, PERMISSION_ACTIONS.WRITE),
@@ -382,7 +401,7 @@ export const customerAuthRouter = {
     .handler(async ({ input, context }) => {
       const canWrite = await hasPermission(
         {
-          userId: Number(context.auth.userId),
+          userId: Number(context.auth!.userId),
           organizationId: input.organizationId,
         },
         buildPermissionKey(PERMISSION_GROUPS.USERS, PERMISSION_ACTIONS.WRITE),
@@ -439,11 +458,16 @@ async function linkOrCreateCustomer(
   const [newContact] = await db
     .insert(contacts)
     .values({
+      organizationId: 1,
       email: email.toLowerCase(),
       firstName: name?.split(" ")[0] || null,
       lastName: name?.split(" ").slice(1).join(" ") || null,
     })
     .returning();
+
+  if (!newContact) {
+    throw new Error("Failed to create contact");
+  }
 
   await db.insert(customerSocialIdentities).values({
     contactId: newContact.id,

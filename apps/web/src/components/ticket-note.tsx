@@ -21,7 +21,7 @@ export function TicketNote({ ticketId, onSuccess }: TicketNoteProps) {
   const [body, setBody] = useState("");
 
   const createMutation = useMutation(
-    orpc.ticketMessages.create.mutationOptions({
+    (orpc as any).ticketMessages.create.mutationOptions({
       onSuccess: () => {
         setBody("");
         onSuccess?.();
@@ -40,7 +40,7 @@ export function TicketNote({ ticketId, onSuccess }: TicketNoteProps) {
       bodyHtml: `<p>${body.replace(/\n/g, "<br>")}</p>`,
       bodyText: body,
       isPrivate: true,
-    });
+    } as any);
   };
 
   return (

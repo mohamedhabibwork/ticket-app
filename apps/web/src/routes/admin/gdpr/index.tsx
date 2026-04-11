@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { api } from "@/lib/api";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { FileText, Trash2, Download } from "lucide-react";
 
 interface GdprRequest {
@@ -15,6 +14,7 @@ interface GdprRequest {
 export default function GdprAdminPage() {
   const [filterStatus, setFilterStatus] = useState<string>("");
   const [filterType, setFilterType] = useState<string>("");
+  const queryClient = useQueryClient();
 
   const { data: requests, isLoading } = useQuery({
     queryKey: ["gdpr-requests", filterStatus, filterType],

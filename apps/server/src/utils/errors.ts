@@ -28,29 +28,43 @@ export interface StructuredErrorMeta {
   correlationId?: string;
 }
 
-export class StructuredError extends ORPCError<ErrorCode> {
+export class StructuredError extends ORPCError<ErrorCode, { message: string; code: ErrorCode }> {
   public readonly statusCode: number;
   public readonly details?: Record<string, unknown>;
   public readonly correlationId?: string;
+  public readonly code: ErrorCode;
+  public readonly message: string;
 
   constructor(meta: StructuredErrorMeta) {
     super(meta.code, {
-      message: meta.message,
-      code: meta.code,
+      data: {
+        message: meta.message,
+        code: meta.code,
+      },
     });
     this.name = "StructuredError";
+    this.code = meta.code;
+    this.message = meta.message;
     this.statusCode = meta.statusCode;
     this.details = meta.details;
     this.correlationId = meta.correlationId;
   }
 
-  toJSON() {
+  toJSON(): {
+    defined: true;
+    code: ErrorCode;
+    status: number;
+    message: string;
+    data: { message: string; code: ErrorCode };
+  } {
     return {
-      error: {
-        code: this.code,
+      defined: true,
+      code: this.code,
+      status: this.statusCode,
+      message: this.message,
+      data: {
         message: this.message,
-        details: this.details,
-        correlationId: this.correlationId,
+        code: this.code,
       },
     };
   }
@@ -132,7 +146,9 @@ export const errors = {
     createError(ERROR_CODES.INTERNAL_SERVER_ERROR, message, { correlationId }),
 };
 
-export function isORPCError(error: unknown): error is ORPCError<ErrorCode> {
+export function isORPCError(
+  error: unknown,
+): error is ORPCError<ErrorCode, { message: string; code: ErrorCode }> {
   return error instanceof ORPCError;
 }
 

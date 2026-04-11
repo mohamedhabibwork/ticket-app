@@ -65,13 +65,13 @@ function CreateFormRoute() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
-    navigate({ to: "/admin/forms/builder", state: { formData } });
+    navigate({ to: "/admin/forms/builder", state: { formData } as any });
   };
 
   return (
     <div className="container mx-auto max-w-3xl px-4 py-6">
       <div className="mb-6">
-        <Button variant="ghost" onClick={() => navigate({ to: "/admin/forms/" })} className="mb-4">
+        <Button variant="ghost" onClick={() => navigate({ to: "/admin/forms" })} className="mb-4">
           <ArrowLeft className="mr-2 h-4 w-4" />
           Back to Forms
         </Button>
@@ -151,7 +151,7 @@ function CreateFormRoute() {
         </Card>
 
         <div className="flex justify-end gap-2">
-          <Button type="button" variant="outline" onClick={() => navigate({ to: "/admin/forms/" })}>
+          <Button type="button" variant="outline" onClick={() => navigate({ to: "/admin/forms" })}>
             Cancel
           </Button>
           <Button type="submit">

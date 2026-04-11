@@ -5,6 +5,7 @@ import {
   tickets,
   lookups,
   ticketMessages,
+  chatWidgets,
 } from "@ticket-app/db/schema";
 import { eq, and, sql } from "drizzle-orm";
 import { generateReferenceNumber } from "../lib/reference";
@@ -77,6 +78,13 @@ export async function convertChatToTicket(options: ConvertChatToTicketOptions): 
 
   const referenceNumber = await generateReferenceNumber(organizationId);
 
+  if (defaultStatusId === undefined) {
+    throw new Error("Default ticket status lookup not found");
+  }
+  if (defaultPriorityId === undefined) {
+    throw new Error("Default ticket priority lookup not found");
+  }
+
   const [ticket] = await db
     .insert(tickets)
     .values({
@@ -86,8 +94,8 @@ export async function convertChatToTicket(options: ConvertChatToTicketOptions): 
       descriptionHtml,
       statusId: defaultStatusId,
       priorityId: defaultPriorityId,
-      channelId: channelChatId,
-      contactId: session.contactId,
+      channelId: channelChatId ?? null,
+      contactId: session.contactId ?? null,
       chatSessionId: chatSessionId,
       createdBy,
     })
@@ -100,19 +108,19 @@ export async function convertChatToTicket(options: ConvertChatToTicketOptions): 
     messageType: "activity",
     bodyHtml: `<p>${initialMessage}</p>`,
     bodyText: initialMessage,
-    createdBy,
+    createdBy: createdBy ?? null,
   });
 
   for (const msg of chatMessagesHistory) {
     await db.insert(ticketMessages).values({
       ticketId: ticket!.id,
       authorType: msg.authorType,
-      authorUserId: msg.authorUserId,
-      authorContactId: msg.authorContactId,
+      authorUserId: msg.authorUserId ?? null,
+      authorContactId: msg.authorContactId ?? null,
       messageType: "reply",
       bodyHtml: `<p>${msg.body}</p>`,
       bodyText: msg.body,
-      createdBy,
+      createdBy: createdBy ?? null,
     });
   }
 
@@ -126,7 +134,7 @@ export async function convertChatToTicket(options: ConvertChatToTicketOptions): 
     .where(eq(chatSessions.id, chatSessionId));
 
   return {
-    ticket,
+    ticket: ticket!,
     session: { ...session, ticketId: ticket!.id, status: "converted" } as typeof session,
   };
 }

@@ -61,8 +61,8 @@ function validateFile(buffer: Buffer): { isValid: boolean; error?: string; rowCo
       return { isValid: false, error: "Excel file has no sheets" };
     }
 
-    const sheetName = workbook.SheetNames[0];
-    const sheet = workbook.Sheets[sheetName];
+    const sheetName = workbook.SheetNames[0]!;
+    const sheet = workbook.Sheets[sheetName]!;
     const data = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { header: 1 });
 
     if (data.length < 2) {
@@ -327,7 +327,15 @@ export function createExcelImportQueueWorker(): Worker {
   return new Worker(
     EXCEL_IMPORT_QUEUE,
     async (job: Job<ExcelImportJobData>) => {
-      const { jobId, organizationId, userId, entityType, fileUrl, _mode, _matchField } = job.data;
+      const {
+        jobId,
+        organizationId,
+        userId,
+        entityType,
+        fileUrl,
+        mode: _mode,
+        matchField: _matchField,
+      } = job.data;
 
       await updateJobStatus(jobId, "validating");
 
@@ -354,8 +362,8 @@ export function createExcelImportQueueWorker(): Worker {
         await updateJobStatus(jobId, "validating", { totalRows: validation.rowCount });
 
         const workbook = XLSX.read(buffer, { type: "buffer" });
-        const sheetName = workbook.SheetNames[0];
-        const sheet = workbook.Sheets[sheetName];
+        const sheetName = workbook.SheetNames[0]!;
+        const sheet = workbook.Sheets[sheetName]!;
         const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet);
 
         await updateJobStatus(jobId, "processing", { processedRows: 0 });

@@ -190,18 +190,32 @@ async function processAmazonOrder(
     const itemTitles = order.items?.map((i) => i.title).join(", ") || "Amazon Order";
     const subject = `Amazon: ${order.buyerName || order.buyerEmail || "Buyer"} - ${itemTitles.substring(0, 50)}`;
 
+    const year = new Date().getFullYear();
+    const prefix = `TKT-${year}-`;
+    const countResult = await db
+      .select({ count: sql<number>`COUNT(*)::int` })
+      .from(tickets)
+      .where(
+        sql`${tickets.organizationId} = ${account.organizationId} AND ${tickets.referenceNumber} LIKE ${prefix}%`,
+      );
+    const sequence = (countResult[0]?.count ?? 0) + 1;
+    const referenceNumber = `${prefix}${sequence.toString().padStart(6, "0")}`;
+
     const [ticket] = await db
       .insert(tickets)
       .values({
         organizationId: account.organizationId,
+        referenceNumber,
         subject: subject.substring(0, 255),
         descriptionHtml: `<p>${message.messageContent}</p>`,
         channelId: channelLookup?.id,
-        statusId: defaultStatusId,
-        priorityId: defaultPriorityId,
+        statusId: defaultStatusId!,
+        priorityId: defaultPriorityId!,
         createdBy: account.createdBy,
       })
       .returning();
+
+    if (!ticket) throw new Error("Failed to create ticket");
 
     await db
       .insert(marketplaceMessages)

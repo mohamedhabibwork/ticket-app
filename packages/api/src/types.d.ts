@@ -8,6 +8,10 @@ declare module "node-imap" {
   export = Imap;
 }
 
+declare module "imap" {
+  export = Imap;
+}
+
 declare module "mailparser" {
   export function simpleParser(
     stream: any,

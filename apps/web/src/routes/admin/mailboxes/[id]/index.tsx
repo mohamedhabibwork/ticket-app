@@ -38,7 +38,7 @@ function formatRelativeTime(date: Date | string): string {
   return then.toLocaleDateString();
 }
 
-export const Route = createFileRoute("/admin/mailboxes/id/")({
+export const Route = createFileRoute("/admin/mailboxes/$id/")({
   component: MailboxDetailRoute,
 });
 
@@ -51,19 +51,19 @@ function MailboxDetailRoute() {
     isLoading,
     refetch,
   } = useQuery(
-    orpc.mailboxes.get.queryOptions({
+    (orpc as any).mailboxes.get.queryOptions({
       id: mailboxId,
     }),
   );
 
   const syncMutation = useMutation(
-    orpc.mailboxes.sync.mutationOptions({
+    (orpc as any).mailboxes.sync.mutationOptions({
       onSuccess: () => refetch(),
     }),
   );
 
   const testConnectionMutation = useMutation(
-    orpc.mailboxes.testConnection.mutationOptions({
+    (orpc as any).mailboxes.testConnection.mutationOptions({
       onSuccess: () => refetch(),
     }),
   );

@@ -11,14 +11,13 @@ function log(level: "warn" | "error", message: string, ctx?: Record<string, unkn
   }
 }
 
-export function createRedisDriver(options: DriverOptions = {}): CacheDriver {
+export function createRedisDriver(options: DriverOptions = {}, redisUrl?: string): CacheDriver {
   const prefix = options.prefix || "cache";
   let redis: Redis | null = null;
 
   function getClient(): Redis {
     if (!redis) {
-      // Note: REDIS_URL will be imported from env in the manager
-      redis = new Redis(process.env.REDIS_URL || "redis://localhost:6379", {
+      redis = new Redis(redisUrl || "redis://localhost:6379", {
         maxRetriesPerRequest: null,
         enableReadyCheck: false,
       });

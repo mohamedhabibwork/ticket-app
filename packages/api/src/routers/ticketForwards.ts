@@ -21,9 +21,9 @@ export const ticketForwardsRouter = {
         organizationId: z.coerce.number(),
         ticketId: z.coerce.number(),
         messageId: z.coerce.number().optional(),
-        to: z.array(z.string().email()),
-        cc: z.array(z.string().email()).optional(),
-        bcc: z.array(z.string().email()).optional(),
+        to: z.array(z.email()),
+        cc: z.array(z.email()).optional(),
+        bcc: z.array(z.email()).optional(),
         subject: z.string().optional(),
         body: z.string(),
         forwardedBy: z.coerce.number(),
@@ -32,7 +32,7 @@ export const ticketForwardsRouter = {
     .handler(async ({ input, context }) => {
       const canWrite = await hasPermission(
         {
-          userId: Number(context.auth.userId),
+          userId: Number(context.auth!.userId),
           organizationId: input.organizationId,
         },
         buildPermissionKey(PERMISSION_GROUPS.TICKET_FORWARDS, PERMISSION_ACTIONS.WRITE),
@@ -47,7 +47,7 @@ export const ticketForwardsRouter = {
         with: { mailbox: true },
       });
 
-      if (!ticket?.mailboxId) {
+      if (!ticket?.mailboxId || !ticket.mailbox) {
         throw new Error("Ticket has no associated mailbox");
       }
 
@@ -56,13 +56,13 @@ export const ticketForwardsRouter = {
         .values({
           ticketId: input.ticketId,
           ticketMessageId: input.messageId,
-          to: input.to,
-          cc: input.cc || [],
-          bcc: input.bcc || [],
+          forwardedTo: input.to,
+          ccEmails: input.cc || [],
+          bccEmails: input.bcc || [],
           subject: input.subject,
-          body: input.body,
-          createdBy: input.forwardedBy,
-        } as any)
+          bodyHtml: input.body,
+          forwardedBy: input.forwardedBy,
+        })
         .returning();
 
       const messageId = `forward-${randomBytes(8).toString("hex")}@ticket-app`;
@@ -70,11 +70,12 @@ export const ticketForwardsRouter = {
       const [emailMessage] = await db
         .insert(emailMessages)
         .values({
-          organizationId: ticket.organizationId,
+          organizationId: input.organizationId,
           mailboxId: ticket.mailboxId,
           ticketId: input.ticketId,
           direction: "outbound",
           messageId,
+          fromEmail: ticket.mailbox.email,
           toEmails: input.to,
           ccEmails: input.cc || null,
           bccEmails: input.bcc || null,
@@ -82,10 +83,10 @@ export const ticketForwardsRouter = {
           bodyHtml: input.body,
           sentAt: new Date(),
           receivedAt: new Date(),
-        } as any)
+        })
         .returning();
 
-      await addEmailSendJob(emailMessage?.id);
+      await addEmailSendJob(emailMessage!.id);
 
       return forward;
     }),
@@ -102,7 +103,7 @@ export const ticketForwardsRouter = {
     .handler(async ({ input, context }) => {
       const canRead = await hasPermission(
         {
-          userId: Number(context.auth.userId),
+          userId: Number(context.auth!.userId),
           organizationId: input.organizationId,
         },
         buildPermissionKey(PERMISSION_GROUPS.TICKET_FORWARDS, PERMISSION_ACTIONS.READ),
@@ -125,7 +126,7 @@ export const ticketForwardsRouter = {
     .handler(async ({ input, context }) => {
       const canRead = await hasPermission(
         {
-          userId: Number(context.auth.userId),
+          userId: Number(context.auth!.userId),
           organizationId: input.organizationId,
         },
         buildPermissionKey(PERMISSION_GROUPS.TICKET_FORWARDS, PERMISSION_ACTIONS.READ),

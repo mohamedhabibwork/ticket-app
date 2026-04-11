@@ -345,7 +345,7 @@ function AuditLogRoute() {
                 <Label htmlFor="action">Action</Label>
                 <Select
                   value={filters.action}
-                  onValueChange={(value) => setFilters((f) => ({ ...f, action: value }))}
+                  onValueChange={(value) => setFilters((f) => ({ ...f, action: value as string }))}
                 >
                   <SelectTrigger id="action">
                     <SelectValue placeholder="Select action" />
@@ -364,7 +364,9 @@ function AuditLogRoute() {
                 <Label htmlFor="resourceType">Resource Type</Label>
                 <Select
                   value={filters.resourceType}
-                  onValueChange={(value) => setFilters((f) => ({ ...f, resourceType: value }))}
+                  onValueChange={(value) =>
+                    setFilters((f) => ({ ...f, resourceType: value as string }))
+                  }
                 >
                   <SelectTrigger id="resourceType">
                     <SelectValue placeholder="Select resource" />

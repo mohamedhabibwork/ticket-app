@@ -60,13 +60,13 @@ function EmailTemplatesRoute() {
     isLoading,
     refetch,
   } = useQuery(
-    orpc.emailTemplates.list.queryOptions({
+    (orpc as any).emailTemplates.list.queryOptions({
       organizationId: 1,
-    }),
+    }) as any,
   );
 
   const createMutation = useMutation(
-    orpc.emailTemplates.create.mutationOptions({
+    (orpc as any).emailTemplates.create.mutationOptions({
       onSuccess: () => {
         setIsCreating(false);
         setEditData(null);
@@ -76,7 +76,7 @@ function EmailTemplatesRoute() {
   );
 
   const updateMutation = useMutation(
-    orpc.emailTemplates.update.mutationOptions({
+    (orpc as any).emailTemplates.update.mutationOptions({
       onSuccess: () => {
         setIsEditing(false);
         setEditData(null);
@@ -87,7 +87,7 @@ function EmailTemplatesRoute() {
   );
 
   const deleteMutation = useMutation(
-    orpc.emailTemplates.delete.mutationOptions({
+    (orpc as any).emailTemplates.delete.mutationOptions({
       onSuccess: () => {
         setSelectedTemplate(null);
         refetch();
@@ -118,13 +118,13 @@ function EmailTemplatesRoute() {
     if (!editData) return;
 
     if (editData.id) {
-      updateMutation.mutate({
+      (updateMutation as any).mutate({
         id: editData.id,
         organizationId: 1,
         data: editData,
       });
     } else {
-      createMutation.mutate({
+      (createMutation as any).mutate({
         organizationId: 1,
         ...editData,
       });
@@ -133,7 +133,7 @@ function EmailTemplatesRoute() {
 
   const handleDelete = (templateId: number) => {
     if (confirm("Are you sure you want to delete this template?")) {
-      deleteMutation.mutate({ id: templateId });
+      (deleteMutation as any).mutate({ id: templateId });
     }
   };
 
@@ -199,11 +199,11 @@ function EmailTemplatesRoute() {
           <Card>
             <CardHeader>
               <CardTitle>Templates</CardTitle>
-              <CardDescription>{templates?.length || 0} templates</CardDescription>
+              <CardDescription>{(templates as any)?.length || 0} templates</CardDescription>
             </CardHeader>
             <CardContent className="space-y-2">
-              {templates && templates.length > 0 ? (
-                templates.map((template) => (
+              {templates && (templates as any).length > 0 ? (
+                (templates as any).map((template: any) => (
                   <div
                     key={template.id}
                     className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors ${

@@ -80,11 +80,7 @@ class BullQueue implements QueueInterface {
     const jobs: QueueJob[] = [];
 
     for (const state of states) {
-      const stateJobs = await this.queue.getJobs({
-        type: state as any,
-        start: 0,
-        end: limit - 1,
-      });
+      const stateJobs = await this.queue.getJobs([state] as any, 0, limit);
       jobs.push(...stateJobs.map(toQueueJob));
     }
 

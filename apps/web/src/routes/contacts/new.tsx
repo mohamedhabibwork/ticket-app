@@ -108,7 +108,7 @@ function NewContactRoute() {
                 <Input
                   id="email"
                   type="email"
-                  placeholder="john.doe@example.com"
+                  placeholder="john.doe@habib.cloud"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />

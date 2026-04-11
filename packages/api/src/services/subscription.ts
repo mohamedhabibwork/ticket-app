@@ -227,9 +227,6 @@ export async function handlePaymentSuccess(subscriptionId: number): Promise<bool
 export async function checkAndTransitionFromTrial(subscriptionId: number): Promise<boolean> {
   const subscription = await db.query.subscriptions.findFirst({
     where: eq(subscriptions.id, subscriptionId),
-    with: {
-      stripeSubscription: true,
-    },
   });
 
   if (!subscription) {
@@ -239,11 +236,9 @@ export async function checkAndTransitionFromTrial(subscriptionId: number): Promi
   if (subscription.status === "trialing" && subscription.trialEnd) {
     const now = new Date();
     if (now >= subscription.trialEnd) {
-      if (subscription.stripeSubscription?.stripeSubscriptionId) {
+      if (subscription.stripeSubscriptionId) {
         try {
-          const stripeSub = await stripe.subscriptions.retrieve(
-            subscription.stripeSubscription.stripeSubscriptionId,
-          );
+          const stripeSub = await stripe.subscriptions.retrieve(subscription.stripeSubscriptionId);
 
           if (stripeSub.status === "active") {
             return transitionSubscriptionState(subscriptionId, "active", "trial_ended");

@@ -675,9 +675,9 @@ import { verifySession } from "@/lib/auth";
 import { z } from "zod";
 
 const updateProfileSchema = z.object({
-  userId: z.string().uuid(),
+  userId: z.uuid(),
   name: z.string().min(1).max(100),
-  email: z.string().email(),
+  email: z.email(),
 });
 
 export async function updateProfile(data: unknown) {
@@ -2506,7 +2506,7 @@ export default function Document() {
   return (
     <html>
       <head>
-        <script src="https://example.com/analytics.js" />
+        <script src="https://ticket.cloud.habib.cloud/analytics.js" />
         <script src="/scripts/utils.js" />
       </head>
       <body>{/* content */}</body>
@@ -2523,7 +2523,7 @@ import Script from "next/script";
 export default function Page() {
   return (
     <>
-      <Script src="https://example.com/analytics.js" strategy="afterInteractive" />
+      <Script src="https://ticket.cloud.habib.cloud/analytics.js" strategy="afterInteractive" />
       <Script src="/scripts/utils.js" strategy="beforeInteractive" />
     </>
   );
@@ -2586,8 +2586,8 @@ React DOM provides APIs to hint the browser about resources it will need. These 
 import { preconnect, prefetchDNS } from "react-dom";
 
 export default function App() {
-  prefetchDNS("https://analytics.example.com");
-  preconnect("https://api.example.com");
+  prefetchDNS("https://analytics.ticket.cloud.habib.cloud");
+  preconnect("https://api.ticket.cloud.habib.cloud");
 
   return <main>{/* content */}</main>;
 }

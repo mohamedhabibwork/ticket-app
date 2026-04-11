@@ -90,7 +90,9 @@ export async function decodeLicenseJWT(token: string): Promise<JWTPayload | null
       return null;
     }
 
-    const [headerB64, payloadB64, signatureB64] = parts;
+    const headerB64 = parts[0]!;
+    const payloadB64 = parts[1]!;
+    const signatureB64 = parts[2]!;
 
     const header = JSON.parse(base64UrlDecode(headerB64).toString("utf8"));
     if (header.alg !== "RS256") {

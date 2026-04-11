@@ -2,15 +2,13 @@ import { useQuery } from "@tanstack/react-query";
 import { orpc } from "../../../utils/orpc";
 
 export default function AdminBillingPage() {
-  const { data: stats, isLoading: statsLoading } = useQuery({
-    queryKey: ["platformStats"],
-    queryFn: () => orpc.admin.getPlatformStats.query(),
-  });
+  const { data: stats, isLoading: statsLoading } = useQuery(
+    (orpc as any).admin.getPlatformStats.queryOptions() as any,
+  ) as any;
 
-  const { data: organizations, isLoading: orgsLoading } = useQuery({
-    queryKey: ["allOrganizations"],
-    queryFn: () => orpc.admin.listOrganizations.query({ page: 1, limit: 100 }),
-  });
+  const { data: organizations, isLoading: orgsLoading } = useQuery(
+    (orpc as any).admin.listOrganizations.queryOptions({ page: 1, limit: 100 } as any) as any,
+  ) as any;
 
   if (statsLoading || orgsLoading) {
     return (

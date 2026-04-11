@@ -216,15 +216,22 @@ View ticket: ${ticketUrl}`,
       warning: { bg: "#fef3c7", border: "#f59e0b", text: "#92400e" },
       critical: { bg: "#fef2f2", border: "#ef4444", text: "#991b1b" },
     };
-    const colors = severityColors[severity] ?? severityColors["info"];
+    const colors = severityColors[severity] ?? {
+      bg: "#eff6ff",
+      border: "#3b82f6",
+      text: "#1e40af",
+    };
+    const colorsBg = colors?.bg ?? "#eff6ff";
+    const colorsBorder = colors?.border ?? "#3b82f6";
+    const colorsText = colors?.text ?? "#1e40af";
 
     return {
       subject: `System Alert: ${message.substring(0, 50)}${message.length > 50 ? "..." : ""}`,
       html: wrapperHtml(`
         ${headerHtml}
         <div style="padding: 24px;">
-          <div style="background-color: ${colors.bg}; border-left: 4px solid ${colors.border}; padding: 16px; margin-bottom: 24px;">
-            <p style="margin: 0; color: ${colors.text}; font-weight: 600;">System Alert</p>
+          <div style="background-color: ${colorsBg}; border-left: 4px solid ${colorsBorder}; padding: 16px; margin-bottom: 24px;">
+            <p style="margin: 0; color: ${colorsText}; font-weight: 600;">System Alert</p>
           </div>
           <p style="margin: 0 0 24px; color: #374151; font-size: 16px;">${message}</p>
         </div>

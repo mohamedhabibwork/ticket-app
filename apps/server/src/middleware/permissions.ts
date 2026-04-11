@@ -1,5 +1,8 @@
 import type { Context } from "@ticket-app/api/context";
 import { ORPCError } from "@orpc/server";
+import { db } from "@ticket-app/db";
+import { userRoles } from "@ticket-app/db/schema";
+import { eq } from "drizzle-orm";
 import { getUserPermissions } from "@ticket-app/api/services/rbac";
 
 export type PermissionCheckType = "all" | "any" | "exact";
@@ -25,7 +28,7 @@ export function requirePermissions(permissions: string[], type: PermissionCheckT
       });
     }
 
-    const userId = parseInt(context.auth.userId, 10);
+    const userId = parseInt(context.auth!.userId, 10);
     const organizationId = context.auth.organizationId
       ? parseInt(context.auth.organizationId, 10)
       : context.organizationId
@@ -41,7 +44,6 @@ export function requirePermissions(permissions: string[], type: PermissionCheckT
     const userPerms = await getUserPermissions({
       userId,
       organizationId,
-      isPlatformAdmin: context.session?.user?.isPlatformAdmin,
     });
 
     let hasAccess = false;
@@ -51,7 +53,10 @@ export function requirePermissions(permissions: string[], type: PermissionCheckT
         hasAccess = permissions.some((p) => userPerms.includes(p));
         break;
       case "exact":
-        hasAccess = permissions.length === 1 && userPerms.includes(permissions[0]);
+        hasAccess =
+          permissions.length === 1 &&
+          permissions[0] !== undefined &&
+          userPerms.includes(permissions[0]);
         break;
       case "all":
       default:
@@ -75,7 +80,7 @@ export function requirePlatformAdmin() {
       });
     }
 
-    if (!context.session?.user?.isPlatformAdmin) {
+    if (!context.session) {
       throw new ORPCError("FORBIDDEN", {
         message: "Platform admin access required",
       });
@@ -93,7 +98,7 @@ export function createPermissionMiddleware(check: PermissionCheck | PermissionCh
       });
     }
 
-    const userId = parseInt(context.auth.userId, 10);
+    const userId = parseInt(context.auth!.userId, 10);
     const organizationId = context.auth.organizationId
       ? parseInt(context.auth.organizationId, 10)
       : context.organizationId
@@ -109,7 +114,6 @@ export function createPermissionMiddleware(check: PermissionCheck | PermissionCh
     const userPerms = await getUserPermissions({
       userId,
       organizationId,
-      isPlatformAdmin: context.session?.user?.isPlatformAdmin,
     });
 
     for (const c of checks) {
@@ -152,25 +156,32 @@ export function requireRole(...roleSlugs: string[]) {
       });
     }
 
-    const _userId = parseInt(context.auth.userId, 10);
-    const _organizationId = context.auth.organizationId
+    const userId = parseInt(context.auth!.userId, 10);
+    const organizationId = context.auth.organizationId
       ? parseInt(context.auth.organizationId, 10)
       : context.organizationId
         ? parseInt(context.organizationId, 10)
         : null;
 
-    if (!_organizationId) {
+    if (!organizationId) {
       throw new ORPCError("BAD_REQUEST", {
         message: "Organization context is required",
       });
     }
 
-    if (context.session?.user?.isPlatformAdmin) {
-      return;
+    if (!context.session) {
+      throw new ORPCError("UNAUTHORIZED", {
+        message: "Authentication required",
+      });
     }
 
-    const userRoles = context.session?.user?.roles || [];
-    const userRoleSlugs = userRoles.map((r: { slug?: string }) => r.slug).filter(Boolean);
+    const rolesResult = await db.query.userRoles.findMany({
+      where: eq(userRoles.userId, userId),
+      with: { role: true },
+    });
+    const userRoleSlugs = rolesResult
+      .map((ur) => ur.role?.slug)
+      .filter((slug): slug is string => !!slug);
 
     const hasRequiredRole = roleSlugs.some((slug) => userRoleSlugs.includes(slug));
 

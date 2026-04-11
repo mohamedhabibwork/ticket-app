@@ -64,7 +64,7 @@ export type MyAgentUIMessage = InferAgentUIMessage<typeof myAgent>;
 import { z } from "zod";
 
 const metadataSchema = z.object({
-  createdAt: z.number(),
+  createdAt: z.coerce.number(),
   model: z.string().optional(),
 });
 

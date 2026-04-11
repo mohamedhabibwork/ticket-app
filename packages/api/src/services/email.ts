@@ -223,6 +223,10 @@ export async function processEmailToTicket(
   const sequence = (countResult[0]?.count ?? 0) + 1;
   const referenceNumber = `${prefix}${sequence.toString().padStart(6, "0")}`;
 
+  if (defaultStatusId === undefined || defaultPriorityId === undefined) {
+    throw new Error("Default status or priority lookup not found");
+  }
+
   const [ticket] = await db
     .insert(tickets)
     .values({
@@ -231,17 +235,22 @@ export async function processEmailToTicket(
       referenceNumber,
       subject: email.subject || "(No Subject)",
       descriptionHtml: email.bodyHtml,
-      channelId: channelLookup?.id,
-      contactId: contact?.id,
+      channelId: channelLookup?.id ?? null,
+      contactId: contact?.id ?? null,
       statusId: defaultStatusId,
       priorityId: defaultPriorityId,
-      parentTicketId,
+      parentTicketId: parentTicketId ?? null,
     })
     .returning();
 
+  if (!ticket) {
+    throw new Error("Failed to create ticket");
+  }
+  const ticketData = ticket!;
+
   await db
     .update(emailMessages)
-    .set({ ticketId: ticket!.id })
+    .set({ ticketId: ticketData.id })
     .where(eq(emailMessages.id, savedEmailMessage!.id));
 
   await db

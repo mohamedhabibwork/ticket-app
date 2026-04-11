@@ -22,6 +22,8 @@ import {
 } from "lucide-react";
 import { orpc } from "@/utils/orpc";
 
+const marketplaceOrpc = orpc as any;
+
 function formatRelativeTime(date: Date | string): string {
   const now = new Date();
   const then = new Date(date);
@@ -75,15 +77,16 @@ function AmazonSellerCentralRoute() {
     isLoading,
     refetch,
   } = useQuery(
-    orpc.marketplace.listAccounts.queryOptions({
+    marketplaceOrpc.marketplace.listAccounts.queryOptions({
       organizationId: 1,
     }),
   );
 
-  const amazonAccounts = accounts?.filter((a) => a.platform === "amazon_seller") || [];
+  const amazonAccounts =
+    (accounts as any[])?.filter((a: any) => a.platform === "amazon_seller") || [];
 
   const connectMutation = useMutation(
-    orpc.marketplace.connectMarketplace.mutationOptions({
+    (marketplaceOrpc.marketplace.connectMarketplace as any).mutationOptions({
       onSuccess: () => {
         refetch();
         setAccountName("");
@@ -95,13 +98,13 @@ function AmazonSellerCentralRoute() {
         setShowManualForm(false);
       },
     }),
-  );
+  ) as any;
 
   const disconnectMutation = useMutation(
-    orpc.marketplace.disconnect.mutationOptions({
+    (marketplaceOrpc.marketplace.disconnect as any).mutationOptions({
       onSuccess: () => refetch(),
     }),
-  );
+  ) as any;
 
   const handleManualConnect = () => {
     if (
@@ -125,7 +128,8 @@ function AmazonSellerCentralRoute() {
     });
   };
 
-  const getMarketplaceName = (id: string) => {
+  const getMarketplaceName = (id: string | null) => {
+    if (!id) return "Unknown";
     const marketplace = marketplaceRegions.find((m) => m.id === id);
     return marketplace ? `${marketplace.name} (${marketplace.code})` : id;
   };
@@ -165,7 +169,7 @@ function AmazonSellerCentralRoute() {
   return (
     <div className="container mx-auto max-w-4xl px-4 py-6">
       <div className="mb-6">
-        <Link to="/admin/ecommerce/">
+        <Link to="/admin/ecommerce">
           <Button variant="ghost" className="mb-4">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to eCommerce Stores
@@ -197,7 +201,7 @@ function AmazonSellerCentralRoute() {
               </div>
             ) : amazonAccounts.length > 0 ? (
               <div className="space-y-3">
-                {amazonAccounts.map((account) => (
+                {amazonAccounts.map((account: any) => (
                   <div
                     key={account.id}
                     className="flex items-center justify-between p-3 rounded bg-green-50 dark:bg-green-950/20"

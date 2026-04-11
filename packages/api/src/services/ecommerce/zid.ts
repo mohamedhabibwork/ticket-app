@@ -30,7 +30,7 @@ interface ZidOrder {
   extra_fields: Array<{ key: string; value: string }>;
 }
 
-type ZidOrderStatus =
+export type ZidOrderStatus =
   | "pending"
   | "under_review"
   | "approved"
@@ -138,7 +138,7 @@ export async function zidApiRequest<T>(
     throw new Error(`Zid API error: ${response.status} - ${error}`);
   }
 
-  return response.json();
+  return response.json() as T;
 }
 
 export async function fetchZidOrders(

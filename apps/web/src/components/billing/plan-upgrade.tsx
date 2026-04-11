@@ -26,35 +26,25 @@ export function PlanUpgrade({ currentPlan, availablePlans, onSuccess }: PlanUpgr
   const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("annual");
   const queryClient = useQueryClient();
 
-  const upgradeMutation = useMutation({
-    mutationFn: async ({ planId }: { planId: number }) => {
-      return await orpc.subscriptions.create.mutate({
-        organizationId: 1,
-        planId,
-        billingCycle,
-        seatCount: 1,
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["subscription"] });
-      setIsOpen(false);
-      onSuccess?.();
-    },
-  });
+  const upgradeMutation = useMutation(
+    (orpc as any).subscriptions.create.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["subscription"] });
+        setIsOpen(false);
+        onSuccess?.();
+      },
+    }),
+  );
 
-  const updateMutation = useMutation({
-    mutationFn: async ({ planId }: { planId: number }) => {
-      return await orpc.subscriptions.update.mutate({
-        organizationId: 1,
-        planId,
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["subscription"] });
-      setIsOpen(false);
-      onSuccess?.();
-    },
-  });
+  const updateMutation = useMutation(
+    (orpc as any).subscriptions.update.mutationOptions({
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["subscription"] });
+        setIsOpen(false);
+        onSuccess?.();
+      },
+    }),
+  );
 
   const planIcons: Record<string, string> = {
     free: "🚀",
@@ -68,11 +58,21 @@ export function PlanUpgrade({ currentPlan, availablePlans, onSuccess }: PlanUpgr
     return availablePlans.findIndex((p) => p.slug === currentPlan.slug);
   };
 
-  const handleUpgrade = (planId: number) => {
+  const handleUpgrade = async (planId: number) => {
     if (currentPlan) {
-      updateMutation.mutate({ planId });
+      await updateMutation.mutateAsync({
+        organizationId: 1,
+        planId,
+        billingCycle,
+        seatCount: 1,
+      } as any);
     } else {
-      upgradeMutation.mutate({ planId });
+      await upgradeMutation.mutateAsync({
+        organizationId: 1,
+        planId,
+        billingCycle,
+        seatCount: 1,
+      } as any);
     }
   };
 

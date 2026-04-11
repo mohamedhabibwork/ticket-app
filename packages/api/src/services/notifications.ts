@@ -1,6 +1,12 @@
 import { eq, and, desc } from "drizzle-orm";
 import { db } from "@ticket-app/db";
-import { notifications, notificationChannels, users, organizations } from "@ticket-app/db/schema";
+import {
+  notifications,
+  notificationChannels,
+  users,
+  organizations,
+  teamMembers,
+} from "@ticket-app/db/schema";
 import { addNotificationJob } from "@ticket-app/db/lib/queues";
 
 export const NOTIFICATION_TYPES = {
@@ -58,13 +64,13 @@ export async function createTeamNotification(
   organizationId: number,
   params: Omit<CreateNotificationParams, "userId" | "organizationId">,
 ): Promise<void> {
-  const teamMembers = await db.query.teamMembers.findMany({
+  const members = await db.query.teamMembers.findMany({
     where: eq(teamMembers.teamId, teamId),
     with: { user: true },
   });
 
   await Promise.all(
-    teamMembers.map((member) =>
+    members.map((member) =>
       createNotification({
         userId: member.userId,
         organizationId,
@@ -144,7 +150,7 @@ export async function getUserNotificationPreferences(
 
   if (!user) return null;
 
-  const _channelsUnused = await db.query.notificationChannels.findMany({
+  await db.query.notificationChannels.findMany({
     where: eq(notificationChannels.userId, userId),
   });
 
@@ -168,7 +174,7 @@ export async function getUserNotificationPreferences(
   };
 
   const userAny = user as any;
-  if (!userAny.metadata || typeof user.metadata !== "object") {
+  if (!userAny.metadata || typeof userAny.metadata !== "object") {
     return defaultPrefs;
   }
 
@@ -194,6 +200,7 @@ export async function updateUserNotificationPreferences(
 
   if (!user) return;
 
+  const userAny = user as any;
   const existingMeta = (userAny.metadata as Record<string, unknown>) || {};
   const updatedMeta = { ...existingMeta, ...prefs };
 
@@ -230,7 +237,7 @@ export async function getSlackWebhookUrl(organizationId: number): Promise<string
   });
 
   const orgAny = org as any;
-  if (!orgAny || !orgAny.metadata || typeof org.metadata !== "object") {
+  if (!orgAny || !orgAny.metadata || typeof orgAny.metadata !== "object") {
     return null;
   }
 
@@ -248,6 +255,7 @@ export async function setSlackWebhookUrl(
 
   if (!org) return;
 
+  const orgAny = org as any;
   const existingMeta = (orgAny.metadata as Record<string, unknown>) || {};
   await db
     .update(organizations)

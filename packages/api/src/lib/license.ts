@@ -157,7 +157,7 @@ export async function verifyLicenseKey(
 }
 
 export async function validateSeatLimit(
-  organizationId: number,
+  _organizationId: number,
   currentSeatCount: number,
   seatLimit: number,
 ): Promise<{ allowed: boolean; message?: string }> {

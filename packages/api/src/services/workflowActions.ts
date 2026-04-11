@@ -1,5 +1,6 @@
 import { db } from "@ticket-app/db";
 import { tickets, ticketTags, tags, ticketMessages } from "@ticket-app/db/schema/_tickets";
+import { ticketSla, slaPolicyTargets } from "@ticket-app/db/schema/_sla";
 import { tasks, taskAssignees } from "@ticket-app/db/schema/_tasks";
 import { lookups } from "@ticket-app/db/schema/_lookups";
 import { mailboxes, emailMessages } from "@ticket-app/db/schema/_mailboxes";
@@ -234,7 +235,7 @@ export const workflowActions = {
     context: ActionContext,
   ): Promise<ActionResult> {
     const tagIds = params.tagIds as number[];
-    const organizationId = ticket.organizationId as number;
+    const organizationId = _ticket.organizationId as number;
 
     const addedTags: number[] = [];
 
@@ -461,7 +462,7 @@ export const workflowActions = {
 
   async addNote(
     params: Record<string, unknown>,
-    ticket: Record<string, unknown>,
+    _ticket: Record<string, unknown>,
     context: ActionContext,
   ): Promise<ActionResult> {
     const body = params.body as string;
@@ -530,8 +531,6 @@ export const workflowActions = {
     const description = params.description as string;
     const durationMinutes = (params.durationMinutes as number) || 30;
     const addAttendees = params.addAttendees as boolean;
-    const _agentCalendarConnectionId = params.agentCalendarConnectionId as number;
-    const _organizationId = ticket.organizationId as number;
 
     if (!title) {
       return {
@@ -560,7 +559,7 @@ export const workflowActions = {
 
     let calendarEvent;
     try {
-      const { _calendarRouter } = await import("../routers/calendar");
+      await import("../routers/calendar");
 
       const connection = await db.query.agentCalendarConnections.findFirst({
         where: and(
@@ -626,15 +625,12 @@ export const workflowActions = {
 
     if (!slaPolicyTargetId) {
       const sla = await db.query.ticketSla.findFirst({
-        where: eq(db.query.ticketSla.baseTable.ticketId, context.ticketId),
+        where: eq(ticketSla.ticketId, context.ticketId),
         with: {
           slaPolicy: {
             with: {
               targets: {
-                where: eq(
-                  db.query.slaPolicyTargets.baseTable.priorityId,
-                  ticket.priorityId as number,
-                ),
+                where: eq(slaPolicyTargets.priorityId, ticket.priorityId as number),
               },
             },
           },

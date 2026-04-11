@@ -18,11 +18,12 @@ const DEFAULT_CONFIG: IpWhitelistConfig = {
 
 function ipToNumber(ip: string): number {
   const parts = ip.split(".").map(Number);
-  return (parts[0] << 24) | (parts[1] << 16) | (parts[2] << 8) | parts[3];
-}
-
-function _ipToRange(startIp: string, endIp: string): { start: number; end: number } {
-  return { start: ipToNumber(startIp), end: ipToNumber(endIp) };
+  if (parts.length !== 4) {
+    return 0;
+  }
+  return (
+    ((parts[0] ?? 0) << 24) | ((parts[1] ?? 0) << 16) | ((parts[2] ?? 0) << 8) | (parts[3] ?? 0)
+  );
 }
 
 function parseCidr(cidr: string): { start: number; end: number } | null {
@@ -99,18 +100,21 @@ export async function checkIpWhitelist(
       }
     }
 
-    logger.warn("IP blocked by whitelist", {
-      organizationId,
-      clientIp: normalizedClientIp,
-      whitelistedRanges: whitelistEntries.map((e) => e.ipRange),
-    });
+    logger.warn(
+      {
+        organizationId,
+        clientIp: normalizedClientIp,
+        whitelistedRanges: whitelistEntries.map((e) => e.ipRange),
+      },
+      "IP blocked by whitelist",
+    );
 
     return {
       allowed: false,
       reason: `IP address ${normalizedClientIp} is not in the organization's allowed IP list`,
     };
   } catch (error) {
-    logger.error("IP whitelist check failed", { error, organizationId, clientIp });
+    logger.error({ error, organizationId, clientIp }, "IP whitelist check failed");
     return { allowed: true };
   }
 }
@@ -138,12 +142,15 @@ export function ipWhitelistMiddleware(config: IpWhitelistConfig = DEFAULT_CONFIG
     const { allowed, reason } = await checkIpWhitelist(organizationId, clientIp, context);
 
     if (!allowed) {
-      logger.warn("IP whitelist blocked request", {
-        organizationId,
-        clientIp,
-        operation: operation.name,
-        reason,
-      });
+      logger.warn(
+        {
+          organizationId,
+          clientIp,
+          operation: operation.name,
+          reason,
+        },
+        "IP whitelist blocked request",
+      );
 
       throw new Error(`Access denied: ${reason}`);
     }

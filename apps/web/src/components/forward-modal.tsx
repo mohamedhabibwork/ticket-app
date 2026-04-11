@@ -83,7 +83,7 @@ export function ForwardModal({
               type="text"
               value={to}
               onChange={(e) => setTo(e.target.value)}
-              placeholder="email@example.com, email2@example.com"
+              placeholder="email@habib.cloud, email2@habib.cloud"
               className="w-full rounded border px-3 py-2"
               required
             />
@@ -95,7 +95,7 @@ export function ForwardModal({
               type="text"
               value={cc}
               onChange={(e) => setCc(e.target.value)}
-              placeholder="cc@example.com"
+              placeholder="cc@habib.cloud"
               className="w-full rounded border px-3 py-2"
             />
           </div>
@@ -106,7 +106,7 @@ export function ForwardModal({
               type="text"
               value={bcc}
               onChange={(e) => setBcc(e.target.value)}
-              placeholder="bcc@example.com"
+              placeholder="bcc@habib.cloud"
               className="w-full rounded border px-3 py-2"
             />
           </div>

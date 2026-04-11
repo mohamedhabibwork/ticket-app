@@ -150,7 +150,7 @@ function InviteUserRoute() {
                   type="email"
                   value={formData.email}
                   onChange={(e) => handleChange("email", e.target.value)}
-                  placeholder="john.doe@example.com"
+                  placeholder="john.doe@habib.cloud"
                   className="pl-9"
                   hasError={!!errors.email}
                 />

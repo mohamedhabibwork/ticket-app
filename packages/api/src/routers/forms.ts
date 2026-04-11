@@ -85,7 +85,7 @@ export const formsRouter = {
         formId: z.coerce.number(),
         organizationId: z.coerce.number(),
         fields: z.record(z.string(), z.string()),
-        email: z.string().email().optional(),
+        email: z.email().optional(),
         firstName: z.string().optional(),
         lastName: z.string().optional(),
         ipAddress: z.string().optional(),

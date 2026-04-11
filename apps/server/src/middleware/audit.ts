@@ -1,4 +1,4 @@
-import type { Context } from "@ticket-app/api/src/context";
+import type { Context } from "@ticket-app/api/context";
 import { db } from "@ticket-app/db";
 import { auditLogs } from "@ticket-app/db/schema";
 
@@ -57,19 +57,22 @@ export async function createAuditLog(context: AuditContext, entry: AuditEntry): 
       })
       .returning();
 
-    logger.info("Audit log created", {
-      auditId: auditLog?.id,
-      action: entry.action,
-      resourceType: entry.resourceType,
-    });
+    logger.info(
+      {
+        auditId: auditLog?.id,
+        action: entry.action,
+        resourceType: entry.resourceType,
+      },
+      "Audit log created",
+    );
   } catch (error) {
-    logger.error("Failed to create audit log", { error, entry });
+    logger.error({ error, entry }, "Failed to create audit log");
   }
 }
 
 export function auditMiddleware() {
   return async function auditHandler(
-    context: Context,
+    _context: Context,
     operation: { name?: string },
     handler: () => Promise<unknown>,
   ): Promise<unknown> {
@@ -80,21 +83,27 @@ export function auditMiddleware() {
       const result = await handler();
 
       const duration = Date.now() - startTime;
-      logger.info("Operation completed", {
-        operation: operationName,
-        duration,
-        status: "success",
-      });
+      logger.info(
+        {
+          operation: operationName,
+          duration,
+          status: "success",
+        },
+        "Operation completed",
+      );
 
       return result;
     } catch (error) {
       const duration = Date.now() - startTime;
-      logger.error("Operation failed", {
-        operation: operationName,
-        duration,
-        status: "error",
-        error: error instanceof Error ? error.message : String(error),
-      });
+      logger.error(
+        {
+          operation: operationName,
+          duration,
+          status: "error",
+          error: error instanceof Error ? error.message : String(error),
+        },
+        "Operation failed",
+      );
 
       throw error;
     }

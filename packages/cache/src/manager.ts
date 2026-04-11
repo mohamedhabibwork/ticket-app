@@ -47,7 +47,7 @@ function createManager(): CacheManager {
   let driver: CacheDriver;
 
   if (driverType === "redis") {
-    driver = createRedisDriver({ prefix });
+    driver = createRedisDriver({ prefix }, env.REDIS_URL);
   } else {
     driver = createMemoryDriver({ prefix });
   }

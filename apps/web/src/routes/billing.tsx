@@ -1,31 +1,25 @@
 import { useQuery } from "@tanstack/react-query";
-import { orpc } from "../../utils/orpc";
-import { PlanUpgrade } from "../../components/billing/plan-upgrade";
-import { SeatManagement } from "../../components/billing/seat-management";
+import { orpc } from "../utils/orpc";
+import { PlanUpgrade } from "../components/billing/plan-upgrade";
+import { SeatManagement } from "../components/billing/seat-management";
 import { useState } from "react";
 
 export default function BillingPage() {
   const [activeTab, setActiveTab] = useState("subscription");
 
-  const { data: subscription, isLoading: subLoading } = useQuery({
-    queryKey: ["subscription"],
-    queryFn: () => orpc.subscriptions.get.query({ organizationId: 1 }),
-  });
+  const { data: subscription, isLoading: subLoading } = useQuery(
+    orpc.subscriptions.get.queryOptions({ organizationId: 1 }),
+  );
 
-  const { data: invoices, isLoading: invoicesLoading } = useQuery({
-    queryKey: ["invoices"],
-    queryFn: () => orpc.invoices.list.query({ organizationId: 1, page: 1, limit: 20 }),
-  });
+  const { data: invoices, isLoading: invoicesLoading } = useQuery(
+    orpc.invoices.list.queryOptions({ organizationId: 1, page: 1, limit: 20 }),
+  );
 
-  const { data: paymentMethods } = useQuery({
-    queryKey: ["paymentMethods"],
-    queryFn: () => orpc.paymentMethods.list.query({ organizationId: 1 }),
-  });
+  const { data: paymentMethods } = useQuery(
+    orpc.paymentMethods.list.queryOptions({ organizationId: 1 }),
+  );
 
-  const { data: plans } = useQuery({
-    queryKey: ["plans"],
-    queryFn: () => orpc.subscriptions.getAvailablePlans.query(),
-  });
+  const { data: plans } = useQuery(orpc.subscriptions.getAvailablePlans.queryOptions());
 
   if (subLoading) {
     return (

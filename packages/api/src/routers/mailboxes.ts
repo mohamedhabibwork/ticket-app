@@ -93,8 +93,8 @@ export const mailboxesRouter = {
       z.object({
         organizationId: z.coerce.number(),
         name: z.string().min(1).max(150),
-        email: z.string().email(),
-        replyTo: z.string().email().optional(),
+        email: z.email(),
+        replyTo: z.email().optional(),
         connectionType: z.string(),
         isActive: z.coerce.boolean().default(true),
         isDefault: z.coerce.boolean().default(false),
@@ -131,7 +131,7 @@ export const mailboxesRouter = {
         id: z.coerce.number(),
         organizationId: z.coerce.number(),
         name: z.string().min(1).max(150).optional(),
-        replyTo: z.string().email().optional(),
+        replyTo: z.email().optional(),
         isActive: z.coerce.boolean().optional(),
         isDefault: z.coerce.boolean().optional(),
         autoReplyEnabled: z.coerce.boolean().optional(),
@@ -213,7 +213,18 @@ export const mailboxesRouter = {
       if (mailbox.imapConfig) {
         try {
           const { testImapConnection } = await import("../services/imapService");
-          results.imap = await testImapConnection(mailbox.imapConfig);
+          const imapConfig = {
+            id: Number(mailbox.imapConfig.id),
+            host: mailbox.imapConfig.host,
+            port: Number(mailbox.imapConfig.port),
+            username: mailbox.imapConfig.username,
+            passwordEnc: mailbox.imapConfig.passwordEnc ?? undefined,
+            useSsl: mailbox.imapConfig.useSsl,
+            oauthTokenEnc: mailbox.imapConfig.oauthTokenEnc ?? undefined,
+            oauthRefreshTokenEnc: mailbox.imapConfig.oauthRefreshTokenEnc ?? undefined,
+            oauthExpiresAt: mailbox.imapConfig.oauthExpiresAt ?? undefined,
+          };
+          results.imap = await testImapConnection(imapConfig);
         } catch (e) {
           results.imap.error = e instanceof Error ? e.message : "IMAP connection failed";
         }
@@ -222,7 +233,17 @@ export const mailboxesRouter = {
       if (mailbox.smtpConfig) {
         try {
           const { testSmtpConnection } = await import("../services/smtpService");
-          results.smtp = await testSmtpConnection(mailbox.smtpConfig);
+          const smtpConfig = {
+            id: Number(mailbox.smtpConfig.id),
+            host: mailbox.smtpConfig.host,
+            port: Number(mailbox.smtpConfig.port),
+            username: mailbox.smtpConfig.username,
+            passwordEnc: mailbox.smtpConfig.passwordEnc ?? undefined,
+            useSsl: mailbox.smtpConfig.useTls,
+            useTls: mailbox.smtpConfig.useTls,
+            fromName: mailbox.smtpConfig.fromName ?? undefined,
+          };
+          results.smtp = await testSmtpConnection(smtpConfig);
         } catch (e) {
           results.smtp.error = e instanceof Error ? e.message : "SMTP connection failed";
         }
@@ -246,7 +267,7 @@ export const mailboxesRouter = {
         password: z.string(),
         useSsl: z.coerce.boolean().default(true),
         useTls: z.coerce.boolean().default(false),
-        folderMapping: z.record(z.string()).optional(),
+        folderMapping: z.record(z.string(), z.string()).optional(),
       }),
     )
     .handler(async ({ input }) => {
@@ -398,7 +419,7 @@ export const mailboxesRouter = {
       z.object({
         mailboxId: z.coerce.number(),
         organizationId: z.coerce.number(),
-        email: z.string().email(),
+        email: z.email(),
         name: z.string().optional(),
         isDefault: z.coerce.boolean().default(false),
       }),

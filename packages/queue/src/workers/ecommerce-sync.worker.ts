@@ -285,7 +285,7 @@ async function pollShopifyOrders(
 
     const response = await fetch(url, {
       headers: {
-        "X-Shopify-Access-Token": store.accessTokenEnc,
+        "X-Shopify-Access-Token": store.accessTokenEnc!,
         "Content-Type": "application/json",
       },
     });

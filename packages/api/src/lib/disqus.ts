@@ -83,7 +83,9 @@ export class DisqusClient {
     const forums = await this.request<DisqusForum[]>("forums/details", {
       forum: shortname,
     });
-    return forums[0];
+    const forum = forums[0];
+    if (!forum) throw new Error(`Forum ${shortname} not found`);
+    return forum;
   }
 
   async listPosts(forum: string, since?: Date): Promise<DisqusPost[]> {

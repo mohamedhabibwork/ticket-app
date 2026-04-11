@@ -24,7 +24,7 @@ export const mobileSdkRouter = {
     .handler(async ({ input, context }) => {
       const canRead = await hasPermission(
         {
-          userId: Number(context.auth.userId),
+          userId: Number(context.auth!.userId),
           organizationId: input.organizationId,
         },
         buildPermissionKey(PERMISSION_GROUPS.MOBILE_SDK, PERMISSION_ACTIONS.READ),
@@ -46,7 +46,7 @@ export const mobileSdkRouter = {
     .handler(async ({ input, context }) => {
       const canRead = await hasPermission(
         {
-          userId: Number(context.auth.userId),
+          userId: Number(context.auth!.userId),
           organizationId: input.organizationId,
         },
         buildPermissionKey(PERMISSION_GROUPS.MOBILE_SDK, PERMISSION_ACTIONS.READ),
@@ -80,7 +80,7 @@ export const mobileSdkRouter = {
     .handler(async ({ input, context }) => {
       const canWrite = await hasPermission(
         {
-          userId: Number(context.auth.userId),
+          userId: Number(context.auth!.userId),
           organizationId: input.organizationId,
         },
         buildPermissionKey(PERMISSION_GROUPS.MOBILE_SDK, PERMISSION_ACTIONS.WRITE),
@@ -124,7 +124,7 @@ export const mobileSdkRouter = {
     .handler(async ({ input, context }) => {
       const canWrite = await hasPermission(
         {
-          userId: Number(context.auth.userId),
+          userId: Number(context.auth!.userId),
           organizationId: input.organizationId,
         },
         buildPermissionKey(PERMISSION_GROUPS.MOBILE_SDK, PERMISSION_ACTIONS.WRITE),
@@ -155,7 +155,7 @@ export const mobileSdkRouter = {
     .handler(async ({ input, context }) => {
       const canWrite = await hasPermission(
         {
-          userId: Number(context.auth.userId),
+          userId: Number(context.auth!.userId),
           organizationId: input.organizationId,
         },
         buildPermissionKey(PERMISSION_GROUPS.MOBILE_SDK, PERMISSION_ACTIONS.WRITE),
@@ -182,7 +182,7 @@ export const mobileSdkRouter = {
     .handler(async ({ input, context }) => {
       const canWrite = await hasPermission(
         {
-          userId: Number(context.auth.userId),
+          userId: Number(context.auth!.userId),
           organizationId: input.organizationId,
         },
         buildPermissionKey(PERMISSION_GROUPS.MOBILE_SDK, PERMISSION_ACTIONS.WRITE),
@@ -225,7 +225,7 @@ export const mobileSdkRouter = {
     .handler(async ({ input, context }) => {
       const canRead = await hasPermission(
         {
-          userId: Number(context.auth.userId),
+          userId: Number(context.auth!.userId),
           organizationId: input.organizationId,
         },
         buildPermissionKey(PERMISSION_GROUPS.MOBILE_SDK, PERMISSION_ACTIONS.READ),
@@ -247,7 +247,7 @@ export const mobileSdkRouter = {
     .handler(async ({ input, context }) => {
       const canWrite = await hasPermission(
         {
-          userId: Number(context.auth.userId),
+          userId: Number(context.auth!.userId),
           organizationId: input.organizationId,
         },
         buildPermissionKey(PERMISSION_GROUPS.MOBILE_SDK, PERMISSION_ACTIONS.WRITE),
@@ -275,7 +275,7 @@ export const mobileSdkRouter = {
     .handler(async ({ input, context }) => {
       const canWrite = await hasPermission(
         {
-          userId: Number(context.auth.userId),
+          userId: Number(context.auth!.userId),
           organizationId: input.organizationId,
         },
         buildPermissionKey(PERMISSION_GROUPS.MOBILE_SDK, PERMISSION_ACTIONS.WRITE),
@@ -360,7 +360,7 @@ export const mobileSdkRouter = {
     .handler(async ({ input, context }) => {
       const canWrite = await hasPermission(
         {
-          userId: Number(context.auth.userId),
+          userId: Number(context.auth!.userId),
           organizationId: input.organizationId,
         },
         buildPermissionKey(PERMISSION_GROUPS.MOBILE_SDK, PERMISSION_ACTIONS.WRITE),
@@ -438,7 +438,7 @@ export const mobileSdkRouter = {
     .handler(async ({ input, context }) => {
       const canRead = await hasPermission(
         {
-          userId: Number(context.auth.userId),
+          userId: Number(context.auth!.userId),
           organizationId: input.organizationId,
         },
         buildPermissionKey(PERMISSION_GROUPS.MOBILE_SDK, PERMISSION_ACTIONS.READ),

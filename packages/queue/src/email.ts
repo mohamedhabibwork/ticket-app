@@ -7,7 +7,7 @@ let transporter: Transporter | null = null;
 export function getTransporter(): Transporter {
   if (!transporter) {
     transporter = nodemailer.createTransport({
-      host: env.SMTP_HOST || "", // e.g., "smtp.example.com"
+      host: env.SMTP_HOST || "", // e.g., "smtp.ticket.cloud.habib.cloud"
       port: env.SMTP_PORT || 587, // default to 587 if SMTP_PORT is not set
       secure: env.SMTP_SECURE || false, // true for 465, false for other ports
       auth: {

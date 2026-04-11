@@ -15,7 +15,7 @@ export const authRouter = {
   login: publicProcedure
     .input(
       z.object({
-        email: z.string().email(),
+        email: z.email(),
         password: z.string().min(1),
         ipAddress: z.string().optional(),
         userAgent: z.string().optional(),
@@ -35,7 +35,7 @@ export const authRouter = {
     .input(
       z.object({
         organizationId: z.coerce.number(),
-        email: z.string().email(),
+        email: z.email(),
         password: z.string().min(8),
         firstName: z.string().min(1).max(100),
         lastName: z.string().min(1).max(100),

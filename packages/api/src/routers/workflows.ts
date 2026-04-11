@@ -63,38 +63,6 @@ const createWorkflowSchema = z.object({
 
 const updateWorkflowSchema = createWorkflowSchema.partial();
 
-const _conditionEvaluator = (
-  ticket: Record<string, unknown>,
-  condition: z.infer<typeof workflowConditionSchema>,
-): boolean => {
-  const fieldValue = ticket[condition.field];
-
-  switch (condition.operator) {
-    case "equals":
-      return fieldValue === condition.value;
-    case "not_equals":
-      return fieldValue !== condition.value;
-    case "contains":
-      return typeof fieldValue === "string" && fieldValue.includes(String(condition.value));
-    case "not_contains":
-      return typeof fieldValue === "string" && !fieldValue.includes(String(condition.value));
-    case "greater_than":
-      return Number(fieldValue) > Number(condition.value);
-    case "less_than":
-      return Number(fieldValue) < Number(condition.value);
-    case "is_empty":
-      return fieldValue === null || fieldValue === undefined || fieldValue === "";
-    case "is_not_empty":
-      return fieldValue !== null && fieldValue !== undefined && fieldValue !== "";
-    case "in":
-      return Array.isArray(condition.value) && condition.value.includes(fieldValue);
-    case "not_in":
-      return Array.isArray(condition.value) && !condition.value.includes(fieldValue);
-    default:
-      return false;
-  }
-};
-
 export const workflowsRouter = {
   list: publicProcedure
     .input(

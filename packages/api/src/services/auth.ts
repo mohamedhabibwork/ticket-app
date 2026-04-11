@@ -246,12 +246,14 @@ export async function verify2FA(tempToken: string, code: string): Promise<AuthRe
 }
 
 export async function loginWithOAuth(
-  provider: "google",
+  _provider: "google",
   _tokens: OAuthTokens,
   userInfo: OAuthUserInfo,
   ipAddress?: string,
   userAgent?: string,
 ): Promise<AuthResult> {
+  void _provider;
+  void _tokens;
   const existingUser = await db.query.users.findFirst({
     where: and(eq(users.email, userInfo.email.toLowerCase()), isNull(users.deletedAt)),
     with: {

@@ -1,4 +1,4 @@
-import { NOTIFICATION_TYPES, NotificationType } from "./notifications";
+import { NOTIFICATION_TYPES, type NotificationType } from "./notifications";
 
 export interface TemplateData {
   ticket?: {

@@ -32,7 +32,7 @@ describe("Presence Events", () => {
     ticketId: 1,
     userId: 100,
     userName: "Test User",
-    avatarUrl: "https://example.com/avatar.png",
+    avatarUrl: "https://ticket.cloud.habib.cloud/avatar.png",
     joinedAt: new Date().toISOString(),
   };
 

@@ -3,6 +3,7 @@ import { useState, type ChangeEvent, type FormEvent } from "react";
 import { useNavigate } from "@tanstack/react-router";
 
 import { orpc } from "@/utils/orpc";
+import type { KbArticleSearchResult } from "@ticket-app/api/services/kbSearch";
 
 interface KbSearchProps {
   organizationId: number;
@@ -23,17 +24,12 @@ export function KbSearch({
   const navigate = useNavigate();
 
   const searchQuery = useQuery(
-    orpc.kbArticles.search.queryOptions(
-      {
-        organizationId,
-        query,
-        locale,
-        limit: 5,
-      },
-      {
-        enabled: query.length >= 2,
-      },
-    ),
+    (orpc as any).kbArticles.search.queryOptions({
+      organizationId,
+      query,
+      locale,
+      limit: 5,
+    }) as any,
   );
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -49,6 +45,7 @@ export function KbSearch({
   };
 
   const showResults = query.length >= 2 && !searchQuery.isLoading;
+  const articles = (searchQuery.data ?? []) as KbArticleSearchResult[];
 
   return (
     <div className={className}>
@@ -62,9 +59,9 @@ export function KbSearch({
           }
           className="w-full rounded-lg border border-input bg-background px-4 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         />
-        {showResults && searchQuery.data && searchQuery.data.length > 0 && (
+        {showResults && articles.length > 0 && (
           <div className="absolute left-0 right-0 top-full z-10 mt-1 max-h-96 overflow-auto rounded-lg border bg-background shadow-lg">
-            {searchQuery.data.map((article) => (
+            {articles.map((article: KbArticleSearchResult) => (
               <a
                 key={article.id}
                 href={`/kb/${article.slug}`}
@@ -81,7 +78,7 @@ export function KbSearch({
             ))}
           </div>
         )}
-        {showResults && searchQuery.data && searchQuery.data.length === 0 && (
+        {showResults && articles.length === 0 && (
           <div className="absolute left-0 right-0 top-full z-10 mt-1 rounded-lg border bg-background px-4 py-6 text-center shadow-lg">
             <p className="text-sm text-muted-foreground">
               {locale === "ar" ? "لم يتم العثور على نتائج" : "No results found"}

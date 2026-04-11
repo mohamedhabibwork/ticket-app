@@ -15,7 +15,7 @@ Use `withAppleZoom` on `Link.Trigger` to zoom the entire trigger element into th
   <Link.Trigger withAppleZoom>
     <Pressable>
       <Image
-        source={{ uri: "https://example.com/thumb.jpg" }}
+        source={{ uri: "https://ticket.cloud.habib.cloud/thumb.jpg" }}
         style={{ width: 120, height: 120, borderRadius: 12 }}
       />
     </Pressable>
@@ -33,7 +33,7 @@ Wrap only the element that should animate. Siblings outside `Link.AppleZoom` are
     <Pressable style={{ alignItems: "center" }}>
       <Link.AppleZoom>
         <Image
-          source={{ uri: "https://example.com/thumb.jpg" }}
+          source={{ uri: "https://ticket.cloud.habib.cloud/thumb.jpg" }}
           style={{ width: 200, aspectRatio: 4 / 3 }}
         />
       </Link.AppleZoom>
@@ -58,7 +58,7 @@ export default function PhotoScreen() {
     <View style={{ flex: 1 }}>
       <Link.AppleZoomTarget>
         <Image
-          source={{ uri: "https://example.com/full.jpg" }}
+          source={{ uri: "https://ticket.cloud.habib.cloud/full.jpg" }}
           style={{ width: "100%", aspectRatio: 4 / 3 }}
         />
       </Link.AppleZoomTarget>
@@ -76,7 +76,7 @@ For manual control over where the zoom lands on the destination, use `alignmentR
 
 ```tsx
 <Link.AppleZoom alignmentRect={{ x: 0, y: 0, width: 200, height: 300 }}>
-  <Image source={{ uri: "https://example.com/thumb.jpg" }} />
+  <Image source={{ uri: "https://ticket.cloud.habib.cloud/thumb.jpg" }} />
 </Link.AppleZoom>
 ```
 
@@ -93,7 +93,7 @@ import { usePreventZoomTransitionDismissal } from "expo-router";
 
 export default function PhotoScreen() {
   usePreventZoomTransitionDismissal();
-  return <Image source={{ uri: "https://example.com/full.jpg" }} />;
+  return <Image source={{ uri: "https://ticket.cloud.habib.cloud/full.jpg" }} />;
 }
 ```
 
@@ -123,7 +123,7 @@ Zoom transitions work alongside long-press previews:
   <Link.Trigger withAppleZoom>
     <Pressable>
       <Image
-        source={{ uri: "https://example.com/thumb.jpg" }}
+        source={{ uri: "https://ticket.cloud.habib.cloud/thumb.jpg" }}
         style={{ width: 120, height: 120 }}
       />
     </Pressable>

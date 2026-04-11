@@ -40,6 +40,42 @@ export interface FacebookConfig {
   callbackUrl: string;
 }
 
+interface FacebookTokenResponse {
+  access_token: string;
+  refresh_token?: string;
+  expires_in?: number;
+}
+
+interface FacebookPagesResponse {
+  data: FacebookPage[];
+}
+
+interface InstagramBusinessResponse {
+  instagram_business_account?: {
+    id: string;
+  };
+}
+
+interface FacebookLongLivedTokenResponse {
+  access_token: string;
+}
+
+interface FacebookConversationsResponse {
+  data: any[];
+}
+
+interface FacebookMessagesResponse {
+  data: any[];
+}
+
+interface FacebookSendMessageResponse {
+  message_id: string;
+}
+
+interface FacebookSendMessageResult {
+  messageId: string;
+}
+
 let facebookConfig: FacebookConfig | null = null;
 
 export function setFacebookConfig(config: FacebookConfig): void {
@@ -95,7 +131,7 @@ export async function exchangeFacebookCode(code: string): Promise<FacebookOAuthT
     throw new Error(`Facebook token exchange failed: ${error}`);
   }
 
-  const data = await response.json();
+  const data = (await response.json()) as FacebookTokenResponse;
 
   return {
     accessToken: data.access_token,
@@ -122,7 +158,7 @@ export async function refreshFacebookToken(refreshToken: string): Promise<Facebo
     throw new Error(`Facebook token refresh failed: ${error}`);
   }
 
-  const data = await response.json();
+  const data = (await response.json()) as FacebookTokenResponse;
 
   return {
     accessToken: data.access_token,
@@ -141,7 +177,7 @@ export async function getFacebookUser(accessToken: string): Promise<FacebookUser
     throw new Error(`Failed to get Facebook user: ${error}`);
   }
 
-  return response.json();
+  return (await response.json()) as FacebookUser;
 }
 
 export async function getFacebookPages(accessToken: string): Promise<FacebookPage[]> {
@@ -152,7 +188,7 @@ export async function getFacebookPages(accessToken: string): Promise<FacebookPag
     throw new Error(`Failed to get Facebook pages: ${error}`);
   }
 
-  const data = await response.json();
+  const data = (await response.json()) as FacebookPagesResponse;
   return data.data || [];
 }
 
@@ -168,7 +204,7 @@ export async function getInstagramBusinessId(
     return null;
   }
 
-  const data = await response.json();
+  const data = (await response.json()) as InstagramBusinessResponse;
   return data.instagram_business_account?.id || null;
 }
 
@@ -187,7 +223,7 @@ export async function getFacebookLongLivedToken(accessToken: string): Promise<st
     throw new Error("Failed to get long-lived Facebook token");
   }
 
-  const data = await response.json();
+  const data = (await response.json()) as FacebookLongLivedTokenResponse;
   return data.access_token;
 }
 
@@ -233,6 +269,10 @@ export async function connectFacebookPage(
       },
     })
     .returning();
+
+  if (!account) {
+    throw new Error("Failed to connect Facebook page");
+  }
 
   return account.id;
 }
@@ -282,6 +322,10 @@ export async function connectInstagramAccount(
     })
     .returning();
 
+  if (!account) {
+    throw new Error("Failed to connect Instagram account");
+  }
+
   return account.id;
 }
 
@@ -298,7 +342,7 @@ export async function getFacebookPageMessages(
     throw new Error("Failed to get Facebook page messages");
   }
 
-  const data = await response.json();
+  const data = (await response.json()) as FacebookConversationsResponse;
   return data.data || [];
 }
 
@@ -315,7 +359,7 @@ export async function getFacebookConversationMessages(
     throw new Error("Failed to get Facebook conversation messages");
   }
 
-  const data = await response.json();
+  const data = (await response.json()) as FacebookMessagesResponse;
   return data.data || [];
 }
 
@@ -323,7 +367,7 @@ export async function sendFacebookMessage(
   recipientId: string,
   message: string,
   accessToken: string,
-): Promise<{ messageId: string }> {
+): Promise<FacebookSendMessageResult> {
   const response = await fetch(`${FACEBOOK_GRAPH_URL}/me/messages?access_token=${accessToken}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -338,7 +382,8 @@ export async function sendFacebookMessage(
     throw new Error(`Failed to send Facebook message: ${error}`);
   }
 
-  return response.json();
+  const data = (await response.json()) as FacebookSendMessageResponse;
+  return { messageId: data.message_id };
 }
 
 export function generateFacebookState(organizationId: number): string {
@@ -353,8 +398,8 @@ export function parseFacebookState(
   const parts = state.split(":");
   if (parts.length !== 3) return null;
 
-  const organizationId = parseInt(parts[0], 10);
-  const timestamp = parseInt(parts[1], 10);
+  const organizationId = parseInt(parts[0] ?? "", 10);
+  const timestamp = parseInt(parts[1] ?? "", 10);
 
   if (isNaN(organizationId) || isNaN(timestamp)) return null;
 

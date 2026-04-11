@@ -1,6 +1,6 @@
 import type { Context } from "@ticket-app/api/context";
 import { ORPCError } from "@orpc/server";
-import { redis } from "@ticket-app/db/lib/sessions";
+import { getRedis } from "@ticket-app/db/lib/sessions";
 import { logger } from "../lib/logger";
 
 export interface RateLimitConfig {
@@ -45,7 +45,7 @@ export async function checkRateLimit(
   const windowStart = now - config.windowMs;
 
   try {
-    const multi = redis.multi();
+    const multi = getRedis().multi();
     multi.zremrangebyscore(windowKey, 0, windowStart);
     multi.zadd(windowKey, now, `${now}:${Math.random()}`);
     multi.zcard(windowKey);
@@ -60,7 +60,7 @@ export async function checkRateLimit(
 
     return { allowed, remaining, resetAt, limit: config.limit };
   } catch (error) {
-    logger.warn("Rate limit check failed, allowing request", { error });
+    logger.warn({ error }, "Rate limit check failed, allowing request");
     return {
       allowed: true,
       remaining: config.limit,
@@ -104,8 +104,6 @@ function getClientKey(context: Context): string {
 }
 
 export function rateLimitMiddleware(tier: RateLimitTier = "STANDARD") {
-  const _config = RATE_LIMIT_TIERS[tier];
-
   return async function rateLimitHandler(
     context: Context,
     operation: { name?: string },
@@ -128,11 +126,7 @@ export function rateLimitMiddleware(tier: RateLimitTier = "STANDARD") {
     };
 
     if (!result.allowed) {
-      logger.warn("Rate limit exceeded", {
-        key,
-        operation: operation.name,
-        tier,
-      });
+      logger.warn({ key, operation: operation.name, tier }, "Rate limit exceeded");
 
       throw new ORPCError("TOO_MANY_REQUESTS", {
         message: `Rate limit exceeded. Try again after ${result.resetAt.toISOString()}`,

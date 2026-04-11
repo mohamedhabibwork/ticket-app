@@ -67,7 +67,7 @@ async function uploadToS3(buffer: Buffer, key: string, contentType: string): Pro
     Bucket: env.STORAGE_BUCKET,
     Key: key,
   });
-  return getSignedUrl(command, { expiresIn: 3600 });
+  return getSignedUrl(client, command, { expiresIn: 3600 });
 }
 
 async function updateJobStatus(
@@ -183,7 +183,7 @@ async function buildContactExportData(organizationId: number): Promise<Record<st
     last_name: row.lastName || "",
     phone: row.phone || "",
     company: row.company || "",
-    type: typeMap.get(row.typeId) || "",
+    type: typeMap.get(row.typeId ?? 0) || "",
     created_at: row.createdAt?.toISOString() || "",
   }));
 }
@@ -222,7 +222,6 @@ async function buildKbArticleExportData(
       title: kbArticles.title,
       categoryId: kbArticles.categoryId,
       statusId: kbArticles.status,
-      locale: kbArticles.locale,
       authorId: kbArticles.authorId,
       createdAt: kbArticles.createdAt,
       updatedAt: kbArticles.updatedAt,
@@ -238,18 +237,10 @@ async function buildKbArticleExportData(
 
   const categoryMap = new Map(categoryRows.map((c) => [c.id, c.name]));
 
-  const statusLookups = await db
-    .select({ id: lookups.id, name: lookups.name })
-    .from(lookups)
-    .where(eq(lookups.lookupTypeId, 6));
-
-  const statusMap = new Map(statusLookups.map((s) => [s.id, s.name]));
-
   return articleRows.map((row) => ({
     title: row.title || "",
-    category: categoryMap.get(row.categoryId) || "",
-    status: statusMap.get(row.statusId) || "",
-    locale: row.locale || "",
+    category: categoryMap.get(row.categoryId!) || "",
+    status: row.statusId || "",
     created_at: row.createdAt?.toISOString() || "",
     updated_at: row.updatedAt?.toISOString() || "",
   }));
@@ -260,8 +251,8 @@ async function buildSavedReplyExportData(
 ): Promise<Record<string, unknown>[]> {
   const replyRows = await db
     .select({
-      title: savedReplies.title,
-      content: savedReplies.content,
+      title: savedReplies.name,
+      content: savedReplies.bodyHtml,
       folderId: savedReplies.folderId,
       scope: savedReplies.scope,
       createdAt: savedReplies.createdAt,
@@ -326,7 +317,7 @@ export function createExcelExportQueueWorker(): Worker {
             break;
           case "kb_articles":
             data = await buildKbArticleExportData(organizationId);
-            headers = ["title", "category", "status", "locale", "created_at", "updated_at"];
+            headers = ["title", "category", "status", "created_at", "updated_at"];
             break;
           case "saved_replies":
             data = await buildSavedReplyExportData(organizationId);

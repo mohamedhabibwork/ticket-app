@@ -1,5 +1,5 @@
 import { Worker, Job, Queue } from "bullmq";
-import { eq, isNull } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 
 import { db } from "@ticket-app/db";
 import { onPremiseLicenses } from "@ticket-app/db/schema";
@@ -101,9 +101,7 @@ async function verifyLicense(licenseId: number): Promise<void> {
 async function verifyAllLicenses(): Promise<void> {
   console.log("[License-Verification] Verifying all licenses");
 
-  const licenses = await db.query.onPremiseLicenses.findMany({
-    where: isNull(onPremiseLicenses.deletedAt),
-  });
+  const licenses = await db.query.onPremiseLicenses.findMany({});
 
   let verifiedCount = 0;
   let failedCount = 0;

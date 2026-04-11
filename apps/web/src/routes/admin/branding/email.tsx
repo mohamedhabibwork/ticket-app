@@ -134,7 +134,7 @@ function EmailTemplateCustomizationRoute() {
                       onChange={handleLogoUpload}
                       className="hidden"
                     />
-                    <Button variant="outline" asChild>
+                    <Button variant="outline">
                       <span>
                         <Upload className="mr-2 h-4 w-4" />
                         Upload Logo

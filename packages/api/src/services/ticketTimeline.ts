@@ -121,10 +121,14 @@ export async function createMessage(input: CreateMessageInput) {
     .returning();
 
   if (input.attachments && input.attachments.length > 0) {
+    const ticket = await db.query.tickets.findFirst({
+      where: eq(tickets.id, input.ticketId),
+    });
     await db.insert(ticketAttachments).values(
       input.attachments.map((att) => ({
+        organizationId: ticket!.organizationId,
         ticketId: input.ticketId,
-        ticketMessageId: message.id,
+        ticketMessageId: message!.id,
         filename: att.filename,
         mimeType: att.mimeType,
         sizeBytes: att.sizeBytes,
@@ -392,7 +396,7 @@ export async function initializeSLA(ticketId: number, organizationId: number) {
 
   if (orgSLAPolicies.length === 0) return null;
 
-  const defaultPolicy = orgSLAPolicies[0];
+  const defaultPolicy = orgSLAPolicies[0]!;
 
   const ticket = await db.query.tickets.findFirst({
     where: eq(tickets.id, ticketId),
@@ -413,8 +417,8 @@ export async function initializeSLA(ticketId: number, organizationId: number) {
     ticket.createdAt,
     target.firstResponseMinutes,
     target.resolutionMinutes,
-    defaultPolicy.businessHoursOnly ? defaultPolicy.businessHoursConfig : null,
-    defaultPolicy.holidays,
+    defaultPolicy.businessHoursOnly ? (defaultPolicy.businessHoursConfig as any) : null,
+    defaultPolicy.holidays as any,
   );
 
   const [slaRecord] = await db

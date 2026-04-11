@@ -15,7 +15,7 @@ import { Checkbox } from "@ticket-app/ui/components/checkbox";
 import { Loader2, ArrowLeft, Save, Play, Eye, EyeOff } from "lucide-react";
 import { orpc } from "@/utils/orpc";
 
-export const Route = createFileRoute("/admin/mailboxes/id/configure")({
+export const Route = createFileRoute("/admin/mailboxes/$id/configure")({
   component: MailboxConfigureRoute,
 });
 
@@ -25,7 +25,7 @@ function MailboxConfigureRoute() {
   const mailboxId = Number(id);
 
   const { data: mailbox, isLoading } = useQuery(
-    orpc.mailboxes.get.queryOptions({
+    (orpc as any).mailboxes.get.queryOptions({
       id: mailboxId,
     }),
   );
@@ -63,7 +63,7 @@ function MailboxConfigureRoute() {
   });
 
   const updateMutation = useMutation(
-    orpc.mailboxes.update.mutationOptions({
+    (orpc as any).mailboxes.update.mutationOptions({
       onSuccess: () => {
         navigate({ to: "/admin/mailboxes/$id", params: { id } });
       },
@@ -71,7 +71,7 @@ function MailboxConfigureRoute() {
   );
 
   const testConnectionMutation = useMutation(
-    orpc.mailboxes.testConnection.mutationOptions({
+    (orpc as any).mailboxes.testConnection.mutationOptions({
       onSuccess: (result) => {
         if (result.success) {
           alert("Connection successful!");

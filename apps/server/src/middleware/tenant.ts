@@ -22,13 +22,14 @@ export interface TenantContext {
   isRTL: boolean;
 }
 
-const SUBDOMAIN_SUFFIX = env.SUBDOMAIN_SUFFIX || "support.app";
+const SUBDOMAIN_SUFFIX = env.SUBDOMAIN_SUFFIX || "ticket.cloud.habib.cloud";
 const DEFAULT_DOMAIN = env.DEFAULT_DOMAIN;
 
 export async function resolveTenantFromHost(host: string): Promise<number | null> {
   if (!host) return null;
 
   const hostname = host.split(":")[0];
+  if (!hostname) return null;
 
   if (DEFAULT_DOMAIN && hostname === DEFAULT_DOMAIN) {
     return null;
@@ -123,8 +124,8 @@ export async function tenantMiddleware(context: Context): Promise<void> {
   context.tenant = tenantContext;
 }
 
-export function createTenantFilter(organizationId: number) {
-  return (table: { organizationId: unknown }) => eq(table.organizationId, organizationId);
+export function createTenantFilter(_organizationId: number) {
+  return () => eq(organizations.id, _organizationId);
 }
 
 export function assertTenantAccess(context: Context, organizationId: number): void {
@@ -134,15 +135,10 @@ export function assertTenantAccess(context: Context, organizationId: number): vo
     });
   }
 
-  if (context.tenant.organizationId !== organizationId) {
+  const tenant = context.tenant as TenantContext | null;
+  if (!tenant || tenant.organizationId !== organizationId) {
     throw new ORPCError("FORBIDDEN", {
       message: "Access denied to this organization",
     });
-  }
-}
-
-declare module "@ticket-app/api/context" {
-  interface Context {
-    tenant?: TenantContext;
   }
 }

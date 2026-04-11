@@ -14,15 +14,15 @@ interface TypingState {
 
 const typingStates: TypingState = {};
 
-export function handleJoinSession(
+export async function handleJoinSession(
   io: SocketIOServer,
   socket: any,
   user: AuthenticatedUser,
   payload: { sessionId: number; isAgent: boolean },
-): void {
+): Promise<void> {
   const { sessionId, isAgent } = payload;
 
-  const session = db.query.chatSessions.findFirst({
+  const session = await db.query.chatSessions.findFirst({
     where: and(
       eq(chatSessions.id, sessionId),
       eq(chatSessions.organizationId, user.organizationId),
@@ -41,7 +41,8 @@ export function handleJoinSession(
   socket.data.isAgentChat = isAgent;
 
   if (isAgent && session.status === "waiting") {
-    db.update(chatSessions)
+    await db
+      .update(chatSessions)
       .set({
         status: "active",
         agentId: user.userId,
@@ -64,7 +65,7 @@ export function handleJoinSession(
 export function handleLeaveSession(
   io: SocketIOServer,
   socket: any,
-  user: AuthenticatedUser,
+  _user: AuthenticatedUser,
   payload: { sessionId: number },
 ): void {
   const { sessionId } = payload;
@@ -81,12 +82,12 @@ export function handleLeaveSession(
   socket.emit("leave_session_ack", { sessionId, success: true });
 }
 
-export function handleSendMessage(
+export async function handleSendMessage(
   io: SocketIOServer,
   socket: any,
   user: AuthenticatedUser,
   payload: { sessionId: number; body: string; attachments?: unknown[] },
-): void {
+): Promise<void> {
   const { sessionId, body, attachments } = payload;
 
   if (!body || typeof body !== "string") {
@@ -94,7 +95,7 @@ export function handleSendMessage(
     return;
   }
 
-  const session = db.query.chatSessions.findFirst({
+  const session = await db.query.chatSessions.findFirst({
     where: and(
       eq(chatSessions.id, sessionId),
       eq(chatSessions.organizationId, user.organizationId),
@@ -108,7 +109,7 @@ export function handleSendMessage(
 
   const isAgent = socket.data.isAgentChat;
 
-  const [message] = db
+  const [message] = await db
     .insert(chatMessages)
     .values({
       sessionId,
@@ -120,6 +121,11 @@ export function handleSendMessage(
       attachments: Array.isArray(attachments) ? attachments : [],
     })
     .returning();
+
+  if (!message) {
+    socket.emit("error", { message: "Failed to create message" });
+    return;
+  }
 
   emitToChat(io, sessionId, "message", {
     id: message.id,
@@ -135,7 +141,7 @@ export function handleSendMessage(
 export function handleTyping(
   io: SocketIOServer,
   socket: any,
-  user: AuthenticatedUser,
+  _user: AuthenticatedUser,
   payload: { sessionId: number; isTyping: boolean },
 ): void {
   const { sessionId, isTyping } = payload;

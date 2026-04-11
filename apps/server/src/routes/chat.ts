@@ -108,6 +108,16 @@ async function handleChatMessage(connection: ChatConnection, payload: Record<str
     })
     .returning();
 
+  if (!message) {
+    connection.ws.send(
+      JSON.stringify({
+        type: "error",
+        payload: { message: "Failed to save message" },
+      }),
+    );
+    return;
+  }
+
   broadcastToSession(connection.sessionId, {
     type: "message",
     payload: {
@@ -190,7 +200,6 @@ export function setupChatWebSocket(server: any) {
   wss.on("connection", async (ws: WebSocket, req) => {
     const url = new URL(req.url || "", `http://${req.headers.host}`);
     const sessionId = parseInt(url.searchParams.get("sessionId") || "0", 10);
-    const _token = url.searchParams.get("token");
     const organizationId = parseInt(url.searchParams.get("orgId") || "0", 10);
     const isAgentParam = url.searchParams.get("isAgent");
 
@@ -216,8 +225,8 @@ export function setupChatWebSocket(server: any) {
       sessionId,
       organizationId,
       isAgent,
-      contactId: session.contactId ?? undefined,
-      userId: isAgent ? session.agentId : undefined,
+      contactId: session.contactId != null ? session.contactId : undefined,
+      userId: session.agentId != null && isAgent ? session.agentId : undefined,
     };
 
     connections.set(key, connection);

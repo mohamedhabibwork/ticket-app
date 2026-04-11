@@ -4,49 +4,48 @@ import { socialAccounts } from "@ticket-app/db/schema";
 import { encryptToken } from "../../lib/crypto";
 import { env } from "@ticket-app/env/server";
 
-const TWITTER_API_URL = "https://api.twitter.com/2";
-const TWITTER_OAUTH_URL = "https://twitter.com/i/oauth2";
+const X_API_URL = "https://api.x.com/2";
+const X_OAUTH_URL = "https://x.com/i/oauth2";
 
-export interface TwitterOAuthTokens {
+export interface XOAuthTokens {
   accessToken: string;
   refreshToken: string;
   expiresIn: number;
   expiresAt: Date;
 }
 
-export interface TwitterUser {
+export interface XUser {
   id: string;
   name: string;
   username: string;
   profile_image_url?: string;
 }
 
-export interface TwitterConfig {
+export interface XConfig {
   clientId: string;
   clientSecret: string;
   callbackUrl: string;
 }
 
-let twitterConfig: TwitterConfig | null = null;
+let xConfig: XConfig | null = null;
 
-export function setTwitterConfig(config: TwitterConfig): void {
-  twitterConfig = config;
+export function setXConfig(config: XConfig): void {
+  xConfig = config;
 }
 
-function getTwitterConfig(): TwitterConfig {
-  if (!twitterConfig) {
-    const clientId = env.TWITTER_CLIENT_ID;
-    const clientSecret = env.TWITTER_CLIENT_SECRET;
-    const callbackUrl =
-      env.TWITTER_CALLBACK_URL || "http://localhost:3000/admin/social/twitter/callback";
+function getXConfig(): XConfig {
+  if (!xConfig) {
+    const clientId = env.X_CLIENT_ID;
+    const clientSecret = env.X_CLIENT_SECRET;
+    const callbackUrl = env.X_CALLBACK_URL || "http://localhost:3000/admin/social/x/callback";
 
     if (!clientId || !clientSecret) {
-      throw new Error("Twitter OAuth credentials not configured");
+      throw new Error("X OAuth credentials not configured");
     }
 
-    twitterConfig = { clientId, clientSecret, callbackUrl };
+    xConfig = { clientId, clientSecret, callbackUrl };
   }
-  return twitterConfig;
+  return xConfig;
 }
 
 function base64URLEncode(buffer: Buffer): string {
@@ -64,14 +63,14 @@ async function generateCodeChallenge(verifier: string): Promise<string> {
 
 let storedCodeVerifier: Map<string, string> = new Map();
 
-export function getTwitterAuthUrl(organizationId: number): {
+export async function getXAuthUrl(organizationId: number): Promise<{
   url: string;
   codeVerifier: string;
   state: string;
-} {
-  const config = getTwitterConfig();
+}> {
+  const config = getXConfig();
   const codeVerifier = generateCodeVerifier();
-  const codeChallengePromise = generateCodeChallenge(codeVerifier);
+  const codeChallenge = await generateCodeChallenge(codeVerifier);
 
   const state = `${organizationId}:${Date.now()}:${crypto.randomBytes(8).toString("hex")}`;
 
@@ -80,8 +79,6 @@ export function getTwitterAuthUrl(organizationId: number): {
   setTimeout(() => {
     storedCodeVerifier.delete(`${organizationId}:${timestamp}`);
   }, 600000);
-
-  const codeChallenge = codeChallengePromise;
 
   const params = new URLSearchParams({
     response_type: "code",
@@ -93,20 +90,17 @@ export function getTwitterAuthUrl(organizationId: number): {
     code_challenge_method: "S256",
   });
 
-  const url = `${TWITTER_OAUTH_URL}/authorize?${params.toString()}`;
+  const url = `${X_OAUTH_URL}/authorize?${params.toString()}`;
 
   return { url, codeVerifier, state };
 }
 
-export async function exchangeTwitterCode(
-  code: string,
-  codeVerifier: string,
-): Promise<TwitterOAuthTokens> {
-  const config = getTwitterConfig();
+export async function exchangeXCode(code: string, codeVerifier: string): Promise<XOAuthTokens> {
+  const config = getXConfig();
 
   const credentials = Buffer.from(`${config.clientId}:${config.clientSecret}`).toString("base64");
 
-  const response = await fetch(`${TWITTER_API_URL}/oauth2/token`, {
+  const response = await fetch(`${X_API_URL}/oauth2/token`, {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
@@ -122,10 +116,14 @@ export async function exchangeTwitterCode(
 
   if (!response.ok) {
     const error = await response.text();
-    throw new Error(`Twitter token exchange failed: ${error}`);
+    throw new Error(`X token exchange failed: ${error}`);
   }
 
-  const data = await response.json();
+  const data = (await response.json()) as {
+    access_token: string;
+    refresh_token?: string;
+    expires_in: number;
+  };
 
   const expiresAt = new Date(Date.now() + data.expires_in * 1000);
 
@@ -137,12 +135,12 @@ export async function exchangeTwitterCode(
   };
 }
 
-export async function refreshTwitterToken(refreshToken: string): Promise<TwitterOAuthTokens> {
-  const config = getTwitterConfig();
+export async function refreshXToken(refreshToken: string): Promise<XOAuthTokens> {
+  const config = getXConfig();
 
   const credentials = Buffer.from(`${config.clientId}:${config.clientSecret}`).toString("base64");
 
-  const response = await fetch(`${TWITTER_API_URL}/oauth2/token`, {
+  const response = await fetch(`${X_API_URL}/oauth2/token`, {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",
@@ -156,10 +154,14 @@ export async function refreshTwitterToken(refreshToken: string): Promise<Twitter
 
   if (!response.ok) {
     const error = await response.text();
-    throw new Error(`Twitter token refresh failed: ${error}`);
+    throw new Error(`X token refresh failed: ${error}`);
   }
 
-  const data = await response.json();
+  const data = (await response.json()) as {
+    access_token: string;
+    refresh_token?: string;
+    expires_in: number;
+  };
 
   const expiresAt = new Date(Date.now() + data.expires_in * 1000);
 
@@ -171,9 +173,9 @@ export async function refreshTwitterToken(refreshToken: string): Promise<Twitter
   };
 }
 
-export async function getTwitterUser(accessToken: string): Promise<TwitterUser> {
+export async function getXUser(accessToken: string): Promise<XUser> {
   const response = await fetch(
-    `${TWITTER_API_URL}/users/me?user.fields=name,username,profile_image_url`,
+    `${X_API_URL}/users/me?user.fields=name,username,profile_image_url`,
     {
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -183,19 +185,19 @@ export async function getTwitterUser(accessToken: string): Promise<TwitterUser> 
 
   if (!response.ok) {
     const error = await response.text();
-    throw new Error(`Failed to get Twitter user: ${error}`);
+    throw new Error(`Failed to get X user: ${error}`);
   }
 
-  const data = await response.json();
+  const data = (await response.json()) as { data?: XUser };
+  if (!data.data) {
+    throw new Error("X user data not found");
+  }
   return data.data;
 }
 
-export async function getTwitterDmEvents(
-  accessToken: string,
-  maxResults: number = 25,
-): Promise<any[]> {
+export async function getXDmEvents(accessToken: string, maxResults: number = 25): Promise<any[]> {
   const response = await fetch(
-    `${TWITTER_API_URL}/dm_events?max_results=${maxResults}&expansions=all&tweet.fields=created_at`,
+    `${X_API_URL}/dm_events?max_results=${maxResults}&expansions=all&tweet.fields=created_at`,
     {
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -205,20 +207,20 @@ export async function getTwitterDmEvents(
 
   if (!response.ok) {
     const error = await response.text();
-    throw new Error(`Failed to get Twitter DM events: ${error}`);
+    throw new Error(`Failed to get X DM events: ${error}`);
   }
 
-  const data = await response.json();
+  const data = (await response.json()) as { data?: any[] };
   return data.data || [];
 }
 
-export async function getTwitterConversationMessages(
+export async function getXConversationMessages(
   dmConversationId: string,
   accessToken: string,
   maxResults: number = 25,
 ): Promise<any[]> {
   const response = await fetch(
-    `${TWITTER_API_URL}/dm_conversations/${dmConversationId}/messages?max_results=${maxResults}&expansions=all`,
+    `${X_API_URL}/dm_conversations/${dmConversationId}/messages?max_results=${maxResults}&expansions=all`,
     {
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -228,19 +230,19 @@ export async function getTwitterConversationMessages(
 
   if (!response.ok) {
     const error = await response.text();
-    throw new Error(`Failed to get Twitter conversation messages: ${error}`);
+    throw new Error(`Failed to get X conversation messages: ${error}`);
   }
 
-  const data = await response.json();
+  const data = (await response.json()) as { data?: any[] };
   return data.data || [];
 }
 
-export async function sendTwitterDm(
+export async function sendXDm(
   recipientId: string,
   message: string,
   accessToken: string,
 ): Promise<{ dm_event_id: string }> {
-  const response = await fetch(`${TWITTER_API_URL}/dm_conversations/${recipientId}/messages`, {
+  const response = await fetch(`${X_API_URL}/dm_conversations/${recipientId}/messages`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${accessToken}`,
@@ -253,18 +255,18 @@ export async function sendTwitterDm(
 
   if (!response.ok) {
     const error = await response.text();
-    throw new Error(`Failed to send Twitter DM: ${error}`);
+    throw new Error(`Failed to send X DM: ${error}`);
   }
 
-  const data = await response.json();
+  const data = (await response.json()) as { dm_event_id: string };
   return { dm_event_id: data.dm_event_id };
 }
 
-export async function connectTwitterAccount(
+export async function connectXAccount(
   organizationId: number,
   userId: number | undefined,
-  twitterUser: TwitterUser,
-  tokens: TwitterOAuthTokens,
+  xUser: XUser,
+  tokens: XOAuthTokens,
 ): Promise<number> {
   const encryptedAccessToken = encryptToken(tokens.accessToken);
   const encryptedRefreshToken = encryptToken(tokens.refreshToken);
@@ -274,9 +276,9 @@ export async function connectTwitterAccount(
     .values({
       organizationId,
       userId,
-      platform: "twitter",
-      platformAccountId: twitterUser.id,
-      platformUsername: twitterUser.username,
+      platform: "x",
+      platformAccountId: xUser.id,
+      platformUsername: xUser.username,
       accessTokenEnc: encryptedAccessToken,
       refreshTokenEnc: encryptedRefreshToken,
       tokenExpiresAt: tokens.expiresAt,
@@ -293,7 +295,7 @@ export async function connectTwitterAccount(
         accessTokenEnc: encryptedAccessToken,
         refreshTokenEnc: encryptedRefreshToken,
         tokenExpiresAt: tokens.expiresAt,
-        platformUsername: twitterUser.username,
+        platformUsername: xUser.username,
         isActive: true,
         updatedAt: new Date(),
         updatedBy: userId,
@@ -301,10 +303,14 @@ export async function connectTwitterAccount(
     })
     .returning();
 
+  if (!account) {
+    throw new Error("Failed to connect X account");
+  }
+
   return account.id;
 }
 
-export async function getTwitterDmHistory(
+export async function getXDmHistory(
   accessToken: string,
   conversationId: string,
   maxResults: number = 50,
@@ -322,7 +328,7 @@ export async function getTwitterDmHistory(
     }
 
     const response = await fetch(
-      `${TWITTER_API_URL}/dm_conversations/${conversationId}/messages?${params}`,
+      `${X_API_URL}/dm_conversations/${conversationId}/messages?${params}`,
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,
@@ -331,10 +337,10 @@ export async function getTwitterDmHistory(
     );
 
     if (!response.ok) {
-      throw new Error(`Failed to get Twitter DM history: ${await response.text()}`);
+      throw new Error(`Failed to get X DM history: ${await response.text()}`);
     }
 
-    const data = await response.json();
+    const data = (await response.json()) as { data?: any[]; meta?: { next_token?: string } };
     allMessages.push(...(data.data || []));
     paginationToken = data.meta?.next_token;
   } while (paginationToken && allMessages.length < maxResults);
@@ -342,14 +348,12 @@ export async function getTwitterDmHistory(
   return allMessages.slice(0, maxResults);
 }
 
-export function parseTwitterState(
-  state: string,
-): { organizationId: number; timestamp: number } | null {
+export function parseXState(state: string): { organizationId: number; timestamp: number } | null {
   const parts = state.split(":");
   if (parts.length < 3) return null;
 
-  const organizationId = parseInt(parts[0], 10);
-  const timestamp = parseInt(parts[1], 10);
+  const organizationId = parseInt(parts[0] ?? "", 10);
+  const timestamp = parseInt(parts[1] ?? "", 10);
 
   if (isNaN(organizationId) || isNaN(timestamp)) return null;
 

@@ -1,7 +1,7 @@
-import type { InvoicePdfData } from "@ticket-app/api/src/services/invoicePdf";
-import { isRtlLocale, formatAmount, formatDate } from "@ticket-app/api/src/services/invoicePdf";
+import type { InvoicePdfData } from "@ticket-app/api/services/invoicePdf";
+import { isRtlLocale, formatAmount, formatDate } from "@ticket-app/api/services/invoicePdf";
 
-export { type InvoicePdfData } from "@ticket-app/api/src/services/invoicePdf";
+export { type InvoicePdfData } from "@ticket-app/api/services/invoicePdf";
 
 const ARABIC_FONTS = {
   regular:

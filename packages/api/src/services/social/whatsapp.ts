@@ -76,7 +76,7 @@ export async function getWhatsAppBusinessAccounts(
     throw new Error(`Failed to get WhatsApp business accounts: ${error}`);
   }
 
-  const data = await response.json();
+  const data = (await response.json()) as { data?: WhatsAppBusinessAccount[] };
   return data.data || [];
 }
 
@@ -93,7 +93,7 @@ export async function getWhatsAppPhoneNumbers(
     throw new Error(`Failed to get WhatsApp phone numbers: ${error}`);
   }
 
-  const data = await response.json();
+  const data = (await response.json()) as { data?: WhatsAppPhoneNumber[] };
   return data.data || [];
 }
 
@@ -110,7 +110,7 @@ export async function getWhatsAppTemplates(
     throw new Error(`Failed to get WhatsApp templates: ${error}`);
   }
 
-  const data = await response.json();
+  const data = (await response.json()) as { data?: WhatsAppTemplate[] };
   return data.data || [];
 }
 
@@ -145,7 +145,7 @@ export async function sendWhatsAppMessage(
     throw new Error(`Failed to send WhatsApp message: ${error}`);
   }
 
-  return response.json();
+  return (await response.json()) as { messages: Array<{ id: string }> };
 }
 
 export async function sendWhatsAppImageMessage(
@@ -181,7 +181,7 @@ export async function sendWhatsAppImageMessage(
     throw new Error(`Failed to send WhatsApp image message: ${error}`);
   }
 
-  return response.json();
+  return (await response.json()) as { messages: Array<{ id: string }> };
 }
 
 export async function markWhatsAppMessageAsRead(
@@ -237,7 +237,7 @@ export async function getWhatsAppIncomingMessages(
     throw new Error(`Failed to get WhatsApp incoming messages: ${error}`);
   }
 
-  const data = await response.json();
+  const data = (await response.json()) as { data?: any[] };
   return (data.data || []).filter((msg: any) => msg.from !== undefined);
 }
 
@@ -284,6 +284,10 @@ export async function connectWhatsAppAccount(
     })
     .returning();
 
+  if (!account) {
+    throw new Error("Failed to connect WhatsApp account");
+  }
+
   return account.id;
 }
 
@@ -294,7 +298,7 @@ export async function getWhatsAppWebhookPayload(payload: any): Promise<{
   timestamp: string;
   messageId?: string;
   mediaUrl?: string;
-}> | null {
+} | null> {
   if (!payload.entry?.length) return null;
 
   const changes = payload.entry[0]?.changes?.[0]?.value;
@@ -351,7 +355,7 @@ export async function downloadWhatsAppMedia(
     throw new Error(`Failed to get WhatsApp media URL: ${await response.text()}`);
   }
 
-  const mediaData = await response.json();
+  const mediaData = (await response.json()) as { url: string };
 
   const mediaResponse = await fetch(mediaData.url, {
     headers: {

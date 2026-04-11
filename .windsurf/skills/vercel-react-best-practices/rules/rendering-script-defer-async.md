@@ -23,7 +23,7 @@ export default function Document() {
   return (
     <html>
       <head>
-        <script src="https://example.com/analytics.js" />
+        <script src="https://ticket.cloud.habib.cloud/analytics.js" />
         <script src="/scripts/utils.js" />
       </head>
       <body>{/* content */}</body>
@@ -40,7 +40,7 @@ export default function Document() {
     <html>
       <head>
         {/* Independent script - use async */}
-        <script src="https://example.com/analytics.js" async />
+        <script src="https://ticket.cloud.habib.cloud/analytics.js" async />
         {/* DOM-dependent script - use defer */}
         <script src="/scripts/utils.js" defer />
       </head>
@@ -58,7 +58,7 @@ import Script from "next/script";
 export default function Page() {
   return (
     <>
-      <Script src="https://example.com/analytics.js" strategy="afterInteractive" />
+      <Script src="https://ticket.cloud.habib.cloud/analytics.js" strategy="afterInteractive" />
       <Script src="/scripts/utils.js" strategy="beforeInteractive" />
     </>
   );

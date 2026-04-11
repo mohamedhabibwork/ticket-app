@@ -37,52 +37,85 @@ function ConnectStoreRoute() {
   const [syncProducts, setSyncProducts] = useState(true);
   const [syncCustomers, setSyncCustomers] = useState(true);
 
-  const connectMutation = useMutation({
-    mutationFn: async () => {
-      if (!selectedPlatform || !storeUrl) return;
+  const shopifyMutation = useMutation(
+    (orpc as any).ecommerceStores.connectShopify.mutationOptions({
+      onSuccess: () => {
+        window.location.href = "/admin/ecommerce";
+      },
+    }),
+  ) as any;
 
-      switch (selectedPlatform) {
-        case "shopify":
-          return orpc.ecommerceStores.connectShopify.mutate({
-            organizationId: 1,
-            storeUrl,
-            accessToken: apiKey,
-          });
-        case "woocommerce":
-          return orpc.ecommerceStores.connectWooCommerce.mutate({
-            organizationId: 1,
-            storeUrl,
-            consumerKey: apiKey,
-            consumerSecret: apiSecret,
-          });
-        case "salla":
-          return orpc.ecommerceStores.connectSalla.mutate({
-            organizationId: 1,
-            storeUrl,
-            accessToken: apiKey,
-          });
-        case "zid":
-          return orpc.ecommerceStores.connectZid.mutate({
-            organizationId: 1,
-            storeUrl,
-            accessToken: apiKey,
-          });
-      }
-    },
-    onSuccess: () => {
-      // Redirect to store list
-      window.location.href = "/admin/ecommerce";
-    },
-  });
+  const woocommerceMutation = useMutation(
+    (orpc as any).ecommerceStores.connectWooCommerce.mutationOptions({
+      onSuccess: () => {
+        window.location.href = "/admin/ecommerce";
+      },
+    }),
+  ) as any;
+
+  const sallaMutation = useMutation(
+    (orpc as any).ecommerceStores.connectSalla.mutationOptions({
+      onSuccess: () => {
+        window.location.href = "/admin/ecommerce";
+      },
+    }),
+  ) as any;
+
+  const zidMutation = useMutation(
+    (orpc as any).ecommerceStores.connectZid.mutationOptions({
+      onSuccess: () => {
+        window.location.href = "/admin/ecommerce";
+      },
+    }),
+  ) as any;
 
   const testConnectionMutation = useMutation({
     mutationFn: async () => {
-      // In a real implementation, this would call a test endpoint
-      // For now, we'll simulate a test
       await new Promise((resolve) => setTimeout(resolve, 1000));
       return { success: true };
     },
   });
+
+  const getConnectMutation = () => {
+    switch (selectedPlatform) {
+      case "shopify":
+        return shopifyMutation;
+      case "woocommerce":
+        return woocommerceMutation;
+      case "salla":
+        return sallaMutation;
+      case "zid":
+        return zidMutation;
+      default:
+        return null;
+    }
+  };
+
+  const handleConnect = () => {
+    if (!selectedPlatform || !storeUrl) return;
+    const mutation = getConnectMutation();
+    if (!mutation) return;
+
+    switch (selectedPlatform) {
+      case "shopify":
+        shopifyMutation.mutate({ organizationId: 1, storeUrl, accessToken: apiKey });
+        break;
+      case "woocommerce":
+        woocommerceMutation.mutate({
+          organizationId: 1,
+          storeUrl,
+          consumerKey: apiKey,
+          consumerSecret: apiSecret,
+        });
+        break;
+      case "salla":
+        sallaMutation.mutate({ organizationId: 1, storeUrl, accessToken: apiKey });
+        break;
+      case "zid":
+        zidMutation.mutate({ organizationId: 1, storeUrl, accessToken: apiKey });
+        break;
+    }
+  };
 
   const getPlatformConfig = (platform: Platform) => {
     switch (platform) {
@@ -178,7 +211,7 @@ function ConnectStoreRoute() {
   return (
     <div className="container mx-auto max-w-4xl px-4 py-6">
       <div className="mb-6">
-        <Link to="/admin/ecommerce/">
+        <Link to="/admin/ecommerce">
           <Button variant="ghost" className="mb-4">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Stores
@@ -327,11 +360,13 @@ function ConnectStoreRoute() {
               )}
             </Button>
             <Button
-              onClick={() => connectMutation.mutate()}
-              disabled={!storeUrl || !apiKey || connectMutation.isPending}
+              onClick={handleConnect}
+              disabled={
+                !storeUrl || !apiKey || !selectedPlatform || getConnectMutation()?.isPending
+              }
               className="flex-1"
             >
-              {connectMutation.isPending ? (
+              {getConnectMutation()?.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Connecting...

@@ -129,7 +129,7 @@ export const ecommerceOrdersRouter = {
     .input(
       z.object({
         organizationId: z.coerce.number(),
-        email: z.string().email(),
+        email: z.email(),
         limit: z.coerce.number().min(1).max(100).default(20),
       }),
     )
@@ -208,7 +208,7 @@ export const ecommerceOrdersRouter = {
       z.object({
         organizationId: z.coerce.number(),
         contactId: z.coerce.number().optional(),
-        email: z.string().email().optional(),
+        email: z.email().optional(),
         phone: z.string().optional(),
         limit: z.coerce.number().min(1).max(50).default(10),
       }),

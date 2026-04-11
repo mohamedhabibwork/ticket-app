@@ -1,6 +1,6 @@
 import { db } from "@ticket-app/db";
-import { paymentMethods, stripeCustomers } from "@ticket-app/db/schema";
-import { eq, and, desc, sql } from "drizzle-orm";
+import { paymentMethods, stripeCustomers, organizations } from "@ticket-app/db/schema";
+import { eq, and, desc } from "drizzle-orm";
 import * as z from "zod";
 
 import { publicProcedure } from "../index";
@@ -52,9 +52,12 @@ export const paymentMethodsRouter = {
       });
 
       if (!customer) {
-        await db.query.organizations.findFirst({
-          where: eq(sql`id = ${input.organizationId}`),
+        const org = await db.query.organizations.findFirst({
+          where: eq(organizations.id, input.organizationId),
         });
+        if (!org) {
+          throw new Error("Stripe customer not found. Please contact support.");
+        }
         throw new Error("Stripe customer not found. Please contact support.");
       }
 

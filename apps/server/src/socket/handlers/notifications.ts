@@ -88,7 +88,7 @@ export async function broadcastOrgNotification(
 }
 
 export function handleMarkRead(
-  io: SocketIOServer,
+  _io: SocketIOServer,
   socket: any,
   user: AuthenticatedUser,
   payload: { notificationId: string },
@@ -100,7 +100,7 @@ export function handleMarkRead(
   });
 }
 
-export function handleMarkAllRead(io: SocketIOServer, socket: any, user: AuthenticatedUser): void {
+export function handleMarkAllRead(_io: SocketIOServer, socket: any, user: AuthenticatedUser): void {
   markAllNotificationsRead(user.userId).then(() => {
     socket.emit("mark_all_read_ack", { success: true });
   });

@@ -101,7 +101,7 @@ auth.get("/google/callback", async (c) => {
     return c.json({ error: `Token exchange failed: ${errorText}` }, 400);
   }
 
-  const tokens: GoogleTokens = await tokenResponse.json();
+  const tokens = (await tokenResponse.json()) as GoogleTokens;
 
   const userInfoResponse = await fetch(GOOGLE_USERINFO_URL, {
     headers: {
@@ -113,7 +113,7 @@ auth.get("/google/callback", async (c) => {
     return c.json({ error: "Failed to fetch user info" }, 400);
   }
 
-  const userInfo: GoogleUserInfo = await userInfoResponse.json();
+  const userInfo = (await userInfoResponse.json()) as GoogleUserInfo;
 
   const ipAddress = c.req.header("x-forwarded-for") || c.req.header("x-real-ip") || "unknown";
   const userAgent = c.req.header("user-agent") || undefined;
@@ -128,8 +128,8 @@ auth.get("/google/callback", async (c) => {
       },
       {
         email: userInfo.email,
-        firstName: userInfo.given_name || userInfo.name.split(" ")[0],
-        lastName: userInfo.family_name || userInfo.name.split(" ").slice(1).join(" "),
+        firstName: userInfo.given_name || userInfo.name?.split(" ")[0] || "Unknown",
+        lastName: userInfo.family_name || userInfo.name?.split(" ").slice(1).join(" ") || "Unknown",
         avatarUrl: userInfo.picture,
         googleId: userInfo.id,
       },

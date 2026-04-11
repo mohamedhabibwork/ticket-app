@@ -377,7 +377,7 @@ export default function ExcelScreen() {
               <TextField className="mb-3">
                 <Input
                   label="File URL"
-                  placeholder="https://storage.example.com/file.xlsx"
+                  placeholder="https://storage.ticket.cloud.habib.cloud/file.xlsx"
                   value={fileUrl}
                   onChangeText={setFileUrl}
                 />
