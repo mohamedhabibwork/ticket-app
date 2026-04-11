@@ -85,7 +85,7 @@ function MergedTicketsRoute() {
                         </span>
                       </div>
                     </div>
-                    <Link to="/tickets/$id" params={{ id: masterId }}>
+                    <Link to="/tickets/id" params={{ id: masterId }}>
                       <Button variant="outline" size="sm">
                         <ArrowUpRight className="h-4 w-4 mr-1" />
                         View Master

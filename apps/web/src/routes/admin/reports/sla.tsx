@@ -24,10 +24,9 @@ function SLACompliancePage() {
   const [dateRange, setDateRange] = useState<DateRange>("30d");
   const organizationId = 1;
 
-  const { data: slaCompliance, isLoading: _isLoading } = useQuery({
-    queryKey: ["reports", "slaCompliance", organizationId, dateRange],
-    queryFn: () => orpc.reports.getSlaCompliance.query({ organizationId }),
-  });
+  const { data: slaCompliance, isLoading: _isLoading } = useQuery(
+    orpc.reports.getSlaCompliance.queryOptions({ organizationId } as any),
+  );
 
   const dateRangeOptions: { value: DateRange; label: string }[] = [
     { value: "7d", label: "Last 7 days" },
@@ -98,10 +97,8 @@ function SLACompliancePage() {
   return (
     <div className="container mx-auto py-8">
       <div className="flex items-center gap-4 mb-8">
-        <Button variant="outline" size="icon" asChild>
-          <Link to="/admin/reports">
-            <ArrowLeft className="h-4 w-4" />
-          </Link>
+        <Button variant="outline" size="icon" render={<Link to="/admin/reports" />}>
+          <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
           <h1 className="text-3xl font-bold">SLA Compliance Report</h1>

@@ -37,14 +37,16 @@ export const Route = createFileRoute("/admin/mailboxes/")({
 });
 
 function MailboxListRoute() {
+  const organizationId = 1;
+
   const {
     data: mailboxes,
     isLoading,
     refetch,
   } = useQuery(
     orpc.mailboxes.list.queryOptions({
-      organizationId: 1,
-    }),
+      organizationId,
+    } as any),
   );
 
   const deleteMutation = useMutation(
@@ -54,7 +56,7 @@ function MailboxListRoute() {
   );
 
   const syncMutation = useMutation(
-    orpc.mailboxes.sync.mutationOptions({
+    orpc.mailboxes.syncNow.mutationOptions({
       onSuccess: () => refetch(),
     }),
   );
@@ -65,37 +67,21 @@ function MailboxListRoute() {
     }),
   );
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "active":
-        return (
-          <span className="inline-flex items-center gap-1 rounded bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
-            <CheckCircle className="h-3 w-3" />
-            Active
-          </span>
-        );
-      case "error":
-        return (
-          <span className="inline-flex items-center gap-1 rounded bg-red-100 px-2 py-0.5 text-xs font-medium text-red-800">
-            <XCircle className="h-3 w-3" />
-            Error
-          </span>
-        );
-      case "syncing":
-        return (
-          <span className="inline-flex items-center gap-1 rounded bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800">
-            <RefreshCw className="h-3 w-3 animate-spin" />
-            Syncing
-          </span>
-        );
-      default:
-        return (
-          <span className="inline-flex items-center gap-1 rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-800">
-            <AlertCircle className="h-3 w-3" />
-            {status}
-          </span>
-        );
+  const getStatusBadge = (isActive: boolean) => {
+    if (isActive) {
+      return (
+        <span className="inline-flex items-center gap-1 rounded bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
+          <CheckCircle className="h-3 w-3" />
+          Active
+        </span>
+      );
     }
+    return (
+      <span className="inline-flex items-center gap-1 rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-800">
+        <XCircle className="h-3 w-3" />
+        Inactive
+      </span>
+    );
   };
 
   return (
@@ -129,7 +115,7 @@ function MailboxListRoute() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <h3 className="font-medium">{mailbox.name}</h3>
-                      {getStatusBadge(mailbox.status)}
+                      {getStatusBadge(mailbox.isActive)}
                     </div>
                     <p className="text-sm text-muted-foreground font-mono">{mailbox.email}</p>
                     <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
@@ -143,7 +129,7 @@ function MailboxListRoute() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Link to="/admin/mailboxes/$id" params={{ id: String(mailbox.id) }}>
+                    <Link to="/admin/mailboxes/id" params={{ id: String(mailbox.id) }}>
                       <Button variant="ghost" size="icon">
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -151,7 +137,7 @@ function MailboxListRoute() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => syncMutation.mutate({ id: mailbox.id })}
+                      onClick={() => syncMutation.mutate({ id: mailbox.id, organizationId })}
                       disabled={syncMutation.isPending}
                     >
                       <RefreshCw
@@ -161,7 +147,9 @@ function MailboxListRoute() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => testConnectionMutation.mutate({ id: mailbox.id })}
+                      onClick={() =>
+                        testConnectionMutation.mutate({ id: mailbox.id, organizationId })
+                      }
                       disabled={testConnectionMutation.isPending}
                     >
                       <AlertCircle className="h-4 w-4" />
@@ -171,7 +159,7 @@ function MailboxListRoute() {
                       size="icon"
                       onClick={() => {
                         if (confirm("Are you sure you want to delete this mailbox?")) {
-                          deleteMutation.mutate({ id: mailbox.id });
+                          deleteMutation.mutate({ id: mailbox.id, organizationId });
                         }
                       }}
                       disabled={deleteMutation.isPending}

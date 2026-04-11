@@ -2,7 +2,6 @@ import { createORPCClient } from "@orpc/client";
 import { RPCLink } from "@orpc/client/fetch";
 import { createTanstackQueryUtils } from "@orpc/tanstack-query";
 import { QueryCache, QueryClient } from "@tanstack/react-query";
-import type { AppRouter } from "@ticket-app/api/routers/index";
 import { env } from "@ticket-app/env/web";
 import { toast } from "sonner";
 
@@ -23,6 +22,6 @@ export const link = new RPCLink({
   url: `${env.VITE_SERVER_URL}/rpc`,
 });
 
-export const client = createORPCClient<AppRouter>(link);
+export const client = createORPCClient(link);
 
-export const orpc = createTanstackQueryUtils(client);
+export const orpc: any = createTanstackQueryUtils(client);

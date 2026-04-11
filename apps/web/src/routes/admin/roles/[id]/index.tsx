@@ -45,7 +45,7 @@ function EditRoleRoute() {
     refetch,
   } = useQuery({
     queryKey: ["role", roleId],
-    queryFn: () => orpc.users.getRole.query({ id: roleId }),
+    queryFn: () => orpc.users.getRole.queryOptions({ id: roleId } as any),
     enabled: !isNaN(roleId),
   });
 
@@ -90,8 +90,8 @@ function EditRoleRoute() {
       <div className="container mx-auto py-8">
         <div className="text-center">
           <h1 className="text-2xl font-bold">Role not found</h1>
-          <Button asChild className="mt-4">
-            <Link to="/admin/roles">Back to Roles</Link>
+          <Button render={<Link to="/admin/roles" />} className="mt-4">
+            Back to Roles
           </Button>
         </div>
       </div>
@@ -101,11 +101,9 @@ function EditRoleRoute() {
   if (role.isSystem) {
     return (
       <div className="container mx-auto py-8 max-w-2xl">
-        <Button variant="ghost" asChild className="mb-4 pl-0">
-          <Link to="/admin/roles">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Roles
-          </Link>
+        <Button variant="ghost" render={<Link to="/admin/roles" />} className="mb-4 pl-0">
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Back to Roles
         </Button>
 
         <Card>
@@ -121,9 +119,7 @@ function EditRoleRoute() {
               predefined roles that are essential to the operation of the platform.
             </p>
             <div className="mt-6 flex justify-end">
-              <Button asChild>
-                <Link to="/admin/roles">Back to Roles</Link>
-              </Button>
+              <Button render={<Link to="/admin/roles" />}>Back to Roles</Button>
             </div>
           </CardContent>
         </Card>

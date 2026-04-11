@@ -15,7 +15,7 @@ import { Checkbox } from "@ticket-app/ui/components/checkbox";
 import { Loader2, ArrowLeft, Save, Play, Eye, EyeOff } from "lucide-react";
 import { orpc } from "@/utils/orpc";
 
-export const Route = createFileRoute("/admin/mailboxes/$id/configure")({
+export const Route = createFileRoute("/admin/mailboxes/id/configure")({
   component: MailboxConfigureRoute,
 });
 
@@ -24,10 +24,13 @@ function MailboxConfigureRoute() {
   const navigate = useNavigate();
   const mailboxId = Number(id);
 
+  const organizationId = 1;
+
   const { data: mailbox, isLoading } = useQuery(
-    (orpc as any).mailboxes.get.queryOptions({
+    orpc.mailboxes.get.queryOptions({
       id: mailboxId,
-    }),
+      organizationId,
+    }) as any,
   );
 
   const [showPassword, setShowPassword] = useState(false);
@@ -48,22 +51,30 @@ function MailboxConfigureRoute() {
   useState(() => {
     if (mailbox) {
       setFormData({
-        imapHost: mailbox.imapHost || "",
-        imapPort: mailbox.imapPort?.toString() || "993",
-        imapUsername: mailbox.imapUsername || "",
-        imapPassword: mailbox.imapPassword || "",
-        imapSsl: mailbox.imapSsl ?? true,
-        smtpHost: mailbox.smtpHost || "",
-        smtpPort: mailbox.smtpPort?.toString() || "587",
-        smtpUsername: mailbox.smtpUsername || "",
-        smtpPassword: mailbox.smtpPassword || "",
-        smtpSsl: mailbox.smtpSsl ?? true,
+        imapHost: mailbox.imapConfig?.host || "",
+        imapPort: mailbox.imapConfig?.port?.toString() || "993",
+        imapUsername: mailbox.imapConfig?.username || "",
+        imapPassword: "",
+        imapSsl: mailbox.imapConfig?.useSsl ?? true,
+        smtpHost: mailbox.smtpConfig?.host || "",
+        smtpPort: mailbox.smtpConfig?.port?.toString() || "587",
+        smtpUsername: mailbox.smtpConfig?.username || "",
+        smtpPassword: "",
+        smtpSsl: mailbox.smtpConfig?.useTls ?? true,
       });
     }
   });
 
-  const updateMutation = useMutation(
-    (orpc as any).mailboxes.update.mutationOptions({
+  const configureImapMutation = useMutation(
+    orpc.mailboxes.configureImap.mutationOptions({
+      onSuccess: () => {
+        navigate({ to: "/admin/mailboxes/$id", params: { id } });
+      },
+    }),
+  );
+
+  const configureSmtpMutation = useMutation(
+    orpc.mailboxes.configureSmtp.mutationOptions({
       onSuccess: () => {
         navigate({ to: "/admin/mailboxes/$id", params: { id } });
       },
@@ -71,7 +82,7 @@ function MailboxConfigureRoute() {
   );
 
   const testConnectionMutation = useMutation(
-    (orpc as any).mailboxes.testConnection.mutationOptions({
+    orpc.mailboxes.testConnection.mutationOptions({
       onSuccess: (result) => {
         if (result.success) {
           alert("Connection successful!");
@@ -84,21 +95,23 @@ function MailboxConfigureRoute() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    updateMutation.mutate({
+    configureImapMutation.mutate({
       id: mailboxId,
-      organizationId: 1,
-      data: {
-        imapHost: formData.imapHost,
-        imapPort: Number(formData.imapPort),
-        imapUsername: formData.imapUsername,
-        imapPassword: formData.imapPassword || undefined,
-        imapSsl: formData.imapSsl,
-        smtpHost: formData.smtpHost,
-        smtpPort: Number(formData.smtpPort),
-        smtpUsername: formData.smtpUsername,
-        smtpPassword: formData.smtpPassword || undefined,
-        smtpSsl: formData.smtpSsl,
-      },
+      organizationId,
+      host: formData.imapHost,
+      port: Number(formData.imapPort),
+      username: formData.imapUsername,
+      password: formData.imapPassword,
+      useSsl: formData.imapSsl,
+    });
+    configureSmtpMutation.mutate({
+      id: mailboxId,
+      organizationId,
+      host: formData.smtpHost,
+      port: Number(formData.smtpPort),
+      username: formData.smtpUsername,
+      password: formData.smtpPassword,
+      useSsl: formData.smtpSsl,
     });
   };
 
@@ -135,9 +148,6 @@ function MailboxConfigureRoute() {
           </CardHeader>
           <CardContent>
             <Button onClick={handleGmailOAuth}>Connect with Google</Button>
-            {mailbox.oauthStatus && (
-              <p className="text-sm text-muted-foreground mt-2">Status: {mailbox.oauthStatus}</p>
-            )}
           </CardContent>
         </Card>
       )}
@@ -189,7 +199,7 @@ function MailboxConfigureRoute() {
                   type={showPassword ? "text" : "password"}
                   value={formData.imapPassword}
                   onChange={(e) => setFormData({ ...formData, imapPassword: e.target.value })}
-                  placeholder={mailbox?.imapPassword ? "••••••••" : "Enter password"}
+                  placeholder={mailbox?.imapConfig?.passwordEnc ? "••••••••" : "Enter password"}
                 />
                 <button
                   type="button"
@@ -262,7 +272,7 @@ function MailboxConfigureRoute() {
                   type={showSmtpPassword ? "text" : "password"}
                   value={formData.smtpPassword}
                   onChange={(e) => setFormData({ ...formData, smtpPassword: e.target.value })}
-                  placeholder={mailbox?.smtpPassword ? "••••••••" : "Enter password"}
+                  placeholder={mailbox?.smtpConfig?.passwordEnc ? "••••••••" : "Enter password"}
                 />
                 <button
                   type="button"
@@ -293,7 +303,7 @@ function MailboxConfigureRoute() {
           <Button
             type="button"
             variant="outline"
-            onClick={() => testConnectionMutation.mutate({ id: mailboxId })}
+            onClick={() => testConnectionMutation.mutate({ id: mailboxId, organizationId })}
             disabled={testConnectionMutation.isPending}
           >
             {testConnectionMutation.isPending ? (
@@ -311,8 +321,13 @@ function MailboxConfigureRoute() {
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={updateMutation.isPending}>
-              {updateMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            <Button
+              type="submit"
+              disabled={configureImapMutation.isPending || configureSmtpMutation.isPending}
+            >
+              {(configureImapMutation.isPending || configureSmtpMutation.isPending) && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
               <Save className="mr-2 h-4 w-4" />
               Save Changes
             </Button>

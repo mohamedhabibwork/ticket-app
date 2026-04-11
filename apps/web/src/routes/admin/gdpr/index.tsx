@@ -2,6 +2,19 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { FileText, Trash2, Download } from "lucide-react";
 
+const api = {
+  async get(url: string) {
+    return fetch(url);
+  },
+  async post(url: string, data: unknown) {
+    return fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+  },
+};
+
 interface GdprRequest {
   id: number;
   type: "access" | "erasure" | "portability";

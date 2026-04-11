@@ -163,7 +163,7 @@ export const fileRouter = {
 
             await fetch(thumbnailResult.uploadUrl, {
               method: "PUT",
-              body: thumbnailBuffer,
+              body: new Uint8Array(thumbnailBuffer),
               headers: { "Content-Type": input.contentType },
             });
 

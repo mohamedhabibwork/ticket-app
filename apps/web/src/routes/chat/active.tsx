@@ -147,7 +147,7 @@ function ActiveChatSessionsRoute() {
                             </DropdownMenuContent>
                           </DropdownMenu>
                           <Button size="sm" asChild>
-                            <Link to="/chat/$id" params={{ id: String(session.id) }}>
+                            <Link to="/chat/id" params={{ id: String(session.id) }}>
                               <MessageSquare className="h-4 w-4 mr-2" />
                               View
                             </Link>
@@ -197,7 +197,7 @@ function ActiveChatSessionsRoute() {
                           </div>
                         </div>
                         <Button size="sm" asChild>
-                          <Link to="/chat/$id" params={{ id: String(session.id) }}>
+                          <Link to="/chat/id" params={{ id: String(session.id) }}>
                             <MessageSquare className="h-4 w-4 mr-2" />
                             View
                           </Link>

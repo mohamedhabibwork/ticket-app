@@ -17,7 +17,6 @@ import {
   Play,
   AlertCircle,
   CheckCircle,
-  XCircle,
   ArrowLeft,
 } from "lucide-react";
 import { orpc } from "@/utils/orpc";
@@ -38,7 +37,7 @@ function formatRelativeTime(date: Date | string): string {
   return then.toLocaleDateString();
 }
 
-export const Route = createFileRoute("/admin/mailboxes/$id/")({
+export const Route = createFileRoute("/admin/mailboxes/id/")({
   component: MailboxDetailRoute,
 });
 
@@ -46,59 +45,46 @@ function MailboxDetailRoute() {
   const { id } = useParams({ from: "/admin/mailboxes/$id" });
   const mailboxId = Number(id);
 
+  const organizationId = 1;
+
   const {
     data: mailbox,
     isLoading,
     refetch,
   } = useQuery(
-    (orpc as any).mailboxes.get.queryOptions({
+    orpc.mailboxes.get.queryOptions({
       id: mailboxId,
-    }),
+      organizationId,
+    }) as any,
   );
 
   const syncMutation = useMutation(
-    (orpc as any).mailboxes.sync.mutationOptions({
+    orpc.mailboxes.syncNow.mutationOptions({
       onSuccess: () => refetch(),
     }),
   );
 
   const testConnectionMutation = useMutation(
-    (orpc as any).mailboxes.testConnection.mutationOptions({
+    orpc.mailboxes.testConnection.mutationOptions({
       onSuccess: () => refetch(),
     }),
   );
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "active":
-        return (
-          <span className="inline-flex items-center gap-1 rounded bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
-            <CheckCircle className="h-3 w-3" />
-            Active
-          </span>
-        );
-      case "error":
-        return (
-          <span className="inline-flex items-center gap-1 rounded bg-red-100 px-2 py-0.5 text-xs font-medium text-red-800">
-            <XCircle className="h-3 w-3" />
-            Error
-          </span>
-        );
-      case "syncing":
-        return (
-          <span className="inline-flex items-center gap-1 rounded bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-800">
-            <RefreshCw className="h-3 w-3 animate-spin" />
-            Syncing
-          </span>
-        );
-      default:
-        return (
-          <span className="inline-flex items-center gap-1 rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-800">
-            <AlertCircle className="h-3 w-3" />
-            {status}
-          </span>
-        );
+  const getStatusBadge = (isActive: boolean) => {
+    if (isActive) {
+      return (
+        <span className="inline-flex items-center gap-1 rounded bg-green-100 px-2 py-0.5 text-xs font-medium text-green-800">
+          <CheckCircle className="h-3 w-3" />
+          Active
+        </span>
+      );
     }
+    return (
+      <span className="inline-flex items-center gap-1 rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-800">
+        <AlertCircle className="h-3 w-3" />
+        Inactive
+      </span>
+    );
   };
 
   if (isLoading) {
@@ -116,7 +102,7 @@ function MailboxDetailRoute() {
           <CardContent className="py-12 text-center">
             <AlertCircle className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
             <p className="text-muted-foreground">Mailbox not found</p>
-            <Link to="/admin/mailboxes/">
+            <Link to="/admin/mailboxes">
               <Button variant="outline" className="mt-4">
                 <ArrowLeft className="mr-2 h-4 w-4" />
                 Back to Mailboxes
@@ -131,7 +117,7 @@ function MailboxDetailRoute() {
   return (
     <div className="container mx-auto max-w-4xl px-4 py-6">
       <div className="mb-6">
-        <Link to="/admin/mailboxes/">
+        <Link to="/admin/mailboxes">
           <Button variant="ghost" className="mb-4">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Mailboxes
@@ -145,7 +131,7 @@ function MailboxDetailRoute() {
             <div>
               <div className="flex items-center gap-3 mb-1">
                 <h1 className="text-2xl font-bold">{mailbox.name}</h1>
-                {getStatusBadge(mailbox.status)}
+                {getStatusBadge(mailbox.isActive)}
               </div>
               <p className="text-muted-foreground font-mono">{mailbox.email}</p>
               <p className="text-xs text-muted-foreground mt-1">
@@ -173,20 +159,12 @@ function MailboxDetailRoute() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <Card>
           <CardHeader>
-            <CardTitle>Sync Statistics</CardTitle>
-            <CardDescription>Email synchronization metrics</CardDescription>
+            <CardTitle>Sync Status</CardTitle>
+            <CardDescription>Email synchronization information</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">Total Emails</span>
-              <span className="font-medium">{mailbox.stats?.totalEmails ?? 0}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">Synced Today</span>
-              <span className="font-medium">{mailbox.stats?.syncedToday ?? 0}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">Last Sync</span>
+              <span className="text-sm text-muted-foreground">Last Synced</span>
               <span className="font-medium">
                 {mailbox.lastSyncedAt ? formatRelativeTime(mailbox.lastSyncedAt) : "Never"}
               </span>
@@ -195,42 +173,37 @@ function MailboxDetailRoute() {
               <span className="text-sm text-muted-foreground">Connection Type</span>
               <span className="font-medium">{mailbox.connectionType}</span>
             </div>
+            {mailbox.syncError && (
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Sync Error</span>
+                <span className="font-medium text-red-600">{mailbox.syncError}</span>
+              </div>
+            )}
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Recent Sync Errors</CardTitle>
-            <CardDescription>Latest synchronization issues</CardDescription>
+            <CardTitle>Configuration</CardTitle>
+            <CardDescription>IMAP and SMTP settings status</CardDescription>
           </CardHeader>
-          <CardContent>
-            {mailbox.syncErrors && mailbox.syncErrors.length > 0 ? (
-              <div className="space-y-3">
-                {mailbox.syncErrors
-                  .slice(0, 5)
-                  .map(
-                    (error: { id: number; message: string; occurredAt: string }, index: number) => (
-                      <div
-                        key={error.id || index}
-                        className="flex items-start gap-2 p-2 rounded bg-red-50 dark:bg-red-950/20"
-                      >
-                        <AlertCircle className="h-4 w-4 text-red-600 mt-0.5" />
-                        <div>
-                          <p className="text-sm text-red-800 dark:text-red-200">{error.message}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {formatRelativeTime(error.occurredAt)}
-                          </p>
-                        </div>
-                      </div>
-                    ),
-                  )}
-              </div>
-            ) : (
-              <div className="text-center py-6 text-muted-foreground">
-                <CheckCircle className="mx-auto h-8 w-8 mb-2 text-green-600" />
-                <p className="text-sm">No recent errors</p>
-              </div>
-            )}
+          <CardContent className="space-y-4">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">IMAP</span>
+              <span
+                className={`font-medium ${mailbox.imapConfig ? "text-green-600" : "text-red-600"}`}
+              >
+                {mailbox.imapConfig ? "Configured" : "Not configured"}
+              </span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">SMTP</span>
+              <span
+                className={`font-medium ${mailbox.smtpConfig ? "text-green-600" : "text-red-600"}`}
+              >
+                {mailbox.smtpConfig ? "Configured" : "Not configured"}
+              </span>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -241,7 +214,7 @@ function MailboxDetailRoute() {
         </CardHeader>
         <CardContent className="flex gap-3">
           <Button
-            onClick={() => syncMutation.mutate({ id: mailboxId })}
+            onClick={() => syncMutation.mutate({ id: mailboxId, organizationId })}
             disabled={syncMutation.isPending}
           >
             {syncMutation.isPending ? (
@@ -253,7 +226,7 @@ function MailboxDetailRoute() {
           </Button>
           <Button
             variant="outline"
-            onClick={() => testConnectionMutation.mutate({ id: mailboxId })}
+            onClick={() => testConnectionMutation.mutate({ id: mailboxId, organizationId })}
             disabled={testConnectionMutation.isPending}
           >
             {testConnectionMutation.isPending ? (

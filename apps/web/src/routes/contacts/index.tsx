@@ -132,7 +132,7 @@ function ContactsIndexRoute() {
                   </div>
                   <div className="flex items-center gap-2">
                     <Button variant="ghost" size="sm" asChild>
-                      <Link to="/contacts/$id" params={{ id: String(contact.id) }}>
+                      <Link to="/contacts/id" params={{ id: String(contact.id) }}>
                         View
                       </Link>
                     </Button>
@@ -144,7 +144,7 @@ function ContactsIndexRoute() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem asChild>
-                          <Link to="/contacts/$id" params={{ id: String(contact.id) }}>
+                          <Link to="/contacts/id" params={{ id: String(contact.id) }}>
                             <Edit className="h-4 w-4 mr-2" />
                             Edit
                           </Link>

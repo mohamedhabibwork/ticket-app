@@ -29,18 +29,15 @@ function AgentPerformancePage() {
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
   const organizationId = 1;
 
-  const { data: _agentPerformance, isLoading: _isLoading } = useQuery({
-    queryKey: ["reports", "agentPerformance", organizationId, dateRange],
-    queryFn: () =>
-      orpc.reports.getAgentPerformance.query({
-        organizationId,
-      }),
-  });
+  const { data: _agentPerformance, isLoading: _isLoading } = useQuery(
+    orpc.reports.getAgentPerformance.queryOptions({
+      organizationId,
+    } as any),
+  );
 
-  const { data: _responseTime } = useQuery({
-    queryKey: ["reports", "responseTime", organizationId],
-    queryFn: () => orpc.reports.getResponseTime.query({ organizationId }),
-  });
+  const { data: _responseTime } = useQuery(
+    orpc.reports.getResponseTime.queryOptions({ organizationId } as any),
+  );
 
   const dateRangeOptions: { value: DateRange; label: string }[] = [
     { value: "7d", label: "Last 7 days" },
@@ -157,10 +154,8 @@ function AgentPerformancePage() {
   return (
     <div className="container mx-auto py-8">
       <div className="flex items-center gap-4 mb-8">
-        <Button variant="outline" size="icon" asChild>
-          <Link to="/admin/reports">
-            <ArrowLeft className="h-4 w-4" />
-          </Link>
+        <Button variant="outline" size="icon" render={<Link to="/admin/reports" />}>
+          <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
           <h1 className="text-3xl font-bold">Agent Performance Report</h1>

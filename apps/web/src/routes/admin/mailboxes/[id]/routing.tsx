@@ -57,66 +57,57 @@ const ACTION_TYPES = [
   { value: "set_status", label: "Set Status" },
 ];
 
-export const Route = createFileRoute("/admin/mailboxes/$id/routing")({
+export const Route = createFileRoute("/admin/mailboxes/id/routing")({
   component: MailboxRoutingRoute,
 });
 
 function MailboxRoutingRoute() {
-  const { id } = useParams({ from: "/admin/mailboxes/$id/routing" });
+  const { id } = useParams({ from: "/admin/mailboxes/id/routing" });
   const mailboxId = Number(id);
+  const organizationId = 1;
 
   const { data: mailbox, isLoading } = useQuery(
-    (orpc as any).mailboxes.get.queryOptions({
+    orpc.mailboxes.get.queryOptions({
       id: mailboxId,
-    }),
-  );
-
-  const { data: rules, refetch } = useQuery(
-    (orpc as any).mailboxes.getRoutingRules.queryOptions({
-      mailboxId,
-    }),
+      organizationId,
+    } as any),
   );
 
   const { data: teams } = useQuery(
-    (orpc as any).teams.list.queryOptions({
-      organizationId: 1,
-    }),
+    orpc.teams.list.queryOptions({
+      organizationId,
+    } as any),
   );
 
   const [editingRule, setEditingRule] = useState<RoutingRule | null>(null);
   const [isCreating, setIsCreating] = useState(false);
+  const [rules, setRules] = useState<RoutingRule[]>([]);
 
   const createRuleMutation = useMutation(
-    (orpc as any).mailboxes.createRoutingRule.mutationOptions({
-      onSuccess: () => {
+    orpc.mailboxes.createRoutingRule.mutationOptions({
+      onSuccess: (data) => {
+        setRules([...rules, data as RoutingRule]);
         setEditingRule(null);
         setIsCreating(false);
-        refetch();
       },
     }),
   );
 
   const updateRuleMutation = useMutation(
-    (orpc as any).mailboxes.updateRoutingRule.mutationOptions({
-      onSuccess: () => {
+    orpc.mailboxes.updateRoutingRule.mutationOptions({
+      onSuccess: (data) => {
+        setRules(rules.map((r) => (r.id === data.id ? (data as RoutingRule) : r)));
         setEditingRule(null);
-        refetch();
       },
     }),
   );
 
   const deleteRuleMutation = useMutation(
-    (orpc as any).mailboxes.deleteRoutingRule.mutationOptions({
-      onSuccess: () => {
+    orpc.mailboxes.deleteRoutingRule.mutationOptions({
+      onSuccess: (_, ruleId) => {
+        setRules(rules.filter((r) => r.id !== ruleId));
         setEditingRule(null);
-        refetch();
       },
-    }),
-  );
-
-  const reorderMutation = useMutation(
-    (orpc as any).mailboxes.reorderRoutingRules.mutationOptions({
-      onSuccess: () => refetch(),
     }),
   );
 
@@ -125,36 +116,42 @@ function MailboxRoutingRoute() {
 
     if (editingRule.id) {
       updateRuleMutation.mutate({
-        id: editingRule.id,
-        mailboxId,
-        data: editingRule,
+        ruleId: editingRule.id,
+        name: editingRule.name,
+        conditions: editingRule.conditions,
+        conditionOperator: editingRule.conditionOperator,
+        actions: editingRule.actions.map((a) => ({ type: a.type, params: { value: a.value } })),
+        priority: editingRule.priority,
+        isActive: editingRule.isActive,
       });
     } else {
       createRuleMutation.mutate({
         mailboxId,
-        data: editingRule,
+        organizationId,
+        name: editingRule.name,
+        conditions: editingRule.conditions,
+        conditionOperator: editingRule.conditionOperator,
+        actions: editingRule.actions.map((a) => ({ type: a.type, params: { value: a.value } })),
+        priority: editingRule.priority,
+        isActive: editingRule.isActive,
       });
     }
   };
 
   const handleDeleteRule = (ruleId: number) => {
     if (confirm("Are you sure you want to delete this rule?")) {
-      deleteRuleMutation.mutate({ id: ruleId });
+      deleteRuleMutation.mutate({ ruleId });
     }
   };
 
   const moveRule = (index: number, direction: "up" | "down") => {
     const newIndex = direction === "up" ? index - 1 : index + 1;
-    if (newIndex < 0 || newIndex >= (rules?.length || 0)) return;
+    if (newIndex < 0 || newIndex >= rules.length) return;
 
-    const newOrder = [...(rules || [])];
-    const [removed] = newOrder.splice(index, 1);
-    newOrder.splice(newIndex, 0, removed);
-
-    reorderMutation.mutate({
-      mailboxId,
-      ruleIds: newOrder.map((r) => r.id),
-    });
+    const newRules = [...rules];
+    const [removed] = newRules.splice(index, 1);
+    newRules.splice(newIndex, 0, removed);
+    setRules(newRules);
   };
 
   const startEditing = (rule?: RoutingRule) => {
@@ -166,7 +163,7 @@ function MailboxRoutingRoute() {
         conditions: [{ field: "sender_domain", operator: "contains", value: "" }],
         conditionOperator: "and",
         actions: [{ type: "assign_team", value: "" }],
-        priority: (rules?.length || 0) + 1,
+        priority: rules.length + 1,
         isActive: true,
       });
     }
@@ -235,7 +232,7 @@ function MailboxRoutingRoute() {
   return (
     <div className="container mx-auto max-w-4xl px-4 py-6">
       <div className="mb-6">
-        <Link to="/admin/mailboxes/$id" params={{ id }}>
+        <Link to="/admin/mailboxes/id" params={{ id }}>
           <Button variant="ghost" className="mb-4">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Mailbox
@@ -406,7 +403,9 @@ function MailboxRoutingRoute() {
               </Button>
               <Button
                 onClick={handleSaveRule}
-                disabled={!editingRule.name || updateRuleMutation.isPending}
+                disabled={
+                  !editingRule.name || updateRuleMutation.isPending || createRuleMutation.isPending
+                }
               >
                 <Save className="mr-2 h-4 w-4" />
                 Save Rule
@@ -422,7 +421,7 @@ function MailboxRoutingRoute() {
           <CardDescription>Rules are evaluated in order from top to bottom</CardDescription>
         </CardHeader>
         <CardContent>
-          {rules && rules.length > 0 ? (
+          {rules.length > 0 ? (
             <div className="space-y-3">
               {rules.map((rule, index) => (
                 <div

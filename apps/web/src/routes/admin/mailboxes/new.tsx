@@ -35,20 +35,20 @@ function AddMailboxRoute() {
     defaultTeamId: undefined as number | undefined,
     autoReplyEnabled: false,
     autoReplySubject: "",
-    autoReplyBody: "",
+    autoReplyBodyHtml: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const { data: teams } = useQuery(
     orpc.teams.list.queryOptions({
       organizationId: 1,
-    }),
+    } as any),
   );
 
   const createMutation = useMutation(
     orpc.mailboxes.create.mutationOptions({
       onSuccess: (data) => {
-        navigate({ to: "/admin/mailboxes/$id", params: { id: String(data.id) } });
+        navigate({ to: "/admin/mailboxes/id", params: { id: String(data.id) } });
       },
     }),
   );
@@ -67,8 +67,8 @@ function AddMailboxRoute() {
       if (!formData.autoReplySubject.trim()) {
         newErrors.autoReplySubject = "Auto-reply subject is required when enabled";
       }
-      if (!formData.autoReplyBody.trim()) {
-        newErrors.autoReplyBody = "Auto-reply body is required when enabled";
+      if (!formData.autoReplyBodyHtml.trim()) {
+        newErrors.autoReplyBodyHtml = "Auto-reply body is required when enabled";
       }
     }
     setErrors(newErrors);
@@ -91,7 +91,7 @@ function AddMailboxRoute() {
       defaultTeamId: formData.defaultTeamId,
       autoReplyEnabled: formData.autoReplyEnabled,
       autoReplySubject: formData.autoReplySubject || undefined,
-      autoReplyBody: formData.autoReplyBody || undefined,
+      autoReplyBodyHtml: formData.autoReplyBodyHtml || undefined,
     });
   };
 
@@ -100,7 +100,7 @@ function AddMailboxRoute() {
       <div className="mb-6">
         <Button
           variant="ghost"
-          onClick={() => navigate({ to: "/admin/mailboxes/" })}
+          onClick={() => navigate({ to: "/admin/mailboxes" })}
           className="mb-4"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
@@ -215,17 +215,19 @@ function AddMailboxRoute() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="autoReplyBody">Auto-Reply Body *</Label>
+                  <Label htmlFor="autoReplyBodyHtml">Auto-Reply Body *</Label>
                   <textarea
-                    id="autoReplyBody"
-                    value={formData.autoReplyBody}
-                    onChange={(e) => setFormData({ ...formData, autoReplyBody: e.target.value })}
+                    id="autoReplyBodyHtml"
+                    value={formData.autoReplyBodyHtml}
+                    onChange={(e) =>
+                      setFormData({ ...formData, autoReplyBodyHtml: e.target.value })
+                    }
                     placeholder="We have received your message and will respond shortly..."
                     rows={4}
                     className="flex w-full min-w-0 rounded-none border border-input bg-transparent px-3 py-1 text-xs transition-colors outline-none focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50"
                   />
-                  {errors.autoReplyBody && (
-                    <p className="text-xs text-destructive">{errors.autoReplyBody}</p>
+                  {errors.autoReplyBodyHtml && (
+                    <p className="text-xs text-destructive">{errors.autoReplyBodyHtml}</p>
                   )}
                 </div>
 
@@ -242,7 +244,7 @@ function AddMailboxRoute() {
           <Button
             type="button"
             variant="outline"
-            onClick={() => navigate({ to: "/admin/mailboxes/" })}
+            onClick={() => navigate({ to: "/admin/mailboxes" })}
           >
             Cancel
           </Button>

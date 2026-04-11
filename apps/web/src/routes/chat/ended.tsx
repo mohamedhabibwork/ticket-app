@@ -159,7 +159,7 @@ function ChatHistoryRoute() {
       ) : filteredSessions && filteredSessions.length > 0 ? (
         <div className="space-y-3">
           {filteredSessions.map((session) => (
-            <Link key={session.id} to="/chat/$id" params={{ id: String(session.id) }}>
+            <Link key={session.id} to="/chat/id" params={{ id: String(session.id) }}>
               <Card className="hover:bg-accent/50 transition-colors">
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between">

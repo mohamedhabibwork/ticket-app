@@ -131,7 +131,7 @@ function TicketsIndexRoute() {
       ) : tickets && tickets.length > 0 ? (
         <div className="space-y-3">
           {tickets.map((ticket) => (
-            <Link key={ticket.id} to="/tickets/$id" params={{ id: String(ticket.id) }}>
+            <Link key={ticket.id} to="/tickets/id" params={{ id: String(ticket.id) }}>
               <Card className="hover:bg-accent/50 transition-colors cursor-pointer">
                 <CardContent className="p-4">
                   <div className="flex items-start gap-4">

@@ -21,11 +21,11 @@ function RolesListRoute() {
 
   const { data: rolesData, isLoading } = useQuery({
     queryKey: ["roles"],
-    queryFn: () => orpc.users.listRoles.query({ organizationId: 1 }),
+    queryFn: () => orpc.roles.list.queryOptions({ organizationId: 1 } as any),
   });
 
   const deleteMutation = useMutation(
-    orpc.roles.delete.mutationOptions({
+    orpc.users.deleteRole.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ["roles"] });
       },
@@ -38,7 +38,7 @@ function RolesListRoute() {
         `Are you sure you want to delete the role "${roleName}"? This action cannot be undone.`,
       )
     ) {
-      deleteMutation.mutate({ id: roleId, organizationId: 1 });
+      deleteMutation.mutate({ roleId, userId: 1, organizationId: 1 });
     }
   };
 

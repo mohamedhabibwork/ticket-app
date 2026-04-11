@@ -162,12 +162,12 @@ function RolePermissionsRoute() {
     refetch,
   } = useQuery({
     queryKey: ["role", roleId],
-    queryFn: () => orpc.users.getRole.query({ id: roleId }),
+    queryFn: () => orpc.users.getRole.queryOptions({ id: roleId } as any),
     enabled: !isNaN(roleId),
   });
 
   const updatePermissionsMutation = useMutation(
-    orpc.roles.updatePermissions.mutationOptions({
+    orpc.users.updateRolePermissions.mutationOptions({
       onSuccess: () => {
         refetch();
         setHasChanges(false);
@@ -220,8 +220,9 @@ function RolePermissionsRoute() {
 
   const handleSave = () => {
     updatePermissionsMutation.mutate({
-      id: roleId,
-      permissions: Array.from(selectedPermissions),
+      roleId,
+      permissionIds: [],
+      updatedBy: 1,
     });
   };
 

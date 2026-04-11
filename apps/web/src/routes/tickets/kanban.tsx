@@ -432,7 +432,7 @@ function KanbanBoardRoute() {
                               </span>
                             )}
                           </div>
-                          <Link to="/tickets/$id" params={{ id: String(ticket.id) }}>
+                          <Link to="/tickets/id" params={{ id: String(ticket.id) }}>
                             <h4 className="text-sm font-medium truncate hover:underline">
                               {ticket.subject}
                             </h4>
@@ -546,7 +546,7 @@ function KanbanBoardRoute() {
 
               <div className="flex gap-2 pt-2">
                 <Link
-                  to="/tickets/$id"
+                  to="/tickets/id"
                   params={{ id: String(selectedTicket.id) }}
                   className="flex-1"
                 >

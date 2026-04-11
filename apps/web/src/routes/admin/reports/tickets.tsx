@@ -31,14 +31,12 @@ function TicketReportsPage() {
   const [channel, setChannel] = useState<Channel>("all");
   const organizationId = 1;
 
-  const { data: ticketVolume, isLoading: _isLoading } = useQuery({
-    queryKey: ["reports", "ticketVolume", organizationId, dateRange, status, priority, channel],
-    queryFn: () =>
-      orpc.reports.getTicketVolume.query({
-        organizationId,
-        groupBy: "day",
-      }),
-  });
+  const { data: ticketVolume, isLoading: _isLoading } = useQuery(
+    orpc.reports.getTicketVolume.queryOptions({
+      organizationId,
+      groupBy: "day",
+    } as any),
+  );
 
   const dateRangeOptions: { value: DateRange; label: string }[] = [
     { value: "7d", label: "Last 7 days" },
@@ -81,10 +79,8 @@ function TicketReportsPage() {
   return (
     <div className="container mx-auto py-8">
       <div className="flex items-center gap-4 mb-8">
-        <Button variant="outline" size="icon" asChild>
-          <Link to="/admin/reports">
-            <ArrowLeft className="h-4 w-4" />
-          </Link>
+        <Button variant="outline" size="icon" render={<Link to="/admin/reports" />}>
+          <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
           <h1 className="text-3xl font-bold">Ticket Reports</h1>

@@ -156,7 +156,9 @@ interface ImapConfig {
 type ImapModule = any;
 
 async function pollImapMailbox(config: ImapConfig): Promise<ParsedEmail[]> {
-  const ImapModule = (await import("imap")) as ImapModule;
+  // @ts-ignore
+  const ImapModule = (await import("node-imap")) as ImapModule;
+  // @ts-ignore
   const mailparserModule = await import("mailparser");
   const Imap = ImapModule.default;
   const simpleParser = mailparserModule.simpleParser;

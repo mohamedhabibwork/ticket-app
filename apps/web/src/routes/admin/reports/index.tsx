@@ -26,29 +26,24 @@ function ReportsDashboardPage() {
   const [dateRange, setDateRange] = useState<DateRange>("30d");
   const organizationId = 1;
 
-  const { data: ticketVolume } = useQuery({
-    queryKey: ["reports", "ticketVolume", organizationId, dateRange],
-    queryFn: () =>
-      orpc.reports.getTicketVolume.query({
-        organizationId,
-        groupBy: "day",
-      }),
-  });
+  const { data: ticketVolume } = useQuery(
+    orpc.reports.getTicketVolume.queryOptions({
+      organizationId,
+      groupBy: "day",
+    } as any),
+  );
 
-  const { data: _slaCompliance } = useQuery({
-    queryKey: ["reports", "slaCompliance", organizationId],
-    queryFn: () => orpc.reports.getSlaCompliance.query({ organizationId }),
-  });
+  const { data: _slaCompliance } = useQuery(
+    orpc.reports.getSlaCompliance.queryOptions({ organizationId } as any),
+  );
 
-  const { data: responseTime } = useQuery({
-    queryKey: ["reports", "responseTime", organizationId],
-    queryFn: () => orpc.reports.getResponseTime.query({ organizationId }),
-  });
+  const { data: responseTime } = useQuery(
+    orpc.reports.getResponseTime.queryOptions({ organizationId } as any),
+  );
 
-  const { data: resolutionRate } = useQuery({
-    queryKey: ["reports", "resolutionRate", organizationId],
-    queryFn: () => orpc.reports.getResolutionRate.query({ organizationId }),
-  });
+  const { data: resolutionRate } = useQuery(
+    orpc.reports.getResolutionRate.queryOptions({ organizationId } as any),
+  );
 
   const dateRangeOptions: { value: DateRange; label: string }[] = [
     { value: "7d", label: "Last 7 days" },

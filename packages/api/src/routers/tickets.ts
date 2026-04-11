@@ -38,13 +38,13 @@ import {
   getTicketAuditHistory,
 } from "../services/activityLog";
 
-const MessageType = {
+export const MessageType = {
   REPLY: "reply",
   NOTE: "note",
   ACTIVITY: "activity",
 } as const;
 
-const AuthorType = {
+export const AuthorType = {
   AGENT: "agent",
   CONTACT: "contact",
   SYSTEM: "system",

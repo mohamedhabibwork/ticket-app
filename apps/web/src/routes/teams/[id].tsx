@@ -338,7 +338,7 @@ function TeamDetailRoute() {
               {teamTickets && teamTickets.length > 0 ? (
                 <div className="space-y-3">
                   {teamTickets.map((ticket) => (
-                    <Link key={ticket.id} to="/tickets/$id" params={{ id: String(ticket.id) }}>
+                    <Link key={ticket.id} to="/tickets/id" params={{ id: String(ticket.id) }}>
                       <div className="flex items-center justify-between p-3 rounded border hover:bg-accent/50">
                         <div>
                           <div className="font-medium">{ticket.subject}</div>

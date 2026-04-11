@@ -97,7 +97,7 @@ function CreateRoleRoute() {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const createMutation = useMutation(
-    orpc.roles.create.mutationOptions({
+    orpc.users.createRole.mutationOptions({
       onSuccess: (data) => {
         navigate({ to: `/admin/roles/${data.id}` });
       },
@@ -125,11 +125,14 @@ function CreateRoleRoute() {
 
     if (!validateForm()) return;
 
+    const slug = formData.name.toLowerCase().replace(/\s+/g, "-");
     createMutation.mutate({
       organizationId: 1,
       name: formData.name,
+      slug,
       description: formData.description,
-      permissions: Array.from(selectedPermissions),
+      ticketViewScope: "all",
+      createdBy: 1,
     });
   };
 

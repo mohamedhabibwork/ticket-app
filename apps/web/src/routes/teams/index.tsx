@@ -91,13 +91,13 @@ function TeamsIndexRoute() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem asChild>
-                        <Link to="/teams/$id" params={{ id: String(team.id) }}>
+                        <Link to="/teams/id" params={{ id: String(team.id) }}>
                           <User className="h-4 w-4 mr-2" />
                           View
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem asChild>
-                        <Link to="/teams/$id" params={{ id: String(team.id) }}>
+                        <Link to="/teams/id" params={{ id: String(team.id) }}>
                           <Edit className="h-4 w-4 mr-2" />
                           Edit
                         </Link>

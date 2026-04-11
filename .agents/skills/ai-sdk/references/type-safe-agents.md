@@ -23,7 +23,7 @@ lib/
 ```ts
 // lib/tools/weather-tool.ts
 import { tool } from "ai";
-import { z } from "zod";
+import * as z from "zod";
 
 export const weatherTool = tool({
   description: "Get current weather for a location",
@@ -61,7 +61,7 @@ export type MyAgentUIMessage = InferAgentUIMessage<typeof myAgent>;
 
 ```ts
 // lib/agents/my-agent.ts
-import { z } from "zod";
+import * as z from "zod";
 
 const metadataSchema = z.object({
   createdAt: z.coerce.number(),
@@ -139,7 +139,7 @@ When rendering many tools, you may want to split each tool into its own componen
 ```ts
 // lib/tools/weather-tool.ts
 import { tool, UIToolInvocation } from "ai";
-import { z } from "zod";
+import * as z from "zod";
 
 export const weatherTool = tool({
   description: "Get current weather for a location",
