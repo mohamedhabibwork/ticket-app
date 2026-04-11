@@ -121,7 +121,7 @@ function NewTeamRoute() {
               <div className="space-y-2">
                 <Label>Auto-assign Method</Label>
                 <DropdownMenu open={showLeadDropdown} onOpenChange={setShowLeadDropdown}>
-                  <DropdownMenuTrigger asChild>
+                  <DropdownMenuTrigger>
                     <Button variant="outline" className="w-full justify-between">
                       {autoAssignOptions.find((o) => o.value === autoAssignMethod)?.label ||
                         "Select method"}
@@ -147,7 +147,7 @@ function NewTeamRoute() {
               <div className="space-y-2">
                 <Label>Team Lead</Label>
                 <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
+                  <DropdownMenuTrigger>
                     <Button variant="outline" className="w-full justify-between">
                       {selectedLead
                         ? `${selectedLead.firstName} ${selectedLead.lastName}`

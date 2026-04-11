@@ -31,7 +31,7 @@ export const Route = createFileRoute("/admin/users/id")({
 });
 
 function UserDetailRoute() {
-  const { id } = Route.useParams();
+  const { id } = Route.useParams() as { id: string };
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({
@@ -124,14 +124,14 @@ function UserDetailRoute() {
       timezone: editData.timezone || undefined,
       locale: editData.locale || undefined,
       roleIds: editData.roleIds,
-    });
+    } as any);
   };
 
   const handleDeactivate = () => {
     if (
       confirm("Are you sure you want to deactivate this user? They will be logged out immediately.")
     ) {
-      deactivateMutation.mutate({ id: userId, organizationId: 1 });
+      deactivateMutation.mutate({ id: userId, organizationId: 1 } as any);
     }
   };
 
@@ -140,11 +140,11 @@ function UserDetailRoute() {
       id: userId,
       organizationId: 1,
       isActive: true,
-    });
+    } as any);
   };
 
   const handleRevokeSession = (sessionId: number) => {
-    revokeSessionMutation.mutate({ sessionId, userId });
+    revokeSessionMutation.mutate({ sessionId, userId } as any);
   };
 
   if (isLoading) {
@@ -160,9 +160,9 @@ function UserDetailRoute() {
       <div className="container mx-auto py-8">
         <div className="text-center">
           <h1 className="text-2xl font-bold">User not found</h1>
-          <Button asChild className="mt-4">
-            <Link to="/admin/users">Back to Users</Link>
-          </Button>
+          <Link to="/admin/users">
+            <Button className="mt-4">Back to Users</Button>
+          </Link>
         </div>
       </div>
     );
@@ -176,12 +176,12 @@ function UserDetailRoute() {
   return (
     <div className="container mx-auto py-8">
       <div className="mb-8">
-        <Button variant="ghost" asChild className="mb-4 pl-0">
-          <Link to="/admin/users">
+        <Link to="/admin/users">
+          <Button variant="ghost" className="mb-4 pl-0">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Users
-          </Link>
-        </Button>
+          </Button>
+        </Link>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center">

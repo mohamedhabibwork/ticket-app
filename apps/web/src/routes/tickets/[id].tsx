@@ -389,7 +389,7 @@ function TicketDetailRoute() {
                       </div>
                       {!message.deletedAt && (
                         <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
+                          <DropdownMenuTrigger>
                             <Button variant="ghost" size="sm">
                               <span className="sr-only">Actions</span>
                               <span className="text-xs">•••</span>

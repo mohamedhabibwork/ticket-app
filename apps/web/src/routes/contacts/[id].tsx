@@ -124,12 +124,12 @@ function ContactDetailRoute() {
         <Card>
           <CardContent className="py-12 text-center">
             <p className="text-muted-foreground">Contact not found</p>
-            <Button variant="ghost" className="mt-4" asChild>
-              <Link to="/contacts">
+            <Link to="/contacts">
+              <Button variant="ghost" className="mt-4">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Contacts
-              </Link>
-            </Button>
+              </Button>
+            </Link>
           </CardContent>
         </Card>
       </div>
@@ -140,11 +140,11 @@ function ContactDetailRoute() {
     <div className="container mx-auto max-w-4xl px-4 py-6">
       <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild>
-            <Link to="/contacts">
+          <Link to="/contacts">
+            <Button variant="ghost" size="icon">
               <ArrowLeft className="h-4 w-4" />
-            </Link>
-          </Button>
+            </Button>
+          </Link>
           <div>
             <h1 className="text-2xl font-bold">
               {contact.firstName} {contact.lastName}
@@ -270,11 +270,9 @@ function ContactDetailRoute() {
                   <Ticket className="h-4 w-4" />
                   Tickets
                 </span>
-                <Button size="sm" asChild>
-                  <Link to="/tickets/new" search={{ contactId }}>
-                    New Ticket
-                  </Link>
-                </Button>
+                <Link to="/tickets/new" search={{ contactId }}>
+                  <Button size="sm">New Ticket</Button>
+                </Link>
               </CardTitle>
             </CardHeader>
             <CardContent>

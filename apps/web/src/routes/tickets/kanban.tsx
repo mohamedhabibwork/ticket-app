@@ -284,7 +284,7 @@ function KanbanBoardRoute() {
               <div className="space-y-2">
                 <Label>Priority</Label>
                 <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
+                  <DropdownMenuTrigger>
                     <Button variant="outline" className="w-full justify-between">
                       {filters.priorityIds.length > 0
                         ? `${filters.priorityIds.length} selected`
@@ -333,7 +333,7 @@ function KanbanBoardRoute() {
               <div className="space-y-2">
                 <Label>Assignee</Label>
                 <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
+                  <DropdownMenuTrigger>
                     <Button variant="outline" className="w-full justify-between">
                       {filters.agentIds.length > 0
                         ? `${filters.agentIds.length} selected`
@@ -358,7 +358,7 @@ function KanbanBoardRoute() {
               <div className="space-y-2">
                 <Label>Team</Label>
                 <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
+                  <DropdownMenuTrigger>
                     <Button variant="outline" className="w-full justify-between">
                       {filters.teamIds.length > 0
                         ? `${filters.teamIds.length} selected`

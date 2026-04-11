@@ -185,12 +185,12 @@ function ChatConversationRoute() {
         <Card>
           <CardContent className="py-12 text-center">
             <p className="text-muted-foreground">Chat session not found</p>
-            <Button variant="ghost" className="mt-4" asChild>
-              <Link to="/chat/active">
+            <Link to="/chat/active">
+              <Button variant="ghost" className="mt-4">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Active Chats
-              </Link>
-            </Button>
+              </Button>
+            </Link>
           </CardContent>
         </Card>
       </div>
@@ -203,11 +203,11 @@ function ChatConversationRoute() {
     <div className="container mx-auto max-w-4xl px-4 py-6">
       <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild>
-            <Link to={isActive ? "/chat/active" : "/chat/ended"}>
+          <Link to={isActive ? "/chat/active" : "/chat/ended"}>
+            <Button variant="ghost" size="icon">
               <ArrowLeft className="h-4 w-4" />
-            </Link>
-          </Button>
+            </Button>
+          </Link>
           <div>
             <h1 className="text-2xl font-bold">
               {session.contact

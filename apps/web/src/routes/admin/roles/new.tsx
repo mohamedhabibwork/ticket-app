@@ -98,10 +98,10 @@ function CreateRoleRoute() {
 
   const createMutation = useMutation(
     orpc.users.createRole.mutationOptions({
-      onSuccess: (data) => {
+      onSuccess: (data: any) => {
         navigate({ to: `/admin/roles/${data.id}` });
       },
-      onError: (error) => {
+      onError: (error: { message: string }) => {
         setErrors({ submit: error.message });
       },
     }),
@@ -133,7 +133,7 @@ function CreateRoleRoute() {
       description: formData.description,
       ticketViewScope: "all",
       createdBy: 1,
-    });
+    } as any);
   };
 
   const togglePermission = (permissionKey: string) => {
@@ -199,7 +199,6 @@ function CreateRoleRoute() {
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder="e.g., Support Supervisor"
-                hasError={!!errors.name}
               />
               {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
             </div>

@@ -38,7 +38,7 @@ function RolesListRoute() {
         `Are you sure you want to delete the role "${roleName}"? This action cannot be undone.`,
       )
     ) {
-      deleteMutation.mutate({ roleId, userId: 1, organizationId: 1 });
+      deleteMutation.mutate({ roleId, userId: 1, organizationId: 1 } as any);
     }
   };
 

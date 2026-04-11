@@ -117,7 +117,7 @@ function CreateSlaPolicyRoute() {
 
   const createMutation = useMutation(
     orpc.slaPolicies.create.mutationOptions({
-      onSuccess: async (data) => {
+      onSuccess: async (data: any) => {
         const policyId = data.id;
 
         for (const target of targets) {
@@ -130,14 +130,14 @@ function CreateSlaPolicyRoute() {
               resolutionMinutes: target.resolutionMinutes,
               escalateAgentId: escalation.escalateAgentId,
               escalateTeamId: escalation.escalateTeamId,
-            });
+            } as any);
           }
         }
 
         queryClient.invalidateQueries({ queryKey: ["sla-policies"] });
         navigate({ to: "/admin/sla" });
       },
-      onError: (error) => {
+      onError: (error: { message: string }) => {
         setErrors({ submit: error.message });
       },
     }),
@@ -166,7 +166,7 @@ function CreateSlaPolicyRoute() {
       businessHoursOnly: formData.businessHoursOnly,
       businessHoursConfig: formData.businessHoursOnly ? businessHours : undefined,
       holidays: holidays.length > 0 ? holidays : undefined,
-    });
+    } as any);
   };
 
   const updateTarget = (index: number, field: string, value: any) => {
@@ -206,12 +206,12 @@ function CreateSlaPolicyRoute() {
   return (
     <div className="container mx-auto py-8 max-w-4xl">
       <div className="mb-8">
-        <Button variant="ghost" asChild className="mb-4 pl-0">
-          <Link to="/admin/sla">
+        <Link to="/admin/sla">
+          <Button variant="ghost" className="mb-4 pl-0">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to SLA Policies
-          </Link>
-        </Button>
+          </Button>
+        </Link>
         <h1 className="text-3xl font-bold">Create SLA Policy</h1>
         <p className="text-muted-foreground mt-1">
           Define service level agreements and response targets
@@ -235,7 +235,6 @@ function CreateSlaPolicyRoute() {
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 placeholder="e.g., Standard Support"
-                hasError={!!errors.name}
               />
               {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
             </div>
@@ -583,9 +582,9 @@ function CreateSlaPolicyRoute() {
         )}
 
         <div className="flex justify-end gap-3">
-          <Button variant="outline" asChild>
-            <Link to="/admin/sla">Cancel</Link>
-          </Button>
+          <Link to="/admin/sla">
+            <Button variant="outline">Cancel</Button>
+          </Link>
           <Button type="submit" disabled={createMutation.isPending}>
             <Save className="mr-2 h-4 w-4" />
             {createMutation.isPending ? "Creating..." : "Create Policy"}

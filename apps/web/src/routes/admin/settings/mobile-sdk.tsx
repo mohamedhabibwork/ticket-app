@@ -33,10 +33,10 @@ function MobileSdkSettingsRoute() {
     data: configs,
     isLoading,
     refetch,
-  } = useQuery(
+  }: any = useQuery(
     orpc.mobileSdk.listConfigs.queryOptions({
       organizationId: 1,
-    }),
+    } as any),
   );
 
   const createMutation = useMutation(
@@ -46,19 +46,19 @@ function MobileSdkSettingsRoute() {
         setShowAddForm(false);
         resetForm();
       },
-    }),
+    }) as any,
   );
 
   const deleteMutation = useMutation(
     orpc.mobileSdk.deleteConfig.mutationOptions({
       onSuccess: () => refetch(),
-    }),
+    }) as any,
   );
 
   const updateMutation = useMutation(
     orpc.mobileSdk.updateConfig.mutationOptions({
       onSuccess: () => refetch(),
-    }),
+    }) as any,
   );
 
   const resetForm = () => {
@@ -84,14 +84,14 @@ function MobileSdkSettingsRoute() {
       apnsKey: platform === "ios" ? apnsKey : undefined,
       apnsBundleId: platform === "ios" ? apnsBundleId : undefined,
       isEnabled: true,
-    });
+    } as any);
   };
 
   const toggleEnabled = (id: number, currentEnabled: boolean) => {
     updateMutation.mutate({
       id,
       isEnabled: !currentEnabled,
-    });
+    } as any);
   };
 
   return (
@@ -220,7 +220,7 @@ function MobileSdkSettingsRoute() {
                       size="icon"
                       onClick={() => {
                         if (confirm("Are you sure you want to delete this configuration?")) {
-                          deleteMutation.mutate({ id: config.id });
+                          deleteMutation.mutate({ id: config.id } as any);
                         }
                       }}
                       disabled={deleteMutation.isPending}

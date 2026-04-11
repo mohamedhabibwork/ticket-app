@@ -40,7 +40,7 @@ function InviteUserRoute() {
       onSuccess: () => {
         navigate({ to: "/admin/users" });
       },
-      onError: (error) => {
+      onError: (error: { message: string }) => {
         setErrors({ submit: error.message });
       },
     }),
@@ -79,7 +79,7 @@ function InviteUserRoute() {
       lastName: formData.lastName,
       roleIds: formData.roleId ? [formData.roleId] : undefined,
       sendWelcomeEmail: formData.sendWelcomeEmail,
-    });
+    } as any);
   };
 
   const handleChange = (field: string, value: string | number | boolean) => {
@@ -96,12 +96,12 @@ function InviteUserRoute() {
   return (
     <div className="container mx-auto py-8 max-w-2xl">
       <div className="mb-8">
-        <Button variant="ghost" asChild className="mb-4 pl-0">
-          <Link to="/admin/users">
+        <Link to="/admin/users">
+          <Button variant="ghost" className="mb-4 pl-0">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Users
-          </Link>
-        </Button>
+          </Button>
+        </Link>
         <h1 className="text-3xl font-bold">Invite User</h1>
         <p className="text-muted-foreground mt-1">Send an invitation to join your organization</p>
       </div>
@@ -124,7 +124,6 @@ function InviteUserRoute() {
                   value={formData.firstName}
                   onChange={(e) => handleChange("firstName", e.target.value)}
                   placeholder="John"
-                  hasError={!!errors.firstName}
                 />
                 {errors.firstName && <p className="text-xs text-destructive">{errors.firstName}</p>}
               </div>
@@ -135,7 +134,6 @@ function InviteUserRoute() {
                   value={formData.lastName}
                   onChange={(e) => handleChange("lastName", e.target.value)}
                   placeholder="Doe"
-                  hasError={!!errors.lastName}
                 />
                 {errors.lastName && <p className="text-xs text-destructive">{errors.lastName}</p>}
               </div>
@@ -152,7 +150,6 @@ function InviteUserRoute() {
                   onChange={(e) => handleChange("email", e.target.value)}
                   placeholder="john.doe@habib.cloud"
                   className="pl-9"
-                  hasError={!!errors.email}
                 />
               </div>
               {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
@@ -212,9 +209,9 @@ function InviteUserRoute() {
             )}
 
             <div className="flex justify-end gap-3 pt-4">
-              <Button variant="outline" asChild>
-                <Link to="/admin/users">Cancel</Link>
-              </Button>
+              <Link to="/admin/users">
+                <Button variant="outline">Cancel</Button>
+              </Link>
               <Button type="submit" disabled={inviteMutation.isPending}>
                 {inviteMutation.isPending ? (
                   <>

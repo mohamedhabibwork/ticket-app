@@ -207,7 +207,7 @@ function NewTicketRoute() {
                 <div className="space-y-2">
                   <Label>Channel</Label>
                   <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
+                    <DropdownMenuTrigger>
                       <Button variant="outline" className="w-full justify-between">
                         {selectedChannel?.name || "Select channel"}
                         <ChevronDown className="h-4 w-4 ml-2" />
@@ -229,7 +229,7 @@ function NewTicketRoute() {
                 <div className="space-y-2">
                   <Label>Priority</Label>
                   <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
+                    <DropdownMenuTrigger>
                       <Button variant="outline" className="w-full justify-between">
                         {selectedPriority ? (
                           <span
@@ -279,7 +279,7 @@ function NewTicketRoute() {
                 <div className="space-y-2">
                   <Label>Category</Label>
                   <DropdownMenu open={showCategoryDropdown} onOpenChange={setShowCategoryDropdown}>
-                    <DropdownMenuTrigger asChild>
+                    <DropdownMenuTrigger>
                       <Button variant="outline" className="w-full justify-between">
                         {selectedCategoryId && categories?.find((c) => c.id === selectedCategoryId)
                           ? categories.find((c) => c.id === selectedCategoryId)?.name
@@ -323,7 +323,7 @@ function NewTicketRoute() {
                 <div className="space-y-2">
                   <Label>Assign to Agent</Label>
                   <DropdownMenu open={showAgentDropdown} onOpenChange={setShowAgentDropdown}>
-                    <DropdownMenuTrigger asChild>
+                    <DropdownMenuTrigger>
                       <Button variant="outline" className="w-full justify-between">
                         {selectedAgent
                           ? `${selectedAgent.firstName} ${selectedAgent.lastName}`
@@ -358,7 +358,7 @@ function NewTicketRoute() {
                 <div className="space-y-2">
                   <Label>Assign to Team</Label>
                   <DropdownMenu open={showTeamDropdown} onOpenChange={setShowTeamDropdown}>
-                    <DropdownMenuTrigger asChild>
+                    <DropdownMenuTrigger>
                       <Button variant="outline" className="w-full justify-between">
                         {selectedTeam?.name || "Select team (optional)"}
                         <ChevronDown className="h-4 w-4 ml-2" />

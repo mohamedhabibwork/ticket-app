@@ -172,9 +172,11 @@ function NewWorkflowRoute() {
         </Card>
 
         <div className="flex items-center justify-end gap-3">
-          <Button variant="outline" type="button" asChild>
-            <Link to="/admin/workflows">Cancel</Link>
-          </Button>
+          <Link to="/admin/workflows">
+            <Button variant="outline" type="button">
+              Cancel
+            </Button>
+          </Link>
           <Button
             type="button"
             variant="outline"

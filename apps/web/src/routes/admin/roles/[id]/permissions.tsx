@@ -175,7 +175,9 @@ function RolePermissionsRoute() {
 
   useEffect(() => {
     if (role?.permissions) {
-      const currentPermissions = new Set(role.permissions.map((rp: any) => rp.permission.key));
+      const currentPermissions = new Set<string>(
+        role.permissions.map((rp: any) => rp.permission.key),
+      );
       setSelectedPermissions(currentPermissions);
     }
   }, [role]);
@@ -220,7 +222,7 @@ function RolePermissionsRoute() {
       roleId,
       permissionIds: [],
       updatedBy: 1,
-    });
+    } as any);
   };
 
   const isSystemRole = role?.isSystem;

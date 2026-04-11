@@ -51,7 +51,7 @@ function EditRoleRoute() {
         refetch();
         queryClient.invalidateQueries({ queryKey: ["roles"] });
       },
-      onError: (error) => {
+      onError: (error: { message: string }) => {
         setErrors({ submit: error.message });
       },
     }),
@@ -70,7 +70,7 @@ function EditRoleRoute() {
       name: formData.name,
       description: formData.description,
       ticketViewScope: formData.ticketViewScope,
-    });
+    } as any);
   };
 
   if (isLoading) {
@@ -159,12 +159,12 @@ function EditRoleRoute() {
   return (
     <div className="container mx-auto py-8 max-w-2xl">
       <div className="mb-8">
-        <Button variant="ghost" asChild className="mb-4 pl-0">
-          <Link to="/admin/roles">
+        <Link to="/admin/roles">
+          <Button variant="ghost" className="mb-4 pl-0">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Roles
-          </Link>
-        </Button>
+          </Button>
+        </Link>
         <h1 className="text-3xl font-bold">Edit Role</h1>
         <p className="text-muted-foreground mt-1">Update role details</p>
       </div>
@@ -186,7 +186,6 @@ function EditRoleRoute() {
                 value={formData.name || role.name}
                 onChange={(e) => handleChange("name", e.target.value)}
                 placeholder="Role name"
-                hasError={!!errors.name}
               />
               {errors.name && <p className="text-xs text-destructive">{errors.name}</p>}
             </div>

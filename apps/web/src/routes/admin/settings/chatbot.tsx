@@ -90,14 +90,14 @@ function ChatbotSettingsRoute() {
       isEnabled,
       escalationThreshold,
       responseDelaySeconds,
-    });
+    } as any);
   };
 
   const toggleEnabled = (id: number, currentEnabled: boolean) => {
     updateMutation.mutate({
       id,
       isEnabled: !currentEnabled,
-    });
+    } as any);
   };
 
   const currentConfig = configs && (configs as any).length > 0 ? (configs as any)[0] : null;
@@ -275,7 +275,7 @@ function ChatbotSettingsRoute() {
                       id: currentConfig.id,
                       escalationThreshold,
                       responseDelaySeconds,
-                    })
+                    } as any)
                   }
                   disabled={updateMutation.isPending}
                 >
@@ -292,7 +292,7 @@ function ChatbotSettingsRoute() {
                   variant="destructive"
                   onClick={() => {
                     if (confirm("Are you sure you want to delete this configuration?")) {
-                      deleteMutation.mutate({ id: currentConfig.id });
+                      deleteMutation.mutate({ id: currentConfig.id } as any);
                     }
                   }}
                   disabled={deleteMutation.isPending}

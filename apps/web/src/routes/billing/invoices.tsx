@@ -66,12 +66,12 @@ export default function InvoiceHistoryPage() {
   return (
     <div className="container mx-auto py-8 space-y-8">
       <div>
-        <Button variant="ghost" size="sm" asChild className="mb-4">
-          <Link to="/billing">
+        <Link to="/billing">
+          <Button variant="ghost" size="sm" className="mb-4">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Billing
-          </Link>
-        </Button>
+          </Button>
+        </Link>
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">Invoice History</h1>
@@ -174,25 +174,23 @@ export default function InvoiceHistoryPage() {
                     </Badge>
                   </div>
                   <div className="flex items-center justify-end gap-2">
-                    <Button variant="ghost" size="icon-xs" asChild>
-                      <a
-                        href={`/api/invoices/${invoice.id}/pdf`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        title="View PDF"
-                      >
-                        <ExternalLink className="h-4 w-4" />
-                      </a>
-                    </Button>
-                    <Button variant="ghost" size="icon-xs" asChild>
-                      <a
-                        href={`/api/invoices/${invoice.id}/pdf?download=true`}
-                        download={`invoice-${invoice.number}.pdf`}
-                        title="Download PDF"
-                      >
-                        <Download className="h-4 w-4" />
-                      </a>
-                    </Button>
+                    <a
+                      href={`/api/invoices/${invoice.id}/pdf`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title="View PDF"
+                      className="inline-flex h-6 items-center justify-center rounded-none px-2 hover:bg-muted"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                    </a>
+                    <a
+                      href={`/api/invoices/${invoice.id}/pdf?download=true`}
+                      download={`invoice-${invoice.number}.pdf`}
+                      title="Download PDF"
+                      className="inline-flex h-6 items-center justify-center rounded-none px-2 hover:bg-muted"
+                    >
+                      <Download className="h-4 w-4" />
+                    </a>
                   </div>
                 </div>
               ))}

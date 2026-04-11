@@ -150,23 +150,23 @@ export default function SeatManagementPage() {
   return (
     <div className="container mx-auto py-8 space-y-8">
       <div>
-        <Button variant="ghost" size="sm" asChild className="mb-4">
-          <Link to="/billing">
+        <Link to="/billing">
+          <Button variant="ghost" size="sm" className="mb-4">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Billing
-          </Link>
-        </Button>
+          </Button>
+        </Link>
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">Seat Management</h1>
             <p className="text-muted-foreground mt-1">Manage your team's seats and invitations</p>
           </div>
-          <Button asChild>
-            <Link to="/billing/upgrade">
+          <Link to="/billing/upgrade">
+            <Button>
               <ArrowUpRight className="h-4 w-4 mr-2" />
               Upgrade Plan
-            </Link>
-          </Button>
+            </Button>
+          </Link>
         </div>
       </div>
 
@@ -370,12 +370,12 @@ export default function SeatManagementPage() {
                   </p>
                 </div>
               </div>
-              <Button asChild variant="outline" className="border-amber-300 bg-white">
-                <Link to="/billing/upgrade">
+              <Link to="/billing/upgrade">
+                <Button variant="outline" className="border-amber-300 bg-white">
                   <ArrowUpRight className="h-4 w-4 mr-2" />
                   Upgrade Plan
-                </Link>
-              </Button>
+                </Button>
+              </Link>
             </div>
           </CardContent>
         </Card>

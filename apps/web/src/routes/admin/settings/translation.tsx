@@ -112,14 +112,14 @@ function TranslationSettingsRoute() {
         apiKey: apiKey.trim(),
         isEnabled,
         updatedBy: 1,
-      });
+      } as any);
     } else {
       createMutation.mutate({
         organizationId,
         provider,
         apiKey: apiKey.trim(),
         createdBy: 1,
-      });
+      } as any);
     }
   };
 
@@ -129,7 +129,7 @@ function TranslationSettingsRoute() {
       organizationId,
       isEnabled: !isEnabled,
       updatedBy: 1,
-    });
+    } as any);
     setIsEnabled(!isEnabled);
   };
 

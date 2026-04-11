@@ -170,7 +170,7 @@ function CreateKbArticleRoute() {
                 <div className="space-y-2">
                   <Label>Category</Label>
                   <DropdownMenu open={showCategoryDropdown} onOpenChange={setShowCategoryDropdown}>
-                    <DropdownMenuTrigger asChild>
+                    <DropdownMenuTrigger>
                       <Button variant="outline" className="w-full justify-between">
                         {selectedCategory?.name || "Select category"}
                         <ChevronDown className="h-4 w-4 ml-2" />

@@ -111,12 +111,12 @@ function KbCategoriesRoute() {
           <h1 className="text-2xl font-bold">KB Categories</h1>
           <p className="text-muted-foreground">Organize your knowledge base articles</p>
         </div>
-        <Button asChild>
-          <Link to="/kb/new">
+        <Link to="/kb/new">
+          <Button>
             <Plus className="h-4 w-4 mr-2" />
             New Article
-          </Link>
-        </Button>
+          </Button>
+        </Link>
       </div>
 
       <Card className="mb-6">

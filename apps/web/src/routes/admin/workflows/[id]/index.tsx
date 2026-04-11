@@ -346,12 +346,12 @@ function WorkflowDetailRoute() {
                   <CardTitle>Recent Executions</CardTitle>
                   <CardDescription>Last 5 workflow executions</CardDescription>
                 </div>
-                <Button variant="outline" size="sm" asChild>
-                  <Link to={`/admin/workflows/${workflowId}/logs`}>
+                <Link to={`/admin/workflows/${workflowId}/logs`}>
+                  <Button variant="outline" size="sm">
                     <FileText className="mr-2 h-4 w-4" />
                     View All Logs
-                  </Link>
-                </Button>
+                  </Button>
+                </Link>
               </div>
             </CardHeader>
             <CardContent>

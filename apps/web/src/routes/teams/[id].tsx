@@ -137,12 +137,12 @@ function TeamDetailRoute() {
         <Card>
           <CardContent className="py-12 text-center">
             <p className="text-muted-foreground">Team not found</p>
-            <Button variant="ghost" className="mt-4" asChild>
-              <Link to="/teams">
+            <Link to="/teams">
+              <Button variant="ghost" className="mt-4">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Teams
-              </Link>
-            </Button>
+              </Button>
+            </Link>
           </CardContent>
         </Card>
       </div>
@@ -157,11 +157,11 @@ function TeamDetailRoute() {
     <div className="container mx-auto max-w-4xl px-4 py-6">
       <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild>
-            <Link to="/teams">
+          <Link to="/teams">
+            <Button variant="ghost" size="icon">
               <ArrowLeft className="h-4 w-4" />
-            </Link>
-          </Button>
+            </Button>
+          </Link>
           <div>
             <h1 className="text-2xl font-bold">{team.name}</h1>
             <p className="text-muted-foreground">Team Details</p>

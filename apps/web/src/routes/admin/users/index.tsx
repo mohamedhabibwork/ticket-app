@@ -53,7 +53,7 @@ function UsersListRoute() {
 
   const handleDeactivate = (userId: number) => {
     if (confirm("Are you sure you want to deactivate this user?")) {
-      deactivateMutation.mutate({ id: userId, organizationId: 1 });
+      deactivateMutation.mutate({ id: userId, organizationId: 1 } as any);
     }
   };
 
@@ -62,7 +62,7 @@ function UsersListRoute() {
       id: userId,
       organizationId: 1,
       isActive: true,
-    });
+    } as any);
   };
 
   const getRoleName = (user: any) => {

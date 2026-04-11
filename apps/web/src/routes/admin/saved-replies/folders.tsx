@@ -78,7 +78,7 @@ function SavedReplyFoldersRoute() {
     createMutation.mutate({
       organizationId,
       name: newFolderName.trim(),
-    });
+    } as any);
   };
 
   const handleStartEdit = (folder: any) => {
@@ -98,7 +98,7 @@ function SavedReplyFoldersRoute() {
     updateMutation.mutate({
       id: editingId,
       name: editingName.trim(),
-    });
+    } as any);
   };
 
   const handleDeleteFolder = (folderId: number, folderName: string) => {
@@ -107,7 +107,7 @@ function SavedReplyFoldersRoute() {
         `Are you sure you want to delete the folder "${folderName}"? Replies in this folder will not be deleted but will become uncategorized.`,
       )
     ) {
-      deleteMutation.mutate({ id: folderId });
+      deleteMutation.mutate({ id: folderId } as any);
     }
   };
 
@@ -145,12 +145,12 @@ function SavedReplyFoldersRoute() {
   return (
     <div className="container mx-auto py-8 max-w-4xl">
       <div className="mb-8">
-        <Button variant="ghost" asChild className="mb-4 pl-0">
-          <Link to="/admin/saved-replies">
+        <Link to="/admin/saved-replies">
+          <Button variant="ghost" className="mb-4 pl-0">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Saved Replies
-          </Link>
-        </Button>
+          </Button>
+        </Link>
         <h1 className="text-3xl font-bold">Saved Reply Folders</h1>
         <p className="text-muted-foreground mt-1">Organize your saved replies into folders</p>
       </div>

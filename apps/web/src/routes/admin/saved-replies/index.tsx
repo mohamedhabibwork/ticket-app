@@ -65,7 +65,7 @@ function SavedRepliesListRoute() {
     if (
       confirm("Are you sure you want to delete this saved reply? This action cannot be undone.")
     ) {
-      deleteMutation.mutate({ id: replyId });
+      deleteMutation.mutate({ id: replyId } as any);
     }
   };
 

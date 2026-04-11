@@ -157,12 +157,12 @@ function KbCategoryDetailRoute() {
         <Card>
           <CardContent className="py-12 text-center">
             <p className="text-muted-foreground">Category not found</p>
-            <Button variant="ghost" className="mt-4" asChild>
-              <Link to="/kb/categories">
+            <Link to="/kb/categories">
+              <Button variant="ghost" className="mt-4">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Categories
-              </Link>
-            </Button>
+              </Button>
+            </Link>
           </CardContent>
         </Card>
       </div>
@@ -175,11 +175,11 @@ function KbCategoryDetailRoute() {
     <div className="container mx-auto max-w-4xl px-4 py-6">
       <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild>
-            <Link to="/kb/categories">
+          <Link to="/kb/categories">
+            <Button variant="ghost" size="icon">
               <ArrowLeft className="h-4 w-4" />
-            </Link>
-          </Button>
+            </Button>
+          </Link>
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2">
               <FolderOpen className="h-6 w-6" />

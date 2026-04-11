@@ -101,11 +101,11 @@ function SecuritySettingsRoute() {
   return (
     <div className="container mx-auto max-w-2xl px-4 py-6">
       <div className="mb-6 flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
-          <Link to="/settings">
+        <Link to="/settings">
+          <Button variant="ghost" size="icon">
             <ArrowLeft className="h-4 w-4" />
-          </Link>
-        </Button>
+          </Button>
+        </Link>
         <div>
           <h1 className="text-2xl font-bold">Security Settings</h1>
           <p className="text-muted-foreground">Manage your account security</p>

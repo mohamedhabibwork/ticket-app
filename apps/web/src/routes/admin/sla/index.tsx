@@ -62,12 +62,12 @@ function SlaPoliciesListRoute() {
         `Are you sure you want to delete the SLA policy "${policyName}"? This action cannot be undone.`,
       )
     ) {
-      deleteMutation.mutate({ id: policyId });
+      deleteMutation.mutate({ id: policyId } as any);
     }
   };
 
   const handleSetDefault = (policyId: number) => {
-    setDefaultMutation.mutate({ id: policyId, isDefault: true });
+    setDefaultMutation.mutate({ id: policyId, isDefault: true } as any);
   };
 
   const formatMinutes = (minutes: number): string => {

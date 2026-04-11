@@ -200,12 +200,12 @@ export default function PlanUpgradePage() {
   return (
     <div className="container mx-auto py-8 space-y-8">
       <div>
-        <Button variant="ghost" size="sm" asChild className="mb-4">
-          <Link to="/billing">
+        <Link to="/billing">
+          <Button variant="ghost" size="sm" className="mb-4">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Billing
-          </Link>
-        </Button>
+          </Button>
+        </Link>
         <h1 className="text-3xl font-bold">Choose Your Plan</h1>
         <p className="text-muted-foreground mt-1">
           Select the plan that best fits your team's needs

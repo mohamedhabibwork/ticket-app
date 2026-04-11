@@ -107,12 +107,12 @@ export default function PaymentMethodsPage() {
   return (
     <div className="container mx-auto py-8 space-y-8">
       <div>
-        <Button variant="ghost" size="sm" asChild className="mb-4">
-          <Link to="/billing">
+        <Link to="/billing">
+          <Button variant="ghost" size="sm" className="mb-4">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Billing
-          </Link>
-        </Button>
+          </Button>
+        </Link>
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold">Payment Methods</h1>

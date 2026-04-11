@@ -285,12 +285,12 @@ function WorkflowLogsRoute() {
                         )}
 
                         <div className="flex items-center gap-2">
-                          <Button variant="outline" size="sm" asChild>
-                            <Link to={`/tickets/${log.ticketId}`}>
+                          <Link to={`/tickets/${log.ticketId}`}>
+                            <Button variant="outline" size="sm">
                               <FileText className="mr-2 h-4 w-4" />
                               View Ticket
-                            </Link>
-                          </Button>
+                            </Button>
+                          </Link>
                         </div>
                       </div>
                     </div>
