@@ -169,7 +169,7 @@ function KbCategoriesRoute() {
                 ) : (
                   <div className="flex items-start justify-between">
                     <Link
-                      to="/kb/categories/$id"
+                      to="/kb/categories/id"
                       params={{ id: String(category.id) }}
                       className="flex-1"
                     >

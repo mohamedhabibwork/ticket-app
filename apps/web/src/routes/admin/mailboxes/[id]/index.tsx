@@ -42,7 +42,7 @@ export const Route = createFileRoute("/admin/mailboxes/id/")({
 });
 
 function MailboxDetailRoute() {
-  const { id } = useParams({ from: "/admin/mailboxes/$id" });
+  const { id } = useParams({ from: "/admin/mailboxes/id" });
   const mailboxId = Number(id);
 
   const organizationId = 1;
@@ -51,23 +51,23 @@ function MailboxDetailRoute() {
     data: mailbox,
     isLoading,
     refetch,
-  } = useQuery(
+  }: any = useQuery(
     orpc.mailboxes.get.queryOptions({
       id: mailboxId,
       organizationId,
-    }) as any,
+    } as any),
   );
 
   const syncMutation = useMutation(
     orpc.mailboxes.syncNow.mutationOptions({
       onSuccess: () => refetch(),
-    }),
+    }) as any,
   );
 
   const testConnectionMutation = useMutation(
     orpc.mailboxes.testConnection.mutationOptions({
       onSuccess: () => refetch(),
-    }),
+    }) as any,
   );
 
   const getStatusBadge = (isActive: boolean) => {
@@ -140,13 +140,13 @@ function MailboxDetailRoute() {
             </div>
           </div>
           <div className="flex gap-2">
-            <Link to="/admin/mailboxes/$id/configure" params={{ id }}>
+            <Link to="/admin/mailboxes/id/configure" params={{ id }}>
               <Button variant="outline">
                 <Settings className="mr-2 h-4 w-4" />
                 Configure
               </Button>
             </Link>
-            <Link to="/admin/mailboxes/$id/routing" params={{ id }}>
+            <Link to="/admin/mailboxes/id/routing" params={{ id }}>
               <Button variant="outline">
                 <RouteIcon className="mr-2 h-4 w-4" />
                 Routing
@@ -214,7 +214,7 @@ function MailboxDetailRoute() {
         </CardHeader>
         <CardContent className="flex gap-3">
           <Button
-            onClick={() => syncMutation.mutate({ id: mailboxId, organizationId })}
+            onClick={() => syncMutation.mutate({ id: mailboxId, organizationId } as any)}
             disabled={syncMutation.isPending}
           >
             {syncMutation.isPending ? (
@@ -226,7 +226,7 @@ function MailboxDetailRoute() {
           </Button>
           <Button
             variant="outline"
-            onClick={() => testConnectionMutation.mutate({ id: mailboxId, organizationId })}
+            onClick={() => testConnectionMutation.mutate({ id: mailboxId, organizationId } as any)}
             disabled={testConnectionMutation.isPending}
           >
             {testConnectionMutation.isPending ? (

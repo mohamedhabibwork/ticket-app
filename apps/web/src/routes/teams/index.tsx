@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Button } from "@ticket-app/ui/components/button";
@@ -19,12 +19,13 @@ export const Route = createFileRoute("/teams/")({
 
 function TeamsIndexRoute() {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const organizationId = 1;
 
-  const { data: teams, isLoading } = useQuery(
+  const { data: teams, isLoading }: any = useQuery(
     orpc.teams.list.queryOptions({
       organizationId,
-    }),
+    } as any),
   );
 
   const deleteMutation = useMutation(
@@ -52,12 +53,12 @@ function TeamsIndexRoute() {
           <h1 className="text-2xl font-bold">Teams</h1>
           <p className="text-muted-foreground">Manage support teams</p>
         </div>
-        <Button asChild>
-          <Link to="/teams/new">
+        <Link to="/teams/new">
+          <Button>
             <Plus className="h-4 w-4 mr-2" />
             Create Team
-          </Link>
-        </Button>
+          </Button>
+        </Link>
       </div>
 
       {isLoading ? (
@@ -90,17 +91,13 @@ function TeamsIndexRoute() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem asChild>
-                        <Link to="/teams/id" params={{ id: String(team.id) }}>
-                          <User className="h-4 w-4 mr-2" />
-                          View
-                        </Link>
+                      <DropdownMenuItem onClick={() => navigate(`/teams/${team.id}`)}>
+                        <User className="h-4 w-4 mr-2" />
+                        View
                       </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link to="/teams/id" params={{ id: String(team.id) }}>
-                          <Edit className="h-4 w-4 mr-2" />
-                          Edit
-                        </Link>
+                      <DropdownMenuItem onClick={() => navigate(`/teams/${team.id}`)}>
+                        <Edit className="h-4 w-4 mr-2" />
+                        Edit
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => handleDelete(team.id)}
@@ -123,9 +120,9 @@ function TeamsIndexRoute() {
         <Card>
           <CardContent className="py-12 text-center">
             <p className="text-muted-foreground">No teams found</p>
-            <Button className="mt-4" asChild>
-              <Link to="/teams/new">Create your first team</Link>
-            </Button>
+            <Link to="/teams/new">
+              <Button className="mt-4">Create your first team</Button>
+            </Link>
           </CardContent>
         </Card>
       )}

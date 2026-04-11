@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@ticket-app/ui/components/button";
 import { Card, CardContent } from "@ticket-app/ui/components/card";
@@ -31,14 +31,15 @@ export const Route = createFileRoute("/contacts/")({
 function ContactsIndexRoute() {
   const [search, setSearch] = useState("");
   const [companyFilter, setCompanyFilter] = useState("");
+  const navigate = useNavigate();
   const organizationId = 1;
 
-  const { data: contacts, isLoading } = useQuery(
+  const { data: contacts, isLoading }: any = useQuery(
     orpc.contacts.list.queryOptions({
       organizationId,
       search: search || undefined,
       limit: 50,
-    }),
+    } as any),
   );
 
   const companies = [...new Set(contacts?.map((c) => c.company).filter(Boolean))];
@@ -55,12 +56,12 @@ function ContactsIndexRoute() {
           <h1 className="text-2xl font-bold">Contacts</h1>
           <p className="text-muted-foreground">Manage your customer contacts</p>
         </div>
-        <Button asChild>
-          <Link to="/contacts/new">
+        <Link to="/contacts/new">
+          <Button>
             <Plus className="h-4 w-4 mr-2" />
             Add Contact
-          </Link>
-        </Button>
+          </Button>
+        </Link>
       </div>
 
       <Card className="mb-6">
@@ -131,11 +132,11 @@ function ContactsIndexRoute() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="sm" asChild>
-                      <Link to="/contacts/id" params={{ id: String(contact.id) }}>
+                    <Link to="/contacts/id" params={{ id: String(contact.id) }}>
+                      <Button variant="ghost" size="sm">
                         View
-                      </Link>
-                    </Button>
+                      </Button>
+                    </Link>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon">
@@ -143,11 +144,9 @@ function ContactsIndexRoute() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem asChild>
-                          <Link to="/contacts/id" params={{ id: String(contact.id) }}>
-                            <Edit className="h-4 w-4 mr-2" />
-                            Edit
-                          </Link>
+                        <DropdownMenuItem onClick={() => navigate(`/contacts/${contact.id}`)}>
+                          <Edit className="h-4 w-4 mr-2" />
+                          Edit
                         </DropdownMenuItem>
                         <DropdownMenuItem>
                           <Merge className="h-4 w-4 mr-2" />

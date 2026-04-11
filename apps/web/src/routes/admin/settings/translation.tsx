@@ -47,16 +47,16 @@ function TranslationSettingsRoute() {
     data: config,
     isLoading,
     refetch,
-  } = useQuery(
+  }: any = useQuery(
     orpc.translation.getConfig.queryOptions({
       organizationId,
-    }),
+    } as any),
   );
 
-  const { data: usageStats } = useQuery(
+  const { data: usageStats }: any = useQuery(
     orpc.translation.getUsageStats.queryOptions({
       organizationId,
-    }),
+    } as any),
   );
 
   const createMutation = useMutation(
@@ -66,10 +66,10 @@ function TranslationSettingsRoute() {
         refetch();
         setApiKey("");
       },
-      onError: (error) => {
+      onError: (error: any) => {
         toast.error(`Failed to save: ${error.message}`);
       },
-    }),
+    }) as any,
   );
 
   const updateMutation = useMutation(
@@ -79,10 +79,10 @@ function TranslationSettingsRoute() {
         refetch();
         setApiKey("");
       },
-      onError: (error) => {
+      onError: (error: any) => {
         toast.error(`Failed to update: ${error.message}`);
       },
-    }),
+    }) as any,
   );
 
   const deleteMutation = useMutation(
@@ -91,10 +91,10 @@ function TranslationSettingsRoute() {
         toast.success("Translation configuration deleted");
         refetch();
       },
-      onError: (error) => {
+      onError: (error: any) => {
         toast.error(`Failed to delete: ${error.message}`);
       },
-    }),
+    }) as any,
   );
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -179,18 +179,20 @@ function TranslationSettingsRoute() {
                   <div>
                     <p className="font-medium">Translation Active</p>
                     <p className="text-sm text-muted-foreground">
-                      Provider: {usageStats?.provider || config.provider} • Target:{" "}
-                      {config.targetLanguage?.toUpperCase() || "EN"}
+                      Provider: {(usageStats as any)?.provider || (config as any).provider} •
+                      Target: {(config as any).targetLanguage?.toUpperCase() || "EN"}
                     </p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
                   <span
                     className={`inline-flex items-center rounded px-2 py-0.5 text-xs font-medium ${
-                      config.isEnabled ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"
+                      (config as any).isEnabled
+                        ? "bg-green-100 text-green-800"
+                        : "bg-gray-100 text-gray-800"
                     }`}
                   >
-                    {config.isEnabled ? "Enabled" : "Disabled"}
+                    {(config as any).isEnabled ? "Enabled" : "Disabled"}
                   </span>
                   <Button
                     variant="outline"
@@ -358,17 +360,17 @@ function TranslationSettingsRoute() {
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">Provider</span>
               <span className="text-sm font-medium">
-                {usageStats?.provider || "Not configured"}
+                {(usageStats as any)?.provider || "Not configured"}
               </span>
             </div>
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">Status</span>
               <span
                 className={`text-sm font-medium ${
-                  usageStats?.isEnabled ? "text-green-600" : "text-gray-500"
+                  (usageStats as any)?.isEnabled ? "text-green-600" : "text-gray-500"
                 }`}
               >
-                {usageStats?.isEnabled ? "Enabled" : "Disabled"}
+                {(usageStats as any)?.isEnabled ? "Enabled" : "Disabled"}
               </span>
             </div>
             <p className="text-xs text-muted-foreground pt-2">

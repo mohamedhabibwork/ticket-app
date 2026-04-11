@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@ticket-app/ui/components/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
@@ -27,6 +27,7 @@ export const Route = createFileRoute("/admin/sla/")({
 
 function SlaPoliciesListRoute() {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
 
   const { data: policies, isLoading } = useQuery({
@@ -99,12 +100,12 @@ function SlaPoliciesListRoute() {
             Manage service level agreements and response times
           </p>
         </div>
-        <Button asChild>
-          <Link to="/admin/sla/new">
+        <Link to="/admin/sla/new">
+          <Button>
             <Plus className="mr-2 h-4 w-4" />
             Create Policy
-          </Link>
-        </Button>
+          </Button>
+        </Link>
       </div>
 
       <div className="flex items-center gap-4 mb-6">
@@ -165,11 +166,9 @@ function SlaPoliciesListRoute() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem asChild>
-                        <Link to={`/admin/sla/${policy.id}`}>
-                          <Edit className="mr-2 h-4 w-4" />
-                          Edit
-                        </Link>
+                      <DropdownMenuItem onClick={() => navigate(`/admin/sla/${policy.id}`)}>
+                        <Edit className="mr-2 h-4 w-4" />
+                        Edit
                       </DropdownMenuItem>
                       {!policy.isDefault && (
                         <DropdownMenuItem onClick={() => handleSetDefault(policy.id)}>

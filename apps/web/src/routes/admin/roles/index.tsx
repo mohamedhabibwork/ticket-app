@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@ticket-app/ui/components/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
@@ -18,11 +18,11 @@ export const Route = createFileRoute("/admin/roles/")({
 
 function RolesListRoute() {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
-  const { data: rolesData, isLoading } = useQuery({
-    queryKey: ["roles"],
-    queryFn: () => orpc.roles.list.queryOptions({ organizationId: 1 } as any),
-  });
+  const { data: rolesData, isLoading }: any = useQuery(
+    orpc.roles.list.queryOptions({ organizationId: 1 } as any),
+  );
 
   const deleteMutation = useMutation(
     orpc.users.deleteRole.mutationOptions({
@@ -55,12 +55,12 @@ function RolesListRoute() {
           <h1 className="text-3xl font-bold">Roles</h1>
           <p className="text-muted-foreground mt-1">Manage user roles and permissions</p>
         </div>
-        <Button asChild>
-          <Link to="/admin/roles/new">
+        <Link to="/admin/roles/new">
+          <Button>
             <Plus className="mr-2 h-4 w-4" />
             Create Role
-          </Link>
-        </Button>
+          </Button>
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -98,17 +98,15 @@ function RolesListRoute() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem asChild>
-                        <Link to={`/admin/roles/${role.id}`}>
-                          <Edit className="mr-2 h-4 w-4" />
-                          Edit
-                        </Link>
+                      <DropdownMenuItem onClick={() => navigate(`/admin/roles/${role.id}`)}>
+                        <Edit className="mr-2 h-4 w-4" />
+                        Edit
                       </DropdownMenuItem>
-                      <DropdownMenuItem asChild>
-                        <Link to={`/admin/roles/${role.id}/permissions`}>
-                          <Shield className="mr-2 h-4 w-4" />
-                          Permissions
-                        </Link>
+                      <DropdownMenuItem
+                        onClick={() => navigate(`/admin/roles/${role.id}/permissions`)}
+                      >
+                        <Shield className="mr-2 h-4 w-4" />
+                        Permissions
                       </DropdownMenuItem>
                       {!role.isSystem && (
                         <>

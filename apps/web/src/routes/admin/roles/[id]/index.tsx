@@ -43,11 +43,7 @@ function EditRoleRoute() {
     data: role,
     isLoading,
     refetch,
-  } = useQuery({
-    queryKey: ["role", roleId],
-    queryFn: () => orpc.users.getRole.queryOptions({ id: roleId } as any),
-    enabled: !isNaN(roleId),
-  });
+  }: any = useQuery(orpc.users.getRole.queryOptions({ id: roleId } as any));
 
   const updateMutation = useMutation(
     orpc.users.updateRole.mutationOptions({
@@ -90,9 +86,9 @@ function EditRoleRoute() {
       <div className="container mx-auto py-8">
         <div className="text-center">
           <h1 className="text-2xl font-bold">Role not found</h1>
-          <Button render={<Link to="/admin/roles" />} className="mt-4">
-            Back to Roles
-          </Button>
+          <Link to="/admin/roles">
+            <Button className="mt-4">Back to Roles</Button>
+          </Link>
         </div>
       </div>
     );
@@ -101,10 +97,12 @@ function EditRoleRoute() {
   if (role.isSystem) {
     return (
       <div className="container mx-auto py-8 max-w-2xl">
-        <Button variant="ghost" render={<Link to="/admin/roles" />} className="mb-4 pl-0">
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Roles
-        </Button>
+        <Link to="/admin/roles">
+          <Button variant="ghost" className="mb-4 pl-0">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Roles
+          </Button>
+        </Link>
 
         <Card>
           <CardHeader>
@@ -119,7 +117,9 @@ function EditRoleRoute() {
               predefined roles that are essential to the operation of the platform.
             </p>
             <div className="mt-6 flex justify-end">
-              <Button render={<Link to="/admin/roles" />}>Back to Roles</Button>
+              <Link to="/admin/roles">
+                <Button>Back to Roles</Button>
+              </Link>
             </div>
           </CardContent>
         </Card>
@@ -242,13 +242,13 @@ function EditRoleRoute() {
             )}
 
             <div className="flex justify-between pt-4 border-t">
-              <Button variant="outline" asChild>
-                <Link to={`/admin/roles/${roleId}/permissions`}>Manage Permissions</Link>
-              </Button>
+              <Link to={`/admin/roles/${roleId}/permissions`}>
+                <Button variant="outline">Manage Permissions</Button>
+              </Link>
               <div className="flex gap-3">
-                <Button variant="outline" asChild>
-                  <Link to="/admin/roles">Cancel</Link>
-                </Button>
+                <Link to="/admin/roles">
+                  <Button variant="outline">Cancel</Button>
+                </Link>
                 <Button type="submit" disabled={updateMutation.isPending}>
                   <Save className="mr-2 h-4 w-4" />
                   {updateMutation.isPending ? "Saving..." : "Save Changes"}

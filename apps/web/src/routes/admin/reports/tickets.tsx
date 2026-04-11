@@ -31,7 +31,7 @@ function TicketReportsPage() {
   const [channel, setChannel] = useState<Channel>("all");
   const organizationId = 1;
 
-  const { data: ticketVolume, isLoading: _isLoading } = useQuery(
+  const { data: ticketVolume, isLoading: _isLoading }: any = useQuery(
     orpc.reports.getTicketVolume.queryOptions({
       organizationId,
       groupBy: "day",

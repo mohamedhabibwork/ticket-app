@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@ticket-app/ui/components/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
@@ -37,6 +37,7 @@ export const Route = createFileRoute("/admin/saved-replies/")({
 
 function SavedRepliesListRoute() {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [folderFilter, setFolderFilter] = useState<string>("all");
 
@@ -111,12 +112,12 @@ function SavedRepliesListRoute() {
             Manage pre-written responses for faster ticket handling
           </p>
         </div>
-        <Button asChild>
-          <Link to="/admin/saved-replies/new">
+        <Link to="/admin/saved-replies/new">
+          <Button>
             <Plus className="mr-2 h-4 w-4" />
             Create Reply
-          </Link>
-        </Button>
+          </Button>
+        </Link>
       </div>
 
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6">
@@ -149,12 +150,12 @@ function SavedRepliesListRoute() {
       </div>
 
       <div className="mb-4">
-        <Button variant="ghost" asChild size="sm" className="pl-0">
-          <Link to="/admin/saved-replies/folders">
+        <Link to="/admin/saved-replies/folders">
+          <Button variant="ghost" size="sm" className="pl-0">
             <Folder className="mr-2 h-4 w-4" />
             Manage Folders
-          </Link>
-        </Button>
+          </Button>
+        </Link>
       </div>
 
       {isLoading ? (
@@ -192,11 +193,11 @@ function SavedRepliesListRoute() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem asChild>
-                        <Link to={`/admin/saved-replies/${reply.id}`}>
-                          <Edit className="mr-2 h-4 w-4" />
-                          Edit
-                        </Link>
+                      <DropdownMenuItem
+                        onClick={() => navigate(`/admin/saved-replies/${reply.id}`)}
+                      >
+                        <Edit className="mr-2 h-4 w-4" />
+                        Edit
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem

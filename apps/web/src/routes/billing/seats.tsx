@@ -55,14 +55,16 @@ export default function SeatManagementPage() {
   const [role, setRole] = useState("agent");
   const queryClient = useQueryClient();
 
-  const { data: subscription, isLoading } = useQuery(
-    orpc.subscriptions.get.queryOptions({ organizationId: 1 }),
+  const { data: subscription, isLoading }: any = useQuery(
+    orpc.subscriptions.get.queryOptions({ organizationId: 1 } as any),
   );
 
-  const { data: seats } = useQuery(orpc.subscriptions.getSeats.queryOptions({ organizationId: 1 }));
+  const { data: seats }: any = useQuery(
+    orpc.subscriptions.getSeats.queryOptions({ organizationId: 1 } as any),
+  );
 
-  const { data: pendingInvitations } = useQuery(
-    orpc.subscriptions.getPendingInvitations.queryOptions({ organizationId: 1 }),
+  const { data: pendingInvitations }: any = useQuery(
+    orpc.subscriptions.getPendingInvitations.queryOptions({ organizationId: 1 } as any),
   );
 
   const inviteMutation = useMutation(

@@ -37,28 +37,28 @@ function TeamDetailRoute() {
   const [newMemberId, setNewMemberId] = useState<number | null>(null);
   const [showMemberDropdown, setShowMemberDropdown] = useState(false);
 
-  const { data: team, isLoading } = useQuery(
-    orpc.teams.get.queryOptions({ id: teamId }, { enabled: !isNaN(teamId) }),
+  const { data: team, isLoading }: any = useQuery(
+    orpc.teams.get.queryOptions({ id: teamId } as any, { enabled: !isNaN(teamId) }),
   );
 
-  const { data: members } = useQuery(
-    orpc.teams.listMembers.queryOptions({ teamId }, { enabled: !isNaN(teamId) }),
+  const { data: members }: any = useQuery(
+    orpc.teams.listMembers.queryOptions({ teamId } as any, { enabled: !isNaN(teamId) }),
   );
 
-  const { data: agents } = useQuery(
+  const { data: agents }: any = useQuery(
     orpc.users.list.queryOptions({
       organizationId,
       isActive: true,
       limit: 100,
-    }),
+    } as any),
   );
 
-  const { data: teamTickets } = useQuery(
+  const { data: teamTickets }: any = useQuery(
     orpc.tickets.list.queryOptions({
       organizationId,
       assignedTeamId: teamId,
       limit: 10,
-    }),
+    } as any),
   );
 
   const updateMutation = useMutation(

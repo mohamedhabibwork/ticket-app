@@ -39,17 +39,17 @@ function ChatbotSettingsRoute() {
     data: configs,
     isLoading,
     refetch,
-  } = useQuery(
+  }: any = useQuery(
     orpc.chatbot.listConfigs.queryOptions({
       organizationId: 1,
-    }),
+    } as any),
   );
 
-  const { data: analytics, isLoading: _analyticsLoading } = useQuery(
+  const { data: analytics, isLoading: _analyticsLoading }: any = useQuery(
     orpc.chatbot.getAnalytics.queryOptions({
       organizationId: 1,
       days: analyticsDays,
-    }),
+    } as any),
   );
 
   const createMutation = useMutation(
@@ -59,19 +59,19 @@ function ChatbotSettingsRoute() {
         setShowAddForm(false);
         resetForm();
       },
-    }),
+    }) as any,
   );
 
   const updateMutation = useMutation(
     orpc.chatbot.updateConfig.mutationOptions({
       onSuccess: () => refetch(),
-    }),
+    }) as any,
   );
 
   const deleteMutation = useMutation(
     orpc.chatbot.deleteConfig.mutationOptions({
       onSuccess: () => refetch(),
-    }),
+    }) as any,
   );
 
   const resetForm = () => {
@@ -100,7 +100,7 @@ function ChatbotSettingsRoute() {
     });
   };
 
-  const currentConfig = configs && configs.length > 0 ? configs[0] : null;
+  const currentConfig = configs && (configs as any).length > 0 ? (configs as any)[0] : null;
 
   return (
     <div className="container mx-auto max-w-4xl px-4 py-6">
@@ -127,7 +127,7 @@ function ChatbotSettingsRoute() {
                   <MessageSquare className="h-5 w-5 text-blue-600" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">{analytics.totalSessions}</p>
+                  <p className="text-2xl font-bold">{(analytics as any).totalSessions}</p>
                   <p className="text-sm text-muted-foreground">Total Sessions</p>
                 </div>
               </div>
@@ -141,7 +141,7 @@ function ChatbotSettingsRoute() {
                   <CheckCircle className="h-5 w-5 text-green-600" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">{analytics.resolvedSessions}</p>
+                  <p className="text-2xl font-bold">{(analytics as any).resolvedSessions}</p>
                   <p className="text-sm text-muted-foreground">Resolved</p>
                 </div>
               </div>
@@ -155,7 +155,7 @@ function ChatbotSettingsRoute() {
                   <ArrowUpRight className="h-5 w-5 text-orange-600" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">{analytics.escalatedSessions}</p>
+                  <p className="text-2xl font-bold">{(analytics as any).escalatedSessions}</p>
                   <p className="text-sm text-muted-foreground">Escalated</p>
                 </div>
               </div>
@@ -170,7 +170,7 @@ function ChatbotSettingsRoute() {
                 </div>
                 <div>
                   <p className="text-2xl font-bold">
-                    {(analytics.escalationRate * 100).toFixed(1)}%
+                    {((analytics as any).escalationRate * 100).toFixed(1)}%
                   </p>
                   <p className="text-sm text-muted-foreground">Escalation Rate</p>
                 </div>

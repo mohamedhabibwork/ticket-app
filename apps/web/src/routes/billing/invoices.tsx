@@ -18,13 +18,13 @@ export default function InvoiceHistoryPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [dateRange, setDateRange] = useState<string>("all");
 
-  const { data: invoicesData, isLoading } = useQuery(
+  const { data: invoicesData, isLoading }: any = useQuery(
     orpc.invoices.list.queryOptions({
       organizationId: 1,
       page: 1,
       limit: 50,
       status: statusFilter === "all" ? undefined : statusFilter,
-    }),
+    } as any),
   );
 
   const invoices = invoicesData?.invoices || [];

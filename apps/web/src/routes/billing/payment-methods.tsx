@@ -48,8 +48,8 @@ export default function PaymentMethodsPage() {
   const [name, setName] = useState("");
   const queryClient = useQueryClient();
 
-  const { data: paymentMethods, isLoading } = useQuery(
-    orpc.paymentMethods.list.queryOptions({ organizationId: 1 }),
+  const { data: paymentMethods, isLoading }: any = useQuery(
+    orpc.paymentMethods.list.queryOptions({ organizationId: 1 } as any),
   );
 
   const setDefaultMutation = useMutation(

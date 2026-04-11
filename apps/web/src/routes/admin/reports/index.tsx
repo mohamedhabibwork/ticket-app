@@ -26,22 +26,22 @@ function ReportsDashboardPage() {
   const [dateRange, setDateRange] = useState<DateRange>("30d");
   const organizationId = 1;
 
-  const { data: ticketVolume } = useQuery(
+  const { data: ticketVolume }: any = useQuery(
     orpc.reports.getTicketVolume.queryOptions({
       organizationId,
       groupBy: "day",
     } as any),
   );
 
-  const { data: _slaCompliance } = useQuery(
+  const { data: _slaCompliance }: any = useQuery(
     orpc.reports.getSlaCompliance.queryOptions({ organizationId } as any),
   );
 
-  const { data: responseTime } = useQuery(
+  const { data: responseTime }: any = useQuery(
     orpc.reports.getResponseTime.queryOptions({ organizationId } as any),
   );
 
-  const { data: resolutionRate } = useQuery(
+  const { data: resolutionRate }: any = useQuery(
     orpc.reports.getResolutionRate.queryOptions({ organizationId } as any),
   );
 

@@ -24,7 +24,7 @@ function SLACompliancePage() {
   const [dateRange, setDateRange] = useState<DateRange>("30d");
   const organizationId = 1;
 
-  const { data: slaCompliance, isLoading: _isLoading } = useQuery(
+  const { data: slaCompliance, isLoading: _isLoading }: any = useQuery(
     orpc.reports.getSlaCompliance.queryOptions({ organizationId } as any),
   );
 

@@ -30,16 +30,16 @@ function LicenseSettingsRoute() {
     data: licenseStatus,
     isLoading,
     refetch,
-  } = useQuery(
+  }: any = useQuery(
     orpc.onPremise.getLicenseStatus.queryOptions({
       organizationId: 1,
-    }),
+    } as any),
   );
 
-  const { data: seatInfo, isLoading: _seatLoading } = useQuery(
+  const { data: seatInfo, isLoading: _seatLoading }: any = useQuery(
     orpc.onPremise.checkSeatLimit.queryOptions({
       organizationId: 1,
-    }),
+    } as any),
   );
 
   const verifyMutation = useMutation(
@@ -50,7 +50,7 @@ function LicenseSettingsRoute() {
         setDomain("");
         setSignature("");
       },
-    }),
+    }) as any,
   );
 
   const handleVerify = () => {
@@ -71,8 +71,9 @@ function LicenseSettingsRoute() {
 
   const getStatusBadge = () => {
     if (!licenseStatus) return null;
+    const ls = licenseStatus as any;
 
-    if (licenseStatus.mode === "unlicensed") {
+    if (ls.mode === "unlicensed") {
       return (
         <span className="inline-flex items-center gap-1 rounded bg-gray-100 px-3 py-1 text-sm font-medium text-gray-800">
           <XCircle className="h-4 w-4" />
@@ -81,7 +82,7 @@ function LicenseSettingsRoute() {
       );
     }
 
-    if (!licenseStatus.isActive) {
+    if (!ls.isActive) {
       return (
         <span className="inline-flex items-center gap-1 rounded bg-red-100 px-3 py-1 text-sm font-medium text-red-800">
           <XCircle className="h-4 w-4" />
@@ -128,18 +129,18 @@ function LicenseSettingsRoute() {
                 <div className="flex items-center gap-4">
                   <div
                     className={`rounded-full p-3 ${
-                      licenseStatus?.isActive
+                      (licenseStatus as any)?.isActive
                         ? "bg-green-100"
-                        : licenseStatus?.mode === "unlicensed"
+                        : (licenseStatus as any)?.mode === "unlicensed"
                           ? "bg-gray-100"
                           : "bg-red-100"
                     }`}
                   >
                     <Key
                       className={`h-6 w-6 ${
-                        licenseStatus?.isActive
+                        (licenseStatus as any)?.isActive
                           ? "text-green-600"
-                          : licenseStatus?.mode === "unlicensed"
+                          : (licenseStatus as any)?.mode === "unlicensed"
                             ? "text-gray-500"
                             : "text-red-600"
                       }`}
@@ -147,39 +148,41 @@ function LicenseSettingsRoute() {
                   </div>
                   <div>
                     <p className="font-medium text-lg">
-                      {licenseStatus?.mode === "unlicensed"
+                      {(licenseStatus as any)?.mode === "unlicensed"
                         ? "No License"
-                        : licenseStatus?.productEdition || "On-Premise"}
+                        : (licenseStatus as any)?.productEdition || "On-Premise"}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      {licenseStatus?.mode === "unlicensed"
+                      {(licenseStatus as any)?.mode === "unlicensed"
                         ? "Install a license to activate all features"
-                        : `Edition: ${licenseStatus?.productEdition}`}
+                        : `Edition: ${(licenseStatus as any)?.productEdition}`}
                     </p>
                   </div>
                 </div>
                 {getStatusBadge()}
               </div>
 
-              {licenseStatus && licenseStatus.mode !== "unlicensed" && (
+              {(licenseStatus as any) && (licenseStatus as any).mode !== "unlicensed" && (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="p-4 rounded border">
                     <p className="text-sm text-muted-foreground">Seat Limit</p>
-                    <p className="text-xl font-bold">{licenseStatus.seatLimit || "Unlimited"}</p>
+                    <p className="text-xl font-bold">
+                      {(licenseStatus as any).seatLimit || "Unlimited"}
+                    </p>
                   </div>
                   <div className="p-4 rounded border">
                     <p className="text-sm text-muted-foreground">Valid Until</p>
                     <p className="text-xl font-bold">
-                      {licenseStatus.validUntil
-                        ? new Date(licenseStatus.validUntil).toLocaleDateString()
+                      {(licenseStatus as any).validUntil
+                        ? new Date((licenseStatus as any).validUntil).toLocaleDateString()
                         : "Never"}
                     </p>
                   </div>
                   <div className="p-4 rounded border">
                     <p className="text-sm text-muted-foreground">Last Verified</p>
                     <p className="text-xl font-bold">
-                      {licenseStatus.lastVerified
-                        ? new Date(licenseStatus.lastVerified).toLocaleDateString()
+                      {(licenseStatus as any).lastVerified
+                        ? new Date((licenseStatus as any).lastVerified).toLocaleDateString()
                         : "Never"}
                     </p>
                   </div>
@@ -193,20 +196,24 @@ function LicenseSettingsRoute() {
                     <span className="text-sm">Multi-Tenant Mode</span>
                     <span
                       className={`text-sm font-medium ${
-                        licenseStatus?.features?.multiTenant ? "text-green-600" : "text-red-600"
+                        (licenseStatus as any)?.features?.multiTenant
+                          ? "text-green-600"
+                          : "text-red-600"
                       }`}
                     >
-                      {licenseStatus?.features?.multiTenant ? "Enabled" : "Disabled"}
+                      {(licenseStatus as any)?.features?.multiTenant ? "Enabled" : "Disabled"}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm">Billing Features</span>
                     <span
                       className={`text-sm font-medium ${
-                        licenseStatus?.features?.billing ? "text-green-600" : "text-red-600"
+                        (licenseStatus as any)?.features?.billing
+                          ? "text-green-600"
+                          : "text-red-600"
                       }`}
                     >
-                      {licenseStatus?.features?.billing ? "Enabled" : "Disabled"}
+                      {(licenseStatus as any)?.features?.billing ? "Enabled" : "Disabled"}
                     </span>
                   </div>
                 </div>
@@ -216,7 +223,7 @@ function LicenseSettingsRoute() {
         </CardContent>
       </Card>
 
-      {seatInfo && seatInfo.enforced && (
+      {seatInfo && (seatInfo as any).enforced && (
         <Card className="mb-6">
           <CardHeader>
             <CardTitle>Seat Usage</CardTitle>
@@ -226,29 +233,31 @@ function LicenseSettingsRoute() {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <p className="text-2xl font-bold">
-                  {seatInfo.currentCount} / {seatInfo.seatLimit}
+                  {(seatInfo as any).currentCount} / {(seatInfo as any).seatLimit}
                 </p>
                 <p className="text-sm text-muted-foreground">Seats used</p>
               </div>
               <div
                 className={`rounded-full px-3 py-1 text-sm font-medium ${
-                  seatInfo.allowed ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+                  (seatInfo as any).allowed
+                    ? "bg-green-100 text-green-800"
+                    : "bg-red-100 text-red-800"
                 }`}
               >
-                {seatInfo.allowed ? "Within Limit" : "Limit Exceeded"}
+                {(seatInfo as any).allowed ? "Within Limit" : "Limit Exceeded"}
               </div>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2">
               <div
                 className={`h-2 rounded-full ${
-                  seatInfo.currentCount / seatInfo.seatLimit > 0.9
+                  (seatInfo as any).currentCount / (seatInfo as any).seatLimit > 0.9
                     ? "bg-red-500"
-                    : seatInfo.currentCount / seatInfo.seatLimit > 0.7
+                    : (seatInfo as any).currentCount / (seatInfo as any).seatLimit > 0.7
                       ? "bg-yellow-500"
                       : "bg-green-500"
                 }`}
                 style={{
-                  width: `${Math.min((seatInfo.currentCount / seatInfo.seatLimit) * 100, 100)}%`,
+                  width: `${Math.min(((seatInfo as any).currentCount / (seatInfo as any).seatLimit) * 100, 100)}%`,
                 }}
               ></div>
             </div>

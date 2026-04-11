@@ -7,19 +7,19 @@ import { useState } from "react";
 export default function BillingPage() {
   const [activeTab, setActiveTab] = useState("subscription");
 
-  const { data: subscription, isLoading: subLoading } = useQuery(
-    orpc.subscriptions.get.queryOptions({ organizationId: 1 }),
+  const { data: subscription, isLoading: subLoading }: any = useQuery(
+    orpc.subscriptions.get.queryOptions({ organizationId: 1 } as any),
   );
 
-  const { data: invoices, isLoading: invoicesLoading } = useQuery(
-    orpc.invoices.list.queryOptions({ organizationId: 1, page: 1, limit: 20 }),
+  const { data: invoices, isLoading: invoicesLoading }: any = useQuery(
+    orpc.invoices.list.queryOptions({ organizationId: 1, page: 1, limit: 20 } as any),
   );
 
-  const { data: paymentMethods } = useQuery(
-    orpc.paymentMethods.list.queryOptions({ organizationId: 1 }),
+  const { data: paymentMethods }: any = useQuery(
+    orpc.paymentMethods.list.queryOptions({ organizationId: 1 } as any),
   );
 
-  const { data: plans } = useQuery(orpc.subscriptions.getAvailablePlans.queryOptions());
+  const { data: plans }: any = useQuery(orpc.subscriptions.getAvailablePlans.queryOptions() as any);
 
   if (subLoading) {
     return (

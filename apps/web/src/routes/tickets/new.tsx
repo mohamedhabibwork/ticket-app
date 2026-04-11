@@ -94,7 +94,7 @@ function NewTicketRoute() {
       onSuccess: async (data) => {
         toast.success("Ticket created successfully");
         queryClient.invalidateQueries(orpc.tickets.list.queryOptions({ organizationId }));
-        navigate({ to: "/tickets/$id", params: { id: String(data.id) } });
+        navigate({ to: "/tickets/id", params: { id: String(data.id) } });
       },
       onError: (error) => {
         toast.error(`Failed to create ticket: ${error.message}`);

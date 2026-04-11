@@ -20,17 +20,17 @@ export const Route = createFileRoute("/admin/mailboxes/id/configure")({
 });
 
 function MailboxConfigureRoute() {
-  const { id } = useParams({ from: "/admin/mailboxes/$id/configure" });
+  const { id } = useParams({ from: "/admin/mailboxes/id/configure" });
   const navigate = useNavigate();
   const mailboxId = Number(id);
 
   const organizationId = 1;
 
-  const { data: mailbox, isLoading } = useQuery(
+  const { data: mailbox, isLoading }: any = useQuery(
     orpc.mailboxes.get.queryOptions({
       id: mailboxId,
       organizationId,
-    }) as any,
+    } as any),
   );
 
   const [showPassword, setShowPassword] = useState(false);
@@ -68,29 +68,29 @@ function MailboxConfigureRoute() {
   const configureImapMutation = useMutation(
     orpc.mailboxes.configureImap.mutationOptions({
       onSuccess: () => {
-        navigate({ to: "/admin/mailboxes/$id", params: { id } });
+        navigate({ to: "/admin/mailboxes/id", params: { id } });
       },
-    }),
+    }) as any,
   );
 
   const configureSmtpMutation = useMutation(
     orpc.mailboxes.configureSmtp.mutationOptions({
       onSuccess: () => {
-        navigate({ to: "/admin/mailboxes/$id", params: { id } });
+        navigate({ to: "/admin/mailboxes/id", params: { id } });
       },
-    }),
+    }) as any,
   );
 
   const testConnectionMutation = useMutation(
     orpc.mailboxes.testConnection.mutationOptions({
-      onSuccess: (result) => {
+      onSuccess: (result: any) => {
         if (result.success) {
           alert("Connection successful!");
         } else {
           alert(`Connection failed: ${result.error}`);
         }
       },
-    }),
+    }) as any,
   );
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -103,7 +103,7 @@ function MailboxConfigureRoute() {
       username: formData.imapUsername,
       password: formData.imapPassword,
       useSsl: formData.imapSsl,
-    });
+    } as any);
     configureSmtpMutation.mutate({
       id: mailboxId,
       organizationId,
@@ -112,7 +112,7 @@ function MailboxConfigureRoute() {
       username: formData.smtpUsername,
       password: formData.smtpPassword,
       useSsl: formData.smtpSsl,
-    });
+    } as any);
   };
 
   const handleGmailOAuth = () => {
@@ -130,7 +130,7 @@ function MailboxConfigureRoute() {
   return (
     <div className="container mx-auto max-w-3xl px-4 py-6">
       <div className="mb-6">
-        <Link to="/admin/mailboxes/$id" params={{ id }}>
+        <Link to="/admin/mailboxes/id" params={{ id }}>
           <Button variant="ghost" className="mb-4">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Mailbox
@@ -303,7 +303,7 @@ function MailboxConfigureRoute() {
           <Button
             type="button"
             variant="outline"
-            onClick={() => testConnectionMutation.mutate({ id: mailboxId, organizationId })}
+            onClick={() => testConnectionMutation.mutate({ id: mailboxId, organizationId } as any)}
             disabled={testConnectionMutation.isPending}
           >
             {testConnectionMutation.isPending ? (
@@ -317,7 +317,7 @@ function MailboxConfigureRoute() {
             <Button
               type="button"
               variant="outline"
-              onClick={() => navigate({ to: "/admin/mailboxes/$id", params: { id } })}
+              onClick={() => navigate({ to: "/admin/mailboxes/id", params: { id } })}
             >
               Cancel
             </Button>

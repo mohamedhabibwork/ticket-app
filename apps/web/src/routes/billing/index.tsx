@@ -157,30 +157,30 @@ export default function BillingOverviewPage() {
             <CardTitle>Quick Actions</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
-            <Button variant="outline" className="w-full justify-between" asChild>
-              <Link to="/billing/upgrade">
+            <Link to="/billing/upgrade" className="w-full">
+              <Button variant="outline" className="w-full justify-between">
                 Upgrade Plan
                 <ArrowUpRight className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button variant="outline" className="w-full justify-between" asChild>
-              <Link to="/billing/seats">
+              </Button>
+            </Link>
+            <Link to="/billing/seats" className="w-full">
+              <Button variant="outline" className="w-full justify-between">
                 Manage Seats
                 <ArrowUpRight className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button variant="outline" className="w-full justify-between" asChild>
-              <Link to="/billing/invoices">
+              </Button>
+            </Link>
+            <Link to="/billing/invoices" className="w-full">
+              <Button variant="outline" className="w-full justify-between">
                 View Invoices
                 <ArrowUpRight className="h-4 w-4" />
-              </Link>
-            </Button>
-            <Button variant="outline" className="w-full justify-between" asChild>
-              <Link to="/billing/payment-methods">
+              </Button>
+            </Link>
+            <Link to="/billing/payment-methods" className="w-full">
+              <Button variant="outline" className="w-full justify-between">
                 Payment Methods
                 <ArrowUpRight className="h-4 w-4" />
-              </Link>
-            </Button>
+              </Button>
+            </Link>
           </CardContent>
         </Card>
 

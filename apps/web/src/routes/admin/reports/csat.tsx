@@ -29,7 +29,7 @@ function CSATReportPage() {
     orpc.reports.getCsatTrends.queryOptions({
       organizationId,
       interval: "day",
-    } as any),
+    }) as any,
   );
 
   const dateRangeOptions: { value: DateRange; label: string }[] = [

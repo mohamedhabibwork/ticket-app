@@ -172,12 +172,12 @@ function CreateRoleRoute() {
   return (
     <div className="container mx-auto py-8 max-w-4xl">
       <div className="mb-8">
-        <Button variant="ghost" asChild className="mb-4 pl-0">
-          <Link to="/admin/roles">
+        <Link to="/admin/roles">
+          <Button variant="ghost" className="mb-4 pl-0">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Roles
-          </Link>
-        </Button>
+          </Button>
+        </Link>
         <h1 className="text-3xl font-bold">Create Role</h1>
         <p className="text-muted-foreground mt-1">Define a new role and its permissions</p>
       </div>
@@ -264,9 +264,9 @@ function CreateRoleRoute() {
         )}
 
         <div className="flex justify-end gap-3">
-          <Button variant="outline" asChild>
-            <Link to="/admin/roles">Cancel</Link>
-          </Button>
+          <Link to="/admin/roles">
+            <Button variant="outline">Cancel</Button>
+          </Link>
           <Button type="submit" disabled={createMutation.isPending}>
             <Save className="mr-2 h-4 w-4" />
             {createMutation.isPending ? "Creating..." : "Create Role"}

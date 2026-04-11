@@ -66,14 +66,14 @@ function MailboxRoutingRoute() {
   const mailboxId = Number(id);
   const organizationId = 1;
 
-  const { data: mailbox, isLoading } = useQuery(
+  const { data: mailbox, isLoading }: any = useQuery(
     orpc.mailboxes.get.queryOptions({
       id: mailboxId,
       organizationId,
     } as any),
   );
 
-  const { data: teams } = useQuery(
+  const { data: teams }: any = useQuery(
     orpc.teams.list.queryOptions({
       organizationId,
     } as any),
@@ -85,30 +85,30 @@ function MailboxRoutingRoute() {
 
   const createRuleMutation = useMutation(
     orpc.mailboxes.createRoutingRule.mutationOptions({
-      onSuccess: (data) => {
+      onSuccess: (data: any) => {
         setRules([...rules, data as RoutingRule]);
         setEditingRule(null);
         setIsCreating(false);
       },
-    }),
+    }) as any,
   );
 
   const updateRuleMutation = useMutation(
     orpc.mailboxes.updateRoutingRule.mutationOptions({
-      onSuccess: (data) => {
+      onSuccess: (data: any) => {
         setRules(rules.map((r) => (r.id === data.id ? (data as RoutingRule) : r)));
         setEditingRule(null);
       },
-    }),
+    }) as any,
   );
 
   const deleteRuleMutation = useMutation(
     orpc.mailboxes.deleteRoutingRule.mutationOptions({
-      onSuccess: (_, ruleId) => {
+      onSuccess: (_: any, ruleId: any) => {
         setRules(rules.filter((r) => r.id !== ruleId));
         setEditingRule(null);
       },
-    }),
+    }) as any,
   );
 
   const handleSaveRule = () => {
@@ -123,7 +123,7 @@ function MailboxRoutingRoute() {
         actions: editingRule.actions.map((a) => ({ type: a.type, params: { value: a.value } })),
         priority: editingRule.priority,
         isActive: editingRule.isActive,
-      });
+      } as any);
     } else {
       createRuleMutation.mutate({
         mailboxId,
@@ -134,13 +134,13 @@ function MailboxRoutingRoute() {
         actions: editingRule.actions.map((a) => ({ type: a.type, params: { value: a.value } })),
         priority: editingRule.priority,
         isActive: editingRule.isActive,
-      });
+      } as any);
     }
   };
 
   const handleDeleteRule = (ruleId: number) => {
     if (confirm("Are you sure you want to delete this rule?")) {
-      deleteRuleMutation.mutate({ ruleId });
+      deleteRuleMutation.mutate({ ruleId } as any);
     }
   };
 
@@ -232,7 +232,7 @@ function MailboxRoutingRoute() {
   return (
     <div className="container mx-auto max-w-4xl px-4 py-6">
       <div className="mb-6">
-        <Link to="/admin/mailboxes/id" params={{ id }}>
+        <Link to="/admin/mailboxes/id" params={{ id: String(id) }}>
           <Button variant="ghost" className="mb-4">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Mailbox
@@ -241,7 +241,9 @@ function MailboxRoutingRoute() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold">Routing Rules</h1>
-            <p className="text-muted-foreground">Configure email routing for {mailbox?.name}</p>
+            <p className="text-muted-foreground">
+              Configure email routing for {(mailbox as any)?.name}
+            </p>
           </div>
           {!isCreating && (
             <Button onClick={() => startEditing()}>
@@ -370,7 +372,7 @@ function MailboxRoutingRoute() {
                       className="flex-1 h-8 rounded-none border border-input bg-transparent px-2 text-xs"
                     >
                       <option value="">Select team</option>
-                      {teams?.map((team) => (
+                      {(teams as any)?.map((team: any) => (
                         <option key={team.id} value={String(team.id)}>
                           {team.name}
                         </option>

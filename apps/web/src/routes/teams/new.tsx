@@ -31,12 +31,12 @@ function NewTeamRoute() {
   const [selectedLeadId, setSelectedLeadId] = useState<number | null>(null);
   const [showLeadDropdown, setShowLeadDropdown] = useState(false);
 
-  const { data: agents } = useQuery(
+  const { data: agents }: any = useQuery(
     orpc.users.list.queryOptions({
       organizationId,
       isActive: true,
       limit: 100,
-    }),
+    } as any),
   );
 
   const createMutation = useMutation(

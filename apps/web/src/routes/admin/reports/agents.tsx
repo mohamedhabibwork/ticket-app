@@ -32,11 +32,11 @@ function AgentPerformancePage() {
   const { data: _agentPerformance, isLoading: _isLoading } = useQuery(
     orpc.reports.getAgentPerformance.queryOptions({
       organizationId,
-    } as any),
+    }) as any,
   );
 
   const { data: _responseTime } = useQuery(
-    orpc.reports.getResponseTime.queryOptions({ organizationId } as any),
+    orpc.reports.getResponseTime.queryOptions({ organizationId }) as any,
   );
 
   const dateRangeOptions: { value: DateRange; label: string }[] = [

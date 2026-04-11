@@ -43,7 +43,7 @@ function MailboxListRoute() {
     data: mailboxes,
     isLoading,
     refetch,
-  } = useQuery(
+  }: any = useQuery(
     orpc.mailboxes.list.queryOptions({
       organizationId,
     } as any),
@@ -52,19 +52,19 @@ function MailboxListRoute() {
   const deleteMutation = useMutation(
     orpc.mailboxes.delete.mutationOptions({
       onSuccess: () => refetch(),
-    }),
+    }) as any,
   );
 
   const syncMutation = useMutation(
     orpc.mailboxes.syncNow.mutationOptions({
       onSuccess: () => refetch(),
-    }),
+    }) as any,
   );
 
   const testConnectionMutation = useMutation(
     orpc.mailboxes.testConnection.mutationOptions({
       onSuccess: () => refetch(),
-    }),
+    }) as any,
   );
 
   const getStatusBadge = (isActive: boolean) => {
@@ -137,7 +137,7 @@ function MailboxListRoute() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => syncMutation.mutate({ id: mailbox.id, organizationId })}
+                      onClick={() => syncMutation.mutate({ id: mailbox.id, organizationId } as any)}
                       disabled={syncMutation.isPending}
                     >
                       <RefreshCw
@@ -148,7 +148,7 @@ function MailboxListRoute() {
                       variant="ghost"
                       size="icon"
                       onClick={() =>
-                        testConnectionMutation.mutate({ id: mailbox.id, organizationId })
+                        testConnectionMutation.mutate({ id: mailbox.id, organizationId } as any)
                       }
                       disabled={testConnectionMutation.isPending}
                     >
@@ -159,7 +159,7 @@ function MailboxListRoute() {
                       size="icon"
                       onClick={() => {
                         if (confirm("Are you sure you want to delete this mailbox?")) {
-                          deleteMutation.mutate({ id: mailbox.id, organizationId });
+                          deleteMutation.mutate({ id: mailbox.id, organizationId } as any);
                         }
                       }}
                       disabled={deleteMutation.isPending}

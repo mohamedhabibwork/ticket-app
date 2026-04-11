@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@ticket-app/ui/components/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
@@ -151,6 +151,7 @@ const SYSTEM_ROLE_PERMISSIONS: Record<string, string[]> = {
 function RolePermissionsRoute() {
   const { id } = Route.useParams();
   const queryClient = useQueryClient();
+  const _navigate = useNavigate();
   const roleId = Number(id);
 
   const [selectedPermissions, setSelectedPermissions] = useState<Set<string>>(new Set());
@@ -160,11 +161,7 @@ function RolePermissionsRoute() {
     data: role,
     isLoading,
     refetch,
-  } = useQuery({
-    queryKey: ["role", roleId],
-    queryFn: () => orpc.users.getRole.queryOptions({ id: roleId } as any),
-    enabled: !isNaN(roleId),
-  });
+  }: any = useQuery(orpc.users.getRole.queryOptions({ id: roleId } as any));
 
   const updatePermissionsMutation = useMutation(
     orpc.users.updateRolePermissions.mutationOptions({
@@ -244,9 +241,9 @@ function RolePermissionsRoute() {
       <div className="container mx-auto py-8">
         <div className="text-center">
           <h1 className="text-2xl font-bold">Role not found</h1>
-          <Button asChild className="mt-4">
-            <Link to="/admin/roles">Back to Roles</Link>
-          </Button>
+          <Link to="/admin/roles">
+            <Button className="mt-4">Back to Roles</Button>
+          </Link>
         </div>
       </div>
     );
@@ -255,12 +252,12 @@ function RolePermissionsRoute() {
   if (isSystemRole) {
     return (
       <div className="container mx-auto py-8 max-w-4xl">
-        <Button variant="ghost" asChild className="mb-4 pl-0">
-          <Link to="/admin/roles">
+        <Link to="/admin/roles">
+          <Button variant="ghost" className="mb-4 pl-0">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Roles
-          </Link>
-        </Button>
+          </Button>
+        </Link>
 
         <div className="mb-8">
           <h1 className="text-3xl font-bold flex items-center gap-3">
@@ -343,12 +340,12 @@ function RolePermissionsRoute() {
   return (
     <div className="container mx-auto py-8 max-w-4xl">
       <div className="mb-8">
-        <Button variant="ghost" asChild className="mb-4 pl-0">
-          <Link to="/admin/roles">
+        <Link to="/admin/roles">
+          <Button variant="ghost" className="mb-4 pl-0">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Roles
-          </Link>
-        </Button>
+          </Button>
+        </Link>
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-3">

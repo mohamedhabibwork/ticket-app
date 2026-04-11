@@ -39,7 +39,7 @@ function AddMailboxRoute() {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const { data: teams } = useQuery(
+  const { data: teams }: any = useQuery(
     orpc.teams.list.queryOptions({
       organizationId: 1,
     } as any),
@@ -47,10 +47,10 @@ function AddMailboxRoute() {
 
   const createMutation = useMutation(
     orpc.mailboxes.create.mutationOptions({
-      onSuccess: (data) => {
+      onSuccess: (data: any) => {
         navigate({ to: "/admin/mailboxes/id", params: { id: String(data.id) } });
       },
-    }),
+    }) as any,
   );
 
   const validateForm = () => {
@@ -92,7 +92,7 @@ function AddMailboxRoute() {
       autoReplyEnabled: formData.autoReplyEnabled,
       autoReplySubject: formData.autoReplySubject || undefined,
       autoReplyBodyHtml: formData.autoReplyBodyHtml || undefined,
-    });
+    } as any);
   };
 
   return (

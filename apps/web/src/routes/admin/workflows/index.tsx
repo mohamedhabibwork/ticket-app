@@ -138,18 +138,18 @@ function WorkflowListRoute() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" asChild>
-            <Link to="/admin/workflows/builder">
+          <Link to="/admin/workflows/builder">
+            <Button variant="outline">
               <Zap className="mr-2 h-4 w-4" />
               Open Builder
-            </Link>
-          </Button>
-          <Button asChild>
-            <Link to="/admin/workflows/new">
+            </Button>
+          </Link>
+          <Link to="/admin/workflows/new">
+            <Button>
               <Plus className="mr-2 h-4 w-4" />
               Create Workflow
-            </Link>
-          </Button>
+            </Button>
+          </Link>
         </div>
       </div>
 
@@ -259,17 +259,17 @@ function WorkflowListRoute() {
                           <Edit className="mr-2 h-4 w-4" />
                           Edit
                         </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link to={`/admin/workflows/${workflow.id}`}>
-                            <FileText className="mr-2 h-4 w-4" />
-                            View Details
-                          </Link>
+                        <DropdownMenuItem
+                          onClick={() => navigate(`/admin/workflows/${workflow.id}`)}
+                        >
+                          <FileText className="mr-2 h-4 w-4" />
+                          View Details
                         </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link to={`/admin/workflows/${workflow.id}/logs`}>
-                            <FileText className="mr-2 h-4 w-4" />
-                            View Logs
-                          </Link>
+                        <DropdownMenuItem
+                          onClick={() => navigate(`/admin/workflows/${workflow.id}/logs`)}
+                        >
+                          <FileText className="mr-2 h-4 w-4" />
+                          View Logs
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem

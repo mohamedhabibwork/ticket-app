@@ -117,7 +117,7 @@ function ChatConversationRoute() {
     orpc.tickets.create.mutationOptions({
       onSuccess: (data) => {
         toast.success("Ticket created from chat");
-        navigate({ to: "/tickets/$id", params: { id: String(data.id) } });
+        navigate({ to: "/tickets/id", params: { id: String(data.id) } });
       },
       onError: (error) => {
         toast.error(`Failed to create ticket: ${error.message}`);

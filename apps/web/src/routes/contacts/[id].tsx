@@ -50,11 +50,10 @@ function ContactDetailRoute() {
     company: "",
   });
 
-  const { data: contact, isLoading } = useQuery(
-    orpc.contacts.get.queryOptions(
-      { organizationId, id: contactId },
-      { enabled: !isNaN(contactId) },
-    ),
+  const { data: contact, isLoading }: any = useQuery(
+    orpc.contacts.get.queryOptions({ organizationId, id: contactId } as any, {
+      enabled: !isNaN(contactId),
+    }),
   );
 
   const { data: tickets } = useQuery(

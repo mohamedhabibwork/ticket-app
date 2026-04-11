@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@ticket-app/ui/components/button";
 import { Card, CardContent } from "@ticket-app/ui/components/card";
@@ -22,6 +22,7 @@ function UsersListRoute() {
   const [roleFilter, setRoleFilter] = useState<number | undefined>(undefined);
   const [statusFilter, setStatusFilter] = useState<boolean | undefined>(undefined);
   const [page, setPage] = useState(1);
+  const navigate = useNavigate();
   const limit = 20;
 
   const { data: usersData, isLoading } = useQuery({
@@ -78,12 +79,12 @@ function UsersListRoute() {
           <h1 className="text-3xl font-bold">Users</h1>
           <p className="text-muted-foreground mt-1">Manage organization users and roles</p>
         </div>
-        <Button asChild>
-          <Link to="/admin/users/invite">
+        <Link to="/admin/users/invite">
+          <Button>
             <Plus className="mr-2 h-4 w-4" />
             Invite User
-          </Link>
-        </Button>
+          </Button>
+        </Link>
       </div>
 
       <Card className="mb-6">
@@ -212,11 +213,9 @@ function UsersListRoute() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem asChild>
-                            <Link to={`/admin/users/${user.id}`}>
-                              <Edit className="mr-2 h-4 w-4" />
-                              Edit
-                            </Link>
+                          <DropdownMenuItem onClick={() => navigate(`/admin/users/${user.id}`)}>
+                            <Edit className="mr-2 h-4 w-4" />
+                            Edit
                           </DropdownMenuItem>
                           {user.isActive ? (
                             <DropdownMenuItem
