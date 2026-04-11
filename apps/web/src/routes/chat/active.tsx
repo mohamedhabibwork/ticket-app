@@ -34,18 +34,18 @@ function ActiveChatSessionsRoute() {
   const queryClient = useQueryClient();
   const organizationId = 1;
 
-  const { data: sessions, isLoading } = useQuery(
+  const { data: sessions, isLoading }: any = useQuery(
     orpc.chatSessions.getActiveSessions.queryOptions({
       organizationId,
-    }),
+    }) as any,
   );
 
-  const { data: agents } = useQuery(
+  const { data: agents }: any = useQuery(
     orpc.users.list.queryOptions({
       organizationId,
       isActive: true,
       limit: 100,
-    }),
+    }) as any,
   );
 
   const assignMutation = useMutation(
@@ -53,13 +53,13 @@ function ActiveChatSessionsRoute() {
       onSuccess: () => {
         toast.success("Chat assigned successfully");
         queryClient.invalidateQueries(
-          orpc.chatSessions.getActiveSessions.queryOptions({ organizationId }),
+          orpc.chatSessions.getActiveSessions.queryOptions({ organizationId }) as any,
         );
       },
-      onError: (error) => {
+      onError: (error: any) => {
         toast.error(`Failed to assign chat: ${error.message}`);
       },
-    }),
+    }) as any,
   );
 
   const handleAssign = (sessionId: number, agentId: number) => {
@@ -67,11 +67,11 @@ function ActiveChatSessionsRoute() {
       id: sessionId,
       organizationId,
       agentId,
-    });
+    } as any);
   };
 
-  const waitingSessions = sessions?.filter((s) => s.status === "waiting");
-  const activeSessions = sessions?.filter((s) => s.status === "active");
+  const waitingSessions = sessions?.filter((s: any) => s.status === "waiting");
+  const activeSessions = sessions?.filter((s: any) => s.status === "active");
 
   return (
     <div className="container mx-auto max-w-4xl px-4 py-6">

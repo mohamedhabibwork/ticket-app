@@ -66,7 +66,7 @@ function KbCategoriesList() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               {category.icon && <span className="text-xl">{category.icon}</span>}
-              <Link to="/kb/$slug" params={{ slug: category.slug }}>
+              <Link to="/kb/slug" params={{ slug: category.slug }}>
                 {category.name}
               </Link>
             </CardTitle>

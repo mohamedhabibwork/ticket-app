@@ -170,7 +170,7 @@ export default function PlanUpgradePage() {
     }),
   );
 
-  const currentPlanSlug = subscription?.plan?.slug || "free";
+  const currentPlanSlug = (subscription as any)?.plan?.slug || "free";
   const currentPlanIndex = PLANS.findIndex((p) => p.slug === currentPlanSlug);
 
   const handlePlanAction = async (planSlug: string, index: number) => {
@@ -184,23 +184,23 @@ export default function PlanUpgradePage() {
         planId: plan.slug,
         billingCycle,
         seatCount: 1,
-      });
+      } as any);
     } else if (index < currentPlanIndex) {
-      await updateMutation.mutateAsync({ organizationId: 1, planId: plan.slug });
+      await updateMutation.mutateAsync({ organizationId: 1, planId: plan.slug } as any);
     } else {
       await upgradeMutation.mutateAsync({
         organizationId: 1,
         planId: plan.slug,
         billingCycle,
         seatCount: 1,
-      });
+      } as any);
     }
   };
 
   return (
     <div className="container mx-auto py-8 space-y-8">
       <div>
-        <Link to="/billing">
+        <Link to={"/billing" as any}>
           <Button variant="ghost" size="sm" className="mb-4">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Billing

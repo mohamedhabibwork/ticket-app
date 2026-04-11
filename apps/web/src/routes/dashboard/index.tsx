@@ -52,57 +52,57 @@ const currentUserId = 1;
 function DashboardRoute() {
   const [showDailySummary, setShowDailySummary] = useState(false);
 
-  const { data: openTickets, isLoading: loadingOpenTickets } = useQuery(
+  const { data: openTickets, isLoading: loadingOpenTickets }: any = useQuery(
     orpc.tickets.list.queryOptions({
       organizationId,
       limit: 1,
-    }),
+    }) as any,
   );
 
-  const { data: myTickets, isLoading: loadingMyTickets } = useQuery(
+  const { data: myTickets, isLoading: loadingMyTickets }: any = useQuery(
     orpc.tickets.list.queryOptions({
       organizationId,
       assignedAgentId: currentUserId,
       limit: 10,
-    }),
+    }) as any,
   );
 
-  const { data: responseTimeData, isLoading: loadingResponseTime } = useQuery(
+  const { data: responseTimeData, isLoading: loadingResponseTime }: any = useQuery(
     orpc.reports.getResponseTime.queryOptions({
       organizationId,
-    }),
+    }) as any,
   );
 
-  const { data: slaData, isLoading: loadingSla } = useQuery(
+  const { data: slaData, isLoading: loadingSla }: any = useQuery(
     orpc.reports.getSlaCompliance.queryOptions({
       organizationId,
-    }),
+    }) as any,
   );
 
-  const { data: chatStats, isLoading: loadingChat } = useQuery(
+  const { data: chatStats, isLoading: loadingChat }: any = useQuery(
     orpc.chatSessions.getActiveSessions.queryOptions({
       organizationId,
-    }),
+    }) as any,
   );
 
-  const { data: teamMembers, isLoading: loadingTeam } = useQuery(
+  const { data: teamMembers, isLoading: loadingTeam }: any = useQuery(
     orpc.users.list.queryOptions({
       organizationId,
-    }),
+    }) as any,
   );
 
-  const { data: breachedSla, isLoading: loadingBreached } = useQuery(
+  const { data: breachedSla, isLoading: loadingBreached }: any = useQuery(
     orpc.ticketSla.listBreached.queryOptions({
       organizationId,
-    }),
+    }) as any,
   );
 
-  const { data: upcomingEvents, isLoading: loadingEvents } = useQuery(
+  const { data: upcomingEvents, isLoading: loadingEvents }: any = useQuery(
     orpc.calendar.listAgentEvents.queryOptions({
       userId: currentUserId,
       startDate: new Date().toISOString(),
       endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-    }),
+    }) as any,
   );
 
   const openTicketCount = openTickets?.length || 0;

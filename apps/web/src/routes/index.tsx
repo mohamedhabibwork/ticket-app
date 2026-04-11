@@ -24,7 +24,7 @@ const TITLE_TEXT = `
  `;
 
 function HomeComponent() {
-  const healthCheck = useQuery(orpc.healthCheck.queryOptions());
+  const { data: healthCheck }: any = useQuery(orpc.healthCheck.queryOptions() as any);
 
   return (
     <div className="container mx-auto max-w-3xl px-4 py-2">

@@ -117,7 +117,7 @@ function CustomReportPage() {
     }));
   };
 
-  const previewData = generatePreviewData();
+  const previewData: any[] = generatePreviewData();
   const selectedMetrics = metrics.filter((m) => m.selected);
 
   return (

@@ -134,7 +134,7 @@ export const Route = createFileRoute("/admin/workflows/builder")({
 
 function WorkflowBuilderRoute() {
   const navigate = useNavigate();
-  const search = Route.useSearch();
+  const search = Route.useSearch() as any;
   const initialWorkflowId = search.workflowId;
 
   const [workflow, setWorkflow] = useState({
@@ -155,27 +155,25 @@ function WorkflowBuilderRoute() {
   const [nodePositions, setNodePositions] = useState<Record<string, { x: number; y: number }>>({});
   const canvasRef = useRef<HTMLDivElement>(null);
 
-  const { data: workflowsList } = useQuery({
-    queryKey: ["workflows", "all"],
-    queryFn: () =>
-      orpc.workflows.list.queryOptions({
-        organizationId: 1,
-        isActive: undefined,
-      }),
-  });
+  const { data: workflowsList }: any = useQuery(
+    orpc.workflows.list.queryOptions({
+      organizationId: 1,
+      isActive: undefined,
+    }) as any,
+  );
 
-  const { data: executionLogs } = useQuery({
-    queryKey: ["workflow-logs-sidebar", selectedWorkflowId],
-    queryFn: () =>
-      selectedWorkflowId
-        ? orpc.workflows.getExecutionLogs.queryOptions({
-            workflowId: selectedWorkflowId,
-            organizationId: 1,
-            limit: 10,
-          })
-        : null,
-    enabled: !!selectedWorkflowId,
-  });
+  const { data: executionLogs }: any = useQuery(
+    selectedWorkflowId
+      ? (orpc.workflows.getExecutionLogs.queryOptions({
+          workflowId: selectedWorkflowId,
+          organizationId: 1,
+          limit: 10,
+        }) as any)
+      : (null as any),
+    {
+      enabled: !!selectedWorkflowId,
+    },
+  );
 
   const createMutation = useMutation(
     orpc.workflows.create.mutationOptions({
@@ -196,7 +194,7 @@ function WorkflowBuilderRoute() {
 
   useEffect(() => {
     if (initialWorkflowId && workflowsList) {
-      const workflowToLoad = workflowsList.find((w) => w.id === initialWorkflowId);
+      const workflowToLoad = workflowsList.find((w: any) => w.id === initialWorkflowId);
       if (workflowToLoad) {
         loadWorkflow(workflowToLoad);
       }
@@ -296,12 +294,12 @@ function WorkflowBuilderRoute() {
         id: selectedWorkflowId,
         organizationId: 1,
         data: workflow,
-      });
+      } as any);
     } else {
       createMutation.mutate({
         ...workflow,
         organizationId: 1,
-      });
+      } as any);
     }
   };
 
@@ -461,7 +459,7 @@ function WorkflowBuilderRoute() {
                     <Plus className="mr-2 h-4 w-4" />
                     New Workflow
                   </Button>
-                  {workflowsList?.map((w) => (
+                  {workflowsList?.map((w: any) => (
                     <Button
                       key={w.id}
                       variant={selectedWorkflowId === w.id ? "secondary" : "ghost"}
@@ -506,7 +504,9 @@ function WorkflowBuilderRoute() {
                     </Label>
                     <Select
                       value={workflow.trigger}
-                      onValueChange={(value) => setWorkflow({ ...workflow, trigger: value })}
+                      onValueChange={(value: unknown) =>
+                        setWorkflow({ ...workflow, trigger: value as string })
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue />
@@ -650,10 +650,10 @@ function WorkflowBuilderRoute() {
                       <Label className="text-xs">Match</Label>
                       <Select
                         value={workflow.conditions.operator}
-                        onValueChange={(value: "and" | "or") =>
+                        onValueChange={(value: unknown) =>
                           setWorkflow({
                             ...workflow,
-                            conditions: { ...workflow.conditions, operator: value },
+                            conditions: { ...workflow.conditions, operator: value as "and" | "or" },
                           })
                         }
                       >
@@ -683,7 +683,9 @@ function WorkflowBuilderRoute() {
                           <GripVertical className="h-3 w-3 cursor-grab text-muted-foreground" />
                           <Select
                             value={rule.field}
-                            onValueChange={(value) => updateCondition(index, { field: value })}
+                            onValueChange={(value: unknown) =>
+                              updateCondition(index, { field: value as string })
+                            }
                           >
                             <SelectTrigger className="w-[140px]">
                               <SelectValue placeholder="Field" />
@@ -698,7 +700,9 @@ function WorkflowBuilderRoute() {
                           </Select>
                           <Select
                             value={rule.operator}
-                            onValueChange={(value) => updateCondition(index, { operator: value })}
+                            onValueChange={(value: unknown) =>
+                              updateCondition(index, { operator: value as string })
+                            }
                           >
                             <SelectTrigger className="w-[120px]">
                               <SelectValue />
@@ -752,8 +756,8 @@ function WorkflowBuilderRoute() {
                           <div className="flex items-center justify-between mb-2">
                             <Select
                               value={action.type}
-                              onValueChange={(value) =>
-                                updateAction(index, { type: value, params: {} })
+                              onValueChange={(value: unknown) =>
+                                updateAction(index, { type: value as string, params: {} })
                               }
                             >
                               <SelectTrigger className="w-[160px]">

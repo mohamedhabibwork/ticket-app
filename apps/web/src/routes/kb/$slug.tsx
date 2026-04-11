@@ -90,7 +90,7 @@ function KbArticleRoute() {
               <Card key={related.id}>
                 <CardHeader className="p-4">
                   <CardTitle className="text-base">
-                    <Link to="/kb/$slug" params={{ slug: related.slug }}>
+                    <Link to="/kb/slug" params={{ slug: related.slug }}>
                       {related.title}
                     </Link>
                   </CardTitle>

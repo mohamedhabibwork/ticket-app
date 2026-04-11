@@ -46,13 +46,13 @@ function NewWorkflowRoute() {
 
   const createMutation = useMutation(
     orpc.workflows.create.mutationOptions({
-      onSuccess: (data) => {
+      onSuccess: (data: any) => {
         navigate({
           to: "/admin/workflows/builder",
           search: { workflowId: data.id },
         });
       },
-    }),
+    }) as any,
   );
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -67,7 +67,7 @@ function NewWorkflowRoute() {
       conditions: { operator: "and", rules: [] },
       actions: [],
       isActive,
-    });
+    } as any);
   };
 
   const handleSaveAndOpenBuilder = () => {
@@ -81,7 +81,7 @@ function NewWorkflowRoute() {
       conditions: { operator: "and", rules: [] },
       actions: [],
       isActive,
-    });
+    } as any);
   };
 
   return (
@@ -141,7 +141,7 @@ function NewWorkflowRoute() {
               <Label htmlFor="trigger">
                 Trigger Event <span className="text-destructive">*</span>
               </Label>
-              <Select value={trigger} onValueChange={setTrigger}>
+              <Select value={trigger} onValueChange={setTrigger as any}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select a trigger" />
                 </SelectTrigger>

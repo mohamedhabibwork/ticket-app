@@ -241,7 +241,7 @@ function EditRoleRoute() {
             )}
 
             <div className="flex justify-between pt-4 border-t">
-              <Link to={`/admin/roles/${roleId}/permissions`}>
+              <Link to="/admin/roles/id/permissions" params={{ id: roleId }}>
                 <Button variant="outline">Manage Permissions</Button>
               </Link>
               <div className="flex gap-3">

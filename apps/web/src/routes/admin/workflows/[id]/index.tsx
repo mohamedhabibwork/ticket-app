@@ -60,29 +60,25 @@ export const Route = createFileRoute("/admin/workflows/id/")({
 });
 
 function WorkflowDetailRoute() {
-  const { id } = Route.useParams();
+  const { id }: any = Route.useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const workflowId = Number(id);
 
-  const { data: workflow, isLoading } = useQuery({
-    queryKey: ["workflow", workflowId],
-    queryFn: () =>
-      orpc.workflows.get.queryOptions({
-        id: workflowId,
-        organizationId: 1,
-      }),
-  });
+  const { data: workflow, isLoading }: any = useQuery(
+    orpc.workflows.get.queryOptions({
+      id: workflowId,
+      organizationId: 1,
+    }) as any,
+  );
 
-  const { data: logs } = useQuery({
-    queryKey: ["workflow-logs", workflowId],
-    queryFn: () =>
-      orpc.workflows.getExecutionLogs.queryOptions({
-        workflowId,
-        organizationId: 1,
-        limit: 5,
-      }),
-  });
+  const { data: logs }: any = useQuery(
+    orpc.workflows.getExecutionLogs.queryOptions({
+      workflowId,
+      organizationId: 1,
+      limit: 5,
+    }) as any,
+  );
 
   const toggleActiveMutation = useMutation(
     orpc.workflows.toggleActive.mutationOptions({
@@ -98,7 +94,7 @@ function WorkflowDetailRoute() {
       id: workflowId,
       organizationId: 1,
       isActive: !workflow.isActive,
-    });
+    } as any);
   };
 
   const handleEdit = () => {
@@ -346,7 +342,7 @@ function WorkflowDetailRoute() {
                   <CardTitle>Recent Executions</CardTitle>
                   <CardDescription>Last 5 workflow executions</CardDescription>
                 </div>
-                <Link to={`/admin/workflows/${workflowId}/logs`}>
+                <Link to={`/admin/workflows/${workflowId}/logs` as any}>
                   <Button variant="outline" size="sm">
                     <FileText className="mr-2 h-4 w-4" />
                     View All Logs

@@ -66,12 +66,12 @@ function TeamDetailRoute() {
       onSuccess: () => {
         toast.success("Team updated successfully");
         setIsEditing(false);
-        queryClient.invalidateQueries(orpc.teams.get.queryOptions({ id: teamId }));
+        queryClient.invalidateQueries(orpc.teams.get.queryOptions({ id: teamId }) as any);
       },
-      onError: (error) => {
+      onError: (error: any) => {
         toast.error(`Failed to update team: ${error.message}`);
       },
-    }),
+    }) as any,
   );
 
   const addMemberMutation = useMutation(
@@ -79,31 +79,31 @@ function TeamDetailRoute() {
       onSuccess: () => {
         toast.success("Member added successfully");
         setNewMemberId(null);
-        queryClient.invalidateQueries(orpc.teams.listMembers.queryOptions({ teamId }));
+        queryClient.invalidateQueries(orpc.teams.listMembers.queryOptions({ teamId }) as any);
       },
-      onError: (error) => {
+      onError: (error: any) => {
         toast.error(`Failed to add member: ${error.message}`);
       },
-    }),
+    }) as any,
   );
 
   const removeMemberMutation = useMutation(
     orpc.teams.removeMember.mutationOptions({
       onSuccess: () => {
         toast.success("Member removed successfully");
-        queryClient.invalidateQueries(orpc.teams.listMembers.queryOptions({ teamId }));
+        queryClient.invalidateQueries(orpc.teams.listMembers.queryOptions({ teamId }) as any);
       },
-      onError: (error) => {
+      onError: (error: any) => {
         toast.error(`Failed to remove member: ${error.message}`);
       },
-    }),
+    }) as any,
   );
 
   const handleSave = () => {
     updateMutation.mutate({
       id: teamId,
       ...editData,
-    });
+    } as any);
   };
 
   const handleAddMember = () => {
@@ -111,7 +111,7 @@ function TeamDetailRoute() {
     addMemberMutation.mutate({
       teamId,
       userId: newMemberId,
-    });
+    } as any);
   };
 
   const handleRemoveMember = (userId: number) => {
@@ -119,7 +119,7 @@ function TeamDetailRoute() {
       removeMemberMutation.mutate({
         teamId,
         userId,
-      });
+      } as any);
     }
   };
 

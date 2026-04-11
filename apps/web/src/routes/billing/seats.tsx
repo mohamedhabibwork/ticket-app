@@ -150,7 +150,7 @@ export default function SeatManagementPage() {
   return (
     <div className="container mx-auto py-8 space-y-8">
       <div>
-        <Link to="/billing">
+        <Link to={"/billing" as any}>
           <Button variant="ghost" size="sm" className="mb-4">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Billing
@@ -161,7 +161,7 @@ export default function SeatManagementPage() {
             <h1 className="text-3xl font-bold">Seat Management</h1>
             <p className="text-muted-foreground mt-1">Manage your team's seats and invitations</p>
           </div>
-          <Link to="/billing/upgrade">
+          <Link to={"/billing/upgrade" as any}>
             <Button>
               <ArrowUpRight className="h-4 w-4 mr-2" />
               Upgrade Plan
@@ -277,7 +277,10 @@ export default function SeatManagementPage() {
                       variant="ghost"
                       size="icon-sm"
                       onClick={() =>
-                        removeSeatMutation.mutateAsync({ organizationId: 1, userId: seat.userId })
+                        removeSeatMutation.mutateAsync({
+                          organizationId: 1,
+                          userId: seat.userId,
+                        } as any)
                       }
                       disabled={removeSeatMutation.isPending}
                       className="text-destructive"
@@ -328,7 +331,7 @@ export default function SeatManagementPage() {
                         resendInvitationMutation.mutateAsync({
                           organizationId: 1,
                           invitationId: invitation.id,
-                        })
+                        } as any)
                       }
                       disabled={resendInvitationMutation.isPending}
                     >
@@ -341,7 +344,7 @@ export default function SeatManagementPage() {
                         cancelInvitationMutation.mutateAsync({
                           organizationId: 1,
                           invitationId: invitation.id,
-                        })
+                        } as any)
                       }
                       disabled={cancelInvitationMutation.isPending}
                       className="text-destructive"
@@ -370,7 +373,7 @@ export default function SeatManagementPage() {
                   </p>
                 </div>
               </div>
-              <Link to="/billing/upgrade">
+              <Link to={"/billing/upgrade" as any}>
                 <Button variant="outline" className="border-amber-300 bg-white">
                   <ArrowUpRight className="h-4 w-4 mr-2" />
                   Upgrade Plan
@@ -395,7 +398,9 @@ export default function SeatManagementPage() {
                 variant="outline"
                 size="sm"
                 className="bg-white border-blue-300"
-                onClick={() => addSeatsMutation.mutateAsync({ organizationId: 1, seatCount: 5 })}
+                onClick={() =>
+                  addSeatsMutation.mutateAsync({ organizationId: 1, seatCount: 5 } as any)
+                }
                 disabled={addSeatsMutation.isPending}
               >
                 Purchase 5 More Seats - $25/mo
@@ -446,7 +451,9 @@ export default function SeatManagementPage() {
                 Cancel
               </Button>
               <Button
-                onClick={() => inviteMutation.mutateAsync({ organizationId: 1, email, role })}
+                onClick={() =>
+                  inviteMutation.mutateAsync({ organizationId: 1, email, role } as any)
+                }
                 disabled={!email || inviteMutation.isPending}
               >
                 {inviteMutation.isPending ? "Sending..." : "Send Invitation"}

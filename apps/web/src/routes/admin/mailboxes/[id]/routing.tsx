@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { createFileRoute, Link, useParams } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   Card,
   CardContent,
@@ -62,7 +62,7 @@ export const Route = createFileRoute("/admin/mailboxes/id/routing")({
 });
 
 function MailboxRoutingRoute() {
-  const { id } = useParams({ from: "/admin/mailboxes/id/routing" });
+  const { id }: any = Route.useParams();
   const mailboxId = Number(id);
   const organizationId = 1;
 
@@ -189,7 +189,7 @@ function MailboxRoutingRoute() {
     });
   };
 
-  const updateCondition = (index: number, updates: Partial<(typeof editingRule.conditions)[0]>) => {
+  const updateCondition = (index: number, updates: any) => {
     if (!editingRule) return;
     setEditingRule({
       ...editingRule,
@@ -213,7 +213,7 @@ function MailboxRoutingRoute() {
     });
   };
 
-  const updateAction = (index: number, updates: Partial<(typeof editingRule.actions)[0]>) => {
+  const updateAction = (index: number, updates: any) => {
     if (!editingRule) return;
     setEditingRule({
       ...editingRule,

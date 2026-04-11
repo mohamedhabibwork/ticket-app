@@ -29,27 +29,29 @@ function ChatDashboardRoute() {
   const [messageText, setMessageText] = useState("");
   const queryClient = useQueryClient();
 
-  const { data: sessions, isLoading: sessionsLoading } = useQuery(
+  const { data: sessions, isLoading: sessionsLoading }: any = useQuery(
     orpc.chatSessions.list.queryOptions({
       organizationId: 1,
       limit: 50,
-    }),
+    }) as any,
   );
 
-  const { data: selectedSession } = useQuery(
+  const { data: selectedSession }: any = useQuery(
     orpc.chatSessions.get.queryOptions(
       { organizationId: 1, id: selectedSessionId! },
       { enabled: !!selectedSessionId },
-    ),
+    ) as any,
   );
 
-  const sendMessage = useMutation.useMutation(orpc.chatMessages.createFromAgent.mutationOptions());
+  const sendMessage = useMutation(orpc.chatMessages.createFromAgent.mutationOptions() as any);
 
-  const assignAgent = useMutation.useMutation(orpc.chatSessions.assignAgent.mutationOptions());
+  const assignAgent = useMutation(orpc.chatSessions.assignAgent.mutationOptions() as any);
 
-  const endSession = useMutation.useMutation(orpc.chatSessions.updateStatus.mutationOptions());
+  const endSession = useMutation(orpc.chatSessions.updateStatus.mutationOptions() as any);
 
-  const activeSessions = sessions?.filter((s) => s.status === "waiting" || s.status === "active");
+  const activeSessions = sessions?.filter(
+    (s: any) => s.status === "waiting" || s.status === "active",
+  );
 
   const handleSendMessage = async () => {
     if (!messageText.trim() || !selectedSessionId) return;
@@ -58,11 +60,11 @@ function ChatDashboardRoute() {
       sessionId: selectedSessionId,
       agentId: 1,
       body: messageText.trim(),
-    });
+    } as any);
 
     setMessageText("");
     queryClient.invalidateQueries(
-      orpc.chatSessions.get.queryOptions({ organizationId: 1, id: selectedSessionId }),
+      orpc.chatSessions.get.queryOptions({ organizationId: 1, id: selectedSessionId }) as any,
     );
   };
 
@@ -71,7 +73,7 @@ function ChatDashboardRoute() {
       id: sessionId,
       organizationId: 1,
       agentId: 1,
-    });
+    } as any);
     setSelectedSessionId(sessionId);
   };
 
@@ -82,7 +84,7 @@ function ChatDashboardRoute() {
       organizationId: 1,
       status: "ended",
       endedBy: "agent",
-    });
+    } as any);
     setSelectedSessionId(null);
   };
 

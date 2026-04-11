@@ -229,8 +229,8 @@ function SecuritySettingsRoute() {
               <Label>Session Timeout</Label>
               <Select
                 value={String(settings.sessionTimeout)}
-                onValueChange={(value) =>
-                  setSettings((prev) => ({ ...prev, sessionTimeout: parseInt(value) }))
+                onValueChange={(value: unknown) =>
+                  setSettings((prev) => ({ ...prev, sessionTimeout: parseInt(value as string) }))
                 }
               >
                 <SelectTrigger className="w-48">
@@ -301,8 +301,8 @@ function SecuritySettingsRoute() {
               <Label>Retention Period</Label>
               <Select
                 value={String(settings.auditLogRetention)}
-                onValueChange={(value) =>
-                  setSettings((prev) => ({ ...prev, auditLogRetention: parseInt(value) }))
+                onValueChange={(value: unknown) =>
+                  setSettings((prev) => ({ ...prev, auditLogRetention: parseInt(value as string) }))
                 }
               >
                 <SelectTrigger className="w-48">

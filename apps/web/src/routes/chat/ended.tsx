@@ -35,25 +35,27 @@ function ChatHistoryRoute() {
   const [agentFilter, setAgentFilter] = useState<number | undefined>(undefined);
   const [ratingFilter, setRatingFilter] = useState<number | undefined>(undefined);
 
-  const { data: sessions, isLoading } = useQuery(
+  const { data: sessions, isLoading }: any = useQuery(
     orpc.chatSessions.list.queryOptions({
       organizationId,
       status: "ended",
       limit: 50,
-    }),
+    }) as any,
   );
 
-  const { data: agents } = useQuery(
+  const { data: agents }: any = useQuery(
     orpc.users.list.queryOptions({
       organizationId,
       isActive: true,
       limit: 100,
-    }),
+    }) as any,
   );
 
-  const endedSessions = sessions?.filter((s) => s.status === "ended" || s.status === "converted");
+  const endedSessions = sessions?.filter(
+    (s: any) => s.status === "ended" || s.status === "converted",
+  );
 
-  const filteredSessions = endedSessions?.filter((session) => {
+  const filteredSessions = endedSessions?.filter((session: any) => {
     if (agentFilter && session.agentId !== agentFilter) return false;
     if (ratingFilter && session.rating !== ratingFilter) return false;
     if (dateFilter) {

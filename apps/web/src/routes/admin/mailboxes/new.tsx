@@ -170,7 +170,7 @@ function AddMailboxRoute() {
                 className="flex h-8 w-full rounded-none border border-input bg-transparent px-3 py-1 text-xs transition-colors outline-none focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50"
               >
                 <option value="">No default team</option>
-                {teams?.map((team) => (
+                {teams?.map((team: any) => (
                   <option key={team.id} value={team.id}>
                     {team.name}
                   </option>

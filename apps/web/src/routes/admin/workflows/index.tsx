@@ -70,18 +70,12 @@ function WorkflowListRoute() {
   const [triggerFilter, setTriggerFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
-  const {
-    data: workflows,
-    isLoading,
-    _refetch,
-  } = useQuery({
-    queryKey: ["workflows", triggerFilter, statusFilter],
-    queryFn: () =>
-      orpc.workflows.list.queryOptions({
-        organizationId: 1,
-        isActive: statusFilter === "all" ? undefined : statusFilter === "active",
-      }),
-  });
+  const { data: workflows, isLoading }: any = useQuery(
+    orpc.workflows.list.queryOptions({
+      organizationId: 1,
+      isActive: statusFilter === "all" ? undefined : statusFilter === "active",
+    }) as any,
+  );
 
   const deleteMutation = useMutation(
     orpc.workflows.delete.mutationOptions({
@@ -103,7 +97,7 @@ function WorkflowListRoute() {
     if (
       confirm(`Are you sure you want to delete "${workflowName}"? This action cannot be undone.`)
     ) {
-      deleteMutation.mutate({ id: workflowId, organizationId: 1 });
+      deleteMutation.mutate({ id: workflowId, organizationId: 1 } as any);
     }
   };
 
@@ -112,10 +106,10 @@ function WorkflowListRoute() {
       id: workflowId,
       organizationId: 1,
       isActive: !currentStatus,
-    });
+    } as any);
   };
 
-  const filteredWorkflows = workflows?.filter((workflow) => {
+  const filteredWorkflows = workflows?.filter((workflow: any) => {
     const matchesSearch =
       searchQuery === "" ||
       workflow.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -165,7 +159,7 @@ function WorkflowListRoute() {
         </div>
         <div className="flex items-center gap-2">
           <Filter className="h-4 w-4 text-muted-foreground" />
-          <Select value={triggerFilter} onValueChange={setTriggerFilter}>
+          <Select value={triggerFilter} onValueChange={setTriggerFilter as any}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Trigger type" />
             </SelectTrigger>
@@ -180,7 +174,7 @@ function WorkflowListRoute() {
               <SelectItem value="time_elapsed">Time Elapsed</SelectItem>
             </SelectContent>
           </Select>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <Select value={statusFilter} onValueChange={setStatusFilter as any}>
             <SelectTrigger className="w-[140px]">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
@@ -199,7 +193,7 @@ function WorkflowListRoute() {
         </div>
       ) : filteredWorkflows && filteredWorkflows.length > 0 ? (
         <div className="grid gap-4">
-          {filteredWorkflows.map((workflow) => (
+          {filteredWorkflows.map((workflow: any) => (
             <Card key={workflow.id}>
               <CardContent className="p-4">
                 <div className="flex items-start gap-4">
@@ -260,13 +254,13 @@ function WorkflowListRoute() {
                           Edit
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onClick={() => navigate(`/admin/workflows/${workflow.id}`)}
+                          onClick={() => navigate(`/admin/workflows/${workflow.id}` as any)}
                         >
                           <FileText className="mr-2 h-4 w-4" />
                           View Details
                         </DropdownMenuItem>
                         <DropdownMenuItem
-                          onClick={() => navigate(`/admin/workflows/${workflow.id}/logs`)}
+                          onClick={() => navigate(`/admin/workflows/${workflow.id}/logs` as any)}
                         >
                           <FileText className="mr-2 h-4 w-4" />
                           View Logs

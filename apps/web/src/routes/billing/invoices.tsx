@@ -66,7 +66,7 @@ export default function InvoiceHistoryPage() {
   return (
     <div className="container mx-auto py-8 space-y-8">
       <div>
-        <Link to="/billing">
+        <Link to={"/billing" as any}>
           <Button variant="ghost" size="sm" className="mb-4">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Billing
@@ -115,7 +115,7 @@ export default function InvoiceHistoryPage() {
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-2">
                 <Filter className="h-4 w-4 text-muted-foreground" />
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <Select value={statusFilter} onValueChange={setStatusFilter as any}>
                   <SelectTrigger className="w-[140px]">
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
@@ -129,7 +129,7 @@ export default function InvoiceHistoryPage() {
               </div>
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-muted-foreground" />
-                <Select value={dateRange} onValueChange={setDateRange}>
+                <Select value={dateRange} onValueChange={setDateRange as any}>
                   <SelectTrigger className="w-[140px]">
                     <SelectValue placeholder="Date Range" />
                   </SelectTrigger>

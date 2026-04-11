@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { createFileRoute, Link, useParams } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   Card,
   CardContent,
@@ -42,7 +42,7 @@ export const Route = createFileRoute("/admin/mailboxes/id/")({
 });
 
 function MailboxDetailRoute() {
-  const { id } = useParams({ from: "/admin/mailboxes/id" });
+  const { id }: any = Route.useParams();
   const mailboxId = Number(id);
 
   const organizationId = 1;

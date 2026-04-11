@@ -75,104 +75,104 @@ function TicketDetailRoute() {
   const [omitMessageId, setOmitMessageId] = useState<number | null>(null);
   const [omitReason, setOmitReason] = useState("");
 
-  const { data: ticket, isLoading } = useQuery(
+  const { data: ticket, isLoading }: any = useQuery(
     orpc.tickets.getTimeline.queryOptions({
       id: ticketId,
       includePrivate: true,
-    }),
+    }) as any,
   );
 
-  const { data: translationConfig } = useQuery(
+  const { data: translationConfig }: any = useQuery(
     orpc.translation.getConfig.queryOptions({
       organizationId,
-    }),
+    }) as any,
   );
 
-  const { data: calendarConnections } = useQuery(
+  const { data: calendarConnections }: any = useQuery(
     orpc.calendar.listConnections.queryOptions({
       userId: 1,
-    }),
+    }) as any,
   );
 
   const lockMutation = useMutation(
     orpc.tickets.lock.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries(
-          orpc.tickets.getTimeline.queryOptions({ id: ticketId, includePrivate: true }),
+          orpc.tickets.getTimeline.queryOptions({ id: ticketId, includePrivate: true }) as any,
         );
       },
-    }),
+    }) as any,
   );
 
   const unlockMutation = useMutation(
     orpc.tickets.unlock.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries(
-          orpc.tickets.getTimeline.queryOptions({ id: ticketId, includePrivate: true }),
+          orpc.tickets.getTimeline.queryOptions({ id: ticketId, includePrivate: true }) as any,
         );
       },
-    }),
+    }) as any,
   );
 
   const lockThreadMutation = useMutation(
     orpc.ticketMessages.lockThread.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries(
-          orpc.tickets.getTimeline.queryOptions({ id: ticketId, includePrivate: true }),
+          orpc.tickets.getTimeline.queryOptions({ id: ticketId, includePrivate: true }) as any,
         );
         toast.success("Thread locked");
       },
-      onError: (error) => {
+      onError: (error: any) => {
         toast.error(`Failed to lock thread: ${error.message}`);
       },
-    }),
+    }) as any,
   );
 
   const unlockThreadMutation = useMutation(
     orpc.ticketMessages.unlockThread.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries(
-          orpc.tickets.getTimeline.queryOptions({ id: ticketId, includePrivate: true }),
+          orpc.tickets.getTimeline.queryOptions({ id: ticketId, includePrivate: true }) as any,
         );
         toast.success("Thread unlocked");
       },
-      onError: (error) => {
+      onError: (error: any) => {
         toast.error(`Failed to unlock thread: ${error.message}`);
       },
-    }),
+    }) as any,
   );
 
   const omitThreadMutation = useMutation(
     orpc.ticketMessages.omitThread.mutationOptions({
       onSuccess: () => {
         queryClient.invalidateQueries(
-          orpc.tickets.getTimeline.queryOptions({ id: ticketId, includePrivate: true }),
+          orpc.tickets.getTimeline.queryOptions({ id: ticketId, includePrivate: true }) as any,
         );
         toast.success("Thread omitted");
         setShowOmitDialog(false);
         setOmitMessageId(null);
         setOmitReason("");
       },
-      onError: (error) => {
+      onError: (error: any) => {
         toast.error(`Failed to omit thread: ${error.message}`);
       },
-    }),
+    }) as any,
   );
 
   const translateMutation = useMutation(
     orpc.translation.translateText.mutationOptions({
-      onSuccess: (data, variables) => {
+      onSuccess: (data: any, variables: any) => {
         setTranslatedMessages((prev) => ({
           ...prev,
           [variables.messageId]: data.translatedText,
         }));
         setTranslatingMessageId(null);
       },
-      onError: (error) => {
+      onError: (error: any) => {
         toast.error(`Translation failed: ${error.message}`);
         setTranslatingMessageId(null);
       },
-    }),
+    }) as any,
   );
 
   const createCalendarEventMutation = useMutation(
@@ -184,26 +184,26 @@ function TicketDetailRoute() {
         setCalendarDescription("");
         setCalendarDuration(30);
       },
-      onError: (error) => {
+      onError: (error: any) => {
         toast.error(`Failed to create event: ${error.message}`);
       },
-    }),
+    }) as any,
   );
 
   const handleLock = () => {
-    lockMutation.mutate({ id: ticketId, lockedBy: 1 });
+    lockMutation.mutate({ id: ticketId, lockedBy: 1 } as any);
   };
 
   const handleUnlock = () => {
-    unlockMutation.mutate({ id: ticketId });
+    unlockMutation.mutate({ id: ticketId } as any);
   };
 
   const handleLockThread = (messageId: number) => {
-    lockThreadMutation.mutate({ id: messageId, lockedBy: 1 });
+    lockThreadMutation.mutate({ id: messageId, lockedBy: 1 } as any);
   };
 
   const handleUnlockThread = (messageId: number) => {
-    unlockThreadMutation.mutate({ id: messageId });
+    unlockThreadMutation.mutate({ id: messageId } as any);
   };
 
   const handleOmitThread = () => {
@@ -211,7 +211,7 @@ function TicketDetailRoute() {
       toast.error("Please provide a reason for omitting this thread");
       return;
     }
-    omitThreadMutation.mutate({ id: omitMessageId, reason: omitReason, omittedBy: 1 });
+    omitThreadMutation.mutate({ id: omitMessageId, reason: omitReason, omittedBy: 1 } as any);
   };
 
   const handleTranslate = (messageId: number, text: string) => {
@@ -226,7 +226,7 @@ function TicketDetailRoute() {
       text,
       sourceLang: "auto",
       targetLang,
-    });
+    } as any);
   };
 
   const handleCreateCalendarEvent = () => {
@@ -242,13 +242,13 @@ function TicketDetailRoute() {
       description: calendarDescription || `Follow up on ticket: ${ticket?.subject}`,
       startAt: new Date().toISOString(),
       endAt: new Date(Date.now() + calendarDuration * 60 * 1000).toISOString(),
-    });
+    } as any);
   };
 
   const isFromAmazon = ticket?.channel?.name === "amazon_seller";
 
   const visibleMessages =
-    ticket?.messages?.filter((msg) => {
+    ticket?.messages?.filter((msg: any) => {
       if (msg.deletedAt && !showDeletedThreads) return false;
       return true;
     }) || [];

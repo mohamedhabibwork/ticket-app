@@ -40,11 +40,11 @@ function InstagramConnectionRoute() {
     data: accounts,
     isLoading,
     refetch,
-  } = useQuery(
+  }: any = useQuery(
     orpc.socialAccounts.list.queryOptions({
       organizationId: 1,
       platform: "instagram",
-    }),
+    }) as any,
   );
 
   const disconnectMutation = useMutation(
@@ -66,12 +66,12 @@ function InstagramConnectionRoute() {
     window.location.href = `https://www.facebook.com/v18.0/dialog/oauth?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${scope}`;
   };
 
-  const connectedAccounts = accounts?.filter((a) => a.isActive) || [];
+  const connectedAccounts = accounts?.filter((a: any) => a.isActive) || [];
 
   return (
     <div className="container mx-auto max-w-4xl px-4 py-6">
       <div className="mb-6">
-        <Link to="/admin/social/">
+        <Link to={"/admin/social/" as any}>
           <Button variant="ghost" className="mb-4">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Social Accounts
@@ -103,7 +103,7 @@ function InstagramConnectionRoute() {
               </div>
             ) : connectedAccounts.length > 0 ? (
               <div className="space-y-3">
-                {connectedAccounts.map((account) => (
+                {connectedAccounts.map((account: any) => (
                   <div
                     key={account.id}
                     className="flex items-center justify-between p-3 rounded bg-green-50 dark:bg-green-950/20"
@@ -123,7 +123,7 @@ function InstagramConnectionRoute() {
                       variant="ghost"
                       size="sm"
                       onClick={() =>
-                        disconnectMutation.mutate({ id: account.id, organizationId: 1 })
+                        disconnectMutation.mutate({ id: account.id, organizationId: 1 } as any)
                       }
                       disabled={disconnectMutation.isPending}
                     >
@@ -179,7 +179,7 @@ function InstagramConnectionRoute() {
         <CardContent>
           {connectedAccounts.length > 0 ? (
             <div className="space-y-4">
-              {connectedAccounts.map((account) => (
+              {connectedAccounts.map((account: any) => (
                 <div
                   key={account.id}
                   className="flex items-center justify-between p-4 border rounded"
@@ -205,7 +205,9 @@ function InstagramConnectionRoute() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => refreshMutation.mutate({ id: account.id, organizationId: 1 })}
+                      onClick={() =>
+                        refreshMutation.mutate({ id: account.id, organizationId: 1 } as any)
+                      }
                       disabled={refreshMutation.isPending}
                     >
                       <RefreshCw

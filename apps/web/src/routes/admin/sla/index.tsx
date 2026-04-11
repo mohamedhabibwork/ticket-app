@@ -84,10 +84,10 @@ function SlaPoliciesListRoute() {
     return "bg-gray-100 text-gray-800";
   };
 
-  const filteredPolicies = policies?.filter((policy) => {
+  const filteredPolicies = policies?.filter((policy: any) => {
     if (priorityFilter === "all") return true;
     return policy.targets?.some(
-      (target) => target.priority?.name.toLowerCase() === priorityFilter.toLowerCase(),
+      (target: any) => target.priority?.name.toLowerCase() === priorityFilter.toLowerCase(),
     );
   });
 
@@ -113,7 +113,7 @@ function SlaPoliciesListRoute() {
           <Filter className="h-4 w-4 text-muted-foreground" />
           <span className="text-sm text-muted-foreground">Filter by priority:</span>
         </div>
-        <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+        <Select value={priorityFilter} onValueChange={setPriorityFilter as any}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="All priorities" />
           </SelectTrigger>
@@ -166,7 +166,7 @@ function SlaPoliciesListRoute() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => navigate(`/admin/sla/${policy.id}`)}>
+                      <DropdownMenuItem onClick={() => navigate(`/admin/sla/${policy.id}` as any)}>
                         <Edit className="mr-2 h-4 w-4" />
                         Edit
                       </DropdownMenuItem>

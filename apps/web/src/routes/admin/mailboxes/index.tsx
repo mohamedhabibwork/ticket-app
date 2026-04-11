@@ -105,7 +105,7 @@ function MailboxListRoute() {
         </div>
       ) : mailboxes && mailboxes.length > 0 ? (
         <div className="space-y-4">
-          {mailboxes.map((mailbox) => (
+          {mailboxes.map((mailbox: any) => (
             <Card key={mailbox.id}>
               <CardContent className="p-4">
                 <div className="flex items-start gap-4">

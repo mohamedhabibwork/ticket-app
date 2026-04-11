@@ -75,47 +75,47 @@ function KanbanBoardRoute() {
   const [draggedTicket, setDraggedTicket] = useState<Ticket | null>(null);
   const [dragOverColumn, setDragOverColumn] = useState<string | null>(null);
 
-  const { data: allTickets, isLoading } = useQuery(
+  const { data: allTickets, isLoading }: any = useQuery(
     orpc.tickets.list.queryOptions({
       organizationId,
       limit: 100,
-    }),
+    }) as any,
   );
 
-  const { data: agents } = useQuery(
+  const { data: agents }: any = useQuery(
     orpc.users.list.queryOptions({
       organizationId,
       isActive: true,
       limit: 100,
-    }),
+    }) as any,
   );
 
-  const { data: teams } = useQuery(
+  const { data: teams }: any = useQuery(
     orpc.teams.list.queryOptions({
       organizationId,
-    }),
+    }) as any,
   );
 
-  const { data: _tags } = useQuery(
+  const { data: _tags }: any = useQuery(
     orpc.tags.list.queryOptions({
       organizationId,
-    }),
+    }) as any,
   );
 
   const updateStatusMutation = useMutation(
     orpc.tickets.updateStatus.mutationOptions({
       onSuccess: () => {
-        queryClient.invalidateQueries(orpc.tickets.list.queryOptions({ organizationId }));
+        queryClient.invalidateQueries(orpc.tickets.list.queryOptions({ organizationId }) as any);
         toast.success("Ticket status updated");
       },
-      onError: (error) => {
+      onError: (error: any) => {
         toast.error(`Failed to update status: ${error.message}`);
       },
-    }),
+    }) as any,
   );
 
   const filteredTickets =
-    allTickets?.filter((ticket) => {
+    allTickets?.filter((ticket: any) => {
       if (
         filters.priorityIds.length > 0 &&
         ticket.priority &&
@@ -178,13 +178,13 @@ function KanbanBoardRoute() {
       updateStatusMutation.mutate({
         id: draggedTicket.id,
         statusId: columnLookup[columnLabel],
-      });
+      } as any);
     }
     setDraggedTicket(null);
   };
 
   const columnLookup: Record<string, number> = {};
-  allTickets?.forEach((ticket) => {
+  allTickets?.forEach((ticket: any) => {
     if (ticket.status?.label) {
       columnLookup[ticket.status.label] = ticket.status.id;
     }

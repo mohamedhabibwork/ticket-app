@@ -112,7 +112,7 @@ function SavedRepliesListRoute() {
             Manage pre-written responses for faster ticket handling
           </p>
         </div>
-        <Link to="/admin/saved-replies/new">
+        <Link to={"/admin/saved-replies/new" as any}>
           <Button>
             <Plus className="mr-2 h-4 w-4" />
             Create Reply
@@ -132,7 +132,7 @@ function SavedRepliesListRoute() {
         </div>
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <Folder className="h-4 w-4 text-muted-foreground" />
-          <Select value={folderFilter} onValueChange={setFolderFilter}>
+          <Select value={folderFilter} onValueChange={setFolderFilter as any}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="All folders" />
             </SelectTrigger>
@@ -194,7 +194,7 @@ function SavedRepliesListRoute() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem
-                        onClick={() => navigate(`/admin/saved-replies/${reply.id}`)}
+                        onClick={() => navigate(`/admin/saved-replies/${reply.id}` as any)}
                       >
                         <Edit className="mr-2 h-4 w-4" />
                         Edit

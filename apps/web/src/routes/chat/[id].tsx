@@ -39,7 +39,7 @@ export const Route = createFileRoute("/chat/id")({
 });
 
 function ChatConversationRoute() {
-  const { id } = Route.useParams();
+  const { id }: any = Route.useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const organizationId = 1;
@@ -49,11 +49,11 @@ function ChatConversationRoute() {
   const [noteText, setNoteText] = useState("");
   const [rating, setRating] = useState<number>(0);
 
-  const { data: session, isLoading } = useQuery(
+  const { data: session, isLoading }: any = useQuery(
     orpc.chatSessions.get.queryOptions(
       { organizationId, id: sessionId },
       { enabled: !isNaN(sessionId) },
-    ),
+    ) as any,
   );
 
   const sendMessageMutation = useMutation(
@@ -64,10 +64,10 @@ function ChatConversationRoute() {
           orpc.chatSessions.get.queryOptions({ organizationId, id: sessionId }),
         );
       },
-      onError: (error) => {
+      onError: (error: any) => {
         toast.error(`Failed to send message: ${error.message}`);
       },
-    }),
+    }) as any,
   );
 
   const endSessionMutation = useMutation(
@@ -78,10 +78,10 @@ function ChatConversationRoute() {
           orpc.chatSessions.get.queryOptions({ organizationId, id: sessionId }),
         );
       },
-      onError: (error) => {
+      onError: (error: any) => {
         toast.error(`Failed to end chat: ${error.message}`);
       },
-    }),
+    }) as any,
   );
 
   const addNoteMutation = useMutation(
@@ -93,10 +93,10 @@ function ChatConversationRoute() {
           orpc.chatSessions.get.queryOptions({ organizationId, id: sessionId }),
         );
       },
-      onError: (error) => {
+      onError: (error: any) => {
         toast.error(`Failed to add note: ${error.message}`);
       },
-    }),
+    }) as any,
   );
 
   const rateSessionMutation = useMutation(
@@ -107,22 +107,22 @@ function ChatConversationRoute() {
           orpc.chatSessions.get.queryOptions({ organizationId, id: sessionId }),
         );
       },
-      onError: (error) => {
+      onError: (error: any) => {
         toast.error(`Failed to rate chat: ${error.message}`);
       },
-    }),
+    }) as any,
   );
 
   const convertToTicketMutation = useMutation(
     orpc.tickets.create.mutationOptions({
-      onSuccess: (data) => {
+      onSuccess: (data: any) => {
         toast.success("Ticket created from chat");
         navigate({ to: "/tickets/id", params: { id: String(data.id) } });
       },
-      onError: (error) => {
+      onError: (error: any) => {
         toast.error(`Failed to create ticket: ${error.message}`);
       },
-    }),
+    }) as any,
   );
 
   const handleSendMessage = () => {
@@ -131,7 +131,7 @@ function ChatConversationRoute() {
       sessionId,
       agentId: 1,
       body: messageText.trim(),
-    });
+    } as any);
   };
 
   const handleAddNote = () => {
@@ -141,7 +141,7 @@ function ChatConversationRoute() {
       agentId: 1,
       body: noteText.trim(),
       isInternal: true,
-    });
+    } as any);
   };
 
   const handleEndChat = () => {
@@ -151,7 +151,7 @@ function ChatConversationRoute() {
         organizationId,
         status: "ended",
         endedBy: "agent",
-      });
+      } as any);
     }
   };
 
@@ -160,15 +160,17 @@ function ChatConversationRoute() {
     rateSessionMutation.mutate({
       id: sessionId,
       rating: ratingValue,
-    });
+    } as any);
   };
 
   const handleConvertToTicket = () => {
     convertToTicketMutation.mutate({
       organizationId,
-      subject: `Chat with ${session?.contact?.firstName || "Anonymous"}`,
-      descriptionText: session?.messages?.map((m) => `[${m.authorType}] ${m.body}`).join("\n"),
-    });
+      subject: `Chat with ${(session as any)?.contact?.firstName || "Anonymous"}`,
+      descriptionText: (session as any)?.messages
+        ?.map((m: any) => `[${m.authorType}] ${m.body}`)
+        .join("\n"),
+    } as any);
   };
 
   if (isLoading) {

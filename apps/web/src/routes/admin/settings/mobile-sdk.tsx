@@ -170,7 +170,7 @@ function MobileSdkSettingsRoute() {
             </div>
           ) : configs && configs.length > 0 ? (
             <div className="space-y-4">
-              {configs.map((config) => (
+              {configs.map((config: any) => (
                 <div
                   key={config.id}
                   className="flex items-center justify-between p-4 border rounded-lg"

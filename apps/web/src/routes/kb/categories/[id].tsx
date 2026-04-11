@@ -277,7 +277,7 @@ function KbCategoryDetailRoute() {
                   className="flex items-center justify-between p-3 rounded border"
                 >
                   <Link
-                    to="/kb/$slug"
+                    to="/kb/slug"
                     params={{ slug: article.slug }}
                     className="flex items-center gap-3 flex-1"
                   >

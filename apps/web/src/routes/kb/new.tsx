@@ -52,7 +52,7 @@ function CreateKbArticleRoute() {
         if (status === "published") {
           navigate({ to: "/kb" });
         } else {
-          navigate({ to: "/kb/$slug", params: { slug: data.slug } });
+          navigate({ to: "/kb/slug", params: { slug: data.slug } });
         }
       },
       onError: (error) => {

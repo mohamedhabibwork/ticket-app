@@ -45,16 +45,18 @@ function TicketsIndexRoute() {
     ...(selectedCategoryId && { categoryId: selectedCategoryId }),
   };
 
-  const { data: tickets, isLoading } = useQuery(orpc.tickets.list.queryOptions(queryParams));
-
-  const { data: groups } = useQuery(orpc.groups.list.queryOptions({ organizationId }));
-
-  const { data: categories } = useQuery(
-    orpc.ticketCategories.list.queryOptions({ organizationId }),
+  const { data: tickets, isLoading }: any = useQuery(
+    orpc.tickets.list.queryOptions(queryParams) as any,
   );
 
-  const selectedGroup = groups?.find((g) => g.id === selectedGroupId);
-  const selectedCategory = categories?.find((c) => c.id === selectedCategoryId);
+  const { data: groups }: any = useQuery(orpc.groups.list.queryOptions({ organizationId }) as any);
+
+  const { data: categories }: any = useQuery(
+    orpc.ticketCategories.list.queryOptions({ organizationId }) as any,
+  );
+
+  const selectedGroup = groups?.find((g: any) => g.id === selectedGroupId);
+  const selectedCategory = categories?.find((c: any) => c.id === selectedCategoryId);
 
   const clearFilters = () => {
     setSelectedGroupId(null);

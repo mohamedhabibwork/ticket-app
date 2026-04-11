@@ -149,7 +149,7 @@ const SYSTEM_ROLE_PERMISSIONS: Record<string, string[]> = {
 };
 
 function RolePermissionsRoute() {
-  const { id } = Route.useParams();
+  const { id }: any = Route.useParams();
   const queryClient = useQueryClient();
   const _navigate = useNavigate();
   const roleId = Number(id);

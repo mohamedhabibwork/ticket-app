@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { createFileRoute, Link, useParams, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import {
   Card,
   CardContent,
@@ -20,7 +20,7 @@ export const Route = createFileRoute("/admin/mailboxes/id/configure")({
 });
 
 function MailboxConfigureRoute() {
-  const { id } = useParams({ from: "/admin/mailboxes/id/configure" });
+  const { id }: any = Route.useParams();
   const navigate = useNavigate();
   const mailboxId = Number(id);
 

@@ -52,7 +52,7 @@ export const Route = createFileRoute("/admin/workflows/id/logs")({
 });
 
 function WorkflowLogsRoute() {
-  const { id } = Route.useParams();
+  const { id }: any = Route.useParams();
   const workflowId = Number(id);
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -285,7 +285,7 @@ function WorkflowLogsRoute() {
                         )}
 
                         <div className="flex items-center gap-2">
-                          <Link to={`/tickets/${log.ticketId}`}>
+                          <Link to={`/tickets/${log.ticketId}` as any}>
                             <Button variant="outline" size="sm">
                               <FileText className="mr-2 h-4 w-4" />
                               View Ticket

@@ -56,12 +56,12 @@ function ContactDetailRoute() {
     }),
   );
 
-  const { data: tickets } = useQuery(
+  const { data: tickets }: any = useQuery(
     orpc.tickets.list.queryOptions({
       organizationId,
       contactId,
       limit: 10,
-    }),
+    }) as any,
   );
 
   const updateMutation = useMutation(
@@ -70,13 +70,13 @@ function ContactDetailRoute() {
         toast.success("Contact updated successfully");
         setIsEditing(false);
         queryClient.invalidateQueries(
-          orpc.contacts.get.queryOptions({ organizationId, id: contactId }),
+          orpc.contacts.get.queryOptions({ organizationId, id: contactId }) as any,
         );
       },
-      onError: (error) => {
+      onError: (error: any) => {
         toast.error(`Failed to update contact: ${error.message}`);
       },
-    }),
+    }) as any,
   );
 
   const mergeMutation = useMutation(
@@ -85,17 +85,17 @@ function ContactDetailRoute() {
         toast.success("Contacts merged successfully");
         navigate({ to: "/contacts" });
       },
-      onError: (error) => {
+      onError: (error: any) => {
         toast.error(`Failed to merge contacts: ${error.message}`);
       },
-    }),
+    }) as any,
   );
 
   const handleSave = () => {
     updateMutation.mutate({
       organizationId,
       ...editData,
-    });
+    } as any);
   };
 
   const _handleMerge = (targetId: number) => {
@@ -106,7 +106,7 @@ function ContactDetailRoute() {
         organizationId,
         sourceId: contactId,
         targetId,
-      });
+      } as any);
     }
   };
 

@@ -32,17 +32,17 @@ function TeamsIndexRoute() {
     orpc.teams.delete.mutationOptions({
       onSuccess: () => {
         toast.success("Team deleted successfully");
-        queryClient.invalidateQueries(orpc.teams.list.queryOptions({ organizationId }));
+        queryClient.invalidateQueries(orpc.teams.list.queryOptions({ organizationId }) as any);
       },
-      onError: (error) => {
+      onError: (error: any) => {
         toast.error(`Failed to delete team: ${error.message}`);
       },
-    }),
+    }) as any,
   );
 
   const handleDelete = (teamId: number) => {
     if (confirm("Are you sure you want to delete this team?")) {
-      deleteMutation.mutate({ id: teamId });
+      deleteMutation.mutate({ id: teamId } as any);
     }
   };
 

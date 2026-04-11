@@ -107,7 +107,7 @@ export default function PaymentMethodsPage() {
   return (
     <div className="container mx-auto py-8 space-y-8">
       <div>
-        <Link to="/billing">
+        <Link to={"/billing" as any}>
           <Button variant="ghost" size="sm" className="mb-4">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Billing
@@ -178,7 +178,7 @@ export default function PaymentMethodsPage() {
                               setDefaultMutation.mutateAsync({
                                 organizationId: 1,
                                 paymentMethodId: method.id,
-                              })
+                              } as any)
                             }
                             disabled={setDefaultMutation.isPending}
                           >
@@ -192,7 +192,7 @@ export default function PaymentMethodsPage() {
                             removeMutation.mutateAsync({
                               organizationId: 1,
                               paymentMethodId: method.id,
-                            })
+                            } as any)
                           }
                           disabled={removeMutation.isPending || method.isDefault}
                           className="text-destructive"
