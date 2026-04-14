@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import {
   Card,
   CardContent,
@@ -20,6 +20,7 @@ import {
   ExternalLink,
   AlertCircle,
 } from "lucide-react";
+import { useEcommerceAccounts } from "@/hooks";
 import { orpc } from "@/utils/orpc";
 
 const marketplaceOrpc = orpc as any;
@@ -60,6 +61,9 @@ const marketplaceRegions = [
 ];
 
 export const Route = createFileRoute("/admin/ecommerce/amazon")({
+  loader: async () => {
+    return {};
+  },
   component: AmazonSellerCentralRoute,
 });
 
@@ -72,15 +76,7 @@ function AmazonSellerCentralRoute() {
   const [spApiRefreshToken, setSpApiRefreshToken] = useState("");
   const [showManualForm, setShowManualForm] = useState(false);
 
-  const {
-    data: accounts,
-    isLoading,
-    refetch,
-  } = useQuery(
-    marketplaceOrpc.marketplace.listAccounts.queryOptions({
-      organizationId: 1,
-    }),
-  );
+  const { data: accounts, isLoading, refetch } = useEcommerceAccounts({ organizationId });
 
   const amazonAccounts =
     (accounts as any[])?.filter((a: any) => a.platform === "amazon_seller") || [];
@@ -117,7 +113,7 @@ function AmazonSellerCentralRoute() {
     )
       return;
     connectMutation.mutate({
-      organizationId: 1,
+      organizationId,
       platform: "amazon_seller",
       accountName,
       sellerId,
@@ -227,7 +223,7 @@ function AmazonSellerCentralRoute() {
                         variant="ghost"
                         size="sm"
                         onClick={() =>
-                          disconnectMutation.mutate({ id: account.id, organizationId: 1 })
+                          disconnectMutation.mutate({ id: account.id, organizationId })
                         }
                         disabled={disconnectMutation.isPending}
                       >
@@ -442,7 +438,7 @@ function AmazonSellerCentralRoute() {
                       size="icon"
                       onClick={() => {
                         if (confirm("Are you sure you want to disconnect this account?")) {
-                          disconnectMutation.mutate({ id: account.id, organizationId: 1 });
+                          disconnectMutation.mutate({ id: account.id, organizationId });
                         }
                       }}
                       disabled={disconnectMutation.isPending}

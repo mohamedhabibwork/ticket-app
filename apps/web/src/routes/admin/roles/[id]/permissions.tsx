@@ -9,6 +9,11 @@ import { orpc } from "@/utils/orpc";
 import { ArrowLeft, Shield, Save, Lock, AlertTriangle } from "lucide-react";
 
 export const Route = createFileRoute("/admin/roles/id/permissions")({
+  loader: async ({ context, params }) => {
+    const roleId = Number(params.id);
+    const role = await context.orpc.roles.get.query({ id: roleId });
+    return { role };
+  },
   component: RolePermissionsRoute,
 });
 
@@ -153,15 +158,12 @@ function RolePermissionsRoute() {
   const queryClient = useQueryClient();
   const _navigate = useNavigate();
   const roleId = Number(id);
+  const { role } = Route.useLoaderData<typeof Route>();
 
   const [selectedPermissions, setSelectedPermissions] = useState<Set<string>>(new Set());
   const [hasChanges, setHasChanges] = useState(false);
 
-  const {
-    data: role,
-    isLoading,
-    refetch,
-  }: any = useQuery(orpc.users.getRole.queryOptions({ id: roleId } as any));
+  const { refetch }: any = useQuery(orpc.users.getRole.queryOptions({ id: roleId } as any));
 
   const updatePermissionsMutation = useMutation(
     orpc.users.updateRolePermissions.mutationOptions({
@@ -229,14 +231,6 @@ function RolePermissionsRoute() {
   const rolePermissionKeys = role?.name?.toLowerCase() || "";
   const inheritedPermissions = SYSTEM_ROLE_PERMISSIONS[rolePermissionKeys] || [];
   const hasInheritedPermissions = inheritedPermissions.length > 0;
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-[50vh]">
-        <div className="animate-spin h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full"></div>
-      </div>
-    );
-  }
 
   if (!role) {
     return (

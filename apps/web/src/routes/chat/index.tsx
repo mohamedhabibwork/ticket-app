@@ -1,10 +1,17 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 
 import { Loader2, Send, Phone, MessageSquare, Clock, User } from "lucide-react";
 
-import { orpc } from "@/utils/orpc";
+import { getCurrentOrganizationId } from "@/utils/auth";
+import { useOrganization } from "@/hooks/useOrganization";
+import {
+  useChatSessionsList,
+  useChatSession,
+  useSendChatMessage,
+  useAssignChatAgent,
+  useEndChatSession,
+} from "@/hooks/chat";
 
 function formatRelativeTime(date: Date | string): string {
   const now = new Date();
@@ -21,33 +28,33 @@ function formatRelativeTime(date: Date | string): string {
 }
 
 export const Route = createFileRoute("/chat/")({
+  loader: async ({ context }) => {
+    return context.orpc.chat.sessions.queryOptions({
+      organizationId: getCurrentOrganizationId()!,
+      limit: 50,
+    });
+  },
   component: ChatDashboardRoute,
 });
 
 function ChatDashboardRoute() {
   const [selectedSessionId, setSelectedSessionId] = useState<number | null>(null);
   const [messageText, setMessageText] = useState("");
-  const queryClient = useQueryClient();
+  const { organizationId } = useOrganization();
 
-  const { data: sessions, isLoading: sessionsLoading }: any = useQuery(
-    orpc.chatSessions.list.queryOptions({
-      organizationId: 1,
-      limit: 50,
-    }) as any,
-  );
+  const { data: sessions, isLoading: sessionsLoading } = useChatSessionsList({
+    organizationId,
+    limit: 50,
+  });
 
-  const { data: selectedSession }: any = useQuery(
-    orpc.chatSessions.get.queryOptions(
-      { organizationId: 1, id: selectedSessionId! },
-      { enabled: !!selectedSessionId },
-    ) as any,
-  );
+  const { data: selectedSession } = useChatSession({
+    organizationId,
+    id: selectedSessionId!,
+  });
 
-  const sendMessage = useMutation(orpc.chatMessages.createFromAgent.mutationOptions() as any);
-
-  const assignAgent = useMutation(orpc.chatSessions.assignAgent.mutationOptions() as any);
-
-  const endSession = useMutation(orpc.chatSessions.updateStatus.mutationOptions() as any);
+  const sendMessage = useSendChatMessage();
+  const assignAgent = useAssignChatAgent();
+  const endSession = useEndChatSession();
 
   const activeSessions = sessions?.filter(
     (s: any) => s.status === "waiting" || s.status === "active",
@@ -60,20 +67,17 @@ function ChatDashboardRoute() {
       sessionId: selectedSessionId,
       agentId: 1,
       body: messageText.trim(),
-    } as any);
+    });
 
     setMessageText("");
-    queryClient.invalidateQueries(
-      orpc.chatSessions.get.queryOptions({ organizationId: 1, id: selectedSessionId }) as any,
-    );
   };
 
   const handleAcceptChat = async (sessionId: number) => {
     await assignAgent.mutateAsync({
       id: sessionId,
-      organizationId: 1,
+      organizationId,
       agentId: 1,
-    } as any);
+    });
     setSelectedSessionId(sessionId);
   };
 
@@ -81,10 +85,10 @@ function ChatDashboardRoute() {
     if (!selectedSessionId) return;
     await endSession.mutateAsync({
       id: selectedSessionId,
-      organizationId: 1,
+      organizationId,
       status: "ended",
       endedBy: "agent",
-    } as any);
+    });
     setSelectedSessionId(null);
   };
 
@@ -106,7 +110,7 @@ function ChatDashboardRoute() {
 
         <div className="flex-1 overflow-y-auto">
           {activeSessions && activeSessions.length > 0 ? (
-            activeSessions.map((session) => (
+            activeSessions.map((session: any) => (
               <div
                 key={session.id}
                 onClick={() => setSelectedSessionId(session.id)}
@@ -188,7 +192,7 @@ function ChatDashboardRoute() {
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
-              {selectedSession.messages?.map((msg) => (
+              {selectedSession.messages?.map((msg: any) => (
                 <div
                   key={msg.id}
                   className={`flex ${msg.authorType === "agent" ? "justify-end" : "justify-start"}`}

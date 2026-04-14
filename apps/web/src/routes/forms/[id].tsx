@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { createFileRoute, useParams } from "@tanstack/react-router";
+import { useMutation } from "@tanstack/react-query";
+import { createFileRoute } from "@tanstack/react-router";
 import { Card, CardContent, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
 import { Button } from "@ticket-app/ui/components/button";
 import { Input } from "@ticket-app/ui/components/input";
@@ -9,6 +9,8 @@ import { Textarea } from "@ticket-app/ui/components/textarea";
 import { Checkbox } from "@ticket-app/ui/components/checkbox";
 import { Loader2, CheckCircle, AlertCircle } from "lucide-react";
 import { orpc } from "@/utils/orpc";
+import { getCurrentOrganizationId } from "@/utils/auth";
+import { useOrganization } from "@/hooks/useOrganization";
 
 interface FormField {
   id: number;
@@ -22,31 +24,28 @@ interface FormField {
 }
 
 export const Route = createFileRoute("/forms/id")({
+  loader: async ({ context, params }) => {
+    const formId = Number(params.id);
+    const form = await context.orpc.forms.get.query({
+      id: formId,
+      organizationId: getCurrentOrganizationId()!,
+    });
+    return { form };
+  },
   component: PublicFormRoute,
 });
 
 function PublicFormRoute() {
-  const { id } = useParams({ from: "/forms/id" });
-  const formId = Number(id);
-
-  const {
-    data: form,
-    isLoading,
-    error,
-  } = useQuery(
-    orpc.forms.get.queryOptions({
-      id: formId,
-      organizationId: 1,
-    }),
-  );
+  const { organizationId } = useOrganization();
+  const { form } = Route.useLoaderData<typeof Route>();
 
   const submitMutation = useMutation(
     orpc.forms.submit.mutationOptions({
-      onSuccess: (data) => {
+      onSuccess: (data: any) => {
         setSubmitted(true);
         setSubmittedRef(data.referenceNumber);
       },
-    }),
+    }) as any,
   );
 
   const [formValues, setFormValues] = useState<Record<string, string>>({});
@@ -57,7 +56,7 @@ function PublicFormRoute() {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    form?.fields?.forEach((field) => {
+    form?.fields?.forEach((field: any) => {
       const value = formValues[field.id.toString()] || "";
 
       if (field.isRequired && !value.trim()) {
@@ -88,20 +87,24 @@ function PublicFormRoute() {
     e.preventDefault();
     if (!validateForm()) return;
 
-    const emailField = form?.fields?.find((f) => f.fieldType === "email");
-    const firstNameField = form?.fields?.find((f) => f.label.toLowerCase().includes("first name"));
-    const lastNameField = form?.fields?.find((f) => f.label.toLowerCase().includes("last name"));
+    const emailField = form?.fields?.find((f: any) => f.fieldType === "email");
+    const firstNameField = form?.fields?.find((f: any) =>
+      f.label.toLowerCase().includes("first name"),
+    );
+    const lastNameField = form?.fields?.find((f: any) =>
+      f.label.toLowerCase().includes("last name"),
+    );
 
     submitMutation.mutate({
       formId,
-      organizationId: 1,
+      organizationId,
       fields: formValues,
       email: emailField ? formValues[emailField.id.toString()] : undefined,
       firstName: firstNameField ? formValues[firstNameField.id.toString()] : undefined,
       lastName: lastNameField ? formValues[lastNameField.id.toString()] : undefined,
       ipAddress: "127.0.0.1",
       userAgent: typeof navigator !== "undefined" ? navigator.userAgent : undefined,
-    });
+    } as any);
   };
 
   const handleFieldChange = (fieldId: string | number, value: string) => {
@@ -246,15 +249,7 @@ function PublicFormRoute() {
     );
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-muted/30">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
-  }
-
-  if (error || !form) {
+  if (!form) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-muted/30">
         <Card className="max-w-md mx-auto">
@@ -308,7 +303,7 @@ function PublicFormRoute() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
-              {form.fields?.sort((a, b) => a.orderBy - b.orderBy).map(renderField)}
+              {form.fields?.sort((a: any, b: any) => a.orderBy - b.orderBy).map(renderField)}
 
               <Button type="submit" className="w-full" disabled={submitMutation.isPending}>
                 {submitMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

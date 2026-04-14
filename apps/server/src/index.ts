@@ -4,13 +4,10 @@ import { OpenAPIHandler } from "@orpc/openapi/fetch";
 import { OpenAPIReferencePlugin } from "@orpc/openapi/plugins";
 import { onError } from "@orpc/server";
 import { RPCHandler } from "@orpc/server/fetch";
-import { ZodToJsonSchemaConverter } from "@orpc/zod/zod4";
 import { createContext } from "@ticket-app/api/context";
 import { appRouter } from "@ticket-app/api/routers/index";
-import { env } from "@ticket-app/env/server";
 import { streamText, convertToModelMessages, wrapLanguageModel } from "ai";
 import { Hono } from "hono";
-import { cors } from "hono/cors";
 import { serve } from "@hono/node-server";
 import { auth as authRoutes } from "./routes/auth";
 import { billing as billingRoutes } from "./routes/billing";
@@ -19,6 +16,8 @@ import { createExcelExportWorker, createExcelImportWorker } from "@ticket-app/qu
 import { initializeWithRedisAdapter, getSocketServer } from "./socket/index";
 import { initializeSocketPubSub } from "./socket/pubsub";
 import { requestLogger, logger } from "./lib/logger";
+import { corsMiddleware } from "./middleware/security";
+import { env } from "@ticket-app/env/server";
 
 const app = new Hono();
 
@@ -29,20 +28,10 @@ logger.info("Starting Excel import worker...");
 createExcelImportWorker();
 
 app.use(requestLogger);
-app.use(
-  "/*",
-  cors({
-    origin: env.CORS_ORIGIN,
-    allowMethods: ["GET", "POST", "OPTIONS"],
-  }),
-);
+app.use("/*", corsMiddleware());
 
 export const apiHandler = new OpenAPIHandler(appRouter, {
-  plugins: [
-    new OpenAPIReferencePlugin({
-      schemaConverters: [new ZodToJsonSchemaConverter()],
-    }),
-  ],
+  plugins: [new OpenAPIReferencePlugin()],
   interceptors: [
     onError((error) => {
       logger.error({ error }, "API handler error");
@@ -58,25 +47,41 @@ export const rpcHandler = new RPCHandler(appRouter, {
   ],
 });
 
-app.use("/*", async (c, next) => {
+app.use("/api/*", async (c, next) => {
   const context = await createContext({ context: c });
 
   const rpcResult = await rpcHandler.handle(c.req.raw, {
-    prefix: "/rpc",
+    prefix: "/api/rpc",
     context: context,
   });
 
   if (rpcResult.matched) {
-    return c.newResponse(rpcResult.response.body, rpcResult.response);
+    const response = rpcResult.response;
+    const headers = new Headers(response.headers);
+    const corsOrigin = c.res.headers.get("Access-Control-Allow-Origin");
+    if (corsOrigin) {
+      headers.set("Access-Control-Allow-Origin", corsOrigin);
+      headers.set("Access-Control-Allow-Credentials", "true");
+    }
+    const body = response.status === 204 ? null : await response.arrayBuffer();
+    return new Response(body, { status: response.status, headers });
   }
 
   const apiResult = await apiHandler.handle(c.req.raw, {
-    prefix: "/api-reference",
+    prefix: "/api/reference",
     context: context,
   });
 
   if (apiResult.matched) {
-    return c.newResponse(apiResult.response.body, apiResult.response);
+    const response = apiResult.response;
+    const headers = new Headers(response.headers);
+    const corsOrigin = c.res.headers.get("Access-Control-Allow-Origin");
+    if (corsOrigin) {
+      headers.set("Access-Control-Allow-Origin", corsOrigin);
+      headers.set("Access-Control-Allow-Credentials", "true");
+    }
+    const body = response.status === 204 ? null : await response.arrayBuffer();
+    return new Response(body, { status: response.status, headers });
   }
 
   await next();
@@ -101,15 +106,20 @@ app.post("/ai", async (c) => {
   return result.toUIMessageStreamResponse();
 });
 
+app.get("/docs", (c) => {
+  return c.redirect("/api/reference");
+});
+
 app.get("/", (c) => {
   return c.text("OK");
 });
 
-const PORT = parseInt(process.env.PORT || "3000");
+const PORT = env.PORT;
 
 const server = serve({
   fetch: app.fetch,
   port: PORT,
+  overrideGlobalObjects: false,
 });
 
 logger.info({ port: PORT }, "Server starting");

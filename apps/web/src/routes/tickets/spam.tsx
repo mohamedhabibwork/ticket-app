@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
@@ -9,6 +9,8 @@ import { Label } from "@ticket-app/ui/components/label";
 import { Loader2, AlertTriangle, Trash2, Mail } from "lucide-react";
 
 import { orpc } from "@/utils/orpc";
+import { getCurrentOrganizationId } from "@/utils/auth";
+import { useOrganization } from "@/hooks/useOrganization";
 
 function formatRelativeTime(date: Date | string): string {
   const now = new Date();
@@ -27,21 +29,25 @@ function formatRelativeTime(date: Date | string): string {
 }
 
 export const Route = createFileRoute("/tickets/spam")({
+  loader: async ({ context }) => {
+    const organizationId = getCurrentOrganizationId()!;
+    const spamTickets = await context.orpc.tickets.listSpam.query({
+      organizationId,
+      limit: 100,
+    });
+    return { spamTickets };
+  },
   component: SpamQueueRoute,
 });
 
 function SpamQueueRoute() {
+  const { spamTickets } = Route.useLoaderData<typeof Route>();
   const queryClient = useQueryClient();
-  const organizationId = 1;
+  const { organizationId } = useOrganization();
 
   const [dateRange, setDateRange] = useState<{ from?: Date; to?: Date }>({});
 
-  const { data: spamTickets, isLoading } = useQuery(
-    orpc.tickets.listSpam.queryOptions({
-      organizationId,
-      limit: 100,
-    }),
-  );
+  const isLoading = !spamTickets;
 
   const markAsNotSpamMutation = useMutation(
     orpc.tickets.markAsNotSpam.mutationOptions({
@@ -50,7 +56,7 @@ function SpamQueueRoute() {
         queryClient.invalidateQueries(orpc.tickets.listSpam.queryOptions({ organizationId }));
         queryClient.invalidateQueries(orpc.tickets.list.queryOptions({ organizationId }));
       },
-      onError: (error) => {
+      onError: (error: any) => {
         toast.error(`Failed to mark as not spam: ${error.message}`);
       },
     }),
@@ -62,14 +68,14 @@ function SpamQueueRoute() {
         toast.success("Ticket permanently deleted");
         queryClient.invalidateQueries(orpc.tickets.listSpam.queryOptions({ organizationId }));
       },
-      onError: (error) => {
+      onError: (error: any) => {
         toast.error(`Failed to delete ticket: ${error.message}`);
       },
     }),
   );
 
   const handleMarkAsNotSpam = (ticketId: number) => {
-    markAsNotSpamMutation.mutate({ id: ticketId, organizationId });
+    markAsNotSpamMutation.mutate({ id: ticketId, organizationId } as any);
   };
 
   const handleDeletePermanent = (ticketId: number) => {
@@ -78,7 +84,7 @@ function SpamQueueRoute() {
         "Are you sure you want to permanently delete this ticket? This action cannot be undone.",
       )
     ) {
-      deletePermanentMutation.mutate({ id: ticketId, organizationId });
+      deletePermanentMutation.mutate({ id: ticketId, organizationId } as any);
     }
   };
 

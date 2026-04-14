@@ -1,4 +1,3 @@
-import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Card, CardContent, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
 import { Button } from "@ticket-app/ui/components/button";
@@ -16,101 +15,87 @@ import {
   ChevronUp,
   Calendar,
 } from "lucide-react";
-import { orpc } from "@/utils/orpc";
 import { useState } from "react";
+import { formatRelativeTime, formatResponseTime } from "@ticket-app/ui/hooks/datetime";
+import { useOrganization } from "@/hooks/useOrganization";
+import { useUser } from "@/hooks/useAuth";
 
-function formatRelativeTime(date: Date | string): string {
-  const now = new Date();
-  const then = new Date(date);
-  const diffMs = now.getTime() - then.getTime();
-  const diffSecs = Math.floor(diffMs / 1000);
-  const diffMins = Math.floor(diffSecs / 60);
-  const diffHours = Math.floor(diffMins / 60);
-  const diffDays = Math.floor(diffHours / 24);
-
-  if (diffSecs < 60) return "just now";
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays < 30) return `${diffDays}d ago`;
-  return then.toLocaleDateString();
-}
-
-function formatResponseTime(minutes: number): string {
-  if (minutes < 60) return `${Math.round(minutes)}m`;
-  const hours = Math.floor(minutes / 60);
-  const mins = Math.round(minutes % 60);
-  return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
-}
+const { organizationId } = useOrganization();
+const { user } = useUser();
+const currentUserId = user?.id ?? null;
 
 export const Route = createFileRoute("/dashboard/")({
+  loader: async ({ context }) => {
+    const startDate = new Date().toISOString();
+    const endDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+
+    const [
+      openTickets,
+      myTickets,
+      responseTimeData,
+      slaData,
+      chatStats,
+      teamMembers,
+      breachedSla,
+      upcomingEvents,
+    ] = await Promise.all([
+      context.orpc.tickets.list.query({ organizationId, limit: 1 }),
+      context.orpc.tickets.list.query({
+        organizationId,
+        assignedAgentId: currentUserId,
+        limit: 10,
+      }),
+      context.orpc.reports.getResponseTime.query({ organizationId }),
+      context.orpc.reports.getSlaCompliance.query({ organizationId }),
+      context.orpc.chatSessions.getActiveSessions.query({ organizationId }),
+      context.orpc.users.list.query({ organizationId }),
+      context.orpc.ticketSla.listBreached.query({ organizationId }),
+      context.orpc.calendar.listAgentEvents.query({ userId: currentUserId, startDate, endDate }),
+    ]);
+
+    return {
+      openTickets,
+      myTickets,
+      responseTimeData,
+      slaData,
+      chatStats,
+      teamMembers,
+      breachedSla,
+      upcomingEvents,
+    };
+  },
   component: DashboardRoute,
 });
-
-const organizationId = 1;
-const currentUserId = 1;
 
 function DashboardRoute() {
   const [showDailySummary, setShowDailySummary] = useState(false);
 
-  const { data: openTickets, isLoading: loadingOpenTickets }: any = useQuery(
-    orpc.tickets.list.queryOptions({
-      organizationId,
-      limit: 1,
-    }) as any,
-  );
+  const {
+    openTickets,
+    myTickets,
+    responseTimeData,
+    slaData,
+    chatStats,
+    teamMembers,
+    breachedSla,
+    upcomingEvents,
+  } = Route.useLoaderData<typeof Route>();
 
-  const { data: myTickets, isLoading: loadingMyTickets }: any = useQuery(
-    orpc.tickets.list.queryOptions({
-      organizationId,
-      assignedAgentId: currentUserId,
-      limit: 10,
-    }) as any,
-  );
-
-  const { data: responseTimeData, isLoading: loadingResponseTime }: any = useQuery(
-    orpc.reports.getResponseTime.queryOptions({
-      organizationId,
-    }) as any,
-  );
-
-  const { data: slaData, isLoading: loadingSla }: any = useQuery(
-    orpc.reports.getSlaCompliance.queryOptions({
-      organizationId,
-    }) as any,
-  );
-
-  const { data: chatStats, isLoading: loadingChat }: any = useQuery(
-    orpc.chatSessions.getActiveSessions.queryOptions({
-      organizationId,
-    }) as any,
-  );
-
-  const { data: teamMembers, isLoading: loadingTeam }: any = useQuery(
-    orpc.users.list.queryOptions({
-      organizationId,
-    }) as any,
-  );
-
-  const { data: breachedSla, isLoading: loadingBreached }: any = useQuery(
-    orpc.ticketSla.listBreached.queryOptions({
-      organizationId,
-    }) as any,
-  );
-
-  const { data: upcomingEvents, isLoading: loadingEvents }: any = useQuery(
-    orpc.calendar.listAgentEvents.queryOptions({
-      userId: currentUserId,
-      startDate: new Date().toISOString(),
-      endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-    }) as any,
-  );
+  const loadingOpenTickets = !openTickets;
+  const loadingMyTickets = !myTickets;
+  const loadingResponseTime = !responseTimeData;
+  const loadingSla = !slaData;
+  const loadingChat = !chatStats;
+  const loadingTeam = !teamMembers;
+  const loadingBreached = !breachedSla;
+  const loadingEvents = !upcomingEvents;
 
   const openTicketCount = openTickets?.length || 0;
   const myTicketCount = myTickets?.length || 0;
   const avgResponseMinutes = responseTimeData?.averageResponseTimeMinutes || 0;
   const csatScore = slaData ? Math.round((slaData.withinSla / (slaData.total || 1)) * 100) : 0;
-  const activeChats = chatStats?.filter((c) => c.status === "active").length || 0;
-  const waitingChats = chatStats?.filter((c) => c.status === "waiting").length || 0;
+  const activeChats = chatStats?.filter((c: any) => c.status === "active").length || 0;
+  const waitingChats = chatStats?.filter((c: any) => c.status === "waiting").length || 0;
   const onlineAgents = teamMembers?.users?.filter((u: any) => u.isActive).length || 0;
   const totalAgents = teamMembers?.users?.length || 0;
 
@@ -279,7 +264,7 @@ function DashboardRoute() {
                       </p>
                     </div>
                     <div className="flex items-center gap-2 ml-4">
-                      <Link to={`/tickets/${ticket.id}`}>
+                      <Link to={`/tickets/${ticket.id}` as any}>
                         <Button variant="outline" size="icon-xs">
                           <FileText className="h-3 w-3" />
                         </Button>
@@ -363,7 +348,7 @@ function DashboardRoute() {
             ) : breachedSla && breachedSla.length > 0 ? (
               <div className="space-y-3">
                 {breachedSla.slice(0, 5).map((item: any) => (
-                  <Link key={item.ticket.id} to={`/tickets/${item.ticket.id}`}>
+                  <Link key={item.ticket.id} to={`/tickets/${item.ticket.id}` as any}>
                     <div className="flex items-center justify-between p-3 rounded border hover:bg-muted/50 transition-colors">
                       <div>
                         <div className="text-sm font-medium">#{item.ticket.referenceNumber}</div>

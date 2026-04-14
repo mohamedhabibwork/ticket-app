@@ -14,6 +14,9 @@ import { Checkbox } from "@ticket-app/ui/components/checkbox";
 import { Save, RotateCcw, Key, Link2, TestTube, CheckCircle, XCircle } from "lucide-react";
 
 export const Route = createFileRoute("/admin/security/sso")({
+  loader: async () => {
+    return {};
+  },
   component: SSOConfigurationRoute,
 });
 

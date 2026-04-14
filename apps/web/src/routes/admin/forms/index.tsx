@@ -6,12 +6,7 @@ import { Button } from "@ticket-app/ui/components/button";
 import { Input } from "@ticket-app/ui/components/input";
 import { Loader2, Plus, FileText, Edit, Eye, Trash2, Inbox, Copy } from "lucide-react";
 import { orpc } from "@/utils/orpc";
-
-const FORM_TYPES = [
-  { value: "all", label: "All Forms" },
-  { value: "published", label: "Published" },
-  { value: "draft", label: "Draft" },
-];
+import { getCurrentOrganizationId } from "@/utils/auth";
 
 function formatRelativeTime(date: Date | string): string {
   const now = new Date();
@@ -30,20 +25,23 @@ function formatRelativeTime(date: Date | string): string {
 }
 
 export const Route = createFileRoute("/admin/forms/")({
+  loader: async ({ context }) => {
+    const forms = await context.orpc.forms.list.query({
+      organizationId: getCurrentOrganizationId()!,
+    });
+    return { forms };
+  },
   component: FormListRoute,
 });
 
 function FormListRoute() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const { forms } = Route.useLoaderData<typeof Route>();
 
-  const {
-    data: forms,
-    isLoading,
-    refetch,
-  } = useQuery(
+  const { isLoading, refetch } = useQuery(
     (orpc as any).forms.list.queryOptions({
-      organizationId: 1,
+      organizationId,
     }),
   );
 

@@ -22,6 +22,7 @@ import {
 import { Checkbox } from "@ticket-app/ui/components/checkbox";
 import { orpc } from "@/utils/orpc";
 import { ArrowLeft, Zap, Save } from "lucide-react";
+import { useOrganization } from "@/hooks/useOrganization";
 
 const TRIGGERS = [
   { value: "ticket_created", label: "Ticket Created" },
@@ -34,10 +35,14 @@ const TRIGGERS = [
 ];
 
 export const Route = createFileRoute("/admin/workflows/new")({
+  loader: async () => {
+    return {};
+  },
   component: NewWorkflowRoute,
 });
 
 function NewWorkflowRoute() {
+  const { organizationId } = useOrganization();
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -60,7 +65,7 @@ function NewWorkflowRoute() {
     if (!name.trim()) return;
 
     createMutation.mutate({
-      organizationId: 1,
+      organizationId,
       name: name.trim(),
       description: description.trim() || undefined,
       trigger: trigger as any,
@@ -74,7 +79,7 @@ function NewWorkflowRoute() {
     if (!name.trim()) return;
 
     createMutation.mutate({
-      organizationId: 1,
+      organizationId,
       name: name.trim(),
       description: description.trim() || undefined,
       trigger: trigger as any,

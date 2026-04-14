@@ -22,4 +22,9 @@ export type {
   SocketOptions,
 } from "./types";
 
-export { useSocket, usePresence, useNotifications, useChatSession } from "./hooks";
+export {
+  useSocket,
+  usePresence,
+  useNotifications,
+  useChatSession,
+} from "@ticket-app/ui/hooks/socket";

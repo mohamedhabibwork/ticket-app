@@ -13,6 +13,9 @@ import { Label } from "@ticket-app/ui/components/label";
 import { Save, RotateCcw, Upload, Globe } from "lucide-react";
 
 export const Route = createFileRoute("/admin/branding/")({
+  loader: async () => {
+    return {};
+  },
   component: BrandingSettingsRoute,
 });
 

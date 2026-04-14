@@ -18,6 +18,7 @@ import { View, Alert } from "react-native";
 import { Container } from "@/components/container";
 import { hapticImpact, hapticNotification } from "@/utils/haptics";
 import { orpc } from "@/utils/orpc";
+import { useOrganization, useUser } from "@/hooks/useOrganization";
 
 const ENTITY_TYPES = [
   { value: "tickets", label: "Tickets" },
@@ -26,9 +27,6 @@ const ENTITY_TYPES = [
   { value: "kb_articles", label: "KB" },
   { value: "saved_replies", label: "Replies" },
 ] as const;
-
-const ORGANIZATION_ID = 1;
-const USER_ID = 1;
 
 type EntityType = (typeof ENTITY_TYPES)[number]["value"];
 
@@ -75,6 +73,8 @@ export default function ExcelScreen() {
   const [selectedEntityType, setSelectedEntityType] = useState<EntityType>("tickets");
   const [importMode, setImportMode] = useState<"create" | "upsert">("create");
   const [fileUrl, setFileUrl] = useState("");
+  const { organizationId } = useOrganization();
+  const { user } = useUser();
 
   const {
     data: exportJobs,
@@ -82,7 +82,7 @@ export default function ExcelScreen() {
     refetch: refetchExports,
   } = useQuery(
     orpc.excel.listExportJobs.queryOptions({
-      organizationId: ORGANIZATION_ID,
+      organizationId: organizationId,
       limit: 20,
       offset: 0,
     }),
@@ -94,7 +94,7 @@ export default function ExcelScreen() {
     refetch: refetchImports,
   } = useQuery(
     orpc.excel.listImportJobs.queryOptions({
-      organizationId: ORGANIZATION_ID,
+      organizationId: organizationId,
       limit: 20,
       offset: 0,
     }),
@@ -145,8 +145,8 @@ export default function ExcelScreen() {
   const handleExport = () => {
     hapticImpact("medium");
     createExportMutation.mutate({
-      organizationId: ORGANIZATION_ID,
-      userId: USER_ID,
+      organizationId: organizationId,
+      userId: user?.id ?? null,
       entityType: selectedEntityType,
     });
   };
@@ -156,7 +156,7 @@ export default function ExcelScreen() {
     try {
       const result = await getDownloadUrlMutation.mutateAsync({
         jobId,
-        organizationId: ORGANIZATION_ID,
+        organizationId: organizationId,
       });
       Alert.alert("Download", `File available at: ${result.downloadUrl}`);
     } catch {
@@ -171,8 +171,8 @@ export default function ExcelScreen() {
     }
     hapticImpact("medium");
     createImportMutation.mutate({
-      organizationId: ORGANIZATION_ID,
-      userId: USER_ID,
+      organizationId: organizationId,
+      userId: user?.id ?? null,
       entityType: selectedEntityType,
       fileUrl,
       mode: importMode,

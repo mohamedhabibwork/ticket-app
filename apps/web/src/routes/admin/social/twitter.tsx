@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import {
   Card,
   CardContent,
@@ -12,6 +12,7 @@ import { Button } from "@ticket-app/ui/components/button";
 import { Checkbox } from "@ticket-app/ui/components/checkbox";
 import { Loader2, Twitter, ArrowLeft, RefreshCw, CheckCircle, ExternalLink } from "lucide-react";
 import { orpc } from "@/utils/orpc";
+import { useSocialAccounts } from "@/hooks";
 
 function formatRelativeTime(date: Date | string): string {
   const now = new Date();
@@ -30,6 +31,9 @@ function formatRelativeTime(date: Date | string): string {
 }
 
 export const Route = createFileRoute("/admin/social/twitter")({
+  loader: async () => {
+    return {};
+  },
   component: TwitterConnectionRoute,
 });
 
@@ -41,12 +45,7 @@ function TwitterConnectionRoute() {
     data: accounts,
     isLoading,
     refetch,
-  }: any = useQuery(
-    orpc.socialAccounts.list.queryOptions({
-      organizationId: 1,
-      platform: "twitter",
-    }) as any,
-  );
+  }: any = useSocialAccounts({ organizationId, platform: "twitter" });
 
   const disconnectMutation = useMutation(
     orpc.socialAccounts.disconnect.mutationOptions({
@@ -122,7 +121,7 @@ function TwitterConnectionRoute() {
                       variant="ghost"
                       size="sm"
                       onClick={() =>
-                        disconnectMutation.mutate({ id: account.id, organizationId: 1 } as any)
+                        disconnectMutation.mutate({ id: account.id, organizationId } as any)
                       }
                       disabled={disconnectMutation.isPending}
                     >
@@ -207,7 +206,7 @@ function TwitterConnectionRoute() {
                       variant="ghost"
                       size="icon"
                       onClick={() =>
-                        refreshMutation.mutate({ id: account.id, organizationId: 1 } as any)
+                        refreshMutation.mutate({ id: account.id, organizationId } as any)
                       }
                       disabled={refreshMutation.isPending}
                     >

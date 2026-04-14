@@ -15,15 +15,24 @@ import {
 import { Loader2, ChevronDown } from "lucide-react";
 
 import { orpc } from "@/utils/orpc";
+import { getCurrentOrganizationId } from "@/utils/auth";
+import { useOrganization } from "@/hooks/useOrganization";
 
 export const Route = createFileRoute("/teams/new")({
+  loader: async ({ context }) => {
+    return context.orpc.users.list.queryOptions({
+      organizationId: getCurrentOrganizationId()!,
+      isActive: true,
+      limit: 100,
+    });
+  },
   component: NewTeamRoute,
 });
 
 function NewTeamRoute() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const organizationId = 1;
+  const { organizationId } = useOrganization();
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -31,17 +40,12 @@ function NewTeamRoute() {
   const [selectedLeadId, setSelectedLeadId] = useState<number | null>(null);
   const [showLeadDropdown, setShowLeadDropdown] = useState(false);
 
-  const { data: agents }: any = useQuery(
-    orpc.users.list.queryOptions({
-      organizationId,
-      isActive: true,
-      limit: 100,
-    } as any),
-  );
+  const loaderData = Route.useLoaderData<typeof Route.loader>();
+  const { data: agents }: any = useQuery(loaderData as any);
 
   const createMutation = useMutation(
     orpc.teams.create.mutationOptions({
-      onSuccess: async (data) => {
+      onSuccess: async (data: any) => {
         toast.success("Team created successfully");
         queryClient.invalidateQueries(orpc.teams.list.queryOptions({ organizationId }));
         if (selectedLeadId) {
@@ -49,11 +53,11 @@ function NewTeamRoute() {
             teamId: data.id,
             userId: selectedLeadId,
             isLead: true,
-          });
+          } as any);
         }
         navigate({ to: "/teams" });
       },
-      onError: (error) => {
+      onError: (error: any) => {
         toast.error(`Failed to create team: ${error.message}`);
       },
     }),
@@ -72,10 +76,10 @@ function NewTeamRoute() {
       name: name.trim(),
       description: description.trim() || undefined,
       autoAssignMethod: autoAssignMethod as "round_robin" | "load_balanced" | "least_assigned",
-    });
+    } as any);
   };
 
-  const selectedLead = agents?.users?.find((u) => u.id === selectedLeadId);
+  const selectedLead = agents?.users?.find((u: any) => u.id === selectedLeadId);
 
   const autoAssignOptions = [
     { value: "round_robin", label: "Round Robin" },
@@ -159,7 +163,7 @@ function NewTeamRoute() {
                     <DropdownMenuItem onClick={() => setSelectedLeadId(null)}>
                       None
                     </DropdownMenuItem>
-                    {agents?.users?.map((agent) => (
+                    {agents?.users?.map((agent: any) => (
                       <DropdownMenuItem key={agent.id} onClick={() => setSelectedLeadId(agent.id)}>
                         {agent.firstName} {agent.lastName}
                       </DropdownMenuItem>

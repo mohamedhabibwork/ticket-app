@@ -4,6 +4,8 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
 import { Button } from "@ticket-app/ui/components/button";
 import { orpc } from "@/utils/orpc";
+import { getCurrentOrganizationId } from "@/utils/auth";
+import { useOrganization } from "@/hooks/useOrganization";
 import {
   ArrowLeft,
   Filter,
@@ -21,6 +23,14 @@ type Priority = "all" | "high" | "medium" | "low";
 type Channel = "all" | "email" | "chat" | "phone" | "web";
 
 export const Route = createFileRoute("/admin/reports/tickets")({
+  loader: async ({ context }) => {
+    const organizationId = getCurrentOrganizationId()!;
+    const ticketVolume = await context.orpc.reports.getTicketVolume.query({
+      organizationId,
+      groupBy: "day",
+    } as any);
+    return { ticketVolume };
+  },
   component: TicketReportsPage,
 });
 
@@ -29,9 +39,10 @@ function TicketReportsPage() {
   const [status, setStatus] = useState<Status>("all");
   const [priority, setPriority] = useState<Priority>("all");
   const [channel, setChannel] = useState<Channel>("all");
-  const organizationId = 1;
+  const { organizationId } = useOrganization();
+  const { ticketVolume } = Route.useLoaderData<typeof Route>();
 
-  const { data: ticketVolume, isLoading: _isLoading }: any = useQuery(
+  const { isLoading: _isLoading }: any = useQuery(
     orpc.reports.getTicketVolume.queryOptions({
       organizationId,
       groupBy: "day",

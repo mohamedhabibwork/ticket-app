@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@ticket-app/ui/compone
 import { Button } from "@ticket-app/ui/components/button";
 import { orpc } from "@/utils/orpc";
 import { ArrowLeft, Star, Filter, ThumbsUp } from "lucide-react";
+import { getCurrentOrganizationId } from "@/utils/auth";
+import { useOrganization } from "@/hooks/useOrganization";
 
 type DateRange = "7d" | "30d" | "90d" | "custom";
 
@@ -18,14 +20,23 @@ interface CSATResponse {
 }
 
 export const Route = createFileRoute("/admin/reports/csat")({
+  loader: async ({ context }) => {
+    const organizationId = getCurrentOrganizationId()!;
+    const csatTrends = await context.orpc.reports.getCsatTrends.query({
+      organizationId,
+      interval: "day",
+    });
+    return { csatTrends };
+  },
   component: CSATReportPage,
 });
 
 function CSATReportPage() {
   const [dateRange, setDateRange] = useState<DateRange>("30d");
-  const organizationId = 1;
+  const { organizationId } = useOrganization();
+  Route.useLoaderData<typeof Route>();
 
-  const { data: _csatTrends } = useQuery(
+  useQuery(
     orpc.reports.getCsatTrends.queryOptions({
       organizationId,
       interval: "day",

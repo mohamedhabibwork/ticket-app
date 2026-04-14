@@ -1,4 +1,3 @@
-import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   Card,
@@ -7,16 +6,23 @@ import {
   CardHeader,
   CardTitle,
 } from "@ticket-app/ui/components/card";
-import { Loader2 } from "lucide-react";
 
-import { orpc } from "@/utils/orpc";
 import { KbSearch } from "@/components/kb-search";
+import { getCurrentOrganizationId } from "@/utils/auth";
 
 export const Route = createFileRoute("/kb/")({
+  loader: async ({ context }) => {
+    const categories = await context.orpc.kbCategories.list.query({
+      organizationId: getCurrentOrganizationId()!,
+    });
+    return { categories };
+  },
   component: KbIndexRoute,
 });
 
 function KbIndexRoute() {
+  const { categories } = Route.useLoaderData();
+
   return (
     <div className="container mx-auto max-w-4xl px-4 py-8">
       <div className="mb-8 text-center">
@@ -30,28 +36,13 @@ function KbIndexRoute() {
         <KbSearch organizationId={1} locale="en" className="max-w-xl mx-auto" />
       </div>
 
-      <KbCategoriesList />
+      <KbCategoriesList categories={categories} />
     </div>
   );
 }
 
-function KbCategoriesList() {
-  const categories = useQuery(
-    orpc.kbCategories.list.queryOptions({
-      organizationId: 1,
-      isPublished: true,
-    }),
-  );
-
-  if (categories.isLoading) {
-    return (
-      <div className="flex justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
-  }
-
-  if (!categories.data || categories.data.length === 0) {
+function KbCategoriesList({ categories }: { categories: any[] }) {
+  if (!categories || categories.length === 0) {
     return (
       <div className="text-center py-12">
         <p className="text-muted-foreground">No articles found.</p>
@@ -61,12 +52,12 @@ function KbCategoriesList() {
 
   return (
     <div className="grid gap-6 md:grid-cols-2">
-      {categories.data.map((category) => (
+      {categories.map((category: any) => (
         <Card key={category.id}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               {category.icon && <span className="text-xl">{category.icon}</span>}
-              <Link to="/kb/slug" params={{ slug: category.slug }}>
+              <Link to="/kb/$slug" params={{ slug: category.slug }}>
                 {category.name}
               </Link>
             </CardTitle>

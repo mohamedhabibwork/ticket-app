@@ -14,8 +14,12 @@ import { Label } from "@ticket-app/ui/components/label";
 import { Checkbox } from "@ticket-app/ui/components/checkbox";
 import { orpc } from "@/utils/orpc";
 import { ArrowLeft, Shield, Save } from "lucide-react";
+import { useOrganization } from "@/hooks/useOrganization";
 
 export const Route = createFileRoute("/admin/roles/new")({
+  loader: async () => {
+    return {};
+  },
   component: CreateRoleRoute,
 });
 
@@ -88,6 +92,7 @@ const PERMISSION_GROUPS = [
 ];
 
 function CreateRoleRoute() {
+  const { organizationId } = useOrganization();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: "",
@@ -127,7 +132,7 @@ function CreateRoleRoute() {
 
     const slug = formData.name.toLowerCase().replace(/\s+/g, "-");
     createMutation.mutate({
-      organizationId: 1,
+      organizationId,
       name: formData.name,
       slug,
       description: formData.description,

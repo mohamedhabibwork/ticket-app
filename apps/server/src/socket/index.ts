@@ -5,6 +5,7 @@ import { registerPresenceHandlers } from "./handlers/presence";
 import { registerNotificationHandlers } from "./handlers/notifications";
 import { registerChatHandlers } from "./handlers/chat";
 import { setupRedisAdapter } from "./adapter";
+import { socketLogger, logger } from "../lib/logger";
 
 const ALLOWED_ORIGINS = process.env.CORS_ORIGIN || "http://localhost:5173";
 
@@ -52,7 +53,7 @@ export function initializeSocketServer(httpServer?: any): SocketIOServer {
   io.on("connection", (socket) => {
     const user: AuthenticatedUser = socket.data.user;
 
-    console.log(`User ${user.userId} connected from org ${user.organizationId}`);
+    socketLogger.connection(socket.id, user.userId, user.organizationId);
 
     joinRoom(user.userId, `user:${user.userId}`);
     joinRoom(user.organizationId, `org:${user.organizationId}`);
@@ -61,13 +62,13 @@ export function initializeSocketServer(httpServer?: any): SocketIOServer {
     registerNotificationHandlers(io!, socket);
     registerChatHandlers(io!, socket);
 
-    socket.on("disconnect", () => {
-      console.log(`User ${user.userId} disconnected`);
+    socket.on("disconnect", (reason) => {
+      socketLogger.disconnection(socket.id, user.userId, reason);
       leaveAllRooms(user.userId);
     });
 
     socket.on("error", (err) => {
-      console.error(`Socket error for user ${user.userId}:`, err);
+      socketLogger.error(socket.id, user.userId, err.message || String(err));
     });
   });
 
@@ -83,9 +84,9 @@ export async function initializeWithRedisAdapter(httpServer?: any): Promise<Sock
 
   try {
     await setupRedisAdapter(socketServer);
-    console.log("Socket server initialized with Redis adapter");
+    logger.info("Socket server initialized with Redis adapter");
   } catch (error) {
-    console.error("Failed to setup Redis adapter, falling back to in-memory:", error);
+    logger.error({ err: error }, "Failed to setup Redis adapter, falling back to in-memory");
   }
 
   return socketServer;

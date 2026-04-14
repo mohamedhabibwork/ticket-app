@@ -19,6 +19,9 @@ import {
 import { Save, RotateCcw, Sun, Moon, Palette } from "lucide-react";
 
 export const Route = createFileRoute("/admin/branding/theme")({
+  loader: async () => {
+    return {};
+  },
   component: ThemeEditorRoute,
 });
 

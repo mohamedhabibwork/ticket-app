@@ -41,6 +41,9 @@ const FORM_TYPES = [
 ];
 
 export const Route = createFileRoute("/admin/forms/new")({
+  loader: async () => {
+    return {};
+  },
   component: CreateFormRoute,
 });
 

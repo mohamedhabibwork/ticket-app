@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Button } from "@ticket-app/ui/components/button";
 import { Input } from "@ticket-app/ui/components/input";
@@ -18,103 +17,59 @@ import {
   Phone,
 } from "lucide-react";
 
+import {
+  useChatSession,
+  useSendChatMessage,
+  useEndChatSession,
+  useRateChatSession,
+} from "@/hooks/chat";
+import { formatRelativeTime } from "@ticket-app/ui/hooks/datetime";
 import { orpc } from "@/utils/orpc";
-
-function formatRelativeTime(date: Date | string): string {
-  const now = new Date();
-  const then = new Date(date);
-  const diffMs = now.getTime() - then.getTime();
-  const diffSecs = Math.floor(diffMs / 1000);
-  const diffMins = Math.floor(diffSecs / 60);
-  const diffHours = Math.floor(diffMins / 60);
-
-  if (diffSecs < 60) return "just now";
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  return new Date(date).toLocaleString();
-}
+import { getCurrentOrganizationId } from "@/utils/auth";
+import { useOrganization } from "@/hooks/useOrganization";
 
 export const Route = createFileRoute("/chat/id")({
+  loader: async ({ context }) => {
+    return context.orpc.chat.session.queryOptions({ organizationId: getCurrentOrganizationId()! });
+  },
   component: ChatConversationRoute,
 });
 
 function ChatConversationRoute() {
   const { id }: any = Route.useParams();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const organizationId = 1;
+  const { organizationId } = useOrganization();
   const sessionId = Number(id);
 
   const [messageText, setMessageText] = useState("");
   const [noteText, setNoteText] = useState("");
   const [rating, setRating] = useState<number>(0);
 
-  const { data: session, isLoading }: any = useQuery(
-    orpc.chatSessions.get.queryOptions(
-      { organizationId, id: sessionId },
-      { enabled: !isNaN(sessionId) },
-    ) as any,
+  const { data: session, isLoading } = useChatSession({ organizationId, id: sessionId });
+
+  const sendMessageMutation = useSendChatMessage();
+  const endSessionMutation = useEndChatSession();
+  const rateSessionMutation = useRateChatSession();
+
+  const addNoteMutation = toast.promise(
+    (async () => {
+      if (!noteText.trim()) return;
+      await (orpc as any).chatMessages.createFromAgent.mutate({
+        sessionId,
+        agentId: 1,
+        body: noteText.trim(),
+        isInternal: true,
+      });
+      setNoteText("");
+    })(),
+    {
+      success: "Note added",
+      error: (e) => `Failed to add note: ${e.message}`,
+    },
   );
 
-  const sendMessageMutation = useMutation(
-    orpc.chatMessages.createFromAgent.mutationOptions({
-      onSuccess: () => {
-        setMessageText("");
-        queryClient.invalidateQueries(
-          orpc.chatSessions.get.queryOptions({ organizationId, id: sessionId }),
-        );
-      },
-      onError: (error: any) => {
-        toast.error(`Failed to send message: ${error.message}`);
-      },
-    }) as any,
-  );
-
-  const endSessionMutation = useMutation(
-    orpc.chatSessions.updateStatus.mutationOptions({
-      onSuccess: () => {
-        toast.success("Chat ended");
-        queryClient.invalidateQueries(
-          orpc.chatSessions.get.queryOptions({ organizationId, id: sessionId }),
-        );
-      },
-      onError: (error: any) => {
-        toast.error(`Failed to end chat: ${error.message}`);
-      },
-    }) as any,
-  );
-
-  const addNoteMutation = useMutation(
-    orpc.chatMessages.createFromAgent.mutationOptions({
-      onSuccess: () => {
-        setNoteText("");
-        toast.success("Note added");
-        queryClient.invalidateQueries(
-          orpc.chatSessions.get.queryOptions({ organizationId, id: sessionId }),
-        );
-      },
-      onError: (error: any) => {
-        toast.error(`Failed to add note: ${error.message}`);
-      },
-    }) as any,
-  );
-
-  const rateSessionMutation = useMutation(
-    orpc.chatSessions.setRating.mutationOptions({
-      onSuccess: () => {
-        toast.success("Rating submitted");
-        queryClient.invalidateQueries(
-          orpc.chatSessions.get.queryOptions({ organizationId, id: sessionId }),
-        );
-      },
-      onError: (error: any) => {
-        toast.error(`Failed to rate chat: ${error.message}`);
-      },
-    }) as any,
-  );
-
-  const convertToTicketMutation = useMutation(
-    orpc.tickets.create.mutationOptions({
+  const convertToTicketMutation = (() => {
+    const mutation = (orpc as any).tickets.create.mutationOptions({
       onSuccess: (data: any) => {
         toast.success("Ticket created from chat");
         navigate({ to: "/tickets/id", params: { id: String(data.id) } });
@@ -122,8 +77,9 @@ function ChatConversationRoute() {
       onError: (error: any) => {
         toast.error(`Failed to create ticket: ${error.message}`);
       },
-    }) as any,
-  );
+    });
+    return { mutate: mutation.mutate, mutateAsync: mutation.mutateAsync, isPending: false };
+  })();
 
   const handleSendMessage = () => {
     if (!messageText.trim()) return;
@@ -131,17 +87,12 @@ function ChatConversationRoute() {
       sessionId,
       agentId: 1,
       body: messageText.trim(),
-    } as any);
+    });
   };
 
   const handleAddNote = () => {
     if (!noteText.trim()) return;
-    addNoteMutation.mutate({
-      sessionId,
-      agentId: 1,
-      body: noteText.trim(),
-      isInternal: true,
-    } as any);
+    addNoteMutation();
   };
 
   const handleEndChat = () => {
@@ -151,7 +102,7 @@ function ChatConversationRoute() {
         organizationId,
         status: "ended",
         endedBy: "agent",
-      } as any);
+      });
     }
   };
 
@@ -160,7 +111,7 @@ function ChatConversationRoute() {
     rateSessionMutation.mutate({
       id: sessionId,
       rating: ratingValue,
-    } as any);
+    });
   };
 
   const handleConvertToTicket = () => {
@@ -170,7 +121,7 @@ function ChatConversationRoute() {
       descriptionText: (session as any)?.messages
         ?.map((m: any) => `[${m.authorType}] ${m.body}`)
         .join("\n"),
-    } as any);
+    });
   };
 
   if (isLoading) {
@@ -278,7 +229,7 @@ function ChatConversationRoute() {
               </div>
 
               <div className="space-y-3 max-h-[400px] overflow-y-auto">
-                {session.messages?.map((msg) => (
+                {session.messages?.map((msg: any) => (
                   <div
                     key={msg.id}
                     className={`flex ${msg.authorType === "agent" ? "justify-end" : "justify-start"}`}
@@ -374,10 +325,10 @@ function ChatConversationRoute() {
               />
               <Button
                 onClick={handleAddNote}
-                disabled={!noteText.trim() || addNoteMutation.isPending}
+                disabled={!noteText.trim() || addNoteMutation.isLoading}
                 className="w-full"
               >
-                {addNoteMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                {addNoteMutation.isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                 Add Note
               </Button>
             </CardContent>

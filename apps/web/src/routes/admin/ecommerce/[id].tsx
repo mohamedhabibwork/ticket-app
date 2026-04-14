@@ -24,6 +24,7 @@ import {
   Receipt,
 } from "lucide-react";
 import { orpc } from "@/utils/orpc";
+import { getCurrentOrganizationId } from "@/utils/auth";
 
 const { ecommerceStores } = orpc as any;
 
@@ -52,36 +53,37 @@ const platformNames: Record<string, string> = {
 };
 
 export const Route = createFileRoute("/admin/ecommerce/id")({
+  loader: async ({ context, params }) => {
+    const storeId = Number(params.id);
+    const [store, ordersData] = await Promise.all([
+      context.orpc.ecommerceStores.get.query({
+        id: storeId,
+        organizationId: getCurrentOrganizationId()!,
+      }),
+      context.orpc.ecommerceStores.getOrders.query({
+        id: storeId,
+        organizationId: getCurrentOrganizationId()!,
+        limit: 10,
+      }),
+    ]);
+    return { store, ordersData };
+  },
   component: StoreDetailRoute,
 });
 
 function StoreDetailRoute() {
   const { id } = Route.useParams() as { id: string };
   const storeId = Number(id);
+  const { store, ordersData } = Route.useLoaderData<typeof Route>();
   const [syncOrders, setSyncOrders] = useState(true);
   const [syncProducts, setSyncProducts] = useState(true);
   const [syncCustomers, setSyncCustomers] = useState(true);
 
-  const {
-    data: store,
-    isLoading,
-    refetch,
-  } = useQuery(
+  const { refetch } = useQuery(
     ecommerceStores.get.queryOptions({
       id: storeId,
-      organizationId: 1,
+      organizationId,
     }) as any,
-  ) as any;
-
-  const { data: ordersData, isLoading: ordersLoading } = useQuery(
-    ecommerceStores.getOrders.queryOptions(
-      {
-        id: storeId,
-        organizationId: 1,
-        limit: 10,
-      },
-      { enabled: !!store },
-    ) as any,
   ) as any;
 
   const syncMutation = useMutation(
@@ -170,14 +172,6 @@ function StoreDetailRoute() {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
-  }
-
   if (!store) {
     return (
       <div className="container mx-auto max-w-2xl px-4 py-6">
@@ -225,7 +219,7 @@ function StoreDetailRoute() {
           </div>
           <div className="flex gap-2">
             <Button
-              onClick={() => syncMutation.mutate({ id: storeId, organizationId: 1 })}
+              onClick={() => syncMutation.mutate({ id: storeId, organizationId })}
               disabled={syncMutation.isPending}
             >
               {syncMutation.isPending ? (
@@ -239,7 +233,7 @@ function StoreDetailRoute() {
               variant="outline"
               onClick={() => {
                 if (confirm("Are you sure you want to disconnect this store?")) {
-                  disconnectMutation.mutate({ id: storeId, organizationId: 1 });
+                  disconnectMutation.mutate({ id: storeId, organizationId });
                 }
               }}
               disabled={disconnectMutation.isPending}
@@ -323,11 +317,7 @@ function StoreDetailRoute() {
           <CardDescription>Latest orders from this store</CardDescription>
         </CardHeader>
         <CardContent>
-          {ordersLoading ? (
-            <div className="flex justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin" />
-            </div>
-          ) : ordersData && ordersData.length > 0 ? (
+          {ordersData && ordersData.length > 0 ? (
             <div className="space-y-4">
               {ordersData.map((order: any) => (
                 <div

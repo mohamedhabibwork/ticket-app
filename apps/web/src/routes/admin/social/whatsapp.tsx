@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import {
   Card,
   CardContent,
@@ -13,6 +13,7 @@ import { Input } from "@ticket-app/ui/components/input";
 import { Label } from "@ticket-app/ui/components/label";
 import { Loader2, MessageCircle, ArrowLeft, RefreshCw, CheckCircle, Phone } from "lucide-react";
 import { orpc } from "@/utils/orpc";
+import { useSocialAccounts } from "@/hooks";
 
 function formatRelativeTime(date: Date | string): string {
   const now = new Date();
@@ -31,6 +32,9 @@ function formatRelativeTime(date: Date | string): string {
 }
 
 export const Route = createFileRoute("/admin/social/whatsapp")({
+  loader: async () => {
+    return {};
+  },
   component: WhatsAppConnectionRoute,
 });
 
@@ -44,12 +48,7 @@ function WhatsAppConnectionRoute() {
     data: accounts,
     isLoading,
     refetch,
-  }: any = useQuery(
-    orpc.socialAccounts.list.queryOptions({
-      organizationId: 1,
-      platform: "whatsapp",
-    }) as any,
-  );
+  }: any = useSocialAccounts({ organizationId, platform: "whatsapp" });
 
   const connectMutation = useMutation(
     orpc.socialAccounts.connectWhatsApp.mutationOptions({
@@ -72,7 +71,7 @@ function WhatsAppConnectionRoute() {
   const handleManualConnect = () => {
     if (!phoneNumberId || !accessToken) return;
     connectMutation.mutate({
-      organizationId: 1,
+      organizationId,
       phoneNumberId,
       accessToken,
       businessAccountId: businessAccountId || undefined,
@@ -137,7 +136,7 @@ function WhatsAppConnectionRoute() {
                       variant="ghost"
                       size="sm"
                       onClick={() =>
-                        disconnectMutation.mutate({ id: account.id, organizationId: 1 } as any)
+                        disconnectMutation.mutate({ id: account.id, organizationId } as any)
                       }
                       disabled={disconnectMutation.isPending}
                     >
@@ -288,7 +287,7 @@ function WhatsAppConnectionRoute() {
                       variant="ghost"
                       size="icon"
                       onClick={() =>
-                        disconnectMutation.mutate({ id: account.id, organizationId: 1 } as any)
+                        disconnectMutation.mutate({ id: account.id, organizationId } as any)
                       }
                       disabled={disconnectMutation.isPending}
                     >

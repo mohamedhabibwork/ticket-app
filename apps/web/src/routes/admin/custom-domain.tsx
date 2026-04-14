@@ -22,6 +22,9 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/admin/custom-domain")({
+  loader: async () => {
+    return {};
+  },
   component: CustomDomainRoute,
 });
 

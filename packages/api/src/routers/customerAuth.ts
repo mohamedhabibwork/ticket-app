@@ -84,7 +84,13 @@ export const customerAuthRouter = {
       });
 
       const userData = (await userRes.json()) as any;
-      return await linkOrCreateCustomer("google", userData.id, userData.email, userData.name);
+      return await linkOrCreateCustomer(
+        "google",
+        userData.id,
+        userData.email,
+        userData.name,
+        input.organizationId,
+      );
     }),
 
   handleFacebookCallback: protectedProcedure
@@ -120,7 +126,13 @@ export const customerAuthRouter = {
       );
 
       const userData = (await userRes.json()) as any;
-      return await linkOrCreateCustomer("facebook", userData.id, userData.email, userData.name);
+      return await linkOrCreateCustomer(
+        "facebook",
+        userData.id,
+        userData.email,
+        userData.name,
+        input.organizationId,
+      );
     }),
 
   handleAppleCallback: protectedProcedure
@@ -153,7 +165,13 @@ export const customerAuthRouter = {
       const appleUserId = payload.sub;
       const email = payload.email;
 
-      return await linkOrCreateCustomer("apple", appleUserId, email || null, null);
+      return await linkOrCreateCustomer(
+        "apple",
+        appleUserId,
+        email || null,
+        null,
+        input.organizationId,
+      );
     }),
 
   mergeAccounts: protectedProcedure
@@ -421,6 +439,7 @@ async function linkOrCreateCustomer(
   providerUserId: string,
   email: string | null,
   name: string | null,
+  organizationId: number,
 ) {
   if (!email) {
     throw new Error("Email is required for social login");
@@ -458,7 +477,7 @@ async function linkOrCreateCustomer(
   const [newContact] = await db
     .insert(contacts)
     .values({
-      organizationId: 1,
+      organizationId,
       email: email.toLowerCase(),
       firstName: name?.split(" ")[0] || null,
       lastName: name?.split(" ").slice(1).join(" ") || null,

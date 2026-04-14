@@ -14,6 +14,7 @@ import { Label } from "@ticket-app/ui/components/label";
 import { Checkbox } from "@ticket-app/ui/components/checkbox";
 import { Loader2, ArrowLeft, ShoppingBag, CheckCircle, XCircle } from "lucide-react";
 import { orpc } from "@/utils/orpc";
+import { useOrganization } from "@/hooks/useOrganization";
 
 type Platform = "shopify" | "woocommerce" | "salla" | "zid";
 
@@ -25,10 +26,14 @@ const platforms: { id: Platform; name: string; icon: string; color: string }[] =
 ];
 
 export const Route = createFileRoute("/admin/ecommerce/connect")({
+  loader: async () => {
+    return {};
+  },
   component: ConnectStoreRoute,
 });
 
 function ConnectStoreRoute() {
+  const { organizationId } = useOrganization();
   const [selectedPlatform, setSelectedPlatform] = useState<Platform | null>(null);
   const [storeUrl, setStoreUrl] = useState("");
   const [apiKey, setApiKey] = useState("");
@@ -98,21 +103,21 @@ function ConnectStoreRoute() {
 
     switch (selectedPlatform) {
       case "shopify":
-        shopifyMutation.mutate({ organizationId: 1, storeUrl, accessToken: apiKey });
+        shopifyMutation.mutate({ organizationId, storeUrl, accessToken: apiKey });
         break;
       case "woocommerce":
         woocommerceMutation.mutate({
-          organizationId: 1,
+          organizationId,
           storeUrl,
           consumerKey: apiKey,
           consumerSecret: apiSecret,
         });
         break;
       case "salla":
-        sallaMutation.mutate({ organizationId: 1, storeUrl, accessToken: apiKey });
+        sallaMutation.mutate({ organizationId, storeUrl, accessToken: apiKey });
         break;
       case "zid":
-        zidMutation.mutate({ organizationId: 1, storeUrl, accessToken: apiKey });
+        zidMutation.mutate({ organizationId, storeUrl, accessToken: apiKey });
         break;
     }
   };

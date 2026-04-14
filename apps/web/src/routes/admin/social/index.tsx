@@ -17,6 +17,7 @@ import {
   Link as LinkIcon,
 } from "lucide-react";
 import { orpc } from "@/utils/orpc";
+import { getCurrentOrganizationId } from "@/utils/auth";
 
 function formatRelativeTime(date: Date | string): string {
   const now = new Date();
@@ -49,17 +50,21 @@ const platformNames: Record<string, string> = {
 };
 
 export const Route = createFileRoute("/admin/social/")({
+  loader: async ({ context }) => {
+    const accounts = await context.orpc.socialAccounts.list.query({
+      organizationId: getCurrentOrganizationId()!,
+    });
+    return { accounts };
+  },
   component: SocialAccountsRoute,
 });
 
 function SocialAccountsRoute() {
-  const {
-    data: accounts,
-    isLoading,
-    refetch,
-  }: any = useQuery(
+  const { accounts } = Route.useLoaderData<typeof Route>();
+
+  const { isLoading, refetch }: any = useQuery(
     orpc.socialAccounts.list.queryOptions({
-      organizationId: 1,
+      organizationId,
     }) as any,
   );
 
@@ -182,7 +187,7 @@ function SocialAccountsRoute() {
                         variant="ghost"
                         size="icon"
                         onClick={() =>
-                          refreshMutation.mutate({ id: account.id, organizationId: 1 } as any)
+                          refreshMutation.mutate({ id: account.id, organizationId } as any)
                         }
                         disabled={refreshMutation.isPending}
                       >
@@ -195,7 +200,7 @@ function SocialAccountsRoute() {
                         size="icon"
                         onClick={() => {
                           if (confirm("Are you sure you want to disconnect this account?")) {
-                            disconnectMutation.mutate({ id: account.id, organizationId: 1 } as any);
+                            disconnectMutation.mutate({ id: account.id, organizationId } as any);
                           }
                         }}
                         disabled={disconnectMutation.isPending}

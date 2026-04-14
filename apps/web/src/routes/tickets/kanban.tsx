@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
@@ -15,6 +15,8 @@ import {
 import { Filter, Loader2, ChevronDown, GripVertical, X, Eye } from "lucide-react";
 
 import { orpc } from "@/utils/orpc";
+import { getCurrentOrganizationId } from "@/utils/auth";
+import { useOrganization } from "@/hooks/useOrganization";
 
 interface TicketColumn {
   id: number;
@@ -57,12 +59,23 @@ function formatRelativeTime(date: Date | string): string {
 }
 
 export const Route = createFileRoute("/tickets/kanban")({
+  loader: async ({ context }) => {
+    const organizationId = getCurrentOrganizationId()!;
+    const [allTickets, agents, teams, tags] = await Promise.all([
+      context.orpc.tickets.list.query({ organizationId, limit: 100 }),
+      context.orpc.users.list.query({ organizationId, isActive: true, limit: 100 }),
+      context.orpc.teams.list.query({ organizationId }),
+      context.orpc.tags.list.query({ organizationId }),
+    ]);
+    return { allTickets, agents, teams, tags };
+  },
   component: KanbanBoardRoute,
 });
 
 function KanbanBoardRoute() {
+  const { allTickets, agents, teams, tags: _tags } = Route.useLoaderData<typeof Route>();
   const queryClient = useQueryClient();
-  const organizationId = 1;
+  const { organizationId } = useOrganization();
 
   const [filters, setFilters] = useState({
     priorityIds: [] as number[],
@@ -75,32 +88,7 @@ function KanbanBoardRoute() {
   const [draggedTicket, setDraggedTicket] = useState<Ticket | null>(null);
   const [dragOverColumn, setDragOverColumn] = useState<string | null>(null);
 
-  const { data: allTickets, isLoading }: any = useQuery(
-    orpc.tickets.list.queryOptions({
-      organizationId,
-      limit: 100,
-    }) as any,
-  );
-
-  const { data: agents }: any = useQuery(
-    orpc.users.list.queryOptions({
-      organizationId,
-      isActive: true,
-      limit: 100,
-    }) as any,
-  );
-
-  const { data: teams }: any = useQuery(
-    orpc.teams.list.queryOptions({
-      organizationId,
-    }) as any,
-  );
-
-  const { data: _tags }: any = useQuery(
-    orpc.tags.list.queryOptions({
-      organizationId,
-    }) as any,
-  );
+  const isLoading = !allTickets;
 
   const updateStatusMutation = useMutation(
     orpc.tickets.updateStatus.mutationOptions({
@@ -142,7 +130,7 @@ function KanbanBoardRoute() {
 
   const columns: TicketColumn[] = KANBAN_STATUSES.map((status) => {
     const statusLookup = allTickets?.find(
-      (t) => t.status?.label?.toLowerCase() === status.toLowerCase(),
+      (t: any) => t.status?.label?.toLowerCase() === status.toLowerCase(),
     );
     const statusId = statusLookup?.status?.id;
 
@@ -150,7 +138,7 @@ function KanbanBoardRoute() {
       id: statusId || KANBAN_STATUSES.indexOf(status),
       label: status,
       tickets: filteredTickets.filter(
-        (t) => t.status?.label?.toLowerCase() === status.toLowerCase(),
+        (t: any) => t.status?.label?.toLowerCase() === status.toLowerCase(),
       ),
     };
   });
@@ -342,7 +330,7 @@ function KanbanBoardRoute() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start" className="w-full max-h-60 overflow-y-auto">
-                    {agents?.users?.map((agent) => (
+                    {agents?.users?.map((agent: any) => (
                       <DropdownMenuCheckboxItem
                         key={agent.id}
                         checked={filters.agentIds.includes(agent.id)}
@@ -367,7 +355,7 @@ function KanbanBoardRoute() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start" className="w-full max-h-60 overflow-y-auto">
-                    {teams?.map((team) => (
+                    {teams?.map((team: any) => (
                       <DropdownMenuCheckboxItem
                         key={team.id}
                         checked={filters.teamIds.includes(team.id)}

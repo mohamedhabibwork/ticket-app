@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import {
   Card,
@@ -14,6 +14,8 @@ import { Label } from "@ticket-app/ui/components/label";
 import { Checkbox } from "@ticket-app/ui/components/checkbox";
 import { Loader2, ArrowLeft, Save } from "lucide-react";
 import { orpc } from "@/utils/orpc";
+import { useTeamsList } from "@/hooks";
+import { useOrganization } from "@/hooks/useOrganization";
 
 const CONNECTION_TYPES = [
   { value: "imap_smtp", label: "IMAP/SMTP" },
@@ -23,10 +25,14 @@ const CONNECTION_TYPES = [
 ];
 
 export const Route = createFileRoute("/admin/mailboxes/new")({
+  loader: async () => {
+    return {};
+  },
   component: AddMailboxRoute,
 });
 
 function AddMailboxRoute() {
+  const { organizationId } = useOrganization();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: "",
@@ -39,11 +45,7 @@ function AddMailboxRoute() {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const { data: teams }: any = useQuery(
-    orpc.teams.list.queryOptions({
-      organizationId: 1,
-    } as any),
-  );
+  const { data: teams } = useTeamsList({ organizationId });
 
   const createMutation = useMutation(
     orpc.mailboxes.create.mutationOptions({
@@ -80,7 +82,7 @@ function AddMailboxRoute() {
     if (!validateForm()) return;
 
     createMutation.mutate({
-      organizationId: 1,
+      organizationId,
       name: formData.name,
       email: formData.email,
       connectionType: formData.connectionType as

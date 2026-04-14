@@ -1,5 +1,4 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@ticket-app/ui/components/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
 import {
@@ -17,44 +16,30 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@ticket-app/ui/components/select";
-import { orpc } from "@/utils/orpc";
 import { MoreHorizontal, Plus, Edit, Trash2, Clock, Star, Filter } from "lucide-react";
 import { useState } from "react";
+import { useSlaPoliciesList, useSlaPolicyDelete, useSlaPolicyUpdate } from "@/hooks/admin/sla";
+import { getCurrentOrganizationId } from "@/utils/auth";
 
 export const Route = createFileRoute("/admin/sla/")({
+  loader: async ({ context }) => {
+    const [policies, priorities] = await Promise.all([
+      context.orpc.sla.listPolicies.query({ organizationId: getCurrentOrganizationId()! }),
+      context.orpc.sla.listPriorities.query({ organizationId: getCurrentOrganizationId()! }),
+    ]);
+    return { policies, priorities };
+  },
   component: SlaPoliciesListRoute,
 });
 
 function SlaPoliciesListRoute() {
-  const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [priorityFilter, setPriorityFilter] = useState<string>("all");
+  const { policies, priorities } = Route.useLoaderData<typeof Route>();
 
-  const { data: policies, isLoading } = useQuery({
-    queryKey: ["sla-policies"],
-    queryFn: () => orpc.slaPolicies.list.query(),
-  });
-
-  const { data: priorities } = useQuery({
-    queryKey: ["priorities"],
-    queryFn: () => orpc.slaPolicies.getPriorities.query(),
-  });
-
-  const deleteMutation = useMutation(
-    orpc.slaPolicies.delete.mutationOptions({
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["sla-policies"] });
-      },
-    }),
-  );
-
-  const setDefaultMutation = useMutation(
-    orpc.slaPolicies.update.mutationOptions({
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["sla-policies"] });
-      },
-    }),
-  );
+  const { isLoading } = useSlaPoliciesList();
+  const deleteMutation = useSlaPolicyDelete();
+  const setDefaultMutation = useSlaPolicyUpdate();
 
   const handleDelete = (policyId: number, policyName: string) => {
     if (
@@ -160,10 +145,8 @@ function SlaPoliciesListRoute() {
                     </div>
                   </div>
                   <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
+                    <DropdownMenuTrigger className="inline-flex shrink-0 items-center justify-center rounded-none border border-transparent bg-clip-padding text-xs font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-1 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 h-7 gap-1 rounded-none hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50">
+                      <MoreHorizontal className="h-4 w-4" />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem onClick={() => navigate(`/admin/sla/${policy.id}` as any)}>

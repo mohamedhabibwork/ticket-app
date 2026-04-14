@@ -14,6 +14,8 @@ import { Label } from "@ticket-app/ui/components/label";
 import { Checkbox } from "@ticket-app/ui/components/checkbox";
 import { Loader2, Plus, Edit2, Trash2, Eye, Mail, Copy } from "lucide-react";
 import { orpc } from "@/utils/orpc";
+import { getCurrentOrganizationId } from "@/utils/auth";
+import { useOrganization } from "@/hooks/useOrganization";
 
 interface EmailTemplate {
   id?: number;
@@ -45,23 +47,27 @@ const AVAILABLE_MERGE_TAGS = [
 ];
 
 export const Route = createFileRoute("/admin/email-templates/")({
+  loader: async ({ context }) => {
+    const templates = await context.orpc.emailTemplates.list.query({
+      organizationId: getCurrentOrganizationId()!,
+    });
+    return { templates };
+  },
   component: EmailTemplatesRoute,
 });
 
 function EmailTemplatesRoute() {
+  const { organizationId } = useOrganization();
   const [selectedTemplate, setSelectedTemplate] = useState<EmailTemplate | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [_isCreating, setIsCreating] = useState(false);
+  const [, setIsCreating] = useState(false);
   const [editData, setEditData] = useState<EmailTemplate | null>(null);
   const [previewMode, setPreviewMode] = useState(false);
+  const { templates } = Route.useLoaderData<typeof Route>();
 
-  const {
-    data: templates,
-    isLoading,
-    refetch,
-  } = useQuery(
+  const { isLoading, refetch } = useQuery(
     (orpc as any).emailTemplates.list.queryOptions({
-      organizationId: 1,
+      organizationId,
     }) as any,
   );
 
@@ -120,12 +126,12 @@ function EmailTemplatesRoute() {
     if (editData.id) {
       (updateMutation as any).mutate({
         id: editData.id,
-        organizationId: 1,
+        organizationId,
         data: editData,
       });
     } else {
       (createMutation as any).mutate({
-        organizationId: 1,
+        organizationId,
         ...editData,
       });
     }
@@ -150,10 +156,6 @@ function EmailTemplatesRoute() {
       ...editData,
       body: editData.body + tag,
     });
-  };
-
-  const _copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
   };
 
   const getTemplateTypeBadge = (type: string) => {

@@ -14,49 +14,32 @@ import {
 } from "@ticket-app/ui/components/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@ticket-app/ui/components/tabs";
 import { Loader2, ArrowLeft, Shield, Smartphone, Key, Globe, Trash2, Monitor } from "lucide-react";
+import { getCurrentOrganizationId, getCurrentUserId } from "@/utils/auth";
 
 export const Route = createFileRoute("/settings/security")({
+  loader: async ({ context }) => {
+    return {
+      sessions: context.orpc.sessions.list.queryOptions({
+        userId: getCurrentUserId()!,
+        organizationId: getCurrentOrganizationId()!,
+      }),
+      apiKeys: context.orpc.users.apiKeys.queryOptions({
+        userId: getCurrentUserId()!,
+        organizationId: getCurrentOrganizationId()!,
+      }),
+    };
+  },
   component: SecuritySettingsRoute,
 });
 
 function SecuritySettingsRoute() {
+  const { sessions: sessionsQueryOptions, apiKeys: apiKeysQueryOptions } =
+    Route.useLoaderData<(typeof Route)["loader"]>();
+  const { data: sessions, isLoading: sessionsLoading } = useQuery(sessionsQueryOptions);
+  const { data: apiKeys } = useQuery(apiKeysQueryOptions);
+
   const queryClient = useQueryClient();
   const [show2FASetup, setShow2FASetup] = useState(false);
-
-  const { data: sessions, isLoading: sessionsLoading } = useQuery({
-    queryFn: () => [
-      {
-        id: 1,
-        device: "Chrome on MacOS",
-        location: "San Francisco, CA",
-        ip: "192.168.1.1",
-        lastActive: new Date().toISOString(),
-        current: true,
-      },
-      {
-        id: 2,
-        device: "Safari on iPhone",
-        location: "San Francisco, CA",
-        ip: "192.168.1.2",
-        lastActive: new Date(Date.now() - 86400000).toISOString(),
-        current: false,
-      },
-    ],
-    queryKey: ["sessions"],
-  });
-
-  const { data: apiKeys } = useQuery({
-    queryFn: () => [
-      {
-        id: 1,
-        name: "Production API Key",
-        prefix: "sk_live_xxxx",
-        createdAt: new Date(Date.now() - 30 * 86400000).toISOString(),
-        lastUsed: new Date(Date.now() - 86400000).toISOString(),
-      },
-    ],
-    queryKey: ["apiKeys"],
-  });
 
   const revokeSessionMutation = useMutation({
     mutationFn: async (_sessionId: number) => {
@@ -78,13 +61,13 @@ function SecuritySettingsRoute() {
     },
   });
 
-  const handleRevokeSession = (_sessionId: number) => {
+  const handleRevokeSession = (sessionId: number) => {
     if (confirm("Are you sure you want to revoke this session?")) {
       revokeSessionMutation.mutate(sessionId);
     }
   };
 
-  const handleDeleteApiKey = (_keyId: number) => {
+  const handleDeleteApiKey = (keyId: number) => {
     if (confirm("Are you sure you want to delete this API key?")) {
       deleteApiKeyMutation.mutate(keyId);
     }

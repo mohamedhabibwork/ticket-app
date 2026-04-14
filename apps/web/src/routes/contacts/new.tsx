@@ -11,6 +11,7 @@ import { Checkbox } from "@ticket-app/ui/components/checkbox";
 import { Loader2 } from "lucide-react";
 
 import { orpc } from "@/utils/orpc";
+import { useOrganization } from "@/hooks/useOrganization";
 
 export const Route = createFileRoute("/contacts/new")({
   component: NewContactRoute,
@@ -19,7 +20,7 @@ export const Route = createFileRoute("/contacts/new")({
 function NewContactRoute() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const organizationId = 1;
+  const { organizationId } = useOrganization();
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -31,7 +32,7 @@ function NewContactRoute() {
 
   const createMutation = useMutation(
     orpc.contacts.create.mutationOptions({
-      onSuccess: async (data) => {
+      onSuccess: async (data: any) => {
         if (data.duplicate) {
           toast.error("A contact with this email already exists");
           return;
@@ -39,12 +40,12 @@ function NewContactRoute() {
         toast.success("Contact created successfully");
         queryClient.invalidateQueries(orpc.contacts.list.queryOptions({ organizationId }));
         if (createTicket) {
-          navigate({ to: "/tickets/new", search: { contactId: data.contact?.id } });
+          navigate({ to: "/tickets/new" as any, search: { contactId: data.contact?.id } as any });
         } else {
-          navigate({ to: "/contacts" });
+          navigate({ to: "/contacts" as any });
         }
       },
-      onError: (error) => {
+      onError: (error: any) => {
         toast.error(`Failed to create contact: ${error.message}`);
       },
     }),
@@ -65,7 +66,7 @@ function NewContactRoute() {
       email: email.trim() || undefined,
       phone: phone.trim() || undefined,
       company: company.trim() || undefined,
-    });
+    } as any);
   };
 
   return (

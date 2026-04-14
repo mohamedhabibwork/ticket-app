@@ -25,6 +25,7 @@ export interface AuthResult {
   };
   sessionToken: string;
   requires2FA: boolean;
+  requiresEmailOtp?: boolean;
   tempToken?: string;
 }
 
@@ -81,6 +82,47 @@ export async function loginWithEmail(
 
   if (user.twoFactor?.isEnabled) {
     const tempToken = crypto.randomUUID();
+    const twoFactorMethod = user.twoFactor.method;
+
+    if (twoFactorMethod === "email_otp") {
+      await sessions.set(
+        `email_2fa_temp:${tempToken}`,
+        {
+          userId: user.id.toString(),
+          organizationId: user.organizationId.toString(),
+          expiresAt: new Date(Date.now() + 5 * 60 * 1000).toISOString(),
+          ipAddress,
+          userAgent,
+        },
+        300,
+      );
+
+      return {
+        user: {
+          id: user.id,
+          uuid: user.uuid,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          displayName: user.displayName,
+          avatarUrl: user.avatarUrl,
+          organizationId: user.organizationId,
+          locale: user.locale,
+          timezone: user.timezone,
+          isPlatformAdmin: user.isPlatformAdmin,
+          roles: user.roles.map((ur) => ({
+            id: ur.role.id,
+            name: ur.role.name,
+            slug: ur.role.slug,
+          })),
+        },
+        sessionToken: "",
+        requires2FA: true,
+        requiresEmailOtp: true,
+        tempToken,
+      };
+    }
+
     await sessions.set(
       `2fa_temp:${tempToken}`,
       {

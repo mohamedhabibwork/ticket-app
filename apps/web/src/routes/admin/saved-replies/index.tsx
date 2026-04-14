@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@ticket-app/ui/components/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
 import {
@@ -19,7 +18,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@ticket-app/ui/components/select";
-import { orpc } from "@/utils/orpc";
 import {
   MoreHorizontal,
   Plus,
@@ -30,36 +28,32 @@ import {
   Folder,
   Tag,
 } from "lucide-react";
+import { useSavedRepliesList, useSavedReplyDelete } from "@/hooks/admin/saved-replies";
+import { getCurrentOrganizationId } from "@/utils/auth";
+import { useOrganization } from "@/hooks/useOrganization";
 
 export const Route = createFileRoute("/admin/saved-replies/")({
+  loader: async ({ context }) => {
+    const organizationId = getCurrentOrganizationId()!;
+    const [replies, folders] = await Promise.all([
+      context.orpc.savedReplies.list.query({ organizationId }),
+      context.orpc.savedReplies.listFolders.query({ organizationId }),
+    ]);
+    return { replies, folders };
+  },
   component: SavedRepliesListRoute,
 });
 
 function SavedRepliesListRoute() {
-  const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [folderFilter, setFolderFilter] = useState<string>("all");
 
-  const organizationId = 1;
+  const { organizationId } = useOrganization();
+  const { replies, folders } = Route.useLoaderData<typeof Route>();
 
-  const { data: replies, isLoading } = useQuery({
-    queryKey: ["saved-replies", organizationId],
-    queryFn: () => orpc.savedReplies.list.query({ organizationId }),
-  });
-
-  const { data: folders } = useQuery({
-    queryKey: ["saved-reply-folders", organizationId],
-    queryFn: () => orpc.savedReplies.listFolders.query({ organizationId }),
-  });
-
-  const deleteMutation = useMutation(
-    orpc.savedReplies.delete.mutationOptions({
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["saved-replies", organizationId] });
-      },
-    }),
-  );
+  const { isLoading } = useSavedRepliesList({ organizationId });
+  const deleteMutation = useSavedReplyDelete();
 
   const handleDelete = (replyId: number) => {
     if (
@@ -187,10 +181,8 @@ function SavedRepliesListRoute() {
                     </div>
                   </div>
                   <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
+                    <DropdownMenuTrigger className="inline-flex shrink-0 items-center justify-center rounded-none border border-transparent bg-clip-padding text-xs font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-1 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 h-7 gap-1 rounded-none hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50">
+                      <MoreHorizontal className="h-4 w-4" />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem

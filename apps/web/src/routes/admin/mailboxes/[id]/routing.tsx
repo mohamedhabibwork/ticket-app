@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   Card,
@@ -12,8 +12,11 @@ import { Button } from "@ticket-app/ui/components/button";
 import { Input } from "@ticket-app/ui/components/input";
 import { Label } from "@ticket-app/ui/components/label";
 import { Checkbox } from "@ticket-app/ui/components/checkbox";
-import { Loader2, ArrowLeft, Plus, Trash2, GripVertical, Save, Edit2, X } from "lucide-react";
+import { ArrowLeft, Plus, Trash2, GripVertical, Save, Edit2, X } from "lucide-react";
 import { orpc } from "@/utils/orpc";
+import { useMailboxTeams } from "@/hooks";
+import { getCurrentOrganizationId } from "@/utils/auth";
+import { useOrganization } from "@/hooks/useOrganization";
 
 interface RoutingRule {
   id?: number;
@@ -58,26 +61,25 @@ const ACTION_TYPES = [
 ];
 
 export const Route = createFileRoute("/admin/mailboxes/id/routing")({
+  loader: async ({ context, params }) => {
+    const mailboxId = Number(params.id);
+    const organizationId = getCurrentOrganizationId()!;
+    const [mailbox, teams] = await Promise.all([
+      context.orpc.mailboxes.get.query({ id: mailboxId, organizationId }),
+      context.orpc.teams.list.query({ organizationId }),
+    ]);
+    return { mailbox, teams };
+  },
   component: MailboxRoutingRoute,
 });
 
 function MailboxRoutingRoute() {
   const { id }: any = Route.useParams();
   const mailboxId = Number(id);
-  const organizationId = 1;
+  const { organizationId } = useOrganization();
+  const { mailbox, teams } = Route.useLoaderData<typeof Route>();
 
-  const { data: mailbox, isLoading }: any = useQuery(
-    orpc.mailboxes.get.queryOptions({
-      id: mailboxId,
-      organizationId,
-    } as any),
-  );
-
-  const { data: teams }: any = useQuery(
-    orpc.teams.list.queryOptions({
-      organizationId,
-    } as any),
-  );
+  useMailboxTeams({ organizationId });
 
   const [editingRule, setEditingRule] = useState<RoutingRule | null>(null);
   const [isCreating, setIsCreating] = useState(false);
@@ -220,14 +222,6 @@ function MailboxRoutingRoute() {
       actions: editingRule.actions.map((a, i) => (i === index ? { ...a, ...updates } : a)),
     });
   };
-
-  if (isLoading) {
-    return (
-      <div className="flex justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
-  }
 
   return (
     <div className="container mx-auto max-w-4xl px-4 py-6">

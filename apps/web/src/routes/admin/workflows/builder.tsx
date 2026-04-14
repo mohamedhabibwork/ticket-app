@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { Button } from "@ticket-app/ui/components/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
 import { Input } from "@ticket-app/ui/components/input";
@@ -34,6 +34,8 @@ import {
   PanelRightClose,
   PanelRight,
 } from "lucide-react";
+import { useWorkflowsList } from "@/hooks/admin/workflows";
+import { useOrganization } from "@/hooks/useOrganization";
 
 interface ConditionRule {
   field: string;
@@ -129,10 +131,14 @@ const TRIGGER_LABELS: Record<string, string> = {
 };
 
 export const Route = createFileRoute("/admin/workflows/builder")({
+  loader: async () => {
+    return {};
+  },
   component: WorkflowBuilderRoute,
 });
 
 function WorkflowBuilderRoute() {
+  const { organizationId } = useOrganization();
   const navigate = useNavigate();
   const search = Route.useSearch() as any;
   const initialWorkflowId = search.workflowId;
@@ -155,33 +161,25 @@ function WorkflowBuilderRoute() {
   const [nodePositions, setNodePositions] = useState<Record<string, { x: number; y: number }>>({});
   const canvasRef = useRef<HTMLDivElement>(null);
 
-  const { data: workflowsList }: any = useQuery(
-    orpc.workflows.list.queryOptions({
-      organizationId: 1,
-      isActive: undefined,
-    }) as any,
-  );
+  const { data: workflowsList } = useWorkflowsList({ organizationId, isActive: undefined });
 
-  const { data: executionLogs }: any = useQuery(
+  const { data: executionLogs }: any = useMutation(
     selectedWorkflowId
       ? (orpc.workflows.getExecutionLogs.queryOptions({
           workflowId: selectedWorkflowId,
-          organizationId: 1,
+          organizationId,
           limit: 10,
         }) as any)
       : (null as any),
-    {
-      enabled: !!selectedWorkflowId,
-    },
   );
 
   const createMutation = useMutation(
     orpc.workflows.create.mutationOptions({
-      onSuccess: (data) => {
+      onSuccess: (data: any) => {
         setSelectedWorkflowId(data.id);
-        navigate({ to: "/admin/workflows/builder", search: { workflowId: data.id } });
+        navigate({ to: "/admin/workflows/builder" as any, search: { workflowId: data.id } as any });
       },
-    }),
+    }) as any,
   );
 
   const updateMutation = useMutation(
@@ -292,13 +290,13 @@ function WorkflowBuilderRoute() {
     if (selectedWorkflowId) {
       updateMutation.mutate({
         id: selectedWorkflowId,
-        organizationId: 1,
+        organizationId,
         data: workflow,
       } as any);
     } else {
       createMutation.mutate({
         ...workflow,
-        organizationId: 1,
+        organizationId,
       } as any);
     }
   };
@@ -701,7 +699,9 @@ function WorkflowBuilderRoute() {
                           <Select
                             value={rule.operator}
                             onValueChange={(value: unknown) =>
-                              updateCondition(index, { operator: value as string })
+                              updateCondition(index, {
+                                operator: value as ConditionRule["operator"],
+                              })
                             }
                           >
                             <SelectTrigger className="w-[120px]">
@@ -757,7 +757,10 @@ function WorkflowBuilderRoute() {
                             <Select
                               value={action.type}
                               onValueChange={(value: unknown) =>
-                                updateAction(index, { type: value as string, params: {} })
+                                updateAction(index, {
+                                  type: value as WorkflowAction["type"],
+                                  params: {},
+                                })
                               }
                             >
                               <SelectTrigger className="w-[160px]">

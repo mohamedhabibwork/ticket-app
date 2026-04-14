@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
+import { useChatbotConfigs, useChatbotAnalytics } from "@/hooks";
 import {
   Card,
   CardContent,
@@ -22,12 +23,17 @@ import {
   ArrowUpRight,
 } from "lucide-react";
 import { orpc } from "@/utils/orpc";
+import { useOrganization } from "@/hooks/useOrganization";
 
 export const Route = createFileRoute("/admin/settings/chatbot")({
+  loader: async () => {
+    return {};
+  },
   component: ChatbotSettingsRoute,
 });
 
 function ChatbotSettingsRoute() {
+  const { organizationId } = useOrganization();
   const [showAddForm, setShowAddForm] = useState(false);
   const [name, setName] = useState("");
   const [isEnabled, setIsEnabled] = useState(false);
@@ -35,22 +41,12 @@ function ChatbotSettingsRoute() {
   const [responseDelaySeconds, setResponseDelaySeconds] = useState(5);
   const [analyticsDays, _setAnalyticsDays] = useState(30);
 
-  const {
-    data: configs,
-    isLoading,
-    refetch,
-  }: any = useQuery(
-    orpc.chatbot.listConfigs.queryOptions({
-      organizationId: 1,
-    } as any),
-  );
+  const { data: configs, isLoading, refetch } = useChatbotConfigs({ organizationId });
 
-  const { data: analytics, isLoading: _analyticsLoading }: any = useQuery(
-    orpc.chatbot.getAnalytics.queryOptions({
-      organizationId: 1,
-      days: analyticsDays,
-    } as any),
-  );
+  const { data: analytics, isLoading: _analyticsLoading } = useChatbotAnalytics({
+    organizationId,
+    days: analyticsDays,
+  });
 
   const createMutation = useMutation(
     orpc.chatbot.configureChatbot.mutationOptions({
@@ -85,7 +81,7 @@ function ChatbotSettingsRoute() {
     if (!name) return;
 
     createMutation.mutate({
-      organizationId: 1,
+      organizationId,
       name,
       isEnabled,
       escalationThreshold,

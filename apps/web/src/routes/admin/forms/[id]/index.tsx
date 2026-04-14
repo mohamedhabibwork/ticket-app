@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { createFileRoute, Link, useNavigate, useParams } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import {
   Card,
   CardContent,
@@ -22,24 +22,32 @@ import {
 } from "@ticket-app/ui/components/select";
 import { ArrowLeft, Save, Copy, Check, Settings, Globe, Shield, Code, Zap } from "lucide-react";
 import { orpc } from "@/utils/orpc";
+import { getCurrentOrganizationId } from "@/utils/auth";
+import { useOrganization } from "@/hooks/useOrganization";
 
 export const Route = createFileRoute("/admin/forms/id/")({
+  loader: async ({ context, params }) => {
+    const formId = Number(params.id);
+    const form = await context.orpc.forms.get.query({
+      id: formId,
+      organizationId: getCurrentOrganizationId()!,
+    });
+    return { form };
+  },
   component: FormSettingsRoute,
 });
 
 function FormSettingsRoute() {
+  const { organizationId } = useOrganization();
   const navigate = useNavigate();
-  const { id } = useParams({ from: "/admin/forms/id/" } as any);
+  const { id } = Route.useParams() as { id: string };
   const formId = Number(id);
+  const { form } = Route.useLoaderData<typeof Route>();
 
-  const {
-    data: form,
-    isLoading,
-    refetch,
-  } = useQuery(
+  const { refetch } = useQuery(
     (orpc as any).forms.get.queryOptions({
       id: formId,
-      organizationId: 1,
+      organizationId,
     }),
   );
 
@@ -62,12 +70,28 @@ function FormSettingsRoute() {
     isPublished: (form as any)?.isPublished || false,
   });
 
+  useState(() => {
+    if (form) {
+      setFormSettings({
+        name: form.name || "",
+        description: form.description || "",
+        submitButtonText: form.submitButtonText || "Submit",
+        successMessage: form.successMessage || "Thank you for your submission!",
+        redirectUrl: form.redirectUrl || "",
+        captchaEnabled: form.captchaEnabled || false,
+        captchaType: "recaptcha_v3" as "recaptcha_v3" | "hcaptcha",
+        captchaSiteKey: "",
+        notificationEmails: "",
+        isPublished: form.isPublished || false,
+      });
+    }
+  });
+
   const [embedCode, setEmbedCode] = useState("");
   const [copied, setCopied] = useState(false);
 
   const generateEmbedCode = () => {
     const iframeCode = `<iframe src="${window.location.origin}/forms/${formId}" width="100%" height="800" frameborder="0"></iframe>`;
-    const _jsCode = `<script>!function(){var f=document.createElement("iframe");f.src="/forms/${formId}",f.width="100%",f.height="800",f.frameBorder=0,document.body.appendChild(f)}();</script>`;
     setEmbedCode(iframeCode);
   };
 
@@ -89,14 +113,6 @@ function FormSettingsRoute() {
       isPublished: formSettings.isPublished,
     });
   };
-
-  if (isLoading) {
-    return (
-      <div className="flex justify-center py-12">
-        <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full" />
-      </div>
-    );
-  }
 
   if (!form) {
     return (

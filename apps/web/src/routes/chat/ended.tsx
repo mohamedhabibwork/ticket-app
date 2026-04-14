@@ -6,7 +6,8 @@ import { Card, CardContent } from "@ticket-app/ui/components/card";
 import { Input } from "@ticket-app/ui/components/input";
 import { Loader2, Search, Clock, Star, MessageSquare, Calendar } from "lucide-react";
 
-import { orpc } from "@/utils/orpc";
+import { useChatSessionsList } from "@/hooks/chat";
+import { getCurrentOrganizationId } from "@/utils/auth";
 
 function formatRelativeTime(date: Date | string): string {
   const now = new Date();
@@ -25,31 +26,36 @@ function formatRelativeTime(date: Date | string): string {
 }
 
 export const Route = createFileRoute("/chat/ended")({
+  loader: async ({ context }) => {
+    return {
+      sessions: context.orpc.chat.sessions.queryOptions({
+        organizationId: getCurrentOrganizationId()!,
+        limit: 50,
+      }),
+      agents: context.orpc.users.list.queryOptions({
+        organizationId: getCurrentOrganizationId()!,
+        isActive: true,
+        limit: 100,
+      }),
+    };
+  },
   component: ChatHistoryRoute,
 });
 
 function ChatHistoryRoute() {
-  const organizationId = 1;
+  const { organizationId } = useOrganization();
   const [search, setSearch] = useState("");
   const [dateFilter, setDateFilter] = useState("");
   const [agentFilter, setAgentFilter] = useState<number | undefined>(undefined);
   const [ratingFilter, setRatingFilter] = useState<number | undefined>(undefined);
 
-  const { data: sessions, isLoading }: any = useQuery(
-    orpc.chatSessions.list.queryOptions({
-      organizationId,
-      status: "ended",
-      limit: 50,
-    }) as any,
-  );
+  const loaderData = Route.useLoaderData<(typeof Route)["loader"]>();
+  const { data: sessions, isLoading } = useChatSessionsList({
+    organizationId,
+    limit: 50,
+  });
 
-  const { data: agents }: any = useQuery(
-    orpc.users.list.queryOptions({
-      organizationId,
-      isActive: true,
-      limit: 100,
-    }) as any,
-  );
+  const { data: agents }: any = useQuery(loaderData.agents as any);
 
   const endedSessions = sessions?.filter(
     (s: any) => s.status === "ended" || s.status === "converted",
@@ -127,7 +133,7 @@ function ChatHistoryRoute() {
                 }
               >
                 <option value="">All Agents</option>
-                {agents?.users?.map((agent) => (
+                {agents?.users?.map((agent: any) => (
                   <option key={agent.id} value={agent.id}>
                     {agent.firstName} {agent.lastName}
                   </option>
@@ -160,7 +166,7 @@ function ChatHistoryRoute() {
         </div>
       ) : filteredSessions && filteredSessions.length > 0 ? (
         <div className="space-y-3">
-          {filteredSessions.map((session) => (
+          {filteredSessions.map((session: any) => (
             <Link key={session.id} to="/chat/id" params={{ id: String(session.id) }}>
               <Card className="hover:bg-accent/50 transition-colors">
                 <CardContent className="p-4">

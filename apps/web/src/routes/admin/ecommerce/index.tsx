@@ -14,6 +14,7 @@ import {
   ShoppingBag,
 } from "lucide-react";
 import { orpc } from "@/utils/orpc";
+import { getCurrentOrganizationId } from "@/utils/auth";
 
 function formatRelativeTime(date: Date | string): string {
   const now = new Date();
@@ -53,17 +54,21 @@ const platformColors: Record<string, string> = {
 };
 
 export const Route = createFileRoute("/admin/ecommerce/")({
+  loader: async ({ context }) => {
+    const stores = await context.orpc.ecommerceStores.list.query({
+      organizationId: getCurrentOrganizationId()!,
+    });
+    return { stores };
+  },
   component: EcommerceStoresRoute,
 });
 
 function EcommerceStoresRoute() {
-  const {
-    data: stores,
-    isLoading,
-    refetch,
-  } = useQuery(
+  const { stores } = Route.useLoaderData<typeof Route>();
+
+  const { isLoading, refetch } = useQuery(
     (orpc as any).ecommerceStores.list.queryOptions({
-      organizationId: 1,
+      organizationId,
     }),
   ) as any;
 
@@ -176,7 +181,7 @@ function EcommerceStoresRoute() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => syncMutation.mutate({ id: store.id, organizationId: 1 })}
+                        onClick={() => syncMutation.mutate({ id: store.id, organizationId })}
                         disabled={syncMutation.isPending}
                       >
                         <RefreshCw
@@ -188,7 +193,7 @@ function EcommerceStoresRoute() {
                         size="icon"
                         onClick={() => {
                           if (confirm("Are you sure you want to disconnect this store?")) {
-                            disconnectMutation.mutate({ id: store.id, organizationId: 1 });
+                            disconnectMutation.mutate({ id: store.id, organizationId });
                           }
                         }}
                         disabled={disconnectMutation.isPending}

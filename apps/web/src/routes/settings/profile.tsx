@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@ticket-app/ui/components/button";
 import { Input } from "@ticket-app/ui/components/input";
 import { Label } from "@ticket-app/ui/components/label";
@@ -9,76 +8,57 @@ import { Textarea } from "@ticket-app/ui/components/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
 import { Loader2, ArrowLeft, Calendar, CheckCircle } from "lucide-react";
 
-import { orpc } from "@/utils/orpc";
+import { useUserUpdate } from "@/hooks/users";
+import { useConnectCalendar, useDisconnectCalendar } from "@/hooks/calendar";
+import { getCurrentOrganizationId, getCurrentUserId } from "@/utils/auth";
+import { useUser } from "@/hooks/useAuth";
+import { useOrganization } from "@/hooks/useOrganization";
 
 export const Route = createFileRoute("/settings/profile")({
+  loader: async ({ context }) => {
+    return {
+      user: context.orpc.users.me.queryOptions(),
+      calendarConnections: context.orpc.calendar.listConnections.queryOptions({
+        userId: getCurrentUserId()!,
+      }),
+    };
+  },
   component: ProfileSettingsRoute,
 });
 
 function ProfileSettingsRoute() {
-  const organizationId = 1;
-  const currentUserId = 1;
+  const { user: userQueryOptions, calendarConnections: calendarQueryOptions } =
+    Route.useLoaderData<(typeof Route)["loader"]>();
+  const { data: user, isLoading } = useQuery(userQueryOptions);
+  const { data: calendarConnections } = useQuery(calendarQueryOptions);
 
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [displayName, setDisplayName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [bio, setBio] = useState("");
-  const [signature, setSignature] = useState("");
-  const [timezone, setTimezone] = useState("UTC");
-  const [locale, setLocale] = useState("en");
+  const { organizationId } = useOrganization();
+  const { user: authUser } = useUser();
+  const currentUserId = authUser?.id ?? null;
 
-  const { data: user, isLoading } = useQuery(orpc.users.me.queryOptions());
+  const [firstName, setFirstName] = useState(authUser?.firstName || "");
+  const [lastName, setLastName] = useState(authUser?.lastName || "");
+  const [displayName, setDisplayName] = useState(authUser?.displayName || "");
+  const [email, setEmail] = useState(authUser?.email || "");
+  const [phone, setPhone] = useState((authUser as any)?.phone || "");
+  const [bio, setBio] = useState((authUser as any)?.bio || "");
+  const [signature, setSignature] = useState((authUser as any)?.signature || "");
+  const [timezone, setTimezone] = useState(authUser?.timezone || "UTC");
+  const [locale, setLocale] = useState(authUser?.locale || "en");
 
-  const { data: calendarConnections, refetch: refetchCalendar } = useQuery(
-    orpc.calendar.listConnections.queryOptions({
-      userId: currentUserId,
-    }),
-  );
+  const connectCalendarMutation = useConnectCalendar();
+  const disconnectCalendarMutation = useDisconnectCalendar();
 
-  const connectCalendarMutation = useMutation(
-    orpc.calendar.getGoogleAuthUrl.mutationOptions({
-      onSuccess: (data) => {
-        window.location.href = data.authUrl;
-      },
-      onError: (error) => {
-        toast.error(`Failed to get calendar auth URL: ${error.message}`);
-      },
-    }),
-  );
+  const updateMutation = useUserUpdate();
 
-  const disconnectCalendarMutation = useMutation(
-    orpc.calendar.disconnect.mutationOptions({
-      onSuccess: () => {
-        toast.success("Calendar disconnected");
-        refetchCalendar();
-      },
-      onError: (error) => {
-        toast.error(`Failed to disconnect calendar: ${error.message}`);
-      },
-    }),
-  );
-
-  const updateMutation = useMutation(
-    orpc.users.update.mutationOptions({
-      onSuccess: () => {
-        toast.success("Profile updated successfully");
-      },
-      onError: (error) => {
-        toast.error(`Failed to update profile: ${error.message}`);
-      },
-    }),
-  );
-
-  const activeCalendarConnection = calendarConnections?.find((c) => c.isActive);
+  const activeCalendarConnection = calendarConnections?.find((c: any) => c.isActive);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     updateMutation.mutate({
-      id: user?.id,
-      organizationId,
+      id: user?.id || currentUserId!,
+      organizationId: organizationId || getCurrentOrganizationId()!,
       firstName: firstName.trim() || undefined,
       lastName: lastName.trim() || undefined,
       displayName: displayName.trim() || undefined,
@@ -124,7 +104,7 @@ function ProfileSettingsRoute() {
                     id="firstName"
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
-                    placeholder={user?.firstName || "John"}
+                    placeholder={authUser?.firstName || "John"}
                   />
                 </div>
                 <div className="space-y-2">
@@ -133,7 +113,7 @@ function ProfileSettingsRoute() {
                     id="lastName"
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
-                    placeholder={user?.lastName || "Doe"}
+                    placeholder={authUser?.lastName || "Doe"}
                   />
                 </div>
               </div>
@@ -144,7 +124,7 @@ function ProfileSettingsRoute() {
                   id="displayName"
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
-                  placeholder={user?.displayName || "johndoe"}
+                  placeholder={authUser?.displayName || "johndoe"}
                 />
               </div>
 
@@ -155,7 +135,7 @@ function ProfileSettingsRoute() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder={user?.email || "john.doe@habib.cloud"}
+                  placeholder={authUser?.email || "john.doe@habib.cloud"}
                   disabled
                 />
                 <p className="text-xs text-muted-foreground">Email cannot be changed</p>

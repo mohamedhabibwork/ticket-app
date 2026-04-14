@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
 import { Button } from "@ticket-app/ui/components/button";
 import { Card, CardContent } from "@ticket-app/ui/components/card";
 import { Input } from "@ticket-app/ui/components/input";
@@ -10,7 +9,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@ticket-app/ui/components/dropdown-menu";
-import { orpc } from "@/utils/orpc";
 import {
   Plus,
   Search,
@@ -23,8 +21,15 @@ import {
   Building,
 } from "lucide-react";
 import { Loader2 } from "lucide-react";
+import { getCurrentOrganizationId } from "@/utils/auth";
 
 export const Route = createFileRoute("/contacts/")({
+  loader: async ({ context }) => {
+    return context.orpc.contacts.list.queryOptions({
+      organizationId: getCurrentOrganizationId()!,
+      limit: 50,
+    });
+  },
   component: ContactsIndexRoute,
 });
 
@@ -32,19 +37,12 @@ function ContactsIndexRoute() {
   const [search, setSearch] = useState("");
   const [companyFilter, setCompanyFilter] = useState("");
   const navigate = useNavigate();
-  const organizationId = 1;
 
-  const { data: contacts, isLoading }: any = useQuery(
-    orpc.contacts.list.queryOptions({
-      organizationId,
-      search: search || undefined,
-      limit: 50,
-    } as any),
-  );
+  const { data: contacts, isLoading }: any = Route.useLoaderData<(typeof Route)["loader"]>();
 
-  const companies = [...new Set(contacts?.map((c) => c.company).filter(Boolean))];
+  const companies = [...new Set(contacts?.map((c: any) => c.company).filter(Boolean))];
 
-  const filteredContacts = contacts?.filter((contact) => {
+  const filteredContacts = contacts?.filter((contact: any) => {
     if (companyFilter && contact.company !== companyFilter) return false;
     return true;
   });
@@ -85,7 +83,7 @@ function ContactsIndexRoute() {
                 onChange={(e) => setCompanyFilter(e.target.value)}
               >
                 <option value="">All Companies</option>
-                {companies.map((company) => (
+                {companies.map((company: any) => (
                   <option key={company} value={company}>
                     {company}
                   </option>
@@ -102,7 +100,7 @@ function ContactsIndexRoute() {
         </div>
       ) : filteredContacts && filteredContacts.length > 0 ? (
         <div className="space-y-3">
-          {filteredContacts.map((contact) => (
+          {filteredContacts.map((contact: any) => (
             <Card key={contact.id} className="hover:bg-accent/50 transition-colors">
               <CardContent className="p-4">
                 <div className="flex items-start gap-4">
@@ -138,13 +136,13 @@ function ContactsIndexRoute() {
                       </Button>
                     </Link>
                     <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
+                      <DropdownMenuTrigger className="inline-flex shrink-0 items-center justify-center rounded-none border border-transparent bg-clip-padding text-xs font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-1 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 h-7 gap-1 rounded-none hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50">
+                        <MoreHorizontal className="h-4 w-4" />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => navigate(`/contacts/${contact.id}`)}>
+                        <DropdownMenuItem
+                          onClick={() => navigate(`/contacts/${contact.id}` as any)}
+                        >
                           <Edit className="h-4 w-4 mr-2" />
                           Edit
                         </DropdownMenuItem>

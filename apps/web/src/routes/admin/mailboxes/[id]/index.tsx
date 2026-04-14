@@ -20,6 +20,8 @@ import {
   ArrowLeft,
 } from "lucide-react";
 import { orpc } from "@/utils/orpc";
+import { getCurrentOrganizationId } from "@/utils/auth";
+import { useOrganization } from "@/hooks/useOrganization";
 
 function formatRelativeTime(date: Date | string): string {
   const now = new Date();
@@ -38,20 +40,22 @@ function formatRelativeTime(date: Date | string): string {
 }
 
 export const Route = createFileRoute("/admin/mailboxes/id/")({
+  loader: async ({ context, params }) => {
+    const mailboxId = Number(params.id);
+    const organizationId = getCurrentOrganizationId()!;
+    const mailbox = await context.orpc.mailboxes.get.query({ id: mailboxId, organizationId });
+    return { mailbox };
+  },
   component: MailboxDetailRoute,
 });
 
 function MailboxDetailRoute() {
   const { id }: any = Route.useParams();
   const mailboxId = Number(id);
+  const { organizationId } = useOrganization();
+  const { mailbox } = Route.useLoaderData<typeof Route>();
 
-  const organizationId = 1;
-
-  const {
-    data: mailbox,
-    isLoading,
-    refetch,
-  }: any = useQuery(
+  const { refetch }: any = useQuery(
     orpc.mailboxes.get.queryOptions({
       id: mailboxId,
       organizationId,
@@ -81,19 +85,11 @@ function MailboxDetailRoute() {
     }
     return (
       <span className="inline-flex items-center gap-1 rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-800">
-        <AlertCircle className="h-3 w-3" />
+        <XCircle className="h-3 w-3" />
         Inactive
       </span>
     );
   };
-
-  if (isLoading) {
-    return (
-      <div className="flex justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
-  }
 
   if (!mailbox) {
     return (

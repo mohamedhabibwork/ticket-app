@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Button } from "@ticket-app/ui/components/button";
 import {
   Card,
@@ -13,29 +13,121 @@ import { Label } from "@ticket-app/ui/components/label";
 import { Separator } from "@ticket-app/ui/components/separator";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 
+import { GuestRoute } from "@/components/protected-route";
+import { useAuth } from "@/hooks/useAuth";
 import { orpc } from "@/utils/orpc";
 
 export const Route = createFileRoute("/portal/login")({
-  component: PortalLoginRoute,
+  loader: async () => {
+    return {};
+  },
+  component: GuestRouteWrapper,
 });
 
+function GuestRouteWrapper() {
+  return (
+    <GuestRoute>
+      <PortalLoginRoute />
+    </GuestRoute>
+  );
+}
+
 function PortalLoginRoute() {
+  const navigate = useNavigate();
+  const { login } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loginError, setLoginError] = useState("");
+
+  const loginMutation = useMutation(
+    orpc.auth.login.mutationOptions({
+      onSuccess: (data: any) => {
+        if (data.requires2FA) {
+          if (data.requiresEmailOtp) {
+            navigate({
+              to: "/portal/verify-otp",
+              search: {
+                email,
+                type: "login",
+                tempToken: data.tempToken,
+              },
+            });
+          } else {
+            navigate({
+              to: "/portal/verify-otp",
+              search: {
+                email,
+                type: "totp",
+                tempToken: data.tempToken,
+              },
+            });
+          }
+        } else {
+          login({ sessionToken: data.sessionToken, user: data.user });
+          window.location.href = "/dashboard";
+        }
+      },
+      onError: (error: any) => {
+        setLoginError(error.message);
+      },
+    }) as any,
+  );
 
   const getOAuthUrlMutation = useMutation(
     orpc.customerAuth.getOAuthUrl.mutationOptions({
-      onSuccess: (data) => {
+      onSuccess: (data: any) => {
         window.location.href = data.url;
       },
-    }),
+      onError: (error: any) => {
+        toast.error(error.message || "Failed to initiate social login");
+      },
+    }) as any,
+  );
+
+  const sendOtpMutation = useMutation(
+    orpc.auth.sendOtp.mutationOptions({
+      onSuccess: () => {
+        navigate({
+          to: "/portal/verify-otp",
+          search: {
+            email,
+            type: "login",
+          },
+        });
+      },
+      onError: (error: any) => {
+        toast.error(error.message || "Failed to send verification code");
+      },
+    }) as any,
   );
 
   const handleSocialLogin = (provider: "google" | "facebook" | "apple") => {
     const redirectUri = `${window.location.origin}/portal/auth/${provider}/callback`;
-    getOAuthUrlMutation.mutate({ provider, redirectUri });
+    getOAuthUrlMutation.mutate({ provider, redirectUri } as any);
+  };
+
+  const handleEmailPasswordLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoginError("");
+    loginMutation.mutate({
+      email,
+      password,
+      ipAddress: window.location.hostname,
+      userAgent: navigator.userAgent,
+    } as any);
+  };
+
+  const handleEmailOtpLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoginError("");
+    sendOtpMutation.mutate({
+      email,
+      method: "email",
+      type: "login",
+    } as any);
   };
 
   return (
@@ -58,7 +150,7 @@ function PortalLoginRoute() {
               {getOAuthUrlMutation.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                <svg className="h-4 w-4" viewBox="0 0 24 24">
+                <svg className="h-4 w-4" viewBox="0 0 24 24" aria-hidden="true">
                   <path
                     fill="currentColor"
                     d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -89,7 +181,7 @@ function PortalLoginRoute() {
               {getOAuthUrlMutation.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                 </svg>
               )}
@@ -105,7 +197,7 @@ function PortalLoginRoute() {
               {getOAuthUrlMutation.isPending ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z" />
                 </svg>
               )}
@@ -124,15 +216,24 @@ function PortalLoginRoute() {
             </div>
           </div>
 
-          <div className="space-y-2">
+          {loginError && (
+            <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md" role="alert">
+              {loginError}
+            </div>
+          )}
+
+          <form onSubmit={handleEmailPasswordLogin} className="space-y-2">
             <div className="space-y-1">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
                 type="email"
+                name="email"
                 placeholder="you@habib.cloud"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+                required
               />
             </div>
             <div className="space-y-1">
@@ -140,6 +241,7 @@ function PortalLoginRoute() {
                 <Label htmlFor="password">Password</Label>
                 <Link
                   to="/portal/forgot-password"
+                  search={{ email: undefined }}
                   className="text-xs text-muted-foreground hover:text-primary"
                 >
                   Forgot password?
@@ -149,33 +251,72 @@ function PortalLoginRoute() {
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
+                  name="password"
+                  placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="pr-10"
+                  autoComplete="current-password"
+                  required
                 />
                 <Button
+                  type="button"
                   variant="ghost"
                   size="icon"
                   className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
                   onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
                 >
                   {showPassword ? (
-                    <EyeOff className="h-4 w-4 text-muted-foreground" />
+                    <EyeOff className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
                   ) : (
-                    <Eye className="h-4 w-4 text-muted-foreground" />
+                    <Eye className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
                   )}
                 </Button>
               </div>
             </div>
-          </div>
+            <Button type="submit" className="w-full" disabled={loginMutation.isPending}>
+              {loginMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Signing in…
+                </>
+              ) : (
+                "Sign In"
+              )}
+            </Button>
+          </form>
 
-          <Button className="w-full" disabled>
-            Sign In
-          </Button>
+          <form onSubmit={handleEmailOtpLogin} className="space-y-2">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <Separator className="w-full" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">
+                  Or sign in with email OTP
+                </span>
+              </div>
+            </div>
+            <Button
+              type="submit"
+              variant="secondary"
+              className="w-full"
+              disabled={!email || sendOtpMutation.isPending}
+            >
+              {sendOtpMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Sending code…
+                </>
+              ) : (
+                "Send Login Code to Email"
+              )}
+            </Button>
+          </form>
 
           <p className="text-center text-sm text-muted-foreground">
-            Don't have an account?{" "}
+            Don&apos;t have an account?{" "}
             <Link to="/portal/register" className="text-primary hover:underline">
               Create one
             </Link>

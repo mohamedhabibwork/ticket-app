@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Button } from "@ticket-app/ui/components/button";
 import { Input } from "@ticket-app/ui/components/input";
@@ -23,18 +22,35 @@ import {
   FolderOpen,
 } from "lucide-react";
 
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { orpc } from "@/utils/orpc";
+import { getCurrentOrganizationId } from "@/utils/auth";
+import { useOrganization } from "@/hooks/useOrganization";
 
 export const Route = createFileRoute("/kb/categories/id")({
+  loader: async ({ context, params }) => {
+    const categoryId = Number(params.id);
+    const [category, articles, allArticles] = await Promise.all([
+      context.orpc.kbCategories.get.query({
+        organizationId: getCurrentOrganizationId()!,
+        id: categoryId,
+      }),
+      context.orpc.kbArticles.list.query({
+        organizationId: getCurrentOrganizationId()!,
+        categoryId,
+      }),
+      context.orpc.kbArticles.list.query({ organizationId: getCurrentOrganizationId()! }),
+    ]);
+    return { category, articles, allArticles };
+  },
   component: KbCategoryDetailRoute,
 });
 
 function KbCategoryDetailRoute() {
-  const { id } = Route.useParams();
+  const { category, articles, allArticles } = Route.useLoaderData<typeof Route>();
   const navigate = useNavigate();
+  const { organizationId } = useOrganization();
   const queryClient = useQueryClient();
-  const organizationId = 1;
-  const categoryId = Number(id);
 
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({
@@ -43,42 +59,14 @@ function KbCategoryDetailRoute() {
     slug: "",
   });
 
-  const { data: category, isLoading } = useQuery(
-    orpc.kbCategories.get.queryOptions(
-      { organizationId, id: categoryId },
-      { enabled: !isNaN(categoryId) },
-    ),
-  );
-
-  const { data: articles } = useQuery(
-    orpc.kbArticles.list.queryOptions({
-      organizationId,
-      categoryId,
-    }),
-  );
-
-  const { data: allArticles } = useQuery(
-    orpc.kbArticles.list.queryOptions({
-      organizationId,
-    }),
-  );
-
-  const { data: _categories } = useQuery(
-    orpc.kbCategories.list.queryOptions({
-      organizationId,
-    }),
-  );
-
   const updateMutation = useMutation(
     orpc.kbCategories.update.mutationOptions({
       onSuccess: () => {
         toast.success("Category updated successfully");
         setIsEditing(false);
-        queryClient.invalidateQueries(
-          orpc.kbCategories.get.queryOptions({ organizationId, id: categoryId }),
-        );
+        queryClient.invalidateQueries({ queryKey: ["kbCategories"] });
       },
-      onError: (error) => {
+      onError: (error: any) => {
         toast.error(`Failed to update category: ${error.message}`);
       },
     }),
@@ -87,12 +75,11 @@ function KbCategoryDetailRoute() {
   const updateArticleMutation = useMutation(
     orpc.kbArticles.update.mutationOptions({
       onSuccess: () => {
-        queryClient.invalidateQueries(
-          orpc.kbArticles.list.queryOptions({ organizationId, categoryId }),
-        );
-        queryClient.invalidateQueries(
-          orpc.kbCategories.get.queryOptions({ organizationId, id: categoryId }),
-        );
+        toast.success("Article updated successfully");
+        queryClient.invalidateQueries({ queryKey: ["kbArticles"] });
+      },
+      onError: (error: any) => {
+        toast.error(`Failed to update article: ${error.message}`);
       },
     }),
   );
@@ -101,9 +88,9 @@ function KbCategoryDetailRoute() {
     orpc.kbCategories.delete.mutationOptions({
       onSuccess: () => {
         toast.success("Category deleted successfully");
-        navigate({ to: "/kb/categories" });
+        navigate({ to: "/kb/categories" as any });
       },
-      onError: (error) => {
+      onError: (error: any) => {
         toast.error(`Failed to delete category: ${error.message}`);
       },
     }),
@@ -112,7 +99,7 @@ function KbCategoryDetailRoute() {
   const handleSave = () => {
     updateMutation.mutate({
       organizationId,
-      id: categoryId,
+      id: category.id,
       ...editData,
     });
   };
@@ -121,7 +108,7 @@ function KbCategoryDetailRoute() {
     if (confirm("Are you sure you want to delete this category?")) {
       deleteMutation.mutate({
         organizationId,
-        id: categoryId,
+        id: category.id,
         deletedBy: 1,
       });
     }
@@ -139,17 +126,9 @@ function KbCategoryDetailRoute() {
     updateArticleMutation.mutate({
       organizationId,
       id: articleId,
-      categoryId,
+      categoryId: category.id,
     });
   };
-
-  if (isLoading) {
-    return (
-      <div className="flex justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
-  }
 
   if (!category) {
     return (
@@ -169,7 +148,9 @@ function KbCategoryDetailRoute() {
     );
   }
 
-  const availableArticles = allArticles?.filter((a) => !articles?.some((ca) => ca.id === a.id));
+  const availableArticles = allArticles?.filter(
+    (a: any) => !articles?.some((ca: any) => ca.id === a.id),
+  );
 
   return (
     <div className="container mx-auto max-w-4xl px-4 py-6">
@@ -248,15 +229,13 @@ function KbCategoryDetailRoute() {
               Articles ({articles?.length || 0})
             </span>
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button size="sm">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Article
-                </Button>
+              <DropdownMenuTrigger className="inline-flex shrink-0 items-center justify-center rounded-none border border-transparent bg-clip-padding text-xs font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-1 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 h-7 gap-1 rounded-none px-2.5 has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5 border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50">
+                <Plus className="h-4 w-4 mr-2" />
+                Add Article
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-64">
                 {availableArticles && availableArticles.length > 0 ? (
-                  availableArticles.map((article) => (
+                  availableArticles.map((article: any) => (
                     <DropdownMenuItem key={article.id} onClick={() => handleAddArticle(article.id)}>
                       {article.title}
                     </DropdownMenuItem>
@@ -271,13 +250,13 @@ function KbCategoryDetailRoute() {
         <CardContent>
           {articles && articles.length > 0 ? (
             <div className="space-y-2">
-              {articles.map((article) => (
+              {articles.map((article: any) => (
                 <div
                   key={article.id}
                   className="flex items-center justify-between p-3 rounded border"
                 >
                   <Link
-                    to="/kb/slug"
+                    to="/kb/$slug"
                     params={{ slug: article.slug }}
                     className="flex items-center gap-3 flex-1"
                   >

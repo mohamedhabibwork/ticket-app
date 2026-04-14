@@ -31,7 +31,11 @@ import { Route as SettingsProfileRouteImport } from "./routes/settings/profile";
 import { Route as SettingsPasswordRouteImport } from "./routes/settings/password";
 import { Route as SettingsNotificationsRouteImport } from "./routes/settings/notifications";
 import { Route as SettingsAppearanceRouteImport } from "./routes/settings/appearance";
+import { Route as PortalVerifyOtpRouteImport } from "./routes/portal/verify-otp";
+import { Route as PortalResetPasswordRouteImport } from "./routes/portal/reset-password";
+import { Route as PortalRegisterRouteImport } from "./routes/portal/register";
 import { Route as PortalLoginRouteImport } from "./routes/portal/login";
+import { Route as PortalForgotPasswordRouteImport } from "./routes/portal/forgot-password";
 import { Route as KbNewRouteImport } from "./routes/kb/new";
 import { Route as KbSlugRouteImport } from "./routes/kb/$slug";
 import { Route as FormsChar91idChar93RouteImport } from "./routes/forms/[id]";
@@ -210,9 +214,29 @@ const SettingsAppearanceRoute = SettingsAppearanceRouteImport.update({
   path: "/settings/appearance",
   getParentRoute: () => rootRouteImport,
 } as any);
+const PortalVerifyOtpRoute = PortalVerifyOtpRouteImport.update({
+  id: "/portal/verify-otp",
+  path: "/portal/verify-otp",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const PortalResetPasswordRoute = PortalResetPasswordRouteImport.update({
+  id: "/portal/reset-password",
+  path: "/portal/reset-password",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const PortalRegisterRoute = PortalRegisterRouteImport.update({
+  id: "/portal/register",
+  path: "/portal/register",
+  getParentRoute: () => rootRouteImport,
+} as any);
 const PortalLoginRoute = PortalLoginRouteImport.update({
   id: "/portal/login",
   path: "/portal/login",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const PortalForgotPasswordRoute = PortalForgotPasswordRouteImport.update({
+  id: "/portal/forgot-password",
+  path: "/portal/forgot-password",
   getParentRoute: () => rootRouteImport,
 } as any);
 const KbNewRoute = KbNewRouteImport.update({
@@ -569,7 +593,11 @@ export interface FileRoutesByFullPath {
   "/forms/id": typeof FormsChar91idChar93Route;
   "/kb/$slug": typeof KbSlugRoute;
   "/kb/new": typeof KbNewRoute;
+  "/portal/forgot-password": typeof PortalForgotPasswordRoute;
   "/portal/login": typeof PortalLoginRoute;
+  "/portal/register": typeof PortalRegisterRoute;
+  "/portal/reset-password": typeof PortalResetPasswordRoute;
+  "/portal/verify-otp": typeof PortalVerifyOtpRoute;
   "/settings/appearance": typeof SettingsAppearanceRoute;
   "/settings/notifications": typeof SettingsNotificationsRoute;
   "/settings/password": typeof SettingsPasswordRoute;
@@ -661,7 +689,11 @@ export interface FileRoutesByTo {
   "/forms/id": typeof FormsChar91idChar93Route;
   "/kb/$slug": typeof KbSlugRoute;
   "/kb/new": typeof KbNewRoute;
+  "/portal/forgot-password": typeof PortalForgotPasswordRoute;
   "/portal/login": typeof PortalLoginRoute;
+  "/portal/register": typeof PortalRegisterRoute;
+  "/portal/reset-password": typeof PortalResetPasswordRoute;
+  "/portal/verify-otp": typeof PortalVerifyOtpRoute;
   "/settings/appearance": typeof SettingsAppearanceRoute;
   "/settings/notifications": typeof SettingsNotificationsRoute;
   "/settings/password": typeof SettingsPasswordRoute;
@@ -754,7 +786,11 @@ export interface FileRoutesById {
   "/forms/id": typeof FormsChar91idChar93Route;
   "/kb/$slug": typeof KbSlugRoute;
   "/kb/new": typeof KbNewRoute;
+  "/portal/forgot-password": typeof PortalForgotPasswordRoute;
   "/portal/login": typeof PortalLoginRoute;
+  "/portal/register": typeof PortalRegisterRoute;
+  "/portal/reset-password": typeof PortalResetPasswordRoute;
+  "/portal/verify-otp": typeof PortalVerifyOtpRoute;
   "/settings/appearance": typeof SettingsAppearanceRoute;
   "/settings/notifications": typeof SettingsNotificationsRoute;
   "/settings/password": typeof SettingsPasswordRoute;
@@ -848,7 +884,11 @@ export interface FileRouteTypes {
     | "/forms/id"
     | "/kb/$slug"
     | "/kb/new"
+    | "/portal/forgot-password"
     | "/portal/login"
+    | "/portal/register"
+    | "/portal/reset-password"
+    | "/portal/verify-otp"
     | "/settings/appearance"
     | "/settings/notifications"
     | "/settings/password"
@@ -940,7 +980,11 @@ export interface FileRouteTypes {
     | "/forms/id"
     | "/kb/$slug"
     | "/kb/new"
+    | "/portal/forgot-password"
     | "/portal/login"
+    | "/portal/register"
+    | "/portal/reset-password"
+    | "/portal/verify-otp"
     | "/settings/appearance"
     | "/settings/notifications"
     | "/settings/password"
@@ -1032,7 +1076,11 @@ export interface FileRouteTypes {
     | "/forms/id"
     | "/kb/$slug"
     | "/kb/new"
+    | "/portal/forgot-password"
     | "/portal/login"
+    | "/portal/register"
+    | "/portal/reset-password"
+    | "/portal/verify-otp"
     | "/settings/appearance"
     | "/settings/notifications"
     | "/settings/password"
@@ -1125,7 +1173,11 @@ export interface RootRouteChildren {
   FormsChar91idChar93Route: typeof FormsChar91idChar93Route;
   KbSlugRoute: typeof KbSlugRoute;
   KbNewRoute: typeof KbNewRoute;
+  PortalForgotPasswordRoute: typeof PortalForgotPasswordRoute;
   PortalLoginRoute: typeof PortalLoginRoute;
+  PortalRegisterRoute: typeof PortalRegisterRoute;
+  PortalResetPasswordRoute: typeof PortalResetPasswordRoute;
+  PortalVerifyOtpRoute: typeof PortalVerifyOtpRoute;
   SettingsAppearanceRoute: typeof SettingsAppearanceRoute;
   SettingsNotificationsRoute: typeof SettingsNotificationsRoute;
   SettingsPasswordRoute: typeof SettingsPasswordRoute;
@@ -1360,11 +1412,39 @@ declare module "@tanstack/react-router" {
       preLoaderRoute: typeof SettingsAppearanceRouteImport;
       parentRoute: typeof rootRouteImport;
     };
+    "/portal/verify-otp": {
+      id: "/portal/verify-otp";
+      path: "/portal/verify-otp";
+      fullPath: "/portal/verify-otp";
+      preLoaderRoute: typeof PortalVerifyOtpRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/portal/reset-password": {
+      id: "/portal/reset-password";
+      path: "/portal/reset-password";
+      fullPath: "/portal/reset-password";
+      preLoaderRoute: typeof PortalResetPasswordRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/portal/register": {
+      id: "/portal/register";
+      path: "/portal/register";
+      fullPath: "/portal/register";
+      preLoaderRoute: typeof PortalRegisterRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
     "/portal/login": {
       id: "/portal/login";
       path: "/portal/login";
       fullPath: "/portal/login";
       preLoaderRoute: typeof PortalLoginRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/portal/forgot-password": {
+      id: "/portal/forgot-password";
+      path: "/portal/forgot-password";
+      fullPath: "/portal/forgot-password";
+      preLoaderRoute: typeof PortalForgotPasswordRouteImport;
       parentRoute: typeof rootRouteImport;
     };
     "/kb/new": {
@@ -1853,7 +1933,11 @@ const rootRouteChildren: RootRouteChildren = {
   FormsChar91idChar93Route: FormsChar91idChar93Route,
   KbSlugRoute: KbSlugRoute,
   KbNewRoute: KbNewRoute,
+  PortalForgotPasswordRoute: PortalForgotPasswordRoute,
   PortalLoginRoute: PortalLoginRoute,
+  PortalRegisterRoute: PortalRegisterRoute,
+  PortalResetPasswordRoute: PortalResetPasswordRoute,
+  PortalVerifyOtpRoute: PortalVerifyOtpRoute,
   SettingsAppearanceRoute: SettingsAppearanceRoute,
   SettingsNotificationsRoute: SettingsNotificationsRoute,
   SettingsPasswordRoute: SettingsPasswordRoute,

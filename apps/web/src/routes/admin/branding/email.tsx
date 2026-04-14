@@ -24,6 +24,9 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/admin/branding/email")({
+  loader: async () => {
+    return {};
+  },
   component: EmailTemplateCustomizationRoute,
 });
 

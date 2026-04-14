@@ -405,7 +405,7 @@ export const usersRouter = {
     .input(
       z.object({
         userId: z.coerce.number(),
-        method: z.enum(["totp"]),
+        method: z.enum(["totp", "email_otp"]),
       }),
     )
     .handler(async ({ input }) => {
@@ -415,6 +415,30 @@ export const usersRouter = {
 
       if (!user) {
         throw new Error("User not found");
+      }
+
+      if (input.method === "email_otp") {
+        await db
+          .insert(twoFactorAuth)
+          .values({
+            userId: input.userId,
+            method: input.method,
+            isEnabled: false,
+          })
+          .onConflictDoUpdate({
+            target: twoFactorAuth.userId,
+            set: {
+              method: input.method,
+              totpSecret: null,
+              isEnabled: false,
+              updatedAt: new Date(),
+            },
+          });
+
+        return {
+          method: "email_otp",
+          message: "Email OTP 2FA setup initiated. A verification code will be sent to your email.",
+        };
       }
 
       const secret = authenticator.generateSecret();
@@ -481,6 +505,128 @@ export const usersRouter = {
           updatedAt: new Date(),
         })
         .where(eq(twoFactorAuth.userId, input.userId));
+
+      return { success: true };
+    }),
+
+  verify2FAEmailOtp: publicProcedure
+    .input(
+      z.object({
+        userId: z.coerce.number(),
+        code: z.string().length(6),
+      }),
+    )
+    .handler(async ({ input }) => {
+      const tfa = await db.query.twoFactorAuth.findFirst({
+        where: and(eq(twoFactorAuth.userId, input.userId), eq(twoFactorAuth.method, "email_otp")),
+      });
+
+      if (!tfa) {
+        throw new Error("Email OTP 2FA not set up for this user");
+      }
+
+      const { verifyOtp } = await import("../services/otp");
+
+      const user = await db.query.users.findFirst({
+        where: eq(users.id, input.userId),
+      });
+
+      if (!user) {
+        throw new Error("User not found");
+      }
+
+      const result = await verifyOtp(user.email, undefined, input.code, "2fa_email");
+
+      if (!result.valid) {
+        throw new Error(result.error || "Invalid verification code");
+      }
+
+      await db
+        .update(twoFactorAuth)
+        .set({
+          isEnabled: true,
+          enabledAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .where(eq(twoFactorAuth.userId, input.userId));
+
+      return { success: true };
+    }),
+
+  requestEmailVerification: publicProcedure
+    .input(
+      z.object({
+        email: z.email(),
+        userId: z.coerce.number().optional(),
+      }),
+    )
+    .handler(async ({ input }) => {
+      const user = await db.query.users.findFirst({
+        where: and(eq(users.email, input.email.toLowerCase()), isNull(users.deletedAt)),
+      });
+
+      if (!user) {
+        return { success: true, message: "If the email exists, a verification code has been sent" };
+      }
+
+      if (user.emailVerifiedAt) {
+        return { success: true, message: "Email is already verified" };
+      }
+
+      const { createOtp, sendOtpViaEmail } = await import("../services/otp");
+
+      const { code, expiresAt } = await createOtp(input.email, undefined, "email_verification");
+
+      const sendResult = await sendOtpViaEmail(input.email, code, "email_verification");
+
+      if (!sendResult.success) {
+        throw new Error(sendResult.error || "Failed to send verification email");
+      }
+
+      return { success: true, expiresAt: expiresAt.toISOString() };
+    }),
+
+  verifyEmailWithOtp: publicProcedure
+    .input(
+      z.object({
+        email: z.email(),
+        code: z.string().length(6),
+      }),
+    )
+    .handler(async ({ input }) => {
+      const { verifyOtp, validateOtpTempToken } = await import("../services/otp");
+
+      const result = await verifyOtp(input.email, undefined, input.code, "email_verification");
+
+      if (!result.valid) {
+        throw new Error(result.error || "Invalid verification code");
+      }
+
+      if (!result.tempToken) {
+        throw new Error("Invalid OTP session");
+      }
+
+      const tokenValidation = await validateOtpTempToken(result.tempToken, "email_verification");
+
+      if (!tokenValidation.valid) {
+        throw new Error(tokenValidation.error || "Invalid or expired session");
+      }
+
+      const user = await db.query.users.findFirst({
+        where: and(eq(users.email, input.email.toLowerCase()), isNull(users.deletedAt)),
+      });
+
+      if (!user) {
+        throw new Error("User not found");
+      }
+
+      await db
+        .update(users)
+        .set({
+          emailVerifiedAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, user.id));
 
       return { success: true };
     }),

@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Button } from "@ticket-app/ui/components/button";
 import {
@@ -25,6 +25,8 @@ import {
   GitBranch,
   Hammer,
 } from "lucide-react";
+import { useWorkflowExecutionLogs } from "@/hooks";
+import { getCurrentOrganizationId } from "@/utils/auth";
 
 const TRIGGER_LABELS: Record<string, string> = {
   ticket_created: "Ticket Created",
@@ -56,6 +58,21 @@ function formatDate(date: Date | string | null | undefined): string {
 }
 
 export const Route = createFileRoute("/admin/workflows/id/")({
+  loader: async ({ context, params }) => {
+    const workflowId = Number(params.id);
+    const [workflow, logs] = await Promise.all([
+      context.orpc.workflows.get.query({
+        id: workflowId,
+        organizationId: getCurrentOrganizationId()!,
+      }),
+      context.orpc.workflows.getExecutionLogs.query({
+        workflowId,
+        organizationId: getCurrentOrganizationId()!,
+        limit: 5,
+      }),
+    ]);
+    return { workflow, logs };
+  },
   component: WorkflowDetailRoute,
 });
 
@@ -64,21 +81,13 @@ function WorkflowDetailRoute() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const workflowId = Number(id);
+  const { workflow, logs } = Route.useLoaderData<typeof Route>();
 
-  const { data: workflow, isLoading }: any = useQuery(
-    orpc.workflows.get.queryOptions({
-      id: workflowId,
-      organizationId: 1,
-    }) as any,
-  );
-
-  const { data: logs }: any = useQuery(
-    orpc.workflows.getExecutionLogs.queryOptions({
-      workflowId,
-      organizationId: 1,
-      limit: 5,
-    }) as any,
-  );
+  useWorkflowExecutionLogs({
+    workflowId,
+    organizationId: getCurrentOrganizationId()!,
+    limit: 5,
+  });
 
   const toggleActiveMutation = useMutation(
     orpc.workflows.toggleActive.mutationOptions({
@@ -92,7 +101,7 @@ function WorkflowDetailRoute() {
     if (!workflow) return;
     toggleActiveMutation.mutate({
       id: workflowId,
-      organizationId: 1,
+      organizationId: getCurrentOrganizationId()!,
       isActive: !workflow.isActive,
     } as any);
   };
@@ -100,16 +109,6 @@ function WorkflowDetailRoute() {
   const handleEdit = () => {
     navigate({ to: "/admin/workflows/builder", search: { workflowId } });
   };
-
-  if (isLoading) {
-    return (
-      <div className="container mx-auto max-w-4xl py-8">
-        <div className="flex items-center justify-center py-12">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-        </div>
-      </div>
-    );
-  }
 
   if (!workflow) {
     return (

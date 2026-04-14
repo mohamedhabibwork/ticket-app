@@ -1,10 +1,8 @@
-import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Card, CardContent, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
 import { Button } from "@ticket-app/ui/components/button";
 import { Loader2, GitMerge, ArrowUpRight } from "lucide-react";
-
-import { orpc } from "@/utils/orpc";
+import { getCurrentOrganizationId } from "@/utils/auth";
 
 function formatRelativeTime(date: Date | string): string {
   const now = new Date();
@@ -23,23 +21,25 @@ function formatRelativeTime(date: Date | string): string {
 }
 
 export const Route = createFileRoute("/tickets/merged")({
+  loader: async ({ context }) => {
+    const organizationId = getCurrentOrganizationId()!;
+    const mergedTickets = await context.orpc.tickets.list.query({
+      organizationId,
+      limit: 100,
+    });
+    return { mergedTickets };
+  },
   component: MergedTicketsRoute,
 });
 
 function MergedTicketsRoute() {
-  const organizationId = 1;
+  const { mergedTickets } = Route.useLoaderData<typeof Route>();
 
-  const { data: mergedTickets, isLoading } = useQuery(
-    orpc.tickets.list.queryOptions({
-      organizationId,
-      limit: 100,
-    }),
-  );
-
-  const isMergedTickets = mergedTickets?.filter((t) => t.isMerged) || [];
+  const isMergedTickets = mergedTickets?.filter((t: any) => t.isMerged) || [];
+  const isLoading = !mergedTickets;
 
   const mergedGroups = isMergedTickets.reduce(
-    (acc, ticket) => {
+    (acc: any, ticket: any) => {
       const masterId = ticket.parentTicketId;
       if (masterId) {
         if (!acc[masterId]) {
@@ -68,7 +68,7 @@ function MergedTicketsRoute() {
         </div>
       ) : isMergedTickets.length > 0 ? (
         <div className="space-y-6">
-          {Object.entries(mergedGroups).map(([masterId, tickets]) => {
+          {Object.entries(mergedGroups).map(([masterId, tickets]: [string, any]) => {
             const masterTicket = tickets[0];
             return (
               <Card key={masterId}>
@@ -85,7 +85,7 @@ function MergedTicketsRoute() {
                         </span>
                       </div>
                     </div>
-                    <Link to="/tickets/id" params={{ id: masterId }}>
+                    <Link to={"/tickets/id" as any} params={{ id: masterId } as any}>
                       <Button variant="outline" size="sm">
                         <ArrowUpRight className="h-4 w-4 mr-1" />
                         View Master
@@ -99,7 +99,7 @@ function MergedTicketsRoute() {
                     <p className="text-sm font-medium text-muted-foreground">
                       Merged Tickets ({tickets.length})
                     </p>
-                    {tickets.map((ticket) => (
+                    {tickets.map((ticket: any) => (
                       <div
                         key={ticket.id}
                         className="flex items-center justify-between rounded border p-3"

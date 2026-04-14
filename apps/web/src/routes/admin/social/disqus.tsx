@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import {
   Card,
   CardContent,
@@ -20,6 +20,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { orpc } from "@/utils/orpc";
+import { useDisqusAccounts } from "@/hooks";
 
 function formatRelativeTime(date: Date | string): string {
   const now = new Date();
@@ -38,6 +39,9 @@ function formatRelativeTime(date: Date | string): string {
 }
 
 export const Route = createFileRoute("/admin/social/disqus")({
+  loader: async () => {
+    return {};
+  },
   component: DisqusConnectionRoute,
 });
 
@@ -48,15 +52,7 @@ function DisqusConnectionRoute() {
   const [accessToken, setAccessToken] = useState("");
   const [showManualForm, setShowManualForm] = useState(false);
 
-  const {
-    data: accounts,
-    isLoading,
-    refetch,
-  }: any = useQuery(
-    orpc.disqus.listAccounts.queryOptions({
-      organizationId: 1,
-    } as any),
-  );
+  const { data: accounts, isLoading, refetch }: any = useDisqusAccounts({ organizationId });
 
   const connectMutation = useMutation(
     orpc.disqus.connectDisqusForum.mutationOptions({
@@ -86,7 +82,7 @@ function DisqusConnectionRoute() {
   const handleManualConnect = () => {
     if (!forumShortname || !apiKey || !apiSecret) return;
     connectMutation.mutate({
-      organizationId: 1,
+      organizationId,
       forumShortname,
       apiKey,
       apiSecret,
@@ -153,7 +149,7 @@ function DisqusConnectionRoute() {
                         onClick={() =>
                           testConnectionMutation.mutate({
                             id: account.id,
-                            organizationId: 1,
+                            organizationId,
                           } as any)
                         }
                         disabled={testConnectionMutation.isPending}
@@ -166,7 +162,7 @@ function DisqusConnectionRoute() {
                         variant="ghost"
                         size="sm"
                         onClick={() =>
-                          disconnectMutation.mutate({ id: account.id, organizationId: 1 } as any)
+                          disconnectMutation.mutate({ id: account.id, organizationId } as any)
                         }
                         disabled={disconnectMutation.isPending}
                       >
@@ -338,7 +334,7 @@ function DisqusConnectionRoute() {
                       variant="ghost"
                       size="icon"
                       onClick={() =>
-                        testConnectionMutation.mutate({ id: account.id, organizationId: 1 } as any)
+                        testConnectionMutation.mutate({ id: account.id, organizationId } as any)
                       }
                       disabled={testConnectionMutation.isPending}
                     >
@@ -351,7 +347,7 @@ function DisqusConnectionRoute() {
                       size="icon"
                       onClick={() => {
                         if (confirm("Are you sure you want to disconnect this forum?")) {
-                          disconnectMutation.mutate({ id: account.id, organizationId: 1 } as any);
+                          disconnectMutation.mutate({ id: account.id, organizationId } as any);
                         }
                       }}
                       disabled={disconnectMutation.isPending}

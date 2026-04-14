@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useLicenseSeatInfo } from "@/hooks";
 import {
   Card,
   CardContent,
@@ -13,12 +14,17 @@ import { Input } from "@ticket-app/ui/components/input";
 import { Label } from "@ticket-app/ui/components/label";
 import { Loader2, Key, Shield, CheckCircle, XCircle, AlertTriangle, Server } from "lucide-react";
 import { orpc } from "@/utils/orpc";
+import { useOrganization } from "@/hooks/useOrganization";
 
 export const Route = createFileRoute("/admin/settings/license")({
+  loader: async () => {
+    return {};
+  },
   component: LicenseSettingsRoute,
 });
 
 function LicenseSettingsRoute() {
+  const { organizationId } = useOrganization();
   const [licenseKey, setLicenseKey] = useState("");
   const [domain, setDomain] = useState("");
   const [signature, setSignature] = useState("");
@@ -32,15 +38,11 @@ function LicenseSettingsRoute() {
     refetch,
   }: any = useQuery(
     orpc.onPremise.getLicenseStatus.queryOptions({
-      organizationId: 1,
+      organizationId,
     } as any),
   );
 
-  const { data: seatInfo, isLoading: _seatLoading }: any = useQuery(
-    orpc.onPremise.checkSeatLimit.queryOptions({
-      organizationId: 1,
-    } as any),
-  );
+  const { data: seatInfo, isLoading: _seatLoading } = useLicenseSeatInfo({ organizationId });
 
   const verifyMutation = useMutation(
     orpc.onPremise.verifyLicense.mutationOptions({
@@ -57,7 +59,7 @@ function LicenseSettingsRoute() {
     if (!licenseKey || !domain) return;
 
     verifyMutation.mutate({
-      organizationId: 1,
+      organizationId,
       licenseKey,
       domain,
       signature,

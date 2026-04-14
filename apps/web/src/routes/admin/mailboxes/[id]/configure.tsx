@@ -14,8 +14,16 @@ import { Label } from "@ticket-app/ui/components/label";
 import { Checkbox } from "@ticket-app/ui/components/checkbox";
 import { Loader2, ArrowLeft, Save, Play, Eye, EyeOff } from "lucide-react";
 import { orpc } from "@/utils/orpc";
+import { getCurrentOrganizationId } from "@/utils/auth";
+import { useOrganization } from "@/hooks/useOrganization";
 
 export const Route = createFileRoute("/admin/mailboxes/id/configure")({
+  loader: async ({ context, params }) => {
+    const mailboxId = Number(params.id);
+    const organizationId = getCurrentOrganizationId()!;
+    const mailbox = await context.orpc.mailboxes.get.query({ id: mailboxId, organizationId });
+    return { mailbox };
+  },
   component: MailboxConfigureRoute,
 });
 
@@ -23,10 +31,10 @@ function MailboxConfigureRoute() {
   const { id }: any = Route.useParams();
   const navigate = useNavigate();
   const mailboxId = Number(id);
+  const { organizationId } = useOrganization();
+  const { mailbox } = Route.useLoaderData<typeof Route>();
 
-  const organizationId = 1;
-
-  const { data: mailbox, isLoading }: any = useQuery(
+  const { isLoading }: any = useQuery(
     orpc.mailboxes.get.queryOptions({
       id: mailboxId,
       organizationId,

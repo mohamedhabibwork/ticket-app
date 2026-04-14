@@ -3,6 +3,9 @@ import { Card, CardContent } from "@ticket-app/ui/components/card";
 import { User, Lock, Bell, Palette, ChevronRight } from "lucide-react";
 
 export const Route = createFileRoute("/settings/")({
+  loader: async () => {
+    return {};
+  },
   component: SettingsIndexRoute,
 });
 

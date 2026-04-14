@@ -9,6 +9,9 @@ import { useRef, useEffect, useState, type FormEvent } from "react";
 import { Streamdown } from "streamdown";
 
 export const Route = createFileRoute("/ai")({
+  loader: async () => {
+    return {};
+  },
   component: RouteComponent,
 });
 

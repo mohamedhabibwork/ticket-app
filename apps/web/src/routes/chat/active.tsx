@@ -1,6 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@ticket-app/ui/components/button";
 import { Card, CardContent } from "@ticket-app/ui/components/card";
 import {
@@ -11,7 +10,8 @@ import {
 } from "@ticket-app/ui/components/dropdown-menu";
 import { Loader2, Clock, User, MessageSquare, UserPlus } from "lucide-react";
 
-import { orpc } from "@/utils/orpc";
+import { useActiveChatSessions, useAssignChatAgent } from "@/hooks/chat";
+import { getCurrentOrganizationId } from "@/utils/auth";
 
 function formatWaitTime(startedAt: Date | string): string {
   const now = new Date();
@@ -27,47 +27,37 @@ function formatWaitTime(startedAt: Date | string): string {
 }
 
 export const Route = createFileRoute("/chat/active")({
+  loader: async ({ context }) => {
+    return {
+      sessions: context.orpc.chat.activeSessions.queryOptions({
+        organizationId: getCurrentOrganizationId()!,
+      }),
+      agents: context.orpc.users.list.queryOptions({
+        organizationId: getCurrentOrganizationId()!,
+        isActive: true,
+        limit: 100,
+      }),
+    };
+  },
   component: ActiveChatSessionsRoute,
 });
 
 function ActiveChatSessionsRoute() {
-  const queryClient = useQueryClient();
-  const organizationId = 1;
+  const { organizationId } = useOrganization();
 
-  const { data: sessions, isLoading }: any = useQuery(
-    orpc.chatSessions.getActiveSessions.queryOptions({
-      organizationId,
-    }) as any,
-  );
+  const loaderData = Route.useLoaderData<(typeof Route)["loader"]>();
+  const { data: sessions, isLoading } = useActiveChatSessions({ organizationId });
 
-  const { data: agents }: any = useQuery(
-    orpc.users.list.queryOptions({
-      organizationId,
-      isActive: true,
-      limit: 100,
-    }) as any,
-  );
+  const { data: agents }: any = useQuery(loaderData.agents as any);
 
-  const assignMutation = useMutation(
-    orpc.chatSessions.assignAgent.mutationOptions({
-      onSuccess: () => {
-        toast.success("Chat assigned successfully");
-        queryClient.invalidateQueries(
-          orpc.chatSessions.getActiveSessions.queryOptions({ organizationId }) as any,
-        );
-      },
-      onError: (error: any) => {
-        toast.error(`Failed to assign chat: ${error.message}`);
-      },
-    }) as any,
-  );
+  const assignMutation = useAssignChatAgent();
 
   const handleAssign = (sessionId: number, agentId: number) => {
     assignMutation.mutate({
       id: sessionId,
       organizationId,
       agentId,
-    } as any);
+    });
   };
 
   const waitingSessions = sessions?.filter((s: any) => s.status === "waiting");
@@ -93,7 +83,7 @@ function ActiveChatSessionsRoute() {
                 Waiting ({waitingSessions.length})
               </h2>
               <div className="space-y-3">
-                {waitingSessions.map((session) => (
+                {waitingSessions.map((session: any) => (
                   <Card key={session.id} className="hover:bg-accent/50 transition-colors">
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between">
@@ -129,14 +119,12 @@ function ActiveChatSessionsRoute() {
                         </div>
                         <div className="flex items-center gap-2">
                           <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button size="sm" variant="outline">
-                                <UserPlus className="h-4 w-4 mr-2" />
-                                Assign
-                              </Button>
+                            <DropdownMenuTrigger className="inline-flex shrink-0 items-center justify-center rounded-none border border-transparent bg-clip-padding text-xs font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-1 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 h-7 gap-1 rounded-none px-2.5 has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5 border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50">
+                              <UserPlus className="h-4 w-4 mr-2" />
+                              Assign
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              {agents?.users?.map((agent) => (
+                              {agents?.users?.map((agent: any) => (
                                 <DropdownMenuItem
                                   key={agent.id}
                                   onClick={() => handleAssign(session.id, agent.id)}
@@ -168,7 +156,7 @@ function ActiveChatSessionsRoute() {
                 Active ({activeSessions.length})
               </h2>
               <div className="space-y-3">
-                {activeSessions.map((session) => (
+                {activeSessions.map((session: any) => (
                   <Card key={session.id} className="hover:bg-accent/50 transition-colors">
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between">

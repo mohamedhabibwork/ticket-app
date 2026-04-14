@@ -6,7 +6,13 @@ import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
 export default defineConfig({
-  plugins: [tailwindcss(), tanstackRouter({}), react()],
+  plugins: [
+    tailwindcss(),
+    tanstackRouter({
+      routeFileIgnorePattern: "_-layout\\.tsx$",
+    }),
+    react(),
+  ],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMobileSdkConfigs } from "@/hooks";
 import {
   Card,
   CardContent,
@@ -13,12 +14,17 @@ import { Input } from "@ticket-app/ui/components/input";
 import { Label } from "@ticket-app/ui/components/label";
 import { Loader2, Smartphone, Plus, Trash2, CheckCircle, XCircle } from "lucide-react";
 import { orpc } from "@/utils/orpc";
+import { useOrganization } from "@/hooks/useOrganization";
 
 export const Route = createFileRoute("/admin/settings/mobile-sdk")({
+  loader: async () => {
+    return {};
+  },
   component: MobileSdkSettingsRoute,
 });
 
 function MobileSdkSettingsRoute() {
+  const { organizationId } = useOrganization();
   const _queryClient = useQueryClient();
   const [showAddForm, setShowAddForm] = useState(false);
   const [platform, setPlatform] = useState<"ios" | "android">("android");
@@ -29,15 +35,7 @@ function MobileSdkSettingsRoute() {
   const [apnsKey, setApnsKey] = useState("");
   const [apnsBundleId, setApnsBundleId] = useState("");
 
-  const {
-    data: configs,
-    isLoading,
-    refetch,
-  }: any = useQuery(
-    orpc.mobileSdk.listConfigs.queryOptions({
-      organizationId: 1,
-    } as any),
-  );
+  const { data: configs, isLoading, refetch } = useMobileSdkConfigs({ organizationId });
 
   const createMutation = useMutation(
     orpc.mobileSdk.createConfig.mutationOptions({
@@ -75,7 +73,7 @@ function MobileSdkSettingsRoute() {
     if (!appBundleId) return;
 
     createMutation.mutate({
-      organizationId: 1,
+      organizationId,
       platform,
       appBundleId,
       fcmServerKey: platform === "android" ? fcmServerKey : undefined,

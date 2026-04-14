@@ -1,4 +1,3 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { Button } from "@ticket-app/ui/components/button";
@@ -19,7 +18,6 @@ import {
   SelectValue,
 } from "@ticket-app/ui/components/select";
 import { Badge } from "@ticket-app/ui/components/badge";
-import { orpc } from "@/utils/orpc";
 import {
   MoreHorizontal,
   Plus,
@@ -32,6 +30,12 @@ import {
   Filter,
   Zap,
 } from "lucide-react";
+import {
+  useWorkflowsList,
+  useWorkflowDelete,
+  useWorkflowToggleActive,
+} from "@/hooks/admin/workflows";
+import { getCurrentOrganizationId } from "@/utils/auth";
 
 const TRIGGER_LABELS: Record<string, string> = {
   ticket_created: "Ticket Created",
@@ -60,51 +64,39 @@ function formatRelativeTime(date: Date | string): string {
 }
 
 export const Route = createFileRoute("/admin/workflows/")({
+  loader: async ({ context }) => {
+    const workflows = await context.orpc.workflows.list.query({
+      organizationId: getCurrentOrganizationId()!,
+    });
+    return { workflows };
+  },
   component: WorkflowListRoute,
 });
 
 function WorkflowListRoute() {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
   const [triggerFilter, setTriggerFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
-  const { data: workflows, isLoading }: any = useQuery(
-    orpc.workflows.list.queryOptions({
-      organizationId: 1,
-      isActive: statusFilter === "all" ? undefined : statusFilter === "active",
-    }) as any,
-  );
-
-  const deleteMutation = useMutation(
-    orpc.workflows.delete.mutationOptions({
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["workflows"] });
-      },
-    }),
-  );
-
-  const toggleActiveMutation = useMutation(
-    orpc.workflows.toggleActive.mutationOptions({
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["workflows"] });
-      },
-    }),
-  );
+  const { workflows } = Route.useLoaderData<typeof Route>();
+  const isActive = statusFilter === "all" ? undefined : statusFilter === "active";
+  const { isLoading } = useWorkflowsList({ organizationId: getCurrentOrganizationId()!, isActive });
+  const deleteMutation = useWorkflowDelete();
+  const toggleActiveMutation = useWorkflowToggleActive();
 
   const handleDelete = (workflowId: number, workflowName: string) => {
     if (
       confirm(`Are you sure you want to delete "${workflowName}"? This action cannot be undone.`)
     ) {
-      deleteMutation.mutate({ id: workflowId, organizationId: 1 } as any);
+      deleteMutation.mutate({ id: workflowId, organizationId: getCurrentOrganizationId()! } as any);
     }
   };
 
   const handleToggleActive = (workflowId: number, currentStatus: boolean) => {
     toggleActiveMutation.mutate({
       id: workflowId,
-      organizationId: 1,
+      organizationId: getCurrentOrganizationId()!,
       isActive: !currentStatus,
     } as any);
   };
@@ -243,10 +235,8 @@ function WorkflowListRoute() {
                       )}
                     </Button>
                     <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
+                      <DropdownMenuTrigger className="inline-flex shrink-0 items-center justify-center rounded-none border border-transparent bg-clip-padding text-xs font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-1 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 h-7 gap-1 rounded-none hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50">
+                        <MoreHorizontal className="h-4 w-4" />
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem onClick={() => handleEditWorkflow(workflow.id!)}>

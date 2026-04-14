@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { Button } from "@ticket-app/ui/components/button";
 import {
   Card,
@@ -12,14 +12,23 @@ import {
 import { Input } from "@ticket-app/ui/components/input";
 import { Label } from "@ticket-app/ui/components/label";
 import { Checkbox } from "@ticket-app/ui/components/checkbox";
-import { orpc } from "@/utils/orpc";
 import { ArrowLeft, Mail, Send, User, Shield } from "lucide-react";
+import { orpc } from "@/utils/orpc";
+import { getCurrentOrganizationId } from "@/utils/auth";
+import { useOrganization } from "@/hooks/useOrganization";
 
 export const Route = createFileRoute("/admin/users/invite")({
+  loader: async ({ context }) => {
+    const rolesData = await context.orpc.users.listRoles.query({
+      organizationId: getCurrentOrganizationId()!,
+    });
+    return { rolesData };
+  },
   component: InviteUserRoute,
 });
 
 function InviteUserRoute() {
+  const { organizationId } = useOrganization();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: "",
@@ -30,10 +39,7 @@ function InviteUserRoute() {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const { data: rolesData, isLoading: rolesLoading } = useQuery({
-    queryKey: ["roles"],
-    queryFn: () => orpc.users.listRoles.query({ organizationId: 1 }),
-  });
+  const { rolesData } = Route.useLoaderData<typeof Route>();
 
   const inviteMutation = useMutation(
     orpc.users.create.mutationOptions({
@@ -73,7 +79,7 @@ function InviteUserRoute() {
     if (!validateForm()) return;
 
     inviteMutation.mutate({
-      organizationId: 1,
+      organizationId,
       email: formData.email,
       firstName: formData.firstName,
       lastName: formData.lastName,
@@ -171,18 +177,12 @@ function InviteUserRoute() {
                   className="h-8 w-full min-w-0 rounded-none border border-input bg-transparent pl-9 pr-2.5 py-1 text-xs transition-colors outline-none focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50"
                 >
                   <option value="">Select a role</option>
-                  {rolesLoading ? (
-                    <option value="" disabled>
-                      Loading roles...
+                  {rolesData?.map((role: any) => (
+                    <option key={role.id} value={role.id}>
+                      {role.name}
+                      {role.isSystem ? " (System)" : ""}
                     </option>
-                  ) : (
-                    rolesData?.map((role: any) => (
-                      <option key={role.id} value={role.id}>
-                        {role.name}
-                        {role.isSystem ? " (System)" : ""}
-                      </option>
-                    ))
-                  )}
+                  ))}
                 </select>
               </div>
               <p className="text-xs text-muted-foreground">

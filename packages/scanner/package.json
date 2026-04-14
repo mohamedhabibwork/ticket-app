@@ -10,9 +10,7 @@
     }
   },
   "scripts": {},
-  "dependencies": {
-    "bun": "catalog:"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@ticket-app/config": "workspace:*",
     "typescript": "^5"

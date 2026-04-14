@@ -9,6 +9,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@ticket-app/ui/compone
 import { Loader2, ArrowLeft, Check } from "lucide-react";
 
 export const Route = createFileRoute("/settings/password")({
+  loader: async () => {
+    return {};
+  },
   component: PasswordSettingsRoute,
 });
 

@@ -1,4 +1,3 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { Button } from "@ticket-app/ui/components/button";
 import {
@@ -13,35 +12,49 @@ import { Input } from "@ticket-app/ui/components/input";
 import { Loader2, Trash2 } from "lucide-react";
 import { useState, type FormEvent } from "react";
 
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { orpc } from "@/utils/orpc";
 
+interface Todo {
+  id: number;
+  text: string;
+  completed: boolean;
+}
+
 export const Route = createFileRoute("/todos")({
+  loader: async ({ context }) => {
+    const todos = await context.orpc.todo.getAll.query();
+    return { todos };
+  },
   component: TodosRoute,
 });
 
 function TodosRoute() {
+  const { todos } = Route.useLoaderData<typeof Route>();
   const [newTodoText, setNewTodoText] = useState("");
+  const queryClient = useQueryClient();
 
-  const todos = useQuery(orpc.todo.getAll.queryOptions());
   const createMutation = useMutation(
     orpc.todo.create.mutationOptions({
       onSuccess: () => {
-        todos.refetch();
         setNewTodoText("");
+        queryClient.invalidateQueries({ queryKey: ["todo"] });
       },
     }),
   );
+
   const toggleMutation = useMutation(
     orpc.todo.toggle.mutationOptions({
       onSuccess: () => {
-        todos.refetch();
+        queryClient.invalidateQueries({ queryKey: ["todo"] });
       },
     }),
   );
+
   const deleteMutation = useMutation(
     orpc.todo.delete.mutationOptions({
       onSuccess: () => {
-        todos.refetch();
+        queryClient.invalidateQueries({ queryKey: ["todo"] });
       },
     }),
   );
@@ -81,15 +94,11 @@ function TodosRoute() {
             </Button>
           </form>
 
-          {todos.isLoading ? (
-            <div className="flex justify-center py-4">
-              <Loader2 className="h-6 w-6 animate-spin" />
-            </div>
-          ) : todos.data?.length === 0 ? (
+          {!todos || todos.length === 0 ? (
             <p className="py-4 text-center">No todos yet. Add one above!</p>
           ) : (
             <ul className="space-y-2">
-              {todos.data?.map((todo) => (
+              {todos.map((todo: Todo) => (
                 <li
                   key={todo.id}
                   className="flex items-center justify-between rounded-md border p-2"

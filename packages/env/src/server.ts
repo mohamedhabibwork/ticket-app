@@ -5,6 +5,7 @@ import * as z from "zod";
 export const env = createEnv({
   server: {
     DATABASE_URL: z.string().default("postgresql://postgres:@localhost:5432/ticekt"),
+    PORT: z.coerce.number().default(3000),
     CORS_ORIGIN: z.string().default("http://localhost:5173"),
     NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
     REDIS_URL: z.string().default("redis://localhost:6379"),

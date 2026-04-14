@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@ticket-app/ui/components/button";
 import { Input } from "@ticket-app/ui/components/input";
 import { Label } from "@ticket-app/ui/components/label";
@@ -15,18 +14,45 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@ticket-app/ui/components/tabs";
 import { Loader2, ArrowLeft, Edit, Users, UserPlus, User, Ticket, Crown } from "lucide-react";
 
-import { orpc } from "@/utils/orpc";
+import {
+  useTeam,
+  useTeamMembers,
+  useTeamUpdate,
+  useTeamAddMember,
+  useTeamRemoveMember,
+} from "@/hooks/teams";
+import { useUsersList } from "@/hooks/users";
+import { getCurrentOrganizationId } from "@/utils/auth";
+import { useOrganization } from "@/hooks/useOrganization";
 
 export const Route = createFileRoute("/teams/id")({
+  loader: async ({ params, context }) => {
+    const teamId = Number(params.id);
+    return {
+      team: context.orpc.teams.get.queryOptions({ id: teamId }),
+      members: context.orpc.teams.members.queryOptions({ teamId }),
+      agents: context.orpc.users.list.queryOptions({
+        organizationId: getCurrentOrganizationId()!,
+        isActive: true,
+        limit: 100,
+      }),
+      tickets: context.orpc.tickets.list.queryOptions({
+        organizationId: getCurrentOrganizationId()!,
+        assignedTeamId: teamId,
+        limit: 10,
+      }),
+    };
+  },
   component: TeamDetailRoute,
 });
 
 function TeamDetailRoute() {
-  const { id } = Route.useParams();
+  const { id } = Route.useParams() as { id: string };
   const _navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const organizationId = 1;
+  const { organizationId } = useOrganization();
   const teamId = Number(id);
+
+  const loaderData = Route.useLoaderData<typeof Route.loader>();
 
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({
@@ -37,73 +63,29 @@ function TeamDetailRoute() {
   const [newMemberId, setNewMemberId] = useState<number | null>(null);
   const [showMemberDropdown, setShowMemberDropdown] = useState(false);
 
-  const { data: team, isLoading }: any = useQuery(
-    orpc.teams.get.queryOptions({ id: teamId } as any, { enabled: !isNaN(teamId) }),
-  );
+  const { data: team, isLoading } = useTeam({ id: teamId });
 
-  const { data: members }: any = useQuery(
-    orpc.teams.listMembers.queryOptions({ teamId } as any, { enabled: !isNaN(teamId) }),
-  );
+  const { data: members } = useTeamMembers({ teamId });
 
-  const { data: agents }: any = useQuery(
-    orpc.users.list.queryOptions({
-      organizationId,
-      isActive: true,
-      limit: 100,
-    } as any),
-  );
+  const { data: agents } = useUsersList({
+    organizationId,
+    isActive: true,
+    limit: 100,
+  });
 
-  const { data: teamTickets }: any = useQuery(
-    orpc.tickets.list.queryOptions({
-      organizationId,
-      assignedTeamId: teamId,
-      limit: 10,
-    } as any),
-  );
+  const { data: teamTickets }: any = useQuery(loaderData.tickets as any);
 
-  const updateMutation = useMutation(
-    orpc.teams.update.mutationOptions({
-      onSuccess: () => {
-        toast.success("Team updated successfully");
-        setIsEditing(false);
-        queryClient.invalidateQueries(orpc.teams.get.queryOptions({ id: teamId }) as any);
-      },
-      onError: (error: any) => {
-        toast.error(`Failed to update team: ${error.message}`);
-      },
-    }) as any,
-  );
+  const updateMutation = useTeamUpdate();
 
-  const addMemberMutation = useMutation(
-    orpc.teams.addMember.mutationOptions({
-      onSuccess: () => {
-        toast.success("Member added successfully");
-        setNewMemberId(null);
-        queryClient.invalidateQueries(orpc.teams.listMembers.queryOptions({ teamId }) as any);
-      },
-      onError: (error: any) => {
-        toast.error(`Failed to add member: ${error.message}`);
-      },
-    }) as any,
-  );
+  const addMemberMutation = useTeamAddMember();
 
-  const removeMemberMutation = useMutation(
-    orpc.teams.removeMember.mutationOptions({
-      onSuccess: () => {
-        toast.success("Member removed successfully");
-        queryClient.invalidateQueries(orpc.teams.listMembers.queryOptions({ teamId }) as any);
-      },
-      onError: (error: any) => {
-        toast.error(`Failed to remove member: ${error.message}`);
-      },
-    }) as any,
-  );
+  const removeMemberMutation = useTeamRemoveMember();
 
   const handleSave = () => {
     updateMutation.mutate({
       id: teamId,
       ...editData,
-    } as any);
+    });
   };
 
   const handleAddMember = () => {
@@ -111,7 +93,7 @@ function TeamDetailRoute() {
     addMemberMutation.mutate({
       teamId,
       userId: newMemberId,
-    } as any);
+    });
   };
 
   const handleRemoveMember = (userId: number) => {
@@ -119,7 +101,7 @@ function TeamDetailRoute() {
       removeMemberMutation.mutate({
         teamId,
         userId,
-      } as any);
+      });
     }
   };
 
@@ -150,7 +132,7 @@ function TeamDetailRoute() {
   }
 
   const availableAgents = agents?.users?.filter(
-    (agent) => !members?.some((m) => m.userId === agent.id),
+    (agent: any) => !members?.some((m: any) => m.userId === agent.id),
   );
 
   return (
@@ -251,15 +233,13 @@ function TeamDetailRoute() {
                 </span>
                 <div className="flex items-center gap-2">
                   <DropdownMenu open={showMemberDropdown} onOpenChange={setShowMemberDropdown}>
-                    <DropdownMenuTrigger asChild>
-                      <Button size="sm">
-                        <UserPlus className="h-4 w-4 mr-2" />
-                        Add Member
-                      </Button>
+                    <DropdownMenuTrigger className="inline-flex shrink-0 items-center justify-center rounded-none border border-transparent bg-clip-padding text-xs font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-1 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 h-7 gap-1 rounded-none px-2.5 has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5 border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50">
+                      <UserPlus className="h-4 w-4 mr-2" />
+                      Add Member
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-56">
                       {availableAgents && availableAgents.length > 0 ? (
-                        availableAgents.map((agent) => (
+                        availableAgents.map((agent: any) => (
                           <DropdownMenuItem
                             key={agent.id}
                             onClick={() => {
@@ -281,7 +261,7 @@ function TeamDetailRoute() {
             <CardContent>
               {members && members.length > 0 ? (
                 <div className="space-y-3">
-                  {members.map((member) => (
+                  {members.map((member: any) => (
                     <div
                       key={member.id}
                       className="flex items-center justify-between p-3 rounded border"
@@ -337,7 +317,7 @@ function TeamDetailRoute() {
             <CardContent>
               {teamTickets && teamTickets.length > 0 ? (
                 <div className="space-y-3">
-                  {teamTickets.map((ticket) => (
+                  {teamTickets.map((ticket: any) => (
                     <Link key={ticket.id} to="/tickets/id" params={{ id: String(ticket.id) }}>
                       <div className="flex items-center justify-between p-3 rounded border hover:bg-accent/50">
                         <div>

@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { Button } from "@ticket-app/ui/components/button";
@@ -14,7 +13,9 @@ import {
 } from "@ticket-app/ui/components/dropdown-menu";
 import { Loader2, ChevronDown, Paperclip, X } from "lucide-react";
 
-import { orpc } from "@/utils/orpc";
+import { useTicketCreate } from "@/hooks/tickets";
+import { getCurrentOrganizationId } from "@/utils/auth";
+import { useOrganization } from "@/hooks/useOrganization";
 
 function _formatRelativeTime(date: Date | string): string {
   const now = new Date();
@@ -33,16 +34,26 @@ function _formatRelativeTime(date: Date | string): string {
 }
 
 export const Route = createFileRoute("/tickets/new")({
+  loader: async ({ context }) => {
+    const organizationId = getCurrentOrganizationId()!;
+    const [channels, agents, teams, categories, tags] = await Promise.all([
+      context.orpc.channels.list.query({ organizationId, isActive: true }),
+      context.orpc.users.list.query({ organizationId, isActive: true, limit: 100 }),
+      context.orpc.teams.list.query({ organizationId }),
+      context.orpc.ticketCategories.list.query({ organizationId }),
+      context.orpc.tags.list.query({ organizationId }),
+    ]);
+    return { channels, agents, teams, categories, tags };
+  },
   component: NewTicketRoute,
 });
 
 function NewTicketRoute() {
+  const { channels, agents, teams, categories, tags } = Route.useLoaderData<typeof Route>();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const organizationId = 1;
+  const { organizationId } = useOrganization();
 
   const [subject, setSubject] = useState("");
-  const [descriptionHtml, setDescriptionHtml] = useState("");
   const [descriptionText, setDescriptionText] = useState("");
   const [contactEmail, setContactEmail] = useState("");
   const [selectedPriorityId, setSelectedPriorityId] = useState<number | null>(null);
@@ -56,51 +67,7 @@ function NewTicketRoute() {
   const [showTeamDropdown, setShowTeamDropdown] = useState(false);
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
 
-  const { data: channelsData } = useQuery(
-    orpc.channels.list.queryOptions({
-      organizationId,
-      isActive: true,
-    }),
-  );
-
-  const { data: agents } = useQuery(
-    orpc.users.list.queryOptions({
-      organizationId,
-      isActive: true,
-      limit: 100,
-    }),
-  );
-
-  const { data: teams } = useQuery(
-    orpc.teams.list.queryOptions({
-      organizationId,
-    }),
-  );
-
-  const { data: categories } = useQuery(
-    orpc.ticketCategories.list.queryOptions({
-      organizationId,
-    }),
-  );
-
-  const { data: tags } = useQuery(
-    orpc.tags.list.queryOptions({
-      organizationId,
-    }),
-  );
-
-  const createMutation = useMutation(
-    orpc.tickets.create.mutationOptions({
-      onSuccess: async (data) => {
-        toast.success("Ticket created successfully");
-        queryClient.invalidateQueries(orpc.tickets.list.queryOptions({ organizationId }));
-        navigate({ to: "/tickets/id", params: { id: String(data.id) } });
-      },
-      onError: (error) => {
-        toast.error(`Failed to create ticket: ${error.message}`);
-      },
-    }),
-  );
+  const createMutation = useTicketCreate();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -113,14 +80,8 @@ function NewTicketRoute() {
     createMutation.mutate({
       organizationId,
       subject: subject.trim(),
-      descriptionHtml: descriptionHtml || undefined,
       descriptionText: descriptionText || undefined,
-      priorityId: selectedPriorityId || undefined,
-      channelId: selectedChannelId || undefined,
-      assignedAgentId: selectedAgentId || undefined,
-      assignedTeamId: selectedTeamId || undefined,
-      categoryId: selectedCategoryId || undefined,
-    });
+    } as any);
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -146,9 +107,9 @@ function NewTicketRoute() {
   ];
 
   const selectedPriority = priorityOptions.find((p) => p.id === selectedPriorityId);
-  const selectedChannel = channelsData?.find((c) => c.id === selectedChannelId);
-  const selectedAgent = agents?.users?.find((a) => a.id === selectedAgentId);
-  const selectedTeam = teams?.find((t) => t.id === selectedTeamId);
+  const selectedChannel = channels?.find((c: any) => c.id === selectedChannelId);
+  const selectedAgent = agents?.users?.find((a: any) => a.id === selectedAgentId);
+  const selectedTeam = teams?.find((t: any) => t.id === selectedTeamId);
 
   return (
     <div className="container mx-auto max-w-4xl px-4 py-6">
@@ -183,7 +144,6 @@ function NewTicketRoute() {
                   value={descriptionText}
                   onChange={(e) => {
                     setDescriptionText(e.target.value);
-                    setDescriptionHtml(`<p>${e.target.value}</p>`);
                   }}
                   className="min-h-[150px] w-full rounded-none border border-input bg-transparent px-2.5 py-1 text-xs transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50"
                 />
@@ -214,7 +174,7 @@ function NewTicketRoute() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start" className="w-full">
-                      {channelsData?.map((channel) => (
+                      {channels?.map((channel: any) => (
                         <DropdownMenuItem
                           key={channel.id}
                           onClick={() => setSelectedChannelId(channel.id)}
@@ -281,8 +241,9 @@ function NewTicketRoute() {
                   <DropdownMenu open={showCategoryDropdown} onOpenChange={setShowCategoryDropdown}>
                     <DropdownMenuTrigger>
                       <Button variant="outline" className="w-full justify-between">
-                        {selectedCategoryId && categories?.find((c) => c.id === selectedCategoryId)
-                          ? categories.find((c) => c.id === selectedCategoryId)?.name
+                        {selectedCategoryId &&
+                        categories?.find((c: any) => c.id === selectedCategoryId)
+                          ? categories.find((c: any) => c.id === selectedCategoryId)?.name
                           : "Select category (optional)"}
                         <ChevronDown className="h-4 w-4 ml-2" />
                       </Button>
@@ -296,7 +257,7 @@ function NewTicketRoute() {
                       >
                         None
                       </DropdownMenuItem>
-                      {categories?.map((category) => (
+                      {categories?.map((category: any) => (
                         <DropdownMenuItem
                           key={category.id}
                           onClick={() => {
@@ -340,7 +301,7 @@ function NewTicketRoute() {
                       >
                         Unassigned
                       </DropdownMenuItem>
-                      {agents?.users?.map((agent) => (
+                      {agents?.users?.map((agent: any) => (
                         <DropdownMenuItem
                           key={agent.id}
                           onClick={() => {
@@ -373,7 +334,7 @@ function NewTicketRoute() {
                       >
                         Unassigned
                       </DropdownMenuItem>
-                      {teams?.map((team) => (
+                      {teams?.map((team: any) => (
                         <DropdownMenuItem
                           key={team.id}
                           onClick={() => {
@@ -397,7 +358,7 @@ function NewTicketRoute() {
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-2">
-                {tags?.map((tag) => (
+                {tags?.map((tag: any) => (
                   <button
                     key={tag.id}
                     type="button"

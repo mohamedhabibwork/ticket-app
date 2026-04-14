@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@ticket-app/ui/components/button";
 import {
   Card,
@@ -18,18 +17,23 @@ import {
   DropdownMenuTrigger,
 } from "@ticket-app/ui/components/dropdown-menu";
 import { ChevronDown } from "lucide-react";
-import { orpc } from "@/utils/orpc";
 import { ArrowLeft, Shield, Save, AlertTriangle } from "lucide-react";
+import { useRoleUpdate } from "@/hooks/roles";
 
 export const Route = createFileRoute("/admin/roles/id/")({
+  loader: async ({ context, params }) => {
+    const roleId = Number(params.id);
+    const role = await context.orpc.roles.get.query({ id: roleId });
+    return { role };
+  },
   component: EditRoleRoute,
 });
 
 function EditRoleRoute() {
-  const { id } = Route.useParams();
+  const { id } = Route.useParams() as { id: string };
   const _navigate = useNavigate();
-  const queryClient = useQueryClient();
   const roleId = Number(id);
+  const { role } = Route.useLoaderData<typeof Route>();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -39,23 +43,7 @@ function EditRoleRoute() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showScopeDropdown, setShowScopeDropdown] = useState(false);
 
-  const {
-    data: role,
-    isLoading,
-    refetch,
-  }: any = useQuery(orpc.users.getRole.queryOptions({ id: roleId } as any));
-
-  const updateMutation = useMutation(
-    orpc.users.updateRole.mutationOptions({
-      onSuccess: () => {
-        refetch();
-        queryClient.invalidateQueries({ queryKey: ["roles"] });
-      },
-      onError: (error: { message: string }) => {
-        setErrors({ submit: error.message });
-      },
-    }),
-  );
+  const updateMutation = useRoleUpdate();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,16 +58,8 @@ function EditRoleRoute() {
       name: formData.name,
       description: formData.description,
       ticketViewScope: formData.ticketViewScope,
-    } as any);
+    });
   };
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-[50vh]">
-        <div className="animate-spin h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full"></div>
-      </div>
-    );
-  }
 
   if (!role) {
     return (
@@ -209,11 +189,9 @@ function EditRoleRoute() {
                 Controls which tickets this role can view
               </p>
               <DropdownMenu open={showScopeDropdown} onOpenChange={setShowScopeDropdown}>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" className="w-full justify-between">
-                    {selectedScope.label}
-                    <ChevronDown className="h-4 w-4 ml-2" />
-                  </Button>
+                <DropdownMenuTrigger className="inline-flex shrink-0 items-center justify-center rounded-none border border-transparent bg-clip-padding text-xs font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-1 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 h-7 gap-1 rounded-none px-2.5 has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5 border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50 w-full justify-between">
+                  {selectedScope.label}
+                  <ChevronDown className="h-4 w-4 ml-2" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="w-full">
                   {scopeOptions.map((scope) => (

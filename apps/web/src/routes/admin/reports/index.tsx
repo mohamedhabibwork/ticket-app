@@ -1,9 +1,7 @@
-import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
 import { Button } from "@ticket-app/ui/components/button";
-import { orpc } from "@/utils/orpc";
 import {
   BarChart3,
   TrendingUp,
@@ -15,35 +13,44 @@ import {
   Star,
   ArrowRight,
 } from "lucide-react";
+import {
+  useResponseTimeReport,
+  useSlaComplianceReport,
+  useTicketVolumeReport,
+  useResolutionRateReport,
+} from "@/hooks";
+import { getCurrentOrganizationId } from "@/utils/auth";
+import { useOrganization } from "@/hooks/useOrganization";
 
 type DateRange = "7d" | "30d" | "90d" | "custom";
 
 export const Route = createFileRoute("/admin/reports/")({
+  loader: async ({ context }) => {
+    const organizationId = getCurrentOrganizationId()!;
+    const [ticketVolume, slaCompliance, responseTime, resolutionRate] = await Promise.all([
+      context.orpc.reports.getTicketVolume.query({ organizationId, groupBy: "day" } as any),
+      context.orpc.reports.getSlaCompliance.query({ organizationId } as any),
+      context.orpc.reports.getResponseTime.query({ organizationId } as any),
+      context.orpc.reports.getResolutionRate.query({ organizationId } as any),
+    ]);
+    return { ticketVolume, slaCompliance, responseTime, resolutionRate };
+  },
   component: ReportsDashboardPage,
 });
 
 function ReportsDashboardPage() {
   const [dateRange, setDateRange] = useState<DateRange>("30d");
-  const organizationId = 1;
+  const { organizationId } = useOrganization();
+  const {
+    ticketVolume: _initialTicketVolume,
+    responseTime,
+    resolutionRate,
+  } = Route.useLoaderData<typeof Route>();
 
-  const { data: ticketVolume }: any = useQuery(
-    orpc.reports.getTicketVolume.queryOptions({
-      organizationId,
-      groupBy: "day",
-    } as any),
-  );
-
-  const { data: _slaCompliance }: any = useQuery(
-    orpc.reports.getSlaCompliance.queryOptions({ organizationId } as any),
-  );
-
-  const { data: responseTime }: any = useQuery(
-    orpc.reports.getResponseTime.queryOptions({ organizationId } as any),
-  );
-
-  const { data: resolutionRate }: any = useQuery(
-    orpc.reports.getResolutionRate.queryOptions({ organizationId } as any),
-  );
+  const { data: _refetchTicketVolume } = useTicketVolumeReport({ organizationId, groupBy: "day" });
+  const { data: _slaCompliance } = useSlaComplianceReport({ organizationId });
+  const { data: _responseTime } = useResponseTimeReport({ organizationId });
+  const { data: _resolutionRate } = useResolutionRateReport({ organizationId });
 
   const dateRangeOptions: { value: DateRange; label: string }[] = [
     { value: "7d", label: "Last 7 days" },

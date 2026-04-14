@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@ticket-app/ui/compone
 import { Button } from "@ticket-app/ui/components/button";
 import { orpc } from "@/utils/orpc";
 import { ArrowLeft, AlertTriangle, CheckCircle2, Clock, Filter } from "lucide-react";
+import { getCurrentOrganizationId } from "@/utils/auth";
+import { useOrganization } from "@/hooks/useOrganization";
 
 type DateRange = "7d" | "30d" | "90d" | "custom";
 
@@ -17,14 +19,20 @@ interface BreachedTicket {
 }
 
 export const Route = createFileRoute("/admin/reports/sla")({
+  loader: async ({ context }) => {
+    const organizationId = getCurrentOrganizationId()!;
+    const slaCompliance = await context.orpc.reports.getSlaCompliance.query({ organizationId });
+    return { slaCompliance };
+  },
   component: SLACompliancePage,
 });
 
 function SLACompliancePage() {
   const [dateRange, setDateRange] = useState<DateRange>("30d");
-  const organizationId = 1;
+  const { organizationId } = useOrganization();
+  const { slaCompliance } = Route.useLoaderData<typeof Route>();
 
-  const { data: slaCompliance, isLoading: _isLoading }: any = useQuery(
+  const { isLoading: _isLoading }: any = useQuery(
     orpc.reports.getSlaCompliance.queryOptions({ organizationId } as any),
   );
 

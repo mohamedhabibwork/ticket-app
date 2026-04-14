@@ -15,6 +15,8 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { orpc } from "@/utils/orpc";
+import { getCurrentOrganizationId } from "@/utils/auth";
+import { useOrganization } from "@/hooks/useOrganization";
 
 function formatRelativeTime(date: Date | string): string {
   const now = new Date();
@@ -33,17 +35,19 @@ function formatRelativeTime(date: Date | string): string {
 }
 
 export const Route = createFileRoute("/admin/mailboxes/")({
+  loader: async ({ context }) => {
+    const organizationId = getCurrentOrganizationId()!;
+    const mailboxes = await context.orpc.mailboxes.list.query({ organizationId });
+    return { mailboxes };
+  },
   component: MailboxListRoute,
 });
 
 function MailboxListRoute() {
-  const organizationId = 1;
+  const { organizationId } = useOrganization();
+  const { mailboxes } = Route.useLoaderData<typeof Route>();
 
-  const {
-    data: mailboxes,
-    isLoading,
-    refetch,
-  }: any = useQuery(
+  const { isLoading, refetch }: any = useQuery(
     orpc.mailboxes.list.queryOptions({
       organizationId,
     } as any),

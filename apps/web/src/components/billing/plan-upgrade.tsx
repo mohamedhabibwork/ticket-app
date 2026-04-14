@@ -61,14 +61,14 @@ export function PlanUpgrade({ currentPlan, availablePlans, onSuccess }: PlanUpgr
   const handleUpgrade = async (planId: number) => {
     if (currentPlan) {
       await updateMutation.mutateAsync({
-        organizationId: 1,
+        organizationId,
         planId,
         billingCycle,
         seatCount: 1,
       } as any);
     } else {
       await upgradeMutation.mutateAsync({
-        organizationId: 1,
+        organizationId,
         planId,
         billingCycle,
         seatCount: 1,

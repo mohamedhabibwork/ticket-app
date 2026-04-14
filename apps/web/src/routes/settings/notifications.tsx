@@ -9,6 +9,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@ticket-app/ui/compone
 import { Loader2, ArrowLeft, Mail, Monitor, Bell } from "lucide-react";
 
 export const Route = createFileRoute("/settings/notifications")({
+  loader: async () => {
+    return {};
+  },
   component: NotificationSettingsRoute,
 });
 

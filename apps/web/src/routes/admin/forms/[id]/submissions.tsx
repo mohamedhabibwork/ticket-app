@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { Card, CardContent, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
 import { Button } from "@ticket-app/ui/components/button";
@@ -7,7 +7,9 @@ import { Input } from "@ticket-app/ui/components/input";
 import { Label } from "@ticket-app/ui/components/label";
 
 import { ArrowLeft, Download, FileText, Check, Clock, Ticket } from "lucide-react";
+import { useForm, useFormSubmissions } from "@/hooks";
 import { orpc } from "@/utils/orpc";
+import { getCurrentOrganizationId } from "@/utils/auth";
 
 function formatRelativeTime(date: Date | string): string {
   const now = new Date();
@@ -42,33 +44,31 @@ interface Submission {
 }
 
 export const Route = createFileRoute("/admin/forms/id/submissions")({
+  loader: async ({ context, params }) => {
+    const formId = Number(params.id);
+    const [form, submissions] = await Promise.all([
+      context.orpc.forms.get.query({ id: formId, organizationId: getCurrentOrganizationId()! }),
+      context.orpc.forms.getSubmissions.query({
+        formId,
+        organizationId: getCurrentOrganizationId()!,
+      }),
+    ]);
+    return { form, submissions };
+  },
   component: FormSubmissionsRoute,
 });
 
 function FormSubmissionsRoute() {
-  const { id } = useParams({ from: "/admin/forms/id/submissions" } as any);
+  const { id } = useParams({ from: "/admin/forms/$id/submissions" } as any);
   const formId = Number(id);
+  const { form, submissions } = Route.useLoaderData<typeof Route>();
 
   const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const { data: form, isLoading: formLoading } = useQuery(
-    (orpc as any).forms.get.queryOptions({
-      id: formId,
-      organizationId: 1,
-    }),
-  );
+  const { isLoading: formLoading } = useForm({ id: formId, organizationId });
 
-  const {
-    data: submissions,
-    isLoading: submissionsLoading,
-    refetch,
-  } = useQuery(
-    (orpc as any).forms.getSubmissions?.queryOptions({
-      formId,
-      organizationId: 1,
-    }) || { enabled: false },
-  );
+  const { isLoading: submissionsLoading, refetch } = useFormSubmissions({ formId, organizationId });
 
   const convertToTicketMutation = useMutation(
     (orpc as any).forms.convertToTicket?.mutationOptions({

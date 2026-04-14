@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Button } from "@ticket-app/ui/components/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
@@ -36,33 +36,38 @@ import { toast } from "sonner";
 import { orpc } from "@/utils/orpc";
 import { TicketReply } from "@/components/ticket-reply";
 import { TicketNote } from "@/components/ticket-note";
-
-function formatRelativeTime(date: Date | string): string {
-  const now = new Date();
-  const then = new Date(date);
-  const diffMs = now.getTime() - then.getTime();
-  const diffSecs = Math.floor(diffMs / 1000);
-  const diffMins = Math.floor(diffSecs / 60);
-  const diffHours = Math.floor(diffMins / 60);
-  const diffDays = Math.floor(diffHours / 24);
-
-  if (diffSecs < 60) return "just now";
-  if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? "s" : ""} ago`;
-  if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? "s" : ""} ago`;
-  if (diffDays < 30) return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
-  return then.toLocaleDateString();
-}
+import { formatRelativeTime, formatRelativeTimeLong } from "@ticket-app/ui/hooks/datetime";
+import { getCurrentOrganizationId, getCurrentUserId } from "@/utils/auth";
+import { useOrganization } from "@/hooks/useOrganization";
+import {
+  useTicketLock,
+  useTicketUnlock,
+  useTicketMessageLockThread,
+  useTicketMessageUnlockThread,
+  useTicketMessageOmitThread,
+} from "@/hooks/tickets";
 
 export const Route = createFileRoute("/tickets/id")({
+  loader: async ({ context, params }) => {
+    const ticketId = Number(params.id);
+    const organizationId = getCurrentOrganizationId()!;
+    const [ticket, translationConfig, calendarConnections] = await Promise.all([
+      context.orpc.tickets.getTimeline.query({ id: ticketId, includePrivate: true }),
+      context.orpc.translation.getConfig.query({ organizationId }),
+      context.orpc.calendar.listConnections.query({ userId: getCurrentUserId()! }),
+    ]);
+    return { ticket, translationConfig, calendarConnections };
+  },
   component: TicketDetailRoute,
 });
 
 function TicketDetailRoute() {
-  const { id } = Route.useParams();
+  const { ticket, translationConfig, calendarConnections } = Route.useLoaderData<typeof Route>();
+  const { id } = Route.useParams() as { id: string };
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const ticketId = Number(id);
-  const organizationId = 1;
+  const { organizationId } = useOrganization();
 
   const [translatingMessageId, setTranslatingMessageId] = useState<number | null>(null);
   const [translatedMessages, setTranslatedMessages] = useState<Record<number, string>>({});
@@ -75,89 +80,15 @@ function TicketDetailRoute() {
   const [omitMessageId, setOmitMessageId] = useState<number | null>(null);
   const [omitReason, setOmitReason] = useState("");
 
-  const { data: ticket, isLoading }: any = useQuery(
-    orpc.tickets.getTimeline.queryOptions({
-      id: ticketId,
-      includePrivate: true,
-    }) as any,
-  );
+  const lockMutation = useTicketLock();
 
-  const { data: translationConfig }: any = useQuery(
-    orpc.translation.getConfig.queryOptions({
-      organizationId,
-    }) as any,
-  );
+  const unlockMutation = useTicketUnlock();
 
-  const { data: calendarConnections }: any = useQuery(
-    orpc.calendar.listConnections.queryOptions({
-      userId: 1,
-    }) as any,
-  );
+  const lockThreadMutation = useTicketMessageLockThread();
 
-  const lockMutation = useMutation(
-    orpc.tickets.lock.mutationOptions({
-      onSuccess: () => {
-        queryClient.invalidateQueries(
-          orpc.tickets.getTimeline.queryOptions({ id: ticketId, includePrivate: true }) as any,
-        );
-      },
-    }) as any,
-  );
+  const unlockThreadMutation = useTicketMessageUnlockThread();
 
-  const unlockMutation = useMutation(
-    orpc.tickets.unlock.mutationOptions({
-      onSuccess: () => {
-        queryClient.invalidateQueries(
-          orpc.tickets.getTimeline.queryOptions({ id: ticketId, includePrivate: true }) as any,
-        );
-      },
-    }) as any,
-  );
-
-  const lockThreadMutation = useMutation(
-    orpc.ticketMessages.lockThread.mutationOptions({
-      onSuccess: () => {
-        queryClient.invalidateQueries(
-          orpc.tickets.getTimeline.queryOptions({ id: ticketId, includePrivate: true }) as any,
-        );
-        toast.success("Thread locked");
-      },
-      onError: (error: any) => {
-        toast.error(`Failed to lock thread: ${error.message}`);
-      },
-    }) as any,
-  );
-
-  const unlockThreadMutation = useMutation(
-    orpc.ticketMessages.unlockThread.mutationOptions({
-      onSuccess: () => {
-        queryClient.invalidateQueries(
-          orpc.tickets.getTimeline.queryOptions({ id: ticketId, includePrivate: true }) as any,
-        );
-        toast.success("Thread unlocked");
-      },
-      onError: (error: any) => {
-        toast.error(`Failed to unlock thread: ${error.message}`);
-      },
-    }) as any,
-  );
-
-  const omitThreadMutation = useMutation(
-    orpc.ticketMessages.omitThread.mutationOptions({
-      onSuccess: () => {
-        queryClient.invalidateQueries(
-          orpc.tickets.getTimeline.queryOptions({ id: ticketId, includePrivate: true }) as any,
-        );
-        toast.success("Thread omitted");
-        setShowOmitDialog(false);
-        setOmitMessageId(null);
-        setOmitReason("");
-      },
-      onError: (error: any) => {
-        toast.error(`Failed to omit thread: ${error.message}`);
-      },
-    }) as any,
-  );
+  const omitThreadMutation = useTicketMessageOmitThread();
 
   const translateMutation = useMutation(
     orpc.translation.translateText.mutationOptions({
@@ -247,6 +178,7 @@ function TicketDetailRoute() {
 
   const isFromAmazon = ticket?.channel?.name === "amazon_seller";
 
+  const isLoading = !ticket;
   const visibleMessages =
     ticket?.messages?.filter((msg: any) => {
       if (msg.deletedAt && !showDeletedThreads) return false;
@@ -348,7 +280,7 @@ function TicketDetailRoute() {
             </CardHeader>
             <CardContent className="space-y-4">
               {visibleMessages.length > 0 ? (
-                visibleMessages.map((message) => (
+                visibleMessages.map((message: any) => (
                   <div
                     key={message.id}
                     className={`p-4 rounded-lg ${
@@ -384,7 +316,7 @@ function TicketDetailRoute() {
                           {message.authorFirstName} {message.authorLastName}
                         </span>
                         <span className="text-xs text-muted-foreground">
-                          {formatRelativeTime(message.createdAt)}
+                          {formatRelativeTimeLong(message.createdAt)}
                         </span>
                       </div>
                       {!message.deletedAt && (
@@ -469,7 +401,7 @@ function TicketDetailRoute() {
                     </span>
                   </div>
                   <div className="space-y-3">
-                    {ticket.forwards.map((forward) => (
+                    {ticket.forwards.map((forward: any) => (
                       <div
                         key={forward.id}
                         className="p-3 rounded-lg bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800"
@@ -485,7 +417,7 @@ function TicketDetailRoute() {
                             </span>
                           </div>
                           <span className="text-xs text-muted-foreground">
-                            {formatRelativeTime(forward.createdAt)}
+                            {formatRelativeTimeLong(forward.createdAt)}
                           </span>
                         </div>
                         {forward.subject && (
@@ -585,12 +517,12 @@ function TicketDetailRoute() {
               )}
               <div>
                 <p className="text-sm text-muted-foreground">Created</p>
-                <p className="text-sm">{formatRelativeTime(ticket.createdAt)}</p>
+                <p className="text-sm">{formatRelativeTimeLong(ticket.createdAt)}</p>
               </div>
               {ticket.firstResponseAt && (
                 <div>
                   <p className="text-sm text-muted-foreground">First Response</p>
-                  <p className="text-sm">{formatRelativeTime(ticket.firstResponseAt)}</p>
+                  <p className="text-sm">{formatRelativeTimeLong(ticket.firstResponseAt)}</p>
                 </div>
               )}
             </CardContent>
@@ -603,7 +535,7 @@ function TicketDetailRoute() {
               </CardHeader>
               <CardContent>
                 <div className="flex flex-wrap gap-2">
-                  {ticket.tags.map((tag) => (
+                  {ticket.tags.map((tag: any) => (
                     <span
                       key={tag.id}
                       className="inline-flex items-center rounded border px-2 py-0.5 text-xs font-medium"
@@ -627,7 +559,7 @@ function TicketDetailRoute() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  {ticket.followers.map((follower) => (
+                  {ticket.followers.map((follower: any) => (
                     <div key={follower.id} className="flex items-center gap-2">
                       <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
                         <span className="text-xs font-medium">

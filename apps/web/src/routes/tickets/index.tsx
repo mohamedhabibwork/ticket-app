@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Card, CardContent } from "@ticket-app/ui/components/card";
 import { Button } from "@ticket-app/ui/components/button";
@@ -9,51 +8,33 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@ticket-app/ui/components/dropdown-menu";
-import { Loader2, ChevronDown, Filter, X } from "lucide-react";
+import { ChevronDown, Filter, X } from "lucide-react";
 
-import { orpc } from "@/utils/orpc";
-
-function formatRelativeTime(date: Date | string): string {
-  const now = new Date();
-  const then = new Date(date);
-  const diffMs = now.getTime() - then.getTime();
-  const diffSecs = Math.floor(diffMs / 1000);
-  const diffMins = Math.floor(diffSecs / 60);
-  const diffHours = Math.floor(diffMins / 60);
-  const diffDays = Math.floor(diffHours / 24);
-
-  if (diffSecs < 60) return "just now";
-  if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? "s" : ""} ago`;
-  if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? "s" : ""} ago`;
-  if (diffDays < 30) return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
-  return then.toLocaleDateString();
-}
+import { formatRelativeTimeLong } from "@ticket-app/ui/hooks/datetime";
+import { getCurrentOrganizationId } from "@/utils/auth";
 
 export const Route = createFileRoute("/tickets/")({
+  loader: async ({ context, search }) => {
+    const organizationId = getCurrentOrganizationId()!;
+    const [tickets, groups, categories] = await Promise.all([
+      context.orpc.tickets.list.query({
+        organizationId,
+        limit: 50,
+        ...(search.groupId && { groupId: search.groupId }),
+        ...(search.categoryId && { categoryId: search.categoryId }),
+      }),
+      context.orpc.groups.list.query({ organizationId }),
+      context.orpc.ticketCategories.list.query({ organizationId }),
+    ]);
+    return { tickets, groups, categories };
+  },
   component: TicketsIndexRoute,
 });
 
 function TicketsIndexRoute() {
-  const organizationId = 1;
+  const { tickets, groups, categories } = Route.useLoaderData<typeof Route>();
   const [selectedGroupId, setSelectedGroupId] = useState<number | null>(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
-
-  const queryParams = {
-    organizationId,
-    limit: 50 as const,
-    ...(selectedGroupId && { groupId: selectedGroupId }),
-    ...(selectedCategoryId && { categoryId: selectedCategoryId }),
-  };
-
-  const { data: tickets, isLoading }: any = useQuery(
-    orpc.tickets.list.queryOptions(queryParams) as any,
-  );
-
-  const { data: groups }: any = useQuery(orpc.groups.list.queryOptions({ organizationId }) as any);
-
-  const { data: categories }: any = useQuery(
-    orpc.ticketCategories.list.queryOptions({ organizationId }) as any,
-  );
 
   const selectedGroup = groups?.find((g: any) => g.id === selectedGroupId);
   const selectedCategory = categories?.find((c: any) => c.id === selectedCategoryId);
@@ -74,19 +55,17 @@ function TicketsIndexRoute() {
         </div>
         <div className="flex items-center gap-2">
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
-                <Filter className="h-4 w-4 mr-2" />
-                Group
-                {selectedGroup && `: ${selectedGroup.name}`}
-                <ChevronDown className="h-4 w-4 ml-2" />
-              </Button>
+            <DropdownMenuTrigger className="inline-flex shrink-0 items-center justify-center rounded-none border border-transparent bg-clip-padding text-xs font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-1 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 h-7 gap-1 rounded-none px-2.5 has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5 border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50">
+              <Filter className="h-4 w-4 mr-2" />
+              Group
+              {selectedGroup && `: ${selectedGroup.name}`}
+              <ChevronDown className="h-4 w-4 ml-2" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start">
               <DropdownMenuItem onClick={() => setSelectedGroupId(null)}>
                 All Groups
               </DropdownMenuItem>
-              {groups?.map((group) => (
+              {groups?.map((group: any) => (
                 <DropdownMenuItem key={group.id} onClick={() => setSelectedGroupId(group.id)}>
                   {group.name}
                 </DropdownMenuItem>
@@ -95,18 +74,16 @@ function TicketsIndexRoute() {
           </DropdownMenu>
 
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
-                Category
-                {selectedCategory && `: ${selectedCategory.name}`}
-                <ChevronDown className="h-4 w-4 ml-2" />
-              </Button>
+            <DropdownMenuTrigger className="inline-flex shrink-0 items-center justify-center rounded-none border border-transparent bg-clip-padding text-xs font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-1 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 h-7 gap-1 rounded-none px-2.5 has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5 border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50">
+              Category
+              {selectedCategory && `: ${selectedCategory.name}`}
+              <ChevronDown className="h-4 w-4 ml-2" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start">
               <DropdownMenuItem onClick={() => setSelectedCategoryId(null)}>
                 All Categories
               </DropdownMenuItem>
-              {categories?.map((category) => (
+              {categories?.map((category: any) => (
                 <DropdownMenuItem
                   key={category.id}
                   onClick={() => setSelectedCategoryId(category.id)}
@@ -126,13 +103,9 @@ function TicketsIndexRoute() {
         </div>
       </div>
 
-      {isLoading ? (
-        <div className="flex justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin" />
-        </div>
-      ) : tickets && tickets.length > 0 ? (
+      {tickets && tickets.length > 0 ? (
         <div className="space-y-3">
-          {tickets.map((ticket) => (
+          {tickets.map((ticket: any) => (
             <Link key={ticket.id} to="/tickets/id" params={{ id: String(ticket.id) }}>
               <Card className="hover:bg-accent/50 transition-colors cursor-pointer">
                 <CardContent className="p-4">
@@ -166,7 +139,7 @@ function TicketsIndexRoute() {
                             {ticket.contact.firstName} {ticket.contact.lastName}
                           </span>
                         )}
-                        <span>{formatRelativeTime(ticket.createdAt)}</span>
+                        <span>{formatRelativeTimeLong(ticket.createdAt)}</span>
                         {ticket.assignedAgent && (
                           <span>Assigned to {ticket.assignedAgent.firstName}</span>
                         )}

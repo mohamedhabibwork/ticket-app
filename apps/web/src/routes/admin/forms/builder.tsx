@@ -85,6 +85,9 @@ const CONDITION_OPERATORS: { value: ConditionOperator; label: string }[] = [
 ];
 
 export const Route = createFileRoute("/admin/forms/builder")({
+  loader: async () => {
+    return {};
+  },
   component: FormBuilderRoute,
 });
 

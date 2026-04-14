@@ -10,6 +10,9 @@ type Theme = "light" | "dark" | "system";
 type Density = "compact" | "comfortable" | "spacious";
 
 export const Route = createFileRoute("/settings/appearance")({
+  loader: async () => {
+    return {};
+  },
   component: AppearanceSettingsRoute,
 });
 

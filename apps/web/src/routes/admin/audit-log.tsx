@@ -33,6 +33,9 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/admin/audit-log")({
+  loader: async () => {
+    return {};
+  },
   component: AuditLogRoute,
 });
 

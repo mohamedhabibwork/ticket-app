@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@ticket-app/ui/components/button";
 import {
   Card,
@@ -21,8 +21,13 @@ import {
 } from "@ticket-app/ui/components/select";
 import { orpc } from "@/utils/orpc";
 import { ArrowLeft, Save, Clock, AlertTriangle, Plus, X } from "lucide-react";
+import { useSlaPriorities, useUsersList, useTeamsList } from "@/hooks";
+import { useOrganization } from "@/hooks/useOrganization";
 
 export const Route = createFileRoute("/admin/sla/new")({
+  loader: async () => {
+    return {};
+  },
   component: CreateSlaPolicyRoute,
 });
 
@@ -43,23 +48,13 @@ const DEFAULT_TARGETS = [
 ];
 
 function CreateSlaPolicyRoute() {
+  const { organizationId } = useOrganization();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const { data: priorities } = useQuery({
-    queryKey: ["priorities"],
-    queryFn: () => orpc.slaPolicies.getPriorities.query(),
-  });
-
-  const { data: agents } = useQuery({
-    queryKey: ["agents"],
-    queryFn: () => orpc.users.list.query({ organizationId: 1, limit: 100 }),
-  });
-
-  const { data: teams } = useQuery({
-    queryKey: ["teams"],
-    queryFn: () => orpc.teams.list.query({ organizationId: 1 }),
-  });
+  const { data: priorities } = useSlaPriorities();
+  const { data: agents } = useUsersList({ organizationId, limit: 100 });
+  const { data: teams } = useTeamsList({ organizationId });
 
   const [formData, setFormData] = useState({
     name: "",

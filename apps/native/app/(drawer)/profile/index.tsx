@@ -1,14 +1,17 @@
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
 import { Button, Divider, Spinner, Surface, Text, useThemeColor } from "heroui-native";
-import { Link } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import { View } from "react-native";
 
 import { Container } from "@/components/container";
+import { useAuth } from "@/contexts/auth-context";
 import { hapticImpact } from "@/utils/haptics";
-import { orpc } from "@/utils/orpc";
+import { orpc } from "~/utils/orpc";
 
 export default function ProfileScreen() {
+  const router = useRouter();
+  const { logout } = useAuth();
   const mutedColor = useThemeColor("muted");
   const foregroundColor = useThemeColor("foreground");
 
@@ -17,6 +20,12 @@ export default function ProfileScreen() {
   const handleRefresh = async () => {
     await refetch();
     hapticImpact("light");
+  };
+
+  const handleLogout = async () => {
+    hapticImpact("medium");
+    await logout();
+    router.replace("/(auth)/login");
   };
 
   if (isLoading) {
@@ -76,12 +85,19 @@ export default function ProfileScreen() {
           </View>
         </Surface>
 
-        <Link href="/settings" asChild>
-          <Button variant="secondary" className="w-full" onPress={() => hapticImpact("light")}>
-            <Ionicons name="settings-outline" size={18} color={foregroundColor} />
-            <Text className="ml-2">Edit Profile</Text>
+        <View className="gap-3">
+          <Link href="/settings" asChild>
+            <Button variant="secondary" className="w-full" onPress={() => hapticImpact("light")}>
+              <Ionicons name="settings-outline" size={18} color={foregroundColor} />
+              <Text className="ml-2">Edit Profile</Text>
+            </Button>
+          </Link>
+
+          <Button variant="bordered" className="w-full" onPress={handleLogout}>
+            <Ionicons name="log-out-outline" size={18} color={foregroundColor} />
+            <Text className="ml-2">Sign Out</Text>
           </Button>
-        </Link>
+        </View>
       </View>
     </Container>
   );

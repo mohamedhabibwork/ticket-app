@@ -1,5 +1,4 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@ticket-app/ui/components/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
 import {
@@ -9,28 +8,31 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@ticket-app/ui/components/dropdown-menu";
-import { orpc } from "@/utils/orpc";
 import { MoreHorizontal, Plus, Edit, Trash2, Shield, Users } from "lucide-react";
+import { useRolesList, useRoleDelete } from "@/hooks/roles";
+import { getCurrentOrganizationId } from "@/utils/auth";
+import { useOrganization } from "@/hooks/useOrganization";
+import { useUser } from "@/hooks/useAuth";
 
 export const Route = createFileRoute("/admin/roles/")({
+  loader: async ({ context }) => {
+    const rolesData = await context.orpc.roles.list.query({
+      organizationId: getCurrentOrganizationId()!,
+    });
+    return { rolesData };
+  },
   component: RolesListRoute,
 });
 
 function RolesListRoute() {
-  const queryClient = useQueryClient();
+  const { organizationId } = useOrganization();
   const navigate = useNavigate();
 
-  const { data: rolesData, isLoading }: any = useQuery(
-    orpc.roles.list.queryOptions({ organizationId: 1 } as any),
-  );
+  const { rolesData } = Route.useLoaderData<typeof Route>();
+  const { user } = useUser();
+  const { isLoading } = useRolesList({ organizationId });
 
-  const deleteMutation = useMutation(
-    orpc.users.deleteRole.mutationOptions({
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["roles"] });
-      },
-    }),
-  );
+  const deleteMutation = useRoleDelete();
 
   const handleDelete = (roleId: number, roleName: string) => {
     if (
@@ -38,7 +40,7 @@ function RolesListRoute() {
         `Are you sure you want to delete the role "${roleName}"? This action cannot be undone.`,
       )
     ) {
-      deleteMutation.mutate({ roleId, userId: 1, organizationId: 1 } as any);
+      deleteMutation.mutate({ roleId, userId: user?.id ?? null, organizationId });
     }
   };
 
@@ -92,10 +94,8 @@ function RolesListRoute() {
                     </div>
                   </div>
                   <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
+                    <DropdownMenuTrigger className="inline-flex shrink-0 items-center justify-center rounded-none border border-transparent bg-clip-padding text-xs font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-1 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 h-7 gap-1 rounded-none hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50">
+                      <MoreHorizontal className="h-4 w-4" />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem onClick={() => navigate(`/admin/roles/${role.id}` as any)}>

@@ -1,6 +1,4 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
 import { Button } from "@ticket-app/ui/components/button";
 import { Card, CardContent } from "@ticket-app/ui/components/card";
 import {
@@ -9,40 +7,30 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@ticket-app/ui/components/dropdown-menu";
-import { orpc } from "@/utils/orpc";
 import { Plus, MoreHorizontal, Edit, Trash2, Users, User } from "lucide-react";
 import { Loader2 } from "lucide-react";
+import { useTeamsList, useTeamDelete } from "@/hooks/teams";
+import { getCurrentOrganizationId } from "@/utils/auth";
+import { useOrganization } from "@/hooks/useOrganization";
 
 export const Route = createFileRoute("/teams/")({
+  loader: async ({ context }) => {
+    return context.orpc.teams.list.queryOptions({ organizationId: getCurrentOrganizationId()! });
+  },
   component: TeamsIndexRoute,
 });
 
 function TeamsIndexRoute() {
-  const queryClient = useQueryClient();
   const navigate = useNavigate();
-  const organizationId = 1;
+  const { organizationId } = useOrganization();
 
-  const { data: teams, isLoading }: any = useQuery(
-    orpc.teams.list.queryOptions({
-      organizationId,
-    } as any),
-  );
+  const { data: teams, isLoading } = useTeamsList({ organizationId });
 
-  const deleteMutation = useMutation(
-    orpc.teams.delete.mutationOptions({
-      onSuccess: () => {
-        toast.success("Team deleted successfully");
-        queryClient.invalidateQueries(orpc.teams.list.queryOptions({ organizationId }) as any);
-      },
-      onError: (error: any) => {
-        toast.error(`Failed to delete team: ${error.message}`);
-      },
-    }) as any,
-  );
+  const deleteMutation = useTeamDelete();
 
   const handleDelete = (teamId: number) => {
     if (confirm("Are you sure you want to delete this team?")) {
-      deleteMutation.mutate({ id: teamId } as any);
+      deleteMutation.mutate({ id: teamId });
     }
   };
 
@@ -67,7 +55,7 @@ function TeamsIndexRoute() {
         </div>
       ) : teams && teams.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {teams.map((team) => (
+          {teams.map((team: any) => (
             <Card key={team.id} className="hover:bg-accent/50 transition-colors">
               <CardContent className="p-4">
                 <div className="flex items-start justify-between">
@@ -85,17 +73,15 @@ function TeamsIndexRoute() {
                     </div>
                   </div>
                   <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
+                    <DropdownMenuTrigger className="inline-flex shrink-0 items-center justify-center rounded-none border border-transparent bg-clip-padding text-xs font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-1 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 h-7 gap-1 rounded-none hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50">
+                      <MoreHorizontal className="h-4 w-4" />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => navigate(`/teams/${team.id}`)}>
+                      <DropdownMenuItem onClick={() => navigate(`/teams/${team.id}` as any)}>
                         <User className="h-4 w-4 mr-2" />
                         View
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => navigate(`/teams/${team.id}`)}>
+                      <DropdownMenuItem onClick={() => navigate(`/teams/${team.id}` as any)}>
                         <Edit className="h-4 w-4 mr-2" />
                         Edit
                       </DropdownMenuItem>

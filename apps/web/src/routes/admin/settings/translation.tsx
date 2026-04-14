@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
+import { useTranslationConfig, useTranslationUsageStats } from "@/hooks";
 import { toast } from "sonner";
 import { Button } from "@ticket-app/ui/components/button";
 import { Input } from "@ticket-app/ui/components/input";
@@ -14,6 +15,7 @@ import {
 } from "@ticket-app/ui/components/card";
 import { Loader2, ArrowLeft, Languages, CheckCircle, AlertCircle } from "lucide-react";
 import { orpc } from "@/utils/orpc";
+import { useOrganization } from "@/hooks/useOrganization";
 
 function _formatRelativeTime(date: Date | string): string {
   const now = new Date();
@@ -32,32 +34,23 @@ function _formatRelativeTime(date: Date | string): string {
 }
 
 export const Route = createFileRoute("/admin/settings/translation")({
+  loader: async () => {
+    return {};
+  },
   component: TranslationSettingsRoute,
 });
 
 function TranslationSettingsRoute() {
-  const organizationId = 1;
+  const { organizationId } = useOrganization();
 
   const [provider, setProvider] = useState<"google" | "deepl">("google");
   const [apiKey, setApiKey] = useState("");
   const [targetLanguage, setTargetLanguage] = useState("en");
   const [isEnabled, setIsEnabled] = useState(true);
 
-  const {
-    data: config,
-    isLoading,
-    refetch,
-  }: any = useQuery(
-    orpc.translation.getConfig.queryOptions({
-      organizationId,
-    } as any),
-  );
+  const { data: config, isLoading, refetch } = useTranslationConfig({ organizationId });
 
-  const { data: usageStats }: any = useQuery(
-    orpc.translation.getUsageStats.queryOptions({
-      organizationId,
-    } as any),
-  );
+  const { data: usageStats } = useTranslationUsageStats({ organizationId });
 
   const createMutation = useMutation(
     orpc.translation.createConfig.mutationOptions({

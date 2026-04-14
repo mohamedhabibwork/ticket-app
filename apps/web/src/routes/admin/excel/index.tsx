@@ -85,6 +85,21 @@ function getStatusBadge(status: string) {
 }
 
 export const Route = createFileRoute("/admin/excel/")({
+  loader: async ({ context }) => {
+    const [exportJobs, importJobs] = await Promise.all([
+      context.orpc.excel.listExportJobs.query({
+        organizationId: ORGANIZATION_ID,
+        limit: 20,
+        offset: 0,
+      }),
+      context.orpc.excel.listImportJobs.query({
+        organizationId: ORGANIZATION_ID,
+        limit: 20,
+        offset: 0,
+      }),
+    ]);
+    return { exportJobs, importJobs };
+  },
   component: ExcelManagementRoute,
 });
 
@@ -94,6 +109,8 @@ function ExcelManagementRoute() {
   const [importFile, setImportFile] = useState<File | null>(null);
   const [importMode, setImportMode] = useState<"create" | "upsert">("create");
   const [matchField, setMatchField] = useState("");
+  const { exportJobs: _initialExportJobs, importJobs: _initialImportJobs } =
+    Route.useLoaderData<typeof Route>();
 
   const exportJobsQuery = useQuery(
     (orpc as any).excel.listExportJobs.queryOptions({

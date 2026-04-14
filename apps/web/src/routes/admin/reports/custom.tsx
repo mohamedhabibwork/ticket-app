@@ -24,6 +24,9 @@ interface SavedReport {
 }
 
 export const Route = createFileRoute("/admin/reports/custom")({
+  loader: async () => {
+    return {};
+  },
   component: CustomReportPage,
 });
 

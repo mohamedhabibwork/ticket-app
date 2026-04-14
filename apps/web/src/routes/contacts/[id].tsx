@@ -1,7 +1,5 @@
 import { useState } from "react";
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@ticket-app/ui/components/button";
 import { Input } from "@ticket-app/ui/components/input";
 import { Label } from "@ticket-app/ui/components/label";
@@ -28,17 +26,31 @@ import {
   FileText,
 } from "lucide-react";
 
-import { orpc } from "@/utils/orpc";
+import { useContactUpdate, useContactMerge } from "@/hooks/contacts";
+import { getCurrentOrganizationId } from "@/utils/auth";
+import { useOrganization } from "@/hooks/useOrganization";
 
 export const Route = createFileRoute("/contacts/id")({
+  loader: async ({ context, params }) => {
+    const contactId = Number(params.id);
+    return {
+      contact: context.orpc.contacts.get.queryOptions({
+        organizationId: getCurrentOrganizationId()!,
+        id: contactId,
+      }),
+      tickets: context.orpc.tickets.list.queryOptions({
+        organizationId: getCurrentOrganizationId()!,
+        contactId,
+        limit: 10,
+      }),
+    };
+  },
   component: ContactDetailRoute,
 });
 
 function ContactDetailRoute() {
-  const { id } = Route.useParams();
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const organizationId = 1;
+  const { id } = Route.useParams() as { id: string };
+  const { organizationId } = useOrganization();
   const contactId = Number(id);
 
   const [isEditing, setIsEditing] = useState(false);
@@ -50,52 +62,18 @@ function ContactDetailRoute() {
     company: "",
   });
 
-  const { data: contact, isLoading }: any = useQuery(
-    orpc.contacts.get.queryOptions({ organizationId, id: contactId } as any, {
-      enabled: !isNaN(contactId),
-    }),
-  );
+  const { contact, tickets, isLoading } = Route.useLoaderData<(typeof Route)["loader"]>();
 
-  const { data: tickets }: any = useQuery(
-    orpc.tickets.list.queryOptions({
-      organizationId,
-      contactId,
-      limit: 10,
-    }) as any,
-  );
+  const updateMutation = useContactUpdate();
 
-  const updateMutation = useMutation(
-    orpc.contacts.create.mutationOptions({
-      onSuccess: () => {
-        toast.success("Contact updated successfully");
-        setIsEditing(false);
-        queryClient.invalidateQueries(
-          orpc.contacts.get.queryOptions({ organizationId, id: contactId }) as any,
-        );
-      },
-      onError: (error: any) => {
-        toast.error(`Failed to update contact: ${error.message}`);
-      },
-    }) as any,
-  );
-
-  const mergeMutation = useMutation(
-    orpc.contacts.merge.mutationOptions({
-      onSuccess: () => {
-        toast.success("Contacts merged successfully");
-        navigate({ to: "/contacts" });
-      },
-      onError: (error: any) => {
-        toast.error(`Failed to merge contacts: ${error.message}`);
-      },
-    }) as any,
-  );
+  const mergeMutation = useContactMerge();
 
   const handleSave = () => {
     updateMutation.mutate({
       organizationId,
+      id: contactId,
       ...editData,
-    } as any);
+    });
   };
 
   const _handleMerge = (targetId: number) => {
@@ -106,7 +84,7 @@ function ContactDetailRoute() {
         organizationId,
         sourceId: contactId,
         targetId,
-      } as any);
+      });
     }
   };
 
@@ -158,8 +136,8 @@ function ContactDetailRoute() {
             {isEditing ? "Cancel" : "Edit"}
           </Button>
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline">Actions</Button>
+            <DropdownMenuTrigger className="inline-flex shrink-0 items-center justify-center rounded-none border border-transparent bg-clip-padding text-xs font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-1 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 h-7 gap-1 rounded-none px-2.5 has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5 border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50">
+              Actions
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem>
@@ -278,7 +256,7 @@ function ContactDetailRoute() {
             <CardContent>
               {tickets && tickets.length > 0 ? (
                 <div className="space-y-3">
-                  {tickets.map((ticket) => (
+                  {tickets.map((ticket: any) => (
                     <Link key={ticket.id} to="/tickets/id" params={{ id: String(ticket.id) }}>
                       <div className="flex items-center justify-between p-3 rounded border hover:bg-accent/50">
                         <div>

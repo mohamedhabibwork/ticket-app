@@ -1,4 +1,3 @@
-import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { Button } from "@ticket-app/ui/components/button";
@@ -12,7 +11,6 @@ import {
 import { Input } from "@ticket-app/ui/components/input";
 import { Badge } from "@ticket-app/ui/components/badge";
 import { Tabs, TabsList, TabsTrigger } from "@ticket-app/ui/components/tabs";
-import { orpc } from "@/utils/orpc";
 import {
   ArrowLeft,
   FileText,
@@ -26,6 +24,8 @@ import {
   AlertCircle,
   Zap,
 } from "lucide-react";
+import { useWorkflowExecutionLogs, useWorkflowLogStats } from "@/hooks";
+import { getCurrentOrganizationId } from "@/utils/auth";
 
 function formatDate(date: Date | string): string {
   return new Date(date).toLocaleString();
@@ -48,12 +48,29 @@ function formatRelativeTime(date: Date | string): string {
 }
 
 export const Route = createFileRoute("/admin/workflows/id/logs")({
+  loader: async ({ context, params }) => {
+    const workflowId = Number(params.id);
+    const [workflow, logsData] = await Promise.all([
+      context.orpc.workflows.get.query({
+        id: workflowId,
+        organizationId: getCurrentOrganizationId()!,
+      }),
+      context.orpc.workflows.getExecutionLogs.query({
+        workflowId,
+        organizationId: getCurrentOrganizationId()!,
+        limit: 20,
+        offset: 0,
+      }),
+    ]);
+    return { workflow, logsData };
+  },
   component: WorkflowLogsRoute,
 });
 
 function WorkflowLogsRoute() {
   const { id }: any = Route.useParams();
   const workflowId = Number(id);
+  const { workflow, logsData } = Route.useLoaderData<typeof Route>();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [resultFilter, _setResultFilter] = useState<string>("all");
@@ -61,37 +78,16 @@ function WorkflowLogsRoute() {
   const [currentPage, setCurrentPage] = useState(0);
   const pageSize = 20;
 
-  const { data: workflow } = useQuery({
-    queryKey: ["workflow", workflowId],
-    queryFn: () =>
-      orpc.workflows.get.queryOptions({
-        id: workflowId,
-        organizationId: 1,
-      }),
+  const { isLoading, refetch } = useWorkflowExecutionLogs({
+    workflowId,
+    organizationId: getCurrentOrganizationId()!,
+    limit: pageSize,
+    offset: currentPage * pageSize,
   });
 
-  const {
-    data: logsData,
-    isLoading,
-    refetch,
-  } = useQuery({
-    queryKey: ["workflow-logs", workflowId, currentPage],
-    queryFn: () =>
-      orpc.workflows.getExecutionLogs.queryOptions({
-        workflowId,
-        organizationId: 1,
-        limit: pageSize,
-        offset: currentPage * pageSize,
-      }),
-  });
-
-  const { data: stats } = useQuery({
-    queryKey: ["workflow-log-stats", workflowId],
-    queryFn: () =>
-      orpc.workflowLogs.getStats.queryOptions({
-        organizationId: 1,
-        workflowId,
-      }),
+  const { data: stats } = useWorkflowLogStats({
+    workflowId,
+    organizationId: getCurrentOrganizationId()!,
   });
 
   const filteredLogs = logsData?.filter((log: any) => {

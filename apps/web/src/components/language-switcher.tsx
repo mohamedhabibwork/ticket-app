@@ -1,7 +1,7 @@
 "use client";
 
-import { useI18n, LOCALE_CONFIGS, type Locale } from "@/lib/i18n";
-import { useDirection } from "@/lib/i18n";
+import { useI18n, LOCALE_CONFIGS, type Locale } from "@ticket-app/ui/lib/i18n";
+import { useDirection } from "@ticket-app/ui/lib/i18n";
 import { ChevronDown, Globe } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 

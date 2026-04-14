@@ -1,8 +1,9 @@
+import type { Context } from "hono";
 import { env } from "@ticket-app/env/server";
 
 export function securityHeaders() {
   return async function securityHeadersMiddleware(
-    c: { res: { headers: Map<string, string> } },
+    c: { res: { headers: Headers } },
     next: () => Promise<void>,
   ) {
     await next();
@@ -19,16 +20,11 @@ export function securityHeaders() {
 }
 
 export function corsMiddleware() {
-  return async function corsMiddlewareHandler(
-    c: {
-      req: { method: string; headers: Record<string, string> };
-      res: { headers: Map<string, string> };
-    },
-    next: () => Promise<void>,
-  ) {
-    const origin = c.req.headers["origin"] || c.req.headers["Origin"];
+  return async function corsMiddlewareHandler(c: Context, next: () => Promise<void>) {
+    const origin = c.req.header("origin");
+    const allowedOrigins = env.CORS_ORIGIN.split(",").map((o) => o.trim());
 
-    if (origin && env.CORS_ORIGIN.split(",").some((o) => o.trim() === origin)) {
+    if (origin && allowedOrigins.some((o) => o === origin || o === "*")) {
       c.res.headers.set("Access-Control-Allow-Origin", origin);
       c.res.headers.set("Access-Control-Allow-Credentials", "true");
       c.res.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
@@ -40,7 +36,7 @@ export function corsMiddleware() {
     }
 
     if (c.req.method === "OPTIONS") {
-      return;
+      return c.body(null, 204);
     }
 
     await next();

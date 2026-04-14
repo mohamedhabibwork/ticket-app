@@ -21,6 +21,9 @@ import {
 import { Save, RotateCcw, Shield, Clock, Key, FileText, AlertTriangle } from "lucide-react";
 
 export const Route = createFileRoute("/admin/security/")({
+  loader: async () => {
+    return {};
+  },
   component: SecuritySettingsRoute,
 });
 

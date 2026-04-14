@@ -13,6 +13,8 @@ import { Input } from "@ticket-app/ui/components/input";
 import { Label } from "@ticket-app/ui/components/label";
 import { Checkbox } from "@ticket-app/ui/components/checkbox";
 import { orpc } from "@/utils/orpc";
+import { getCurrentOrganizationId } from "@/utils/auth";
+import { useOrganization } from "@/hooks/useOrganization";
 import {
   ArrowLeft,
   Mail,
@@ -27,10 +29,21 @@ import {
 } from "lucide-react";
 
 export const Route = createFileRoute("/admin/users/id")({
+  loader: async ({ context, params }) => {
+    const userId = Number(params.id);
+    const [user, rolesData, sessions, userTickets] = await Promise.all([
+      context.orpc.users.get.query({ organizationId: getCurrentOrganizationId()!, id: userId }),
+      context.orpc.users.listRoles.query({ organizationId: getCurrentOrganizationId()! }),
+      context.orpc.users.listSessions.query({ userId }),
+      context.orpc.tickets.list.query({ assignedAgentId: userId, limit: 10 }),
+    ]);
+    return { user, rolesData, sessions, userTickets };
+  },
   component: UserDetailRoute,
 });
 
 function UserDetailRoute() {
+  const { organizationId } = useOrganization();
   const { id } = Route.useParams() as { id: string };
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
@@ -44,33 +57,19 @@ function UserDetailRoute() {
     roleIds: [] as number[],
   });
 
+  const { user, rolesData, sessions, userTickets } = Route.useLoaderData<typeof Route>();
   const userId = Number(id);
 
-  const {
-    data: user,
-    isLoading,
-    refetch,
-  } = useQuery({
+  const { refetch } = useQuery({
     queryKey: ["user", userId],
-    queryFn: () => orpc.users.get.query({ organizationId: 1, id: userId }),
-    enabled: !isNaN(userId),
+    queryFn: () => orpc.users.get.query({ organizationId, id: userId }),
+    enabled: false,
   });
 
-  const { data: rolesData } = useQuery({
-    queryKey: ["roles"],
-    queryFn: () => orpc.users.listRoles.query({ organizationId: 1 }),
-  });
-
-  const { data: sessions } = useQuery({
-    queryKey: ["sessions", userId],
-    queryFn: () => orpc.users.listSessions.query({ userId }),
-    enabled: !!user,
-  });
-
-  const { data: userTickets } = useQuery({
+  useQuery({
     queryKey: ["userTickets", userId],
     queryFn: () => orpc.tickets.list.query({ assignedAgentId: userId, limit: 10 }),
-    enabled: !!user,
+    enabled: false,
   });
 
   const updateMutation = useMutation(
@@ -116,7 +115,7 @@ function UserDetailRoute() {
   const handleSave = () => {
     updateMutation.mutate({
       id: userId,
-      organizationId: 1,
+      organizationId,
       firstName: editData.firstName,
       lastName: editData.lastName,
       email: editData.email,
@@ -131,14 +130,14 @@ function UserDetailRoute() {
     if (
       confirm("Are you sure you want to deactivate this user? They will be logged out immediately.")
     ) {
-      deactivateMutation.mutate({ id: userId, organizationId: 1 } as any);
+      deactivateMutation.mutate({ id: userId, organizationId } as any);
     }
   };
 
   const handleActivate = () => {
     updateMutation.mutate({
       id: userId,
-      organizationId: 1,
+      organizationId,
       isActive: true,
     } as any);
   };
@@ -146,14 +145,6 @@ function UserDetailRoute() {
   const handleRevokeSession = (sessionId: number) => {
     revokeSessionMutation.mutate({ sessionId, userId } as any);
   };
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-[50vh]">
-        <div className="animate-spin h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full"></div>
-      </div>
-    );
-  }
 
   if (!user) {
     return (

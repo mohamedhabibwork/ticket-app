@@ -5,6 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@ticket-app/ui/compone
 import { Button } from "@ticket-app/ui/components/button";
 import { orpc } from "@/utils/orpc";
 import { ArrowLeft, Download, ArrowUpDown, Clock, CheckCircle2, Star } from "lucide-react";
+import { useResponseTimeReport } from "@/hooks";
+import { getCurrentOrganizationId } from "@/utils/auth";
+import { useOrganization } from "@/hooks/useOrganization";
 
 type DateRange = "7d" | "30d" | "90d" | "custom";
 
@@ -20,6 +23,13 @@ interface AgentRow {
 }
 
 export const Route = createFileRoute("/admin/reports/agents")({
+  loader: async ({ context }) => {
+    const organizationId = getCurrentOrganizationId()!;
+    const agentPerformance = await context.orpc.reports.getAgentPerformance.query({
+      organizationId,
+    });
+    return { agentPerformance };
+  },
   component: AgentPerformancePage,
 });
 
@@ -27,17 +37,16 @@ function AgentPerformancePage() {
   const [dateRange, setDateRange] = useState<DateRange>("30d");
   const [sortBy, setSortBy] = useState<keyof AgentRow>("ticketsResolved");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
-  const organizationId = 1;
+  const { organizationId } = useOrganization();
+  Route.useLoaderData<typeof Route>();
 
-  const { data: _agentPerformance, isLoading: _isLoading } = useQuery(
+  const { isLoading: _isLoading } = useQuery(
     orpc.reports.getAgentPerformance.queryOptions({
       organizationId,
     }) as any,
   );
 
-  const { data: _responseTime } = useQuery(
-    orpc.reports.getResponseTime.queryOptions({ organizationId }) as any,
-  );
+  const { data: _responseTime } = useResponseTimeReport({ organizationId });
 
   const dateRangeOptions: { value: DateRange; label: string }[] = [
     { value: "7d", label: "Last 7 days" },

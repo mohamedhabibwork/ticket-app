@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Button } from "@ticket-app/ui/components/button";
 import { Input } from "@ticket-app/ui/components/input";
@@ -16,15 +16,24 @@ import {
 import { Loader2, ChevronDown, Save, Eye } from "lucide-react";
 
 import { orpc } from "@/utils/orpc";
+import { getCurrentOrganizationId } from "@/utils/auth";
+import { useOrganization } from "@/hooks/useOrganization";
 
 export const Route = createFileRoute("/kb/new")({
+  loader: async ({ context }) => {
+    const categories = await context.orpc.kbCategories.list.query({
+      organizationId: getCurrentOrganizationId()!,
+    });
+    return { categories };
+  },
   component: CreateKbArticleRoute,
 });
 
 function CreateKbArticleRoute() {
+  const { categories } = Route.useLoaderData<typeof Route>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const organizationId = 1;
+  const { organizationId } = useOrganization();
 
   const [title, setTitle] = useState("");
   const [slug, setSlug] = useState("");
@@ -38,24 +47,18 @@ function CreateKbArticleRoute() {
   const [locale, setLocale] = useState("en");
   const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
 
-  const { data: categories } = useQuery(
-    orpc.kbCategories.list.queryOptions({
-      organizationId,
-    }),
-  );
-
   const createMutation = useMutation(
     orpc.kbArticles.create.mutationOptions({
-      onSuccess: async (data) => {
+      onSuccess: async (data: any) => {
         toast.success("Article created successfully");
         queryClient.invalidateQueries(orpc.kbArticles.list.queryOptions({ organizationId }));
         if (status === "published") {
           navigate({ to: "/kb" });
         } else {
-          navigate({ to: "/kb/slug", params: { slug: data.slug } });
+          navigate({ to: "/kb/$slug", params: { slug: data.slug } });
         }
       },
-      onError: (error) => {
+      onError: (error: any) => {
         toast.error(`Failed to create article: ${error.message}`);
       },
     }),
@@ -99,10 +102,10 @@ function CreateKbArticleRoute() {
       metaTitle: metaTitle.trim() || undefined,
       metaDescription: metaDescription.trim() || undefined,
       metaKeywords: tags.trim() || undefined,
-    });
+    } as any);
   };
 
-  const selectedCategory = categories?.find((c) => c.id === categoryId);
+  const selectedCategory = categories?.find((c: any) => c.id === categoryId);
 
   return (
     <div className="container mx-auto max-w-4xl px-4 py-6">
@@ -185,7 +188,7 @@ function CreateKbArticleRoute() {
                       >
                         None
                       </DropdownMenuItem>
-                      {categories?.map((category) => (
+                      {categories?.map((category: any) => (
                         <DropdownMenuItem
                           key={category.id}
                           onClick={() => {

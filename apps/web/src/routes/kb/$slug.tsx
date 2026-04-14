@@ -1,36 +1,26 @@
-import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Button } from "@ticket-app/ui/components/button";
 import { Card, CardHeader, CardTitle } from "@ticket-app/ui/components/card";
-import { Loader2 } from "lucide-react";
 import { ArrowLeft } from "lucide-react";
 
-import { orpc } from "@/utils/orpc";
 import { KbFeedback } from "@/components/kb-feedback";
+import { getCurrentOrganizationId } from "@/utils/auth";
 
 export const Route = createFileRoute("/kb/$slug")({
+  loader: async ({ context, params }) => {
+    const article = await context.orpc.kbArticles.getBySlug.query({
+      organizationId: getCurrentOrganizationId()!,
+      slug: params.slug,
+    });
+    return { article };
+  },
   component: KbArticleRoute,
 });
 
 function KbArticleRoute() {
-  const { slug } = Route.useParams();
+  const { article } = Route.useLoaderData<typeof Route>();
 
-  const article = useQuery(
-    orpc.kbArticles.getBySlug.queryOptions({
-      organizationId: 1,
-      slug,
-    }),
-  );
-
-  if (article.isLoading) {
-    return (
-      <div className="flex justify-center py-12">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
-  }
-
-  if (!article.data) {
+  if (!article) {
     return (
       <div className="container mx-auto max-w-4xl px-4 py-8">
         <div className="text-center">
@@ -60,37 +50,35 @@ function KbArticleRoute() {
       </Link>
 
       <article className="prose prose-sm sm:prose lg:prose-lg dark:prose-invert max-w-none">
-        {article.data.category && (
+        {article.category && (
           <div className="mb-2 text-sm text-muted-foreground">
-            {article.data.category.icon && (
-              <span className="mr-1">{article.data.category.icon}</span>
-            )}
-            {article.data.category.name}
+            {article.category.icon && <span className="mr-1">{article.category.icon}</span>}
+            {article.category.name}
           </div>
         )}
 
-        <h1 className="mb-4 text-3xl font-bold">{article.data.title}</h1>
+        <h1 className="mb-4 text-3xl font-bold">{article.title}</h1>
 
-        {article.data.metaDescription && (
-          <p className="text-lg text-muted-foreground mb-6">{article.data.metaDescription}</p>
+        {article.metaDescription && (
+          <p className="text-lg text-muted-foreground mb-6">{article.metaDescription}</p>
         )}
 
-        <div className="html-content" dangerouslySetInnerHTML={{ __html: article.data.bodyHtml }} />
+        <div className="html-content" dangerouslySetInnerHTML={{ __html: article.bodyHtml }} />
       </article>
 
       <div className="mt-12 border-t pt-8">
-        <KbFeedback articleId={article.data.id} locale="en" />
+        <KbFeedback articleId={article.id} locale="en" />
       </div>
 
-      {article.data.relatedArticles && article.data.relatedArticles.length > 0 && (
+      {article.relatedArticles && article.relatedArticles.length > 0 && (
         <div className="mt-12">
           <h2 className="mb-4 text-xl font-semibold">Related Articles</h2>
           <div className="grid gap-4 md:grid-cols-2">
-            {article.data.relatedArticles.map((related) => (
+            {article.relatedArticles.map((related: any) => (
               <Card key={related.id}>
                 <CardHeader className="p-4">
                   <CardTitle className="text-base">
-                    <Link to="/kb/slug" params={{ slug: related.slug }}>
+                    <Link to="/kb/$slug" params={{ slug: related.slug }}>
                       {related.title}
                     </Link>
                   </CardTitle>

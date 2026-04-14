@@ -62,7 +62,7 @@ export function SeatManagement({ subscription, onUpdate }: SeatManagementProps) 
   const handleAddByEmail = async () => {
     if (!email.includes("@")) return;
     // TODO: Look up user by email and get userId
-    await addSeatMutation.mutateAsync({ organizationId: 1, userId: 1 } as any);
+    await addSeatMutation.mutateAsync({ organizationId, userId: user?.id ?? null } as any);
   };
 
   const currentSeats = subscription.seats || [];
@@ -158,7 +158,7 @@ export function SeatManagement({ subscription, onUpdate }: SeatManagementProps) 
                       <button
                         onClick={() =>
                           removeSeatMutation.mutateAsync({
-                            organizationId: 1,
+                            organizationId,
                             userId: seat.userId,
                           } as any)
                         }

@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@ticket-app/ui/components/button";
 import { Card, CardContent } from "@ticket-app/ui/components/card";
 import { Input } from "@ticket-app/ui/components/input";
@@ -10,14 +9,28 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@ticket-app/ui/components/dropdown-menu";
-import { orpc } from "@/utils/orpc";
 import { MoreHorizontal, Plus, Search, Mail, Edit, UserX, UserCheck } from "lucide-react";
+import { useUsersList, useUserDelete, useUserUpdate } from "@/hooks/users";
+import { getCurrentOrganizationId } from "@/utils/auth";
+import { useOrganization } from "@/hooks/useOrganization";
 
 export const Route = createFileRoute("/admin/users/")({
+  loader: async ({ context }) => {
+    const [usersData, rolesData] = await Promise.all([
+      context.orpc.users.list.query({
+        organizationId: getCurrentOrganizationId()!,
+        limit: 20,
+        offset: 0,
+      }),
+      context.orpc.users.listRoles.query({ organizationId: getCurrentOrganizationId()! }),
+    ]);
+    return { usersData, rolesData };
+  },
   component: UsersListRoute,
 });
 
 function UsersListRoute() {
+  const { organizationId } = useOrganization();
   const [search, setSearch] = useState("");
   const [roleFilter, setRoleFilter] = useState<number | undefined>(undefined);
   const [statusFilter, setStatusFilter] = useState<boolean | undefined>(undefined);
@@ -25,44 +38,35 @@ function UsersListRoute() {
   const navigate = useNavigate();
   const limit = 20;
 
-  const { data: usersData, isLoading } = useQuery({
-    queryKey: ["users", page, search, roleFilter, statusFilter],
-    queryFn: () =>
-      orpc.users.list.query({
-        organizationId: 1,
-        search: search || undefined,
-        roleId: roleFilter,
-        isActive: statusFilter,
-        limit,
-        offset: (page - 1) * limit,
-      }),
+  const { usersData, rolesData } = Route.useLoaderData<typeof Route>();
+
+  const { data: refetchedUsersData, isLoading } = useUsersList({
+    organizationId,
+    search: search || undefined,
+    roleId: roleFilter,
+    isActive: statusFilter,
+    limit,
+    offset: (page - 1) * limit,
   });
 
-  const { data: rolesData } = useQuery({
-    queryKey: ["roles"],
-    queryFn: () => orpc.users.listRoles.query({ organizationId: 1 }),
-  });
+  const displayData = refetchedUsersData || usersData;
 
-  const deactivateMutation = useMutation(
-    orpc.users.delete.mutationOptions({
-      onSuccess: () => {
-        // Refetch users after deactivation
-      },
-    }),
-  );
+  const deleteMutation = useUserDelete();
+
+  const updateMutation = useUserUpdate();
 
   const handleDeactivate = (userId: number) => {
     if (confirm("Are you sure you want to deactivate this user?")) {
-      deactivateMutation.mutate({ id: userId, organizationId: 1 } as any);
+      deleteMutation.mutate({ id: userId, organizationId });
     }
   };
 
   const handleActivate = (userId: number) => {
-    orpc.users.update.mutate({
+    updateMutation.mutate({
       id: userId,
-      organizationId: 1,
+      organizationId,
       isActive: true,
-    } as any);
+    });
   };
 
   const getRoleName = (user: any) => {
@@ -70,7 +74,7 @@ function UsersListRoute() {
     return user.roles.map((ur: any) => ur.role.name).join(", ");
   };
 
-  const totalPages = usersData ? Math.ceil(usersData.total / limit) : 1;
+  const totalPages = displayData ? Math.ceil(displayData.total / limit) : 1;
 
   return (
     <div className="container mx-auto py-8">
@@ -155,14 +159,14 @@ function UsersListRoute() {
                     </div>
                   </td>
                 </tr>
-              ) : usersData?.users.length === 0 ? (
+              ) : displayData?.users.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">
                     No users found
                   </td>
                 </tr>
               ) : (
-                usersData?.users.map((user: any) => (
+                displayData?.users.map((user: any) => (
                   <tr key={user.id} className="border-b last:border-0">
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
@@ -207,10 +211,8 @@ function UsersListRoute() {
                     </td>
                     <td className="px-6 py-4">
                       <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
+                        <DropdownMenuTrigger className="inline-flex shrink-0 items-center justify-center rounded-none border border-transparent bg-clip-padding text-xs font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-1 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-1 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 h-7 gap-1 rounded-none hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50">
+                          <MoreHorizontal className="h-4 w-4" />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem
@@ -246,7 +248,7 @@ function UsersListRoute() {
         {totalPages > 1 && (
           <div className="flex items-center justify-between px-6 py-4 border-t">
             <div className="text-sm text-muted-foreground">
-              Page {page} of {totalPages} ({usersData?.total || 0} users)
+              Page {page} of {totalPages} ({displayData?.total || 0} users)
             </div>
             <div className="flex gap-2">
               <Button

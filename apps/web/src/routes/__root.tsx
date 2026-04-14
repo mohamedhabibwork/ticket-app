@@ -8,8 +8,9 @@ import { Toaster } from "@ticket-app/ui/components/sonner";
 import { useState } from "react";
 
 import Header from "@/components/header";
-import { I18nProvider } from "@/lib/i18n";
+import { I18nProvider } from "@ticket-app/ui/lib/i18n";
 import { ThemeProvider } from "@/components/theme-provider";
+import { AuthProvider } from "@/hooks/useAuth";
 import { link, orpc } from "@/utils/orpc";
 
 import "../index.css";
@@ -47,20 +48,22 @@ function RootComponent() {
   return (
     <>
       <HeadContent />
-      <I18nProvider>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          disableTransitionOnChange
-          storageKey="vite-ui-theme"
-        >
-          <div className="grid grid-rows-[auto_1fr] h-svh">
-            <Header />
-            <Outlet />
-          </div>
-          <Toaster richColors />
-        </ThemeProvider>
-      </I18nProvider>
+      <AuthProvider>
+        <I18nProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="dark"
+            disableTransitionOnChange
+            storageKey="vite-ui-theme"
+          >
+            <div className="grid grid-rows-[auto_1fr] h-svh">
+              <Header />
+              <Outlet />
+            </div>
+            <Toaster richColors />
+          </ThemeProvider>
+        </I18nProvider>
+      </AuthProvider>
       <TanStackRouterDevtools position="bottom-left" />
       <ReactQueryDevtools position="bottom" buttonPosition="bottom-right" />
     </>

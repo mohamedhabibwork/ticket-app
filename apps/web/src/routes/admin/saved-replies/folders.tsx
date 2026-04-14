@@ -1,11 +1,9 @@
 import { useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@ticket-app/ui/components/button";
 import { Card, CardContent } from "@ticket-app/ui/components/card";
 import { Input } from "@ticket-app/ui/components/input";
 import { Label } from "@ticket-app/ui/components/label";
-import { orpc } from "@/utils/orpc";
 import {
   ArrowLeft,
   Folder,
@@ -17,8 +15,21 @@ import {
   X,
   MessageSquare,
 } from "lucide-react";
+import { useSavedReplyFoldersList, useSavedReplyDelete } from "@/hooks/admin/saved-replies";
+import { orpc } from "@/utils/orpc";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { getCurrentOrganizationId } from "@/utils/auth";
+import { useOrganization } from "@/hooks/useOrganization";
 
 export const Route = createFileRoute("/admin/saved-replies/folders")({
+  loader: async ({ context }) => {
+    const organizationId = getCurrentOrganizationId()!;
+    const [folders, replies] = await Promise.all([
+      context.orpc.savedReplies.listFolders.query({ organizationId }),
+      context.orpc.savedReplies.list.query({ organizationId }),
+    ]);
+    return { folders, replies };
+  },
   component: SavedReplyFoldersRoute,
 });
 
@@ -30,17 +41,11 @@ function SavedReplyFoldersRoute() {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [draggedId, setDraggedId] = useState<number | null>(null);
 
-  const organizationId = 1;
+  const { organizationId } = useOrganization();
+  const { folders, replies } = Route.useLoaderData<typeof Route>();
 
-  const { data: folders, isLoading } = useQuery({
-    queryKey: ["saved-reply-folders", organizationId],
-    queryFn: () => orpc.savedReplies.listFolders.query({ organizationId }),
-  });
-
-  const { data: replies } = useQuery({
-    queryKey: ["saved-replies", organizationId],
-    queryFn: () => orpc.savedReplies.list.query({ organizationId }),
-  });
+  const { isLoading } = useSavedReplyFoldersList({ organizationId });
+  const deleteMutation = useSavedReplyDelete();
 
   const createMutation = useMutation(
     orpc.savedReplies.createFolder.mutationOptions({
@@ -58,15 +63,6 @@ function SavedReplyFoldersRoute() {
         queryClient.invalidateQueries({ queryKey: ["saved-reply-folders", organizationId] });
         setEditingId(null);
         setEditingName("");
-      },
-    }),
-  );
-
-  const deleteMutation = useMutation(
-    orpc.savedReplies.deleteFolder.mutationOptions({
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ["saved-reply-folders", organizationId] });
-        queryClient.invalidateQueries({ queryKey: ["saved-replies", organizationId] });
       },
     }),
   );
@@ -107,7 +103,7 @@ function SavedReplyFoldersRoute() {
         `Are you sure you want to delete the folder "${folderName}"? Replies in this folder will not be deleted but will become uncategorized.`,
       )
     ) {
-      deleteMutation.mutate({ id: folderId } as any);
+      deleteMutation.mutate({ id: folderId, organizationId } as any);
     }
   };
 

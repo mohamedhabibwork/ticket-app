@@ -15,6 +15,9 @@ import { Checkbox } from "@ticket-app/ui/components/checkbox";
 import { Save, RotateCcw, Globe, Lock, Code, Eye } from "lucide-react";
 
 export const Route = createFileRoute("/admin/branding/portal")({
+  loader: async () => {
+    return {};
+  },
   component: PortalCustomizationRoute,
 });
 

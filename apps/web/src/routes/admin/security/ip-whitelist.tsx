@@ -14,6 +14,9 @@ import { Checkbox } from "@ticket-app/ui/components/checkbox";
 import { Plus, Trash2, Edit2, Save, XCircle, Globe, Shield } from "lucide-react";
 
 export const Route = createFileRoute("/admin/security/ip-whitelist")({
+  loader: async () => {
+    return {};
+  },
   component: IPWhitelistRoute,
 });
 
